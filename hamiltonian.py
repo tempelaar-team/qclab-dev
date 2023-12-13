@@ -9,7 +9,7 @@ eh2j = 4.359744650*10**-18   # Hartree to Joule
 
 def fmo8():
     """
-    Hamiltonian of 8-site FMO complex of BChl (in cm-1)
+    Hamiltonian of 8-site FMO complex of BChl (originally in cm-1)
     Cited from Marcel Schmidt am Busch et al. J. Phys. Chem. Lett. 2011
     """
     ham = np.array([[12505.0, 94.8, 5.5, -5.9, 7.1, -15.1, -12.2, 39.5],
@@ -26,7 +26,7 @@ def fmo8():
 
 def fmo7():
     """
-    Hamiltonian of 7-site FMO complex of BChl (in cm-1)
+    Hamiltonian of 7-site FMO complex of BChl (originally in cm-1)
     Cited from E. Mulvihill ... E. Geva, J. Chem. Phys. 2021
     """
     ham = np.array([[12410, -87.7,   5.5,  -5.9,   6.7, -13.7,  -9.9],
@@ -43,6 +43,8 @@ def fmo7():
 def holstein(nstate, coup):
     """
     Holstein model Hamiltonian
+    'nstate': number of states/sites
+    'coup': nearest neighbor interaction strength
     """
     ham = np.zeros((nstate, nstate), dtype=complex)
     for n in range(nstate):
