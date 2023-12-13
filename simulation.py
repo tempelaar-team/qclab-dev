@@ -6,8 +6,9 @@ class Simulation:
             "num_procs": 4,  # number of processors to use
             "num_trajs": 4,  # number of trajectories to run
             "sys_hamil": "holstein",  # system hamiltonian
-            "Hsys_rot": False,  # rotation of system hamiltonian. Default: no rotation.
-            "phonon_rot": False  # rotation of phonon coordinates. Default: no rotation.
+            "Hsys_rot": False,  # rotation of system hamiltonian. Default: no rotation
+            "phonon_rot": False,  # rotation of phonon coordinates. Default: no rotation
+            "qp_dist": "boltz"  # phonon coordinate sampling function. Default: thermal Boltzmann distribution
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
@@ -24,3 +25,4 @@ class Simulation:
         self.sys_hamil = defaults['sys_hamil']
         self.Hsys_rot = defaults['Hsys_rot']
         self.phonon_rot = defaults['phonon_rot']
+        self.qp_dist = defaults['qp_dist']
