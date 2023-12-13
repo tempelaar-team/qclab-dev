@@ -9,7 +9,7 @@ eh2j = 4.359744650*10**-18   # Hartree to Joule
 
 """
 Hamiltonian of 8-site FMO complex of BChl (in cm-1)
-Cited from Marcel Schmidt am Busch et al. J. Phys. Chem. Lett. 2011
+Cited from Marcel Schmidt am Busch et al. J. Phys. Chem. Lett. 2011.
 """
 fmo8 = np.array([[12505.0, 94.8, 5.5, -5.9, 7.1, -15.1, -12.2, 39.5],
                  [94.8, 12425.0, 29.8, 7.6, 1.6, 13.1, 5.7, 7.9],
@@ -45,4 +45,3 @@ Peierl model
 """
 TMD Hamiltonian
 """
-
