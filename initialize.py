@@ -28,8 +28,8 @@ def sample_qp_boltzmann(q0, p0, beta, freq):
 
 def initialize(sim):  # here we compute Hq, Hqc(q,p), generator of q,p and gradient of Hqc
     """Define system hamiltonian in a general rotated basis"""
-    hq = hamiltonian.hamil(sim.sys_hamil)
-    if sim.Hsys_rot:
+    hq = hamiltonian.hamil[sim.sys_hamil]
+    if sim.hsys_rot:
         hq = np.matmul(strot, np.matmul(hq, strot_dag))
     sim.hq = hq
 
