@@ -1,10 +1,14 @@
+import hamiltonian
+
+
 class Simulation:
     def __init__(self, input_file):
         # Define default values
         defaults = {
             "dynamics_method": "MF",  # which dynamics method, "MF", "FSSH", "CFSSH"
             "num_procs": 4,  # number of processors to use
-            "num_trajs": 4  # number of trajectories to run
+            "num_trajs": 4,  # number of trajectories to run
+            "sys_hamil": hamiltonian.hamil['holstein']  # system hamiltonian
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
@@ -18,3 +22,4 @@ class Simulation:
         self.dynamics_method = defaults['dynamics_method']
         self.num_procs = defaults['num_procs']
         self.num_trajs = defaults['num_trajs']
+        self.sys_hamil = defaults['sys_hamil']

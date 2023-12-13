@@ -62,10 +62,23 @@ def holstein(nstate, coup):
     return ham
 
 
-"""
-Peierl model
-"""
+def peierl(nstate, coup):
+    """
+    Peierl model
+    """
+    ham = np.zeros((nstate, nstate), dtype=complex)
+    return ham
 
-"""
-TMD Hamiltonian
-"""
+
+def tmd():
+    """
+    TMD Hamiltonian
+    """
+    return ham
+
+
+hamil = {"fmo8": fmo8(),
+         "fmo7": fmo7(),
+         "holstein": holstein(nstate, J),
+         "peierl": peierl(nstate, J),
+         "TMD": tmd()}
