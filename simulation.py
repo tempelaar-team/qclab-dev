@@ -8,7 +8,8 @@ class Simulation:
             "dynamics_method": "MF",  # which dynamics method, "MF", "FSSH", "CFSSH"
             "num_procs": 4,  # number of processors to use
             "num_trajs": 4,  # number of trajectories to run
-            "sys_hamil": hamiltonian.hamil['holstein']  # system hamiltonian
+            "Hsys_rot": "norot",  # rotation of system hamiltonian. Default: no rotation.
+            "phonon_rot": "norot"  # rotation of phonon coordinates. Default: no rotation.
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
@@ -22,4 +23,5 @@ class Simulation:
         self.dynamics_method = defaults['dynamics_method']
         self.num_procs = defaults['num_procs']
         self.num_trajs = defaults['num_trajs']
-        self.sys_hamil = defaults['sys_hamil']
+        self.Hsys_rot = defaults['Hsys_rot']
+        self.phonon_rot = defaults['phonon_rot']
