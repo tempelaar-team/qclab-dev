@@ -1,5 +1,5 @@
 """
-– User-specified spin boson type hamiltonian
+– User-specified system hamiltonian
 – User-specified state & phonon coordinates rotation matrices
 """
 
