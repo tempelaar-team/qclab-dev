@@ -8,7 +8,7 @@ pi = np.pi
 
 """
 Parameters 
-Temporarily specified here; better specified in an input file
+Temporarily specified here.
 """
 nstate = 30  # number of states/sites
 J = 1.0  # nearest-neighbor interaction strength
@@ -35,7 +35,7 @@ Hsys *= -J
 
 
 """
-State rotation matrix
+State rotation matrix (rotation to reciprocal space as an example)
 """
 strot = np.zeros((nstate,nstate), dtype=complex)
 for k in range(0, nstate):
@@ -52,7 +52,7 @@ pop_rot = np.identity(ndyn_state, dtype=complex)
 
 
 """
-Phonon coordinates rotation matrix
+Phonon coordinates rotation matrix (same as state rotation, as an example)
 """
 phrot = strot
 phrot_d = strot_d
