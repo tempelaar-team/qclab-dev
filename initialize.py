@@ -1,29 +1,30 @@
-import numpy as np
-import system
 from system import *
 
 
-def sample_qp_wigner(q0, p0, beta, freq):
+def sample_qp_wigner(q0, p0, bet, freq):
     """
     Sample nuclear phase space variables from Wigner distribution under
     harmonic approximation
     """
     # position
-    q = np.random.normal(loc=q0, scale=np.sqrt(1.0/(2.0*freq*np.tanh(beta*freq/2.0))))
+    q = np.random.normal(loc=q0, scale=np.sqrt(1.0/(2.0*freq*np.tanh(bet*freq/2.0))))
     # momentum
-    p = np.random.normal(loc=p0, scale=np.sqrt(freq/(2.0*np.tanh(beta*freq/2.0))))
+    p = np.random.normal(loc=p0, scale=np.sqrt(freq/(2.0*np.tanh(bet*freq/2.0))))
     return q, p
 
 
-def sample_qp_boltzmann(q0, p0, beta, freq):
+def sample_qp_boltzmann(q0, p0, bet, freq):
     """
     Sample nuclear phase space variables from the Boltzmann distribution
     """
     # position
-    q = np.random.normal(loc=q0, scale=np.sqrt(1.0/(beta*freq**2)))
+    q = np.random.normal(loc=q0, scale=np.sqrt(1.0/(bet*freq**2)))
     # momentum
-    p = np.random.normal(loc=p0, scale=np.sqrt(1.0/beta))
+    p = np.random.normal(loc=p0, scale=np.sqrt(1.0/bet))
     return q, p
+
+
+sample_qp = {'boltz': sample_qp_boltzmann, 'wigner': sample_qp_wigner}
 
 
 def initialize(sim):  # here we compute Hq, Hqc(q,p), generator of q,p and gradient of Hqc
@@ -31,18 +32,14 @@ def initialize(sim):  # here we compute Hq, Hqc(q,p), generator of q,p and gradi
     sim.hsys = Hsys
 
     """Sample q & p and rotate into a desirable basis"""
-    if sim.qp_dist == 'boltz':
-        sample_qp = sample_qp_boltzmann
-    elif sim.qp_dist == 'wigner':
-        sample_qp = sample_qp_wigner
     qp = np.zeros((ntraj, 2, ndyn_phset, nph_per_set))
     for itraj in range(ntraj):
         qp_temp = np.zeros((2, nstate, nph_per_set))
         zn = np.zeros((nstate, nph_per_set), dtype=complex)
-        for n in range(nstate):
+        for ist in range(nstate):
             for i in range(nph_per_set):
-                qp_temp[0, n, i], qp_temp[1, n, i] = sample_qp(q0[i], frq[i])
-                zn[n, i] = np.sqrt(frq[i] / 2.0) * (qp_temp[0, n, i] + 1j * qp_temp[1, n, i] / frq[i])
+                qp_temp[0, ist, i], qp_temp[1, ist, i] = sample_qp[sim.qp_dist](q0[i], p0[i], beta, frq[i])
+                zn[ist, i] = np.sqrt(frq[i] / 2.0) * (qp_temp[0, ist, i] + 1j * qp_temp[1, ist, i] / frq[i])
 
         # Rotate phonon modes
         zalp = np.zeros((nstate, nph_per_set), dtype=complex)
