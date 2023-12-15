@@ -17,7 +17,7 @@ def sample_qp_wigner(q0, p0, beta, freq):
 
 def sample_qp_boltzmann(q0, p0, beta, freq):
     """
-    Sample nuclear phase space variables from Boltzmann distribution
+    Sample nuclear phase space variables from the Boltzmann distribution
     """
     # position
     q = np.random.normal(loc=q0, scale=np.sqrt(1.0/(beta*freq**2)))
