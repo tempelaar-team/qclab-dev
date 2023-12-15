@@ -16,6 +16,9 @@ ndyn_phset = 30  # number of sets of phonon modes after truncation
 nph_per_set = 1  # number of phonon modes per set
 J = 1.0  # nearest-neighbor interaction strength
 
+trunc_states = []  # states to exclude from dynamics
+trunc_modes = []  # phonon modes to exclude from dynamics
+
 
 # As an example holstein model is used here
 """
