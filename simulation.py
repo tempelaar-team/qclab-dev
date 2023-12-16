@@ -5,7 +5,8 @@ class Simulation:
             "dynamics_method": "MF",  # which dynamics method, "MF", "FSSH", "CFSSH"
             "num_procs": 4,  # number of processors to use
             "num_trajs": 4,  # number of trajectories to run
-            "qp_dist": "boltz"  # phonon coordinate sampling function. Default: thermal Boltzmann distribution
+            "qp_dist": "boltz",  # phonon coordinate sampling function. Default: thermal Boltzmann distribution
+            "specden": "manual"  # phonon modes spectral density. Default: manually specified frequency and coupling
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
@@ -20,3 +21,4 @@ class Simulation:
         self.num_procs = defaults['num_procs']
         self.num_trajs = defaults['num_trajs']
         self.qp_dist = defaults['qp_dist']
+        self.specden = defaults['specden']
