@@ -24,10 +24,38 @@ def sample_qp_boltzmann(q0, p0, bet, freq):
     return q, p
 
 
+def sample_debye(wc, lam):
+    """
+    Debye spectral density sampling function
+    'wc': cutoff frequency
+    'lam': reorganization energy
+    """
+    frq, g = [], []
+    for j in range(nph_per_set):
+        frq.append(wc * np.tan((pi/(2*nph_per_set)) * (j + 1 - 0.5)))
+    frq = np.array(frq)
+    for j in range(nph_per_set):
+        g.append(frq[j] * np.sqrt(2*lam / nph_per_set))
+    g = np.array(g)
+    return frq, g
+
+
 sample_qp = {'boltz': sample_qp_boltzmann, 'wigner': sample_qp_wigner}
+sample_w_g = {'debye': sample_debye}
 
 
 def initialize(sim):  # here we compute Hq, Hqc(q,p), generator of q,p and gradient of Hqc
+    """Sample phonon frequencies and couplings"""
+    if sim.specden != 'manual':
+        sim.frq, sim.g = sample_w_g[sim.specden](sim.w_cutoff, sim.reorg_en)
+    frq, g = sim.frq, sim.g
+    frq_ext, g_ext = frq, g  # extended array of frequencies and couplings
+    for m in range(ndyn_phset - 1):
+        frq_ext = np.concatenate((frq_ext, frq))
+        g_ext = np.concatenate((g_ext, g))
+    frq_ext, g_ext = np.diag(frq_ext), np.diag(g_ext)
+    sim.frq_ext, sim.g_ext = frq_ext, g_ext
+
     """Define system hamiltonian in a general rotated basis"""
     sim.hsys = Hsys
 
@@ -53,4 +81,6 @@ def initialize(sim):  # here we compute Hq, Hqc(q,p), generator of q,p and gradi
                 qp_temp[1, alp, i] = np.imag(zalp[alp, i]) * np.sqrt(2.0 * frq[i])
         qp[itraj] = np.delete(qp_temp, trunc_modes, axis=1)  # only include selected modes
     sim.qp = qp
+
+    """Perform truncation of matrices"""
     return sim
