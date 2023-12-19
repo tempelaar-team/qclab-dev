@@ -6,7 +6,7 @@ class Simulation:
             "num_procs": 4,  # number of processors to use
             "num_trajs": 4,  # number of trajectories to run
             "qp_dist": "boltz",  # phonon coordinate sampling function. Default: thermal Boltzmann distribution
-            "specden": "manual"  # phonon modes spectral density. Default: manually specified frequency and coupling
+            "specden": "single"  # phonon modes spectral density. Default: single mode per state/site
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
