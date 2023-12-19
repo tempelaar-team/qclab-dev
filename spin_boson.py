@@ -112,7 +112,7 @@ def get_nac_numer(eigvec, frq, g):
     return nacq_num, nacp_num
 
 
-def get_gmatrices(trunc_phrot):
+def get_gmat(u):
     """Compute G matrices"""
     grr = np.zeros((ndyn_phset, ndyn_phset))
     gri = np.zeros((ndyn_phset, ndyn_phset))
@@ -121,8 +121,8 @@ def get_gmatrices(trunc_phrot):
     for bet in range(ndyn_phset):
         for alp in range(ndyn_phset):
             for m in range(nstate):
-                grr[bet, alp] += np.real(trunc_phrot[bet, m]) * np.real(trunc_phrot[alp, m])
-                gri[bet, alp] += np.real(trunc_phrot[bet, m]) * np.imag(trunc_phrot[alp, m])
-                gir[bet, alp] += np.imag(trunc_phrot[bet, m]) * np.real(trunc_phrot[alp, m])
-                gii[bet, alp] += np.imag(trunc_phrot[bet, m]) * np.imag(trunc_phrot[alp, m])
+                grr[bet, alp] += np.real(u[bet, m]) * np.real(u[alp, m])
+                gri[bet, alp] += np.real(u[bet, m]) * np.imag(u[alp, m])
+                gir[bet, alp] += np.imag(u[bet, m]) * np.real(u[alp, m])
+                gii[bet, alp] += np.imag(u[bet, m]) * np.imag(u[alp, m])
     return grr, gri, gir, gii
