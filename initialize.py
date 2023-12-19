@@ -1,4 +1,5 @@
 from system import *
+import spin_boson
 
 
 def sample_qp_wigner(q0, p0, bet, freq):
@@ -44,9 +45,40 @@ sample_qp = {'boltz': sample_qp_boltzmann, 'wigner': sample_qp_wigner}
 sample_w_g = {'debye': sample_debye}
 
 
+def truncate_phrot(u):
+    """
+    Truncate phonon rotation matrix according to the specified modes to be retained in dynamics.
+    "u": time-independent phonon-mode rotation matrix
+    """
+    uminor = np.delete(u, trunc_modes, axis=0)
+    uminor_d = np.conj(uminor.T)
+    return uminor, uminor_d
+
+
+def truncate_strot(v):
+    """
+    Truncate site/state rotation matrix according to the specified number
+    of quantum sites/states to be retained in dynamics.
+    "Vel": time-independent electronic Hamiltonian rotation matrix
+    """
+    vminor = np.delete(v, trunc_states, axis=0)
+    vminor_d = np.conj(vminor.T)
+    return vminor, vminor_d
+
+
+def truncate_coef(vec):
+    """
+    Truncate quantum coefficients according to the specified number
+    of sites/states to be retained in dynamics
+    "vec": Initial state expansion coefs in a general rotated basis
+    """
+    vecminor = np.delete(vec, trunc_states)
+    return vecminor
+
+
 def initialize(sim):  # here we compute Hq, Hqc(q,p), generator of q,p and gradient of Hqc
     """Sample phonon frequencies and couplings"""
-    if sim.specden != 'manual':
+    if sim.specden != 'single':
         sim.frq, sim.g = sample_w_g[sim.specden](sim.w_cutoff, sim.reorg_en)
     frq, g = sim.frq, sim.g
     frq_ext, g_ext = frq, g  # extended array of frequencies and couplings
@@ -56,17 +88,14 @@ def initialize(sim):  # here we compute Hq, Hqc(q,p), generator of q,p and gradi
     frq_ext, g_ext = np.diag(frq_ext), np.diag(g_ext)
     sim.frq_ext, sim.g_ext = frq_ext, g_ext
 
-    """Define system hamiltonian in a general rotated basis"""
-    sim.hsys = Hsys
-
     """Sample q & p and rotate into a desirable basis"""
-    qp = np.zeros((ntraj, 2, ndyn_phset, nph_per_set))
-    for itraj in range(ntraj):
+    qp = np.zeros((sim.ntraj, 2, ndyn_phset, nph_per_set))
+    for itraj in range(sim.ntraj):
         qp_temp = np.zeros((2, nstate, nph_per_set))
         zn = np.zeros((nstate, nph_per_set), dtype=complex)
         for ist in range(nstate):
             for i in range(nph_per_set):
-                qp_temp[0, ist, i], qp_temp[1, ist, i] = sample_qp[sim.qp_dist](q0[i], p0[i], beta, frq[i])
+                qp_temp[0, ist, i], qp_temp[1, ist, i] = sample_qp[sim.qp_dist](sim.q0[i], sim.p0[i], sim.beta, frq[i])
                 zn[ist, i] = np.sqrt(frq[i] / 2.0) * (qp_temp[0, ist, i] + 1j * qp_temp[1, ist, i] / frq[i])
 
         # Rotate phonon modes
@@ -83,4 +112,14 @@ def initialize(sim):  # here we compute Hq, Hqc(q,p), generator of q,p and gradi
     sim.qp = qp
 
     """Perform truncation of matrices"""
+    hsys = np.delete(Hsys, trunc_states, axis=0)
+    hsys = np.delete(hsys, trunc_states, axis=1)
+    sim.Hsys = hsys
+    sim.strot, sim.strot_d = truncate_strot(strot)
+    sim.strot_s = np.conj(strot)
+    sim.phrot, sim.phrot_d = truncate_phrot(phrot)
+    sim.phrot_s = np.conj(phrot)
+    sim.coef = truncate_coef(coef)
+    sim.grr, sim.gri, sim.gir, sim.gii = spin_boson.get_gmat(sim.strot)
+
     return sim
