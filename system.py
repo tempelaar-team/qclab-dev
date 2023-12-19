@@ -42,7 +42,7 @@ Hsys *= -J
 """
 State rotation matrix (rotation to reciprocal space as an example)
 """
-strot = np.zeros((nstate,nstate), dtype=complex)
+strot = np.zeros((nstate, nstate), dtype=complex)
 for k in range(0, nstate):
     for n in range(0, nstate):
         strot[k, n] = np.exp(1j*(2*pi*k/nstate - pi)*n)/np.sqrt(nstate)
@@ -61,3 +61,10 @@ Phonon coordinates rotation matrix (same as state rotation, as an example)
 """
 phrot = strot
 phrot_d = strot_d
+
+
+"""
+Initial state distribution
+"""
+coef = np.ones(nstate, dtype=complex) / np.sqrt(nstate)
+coef = np.matmul(strot, coef)
