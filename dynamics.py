@@ -61,7 +61,6 @@ def mf_dynamics(traj, sim):
     np.random.seed(traj.seed)
     #  initialize classical coordinates
     q, p = sim.init_classical()
-
     #  compute initial Hamiltonian
     h_q = sim.H_q()
     h_tot = h_q + sim.h_qc(q, p)
