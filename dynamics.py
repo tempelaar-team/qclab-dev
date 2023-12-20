@@ -49,6 +49,50 @@ def run_dynamics(sim):
 
 @ray.remote
 def cfssh_dynamics(traj, sim):
+    start_time = time.time()
+    np.random.seed(traj.seed)
+    # initialize classical coordinates
+    q, p = sim.init_classical()
+    # compute initial Hamiltonian
+    h_q = sim.h_q()
+    h_tot = h_q + sim.h_qc(q, p)
+    # compute initial eigenvalues and eigenvectors
+    evals_0, evecs_0 = np.linalg.eigh(h_tot)
+    num_states = len(evals_0)
+    num_branches = num_states
+    # compute initial gauge shift for real-valued derivative couplings
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
+    # execute phase shift
+    evecs_0 = np.matmul(evecs_0, np.diag(np.conjugate(dab_q_phase)))
+    # recalculate phases and check that they are zero
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
+    if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
+        print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
+    #  initial wavefunction in diabatic basis
+    psi_db = sim.psi_db_0
+    # determine initial adiabatic wavefunction in fixed gauge
+    psi_adb = auxilliary.vec_db_to_adb(psi_db, evecs_0)
+    # initialize branches of classical coordinates
+    q_branch = np.zeros((num_branches, *np.shape(q)))
+    p_branch = np.zeros((num_branches, *np.shape(p)))
+    q_branch[:] = q
+    p_branch[:] = p
+    # initialize outputs
+    tdat = np.arange(0,sim.tmax + sim.dt, sim.dt)
+    tdat_bath = np.arange(0,sim.tmax + sim.dt_bath, sim.dt_bath)
+    ec = np.zeros((len(tdat)))
+    eq = np.zeros((len(tdat)))
+    pops_db = np.zeros((len(tdat), num_states))
+    pops_db_fssh = np.zeros((len(tdat), num_states))
+    # initial adiabatic density matrix
+    rho_adb_0 = np.outer(psi_adb, np.conjugate(psi_adb))
+    # initial wavefunction in branches
+    psi_adb_branch = np.zeros((num_branches, num_states), dtype=complex)
+    psi_adb_branch[:] = psi_adb
+
+
+
+
     return traj, msg
 
 @ray.remote
@@ -58,7 +102,7 @@ def fssh_dynamics(traj, sim):
     #  initialize classical coordinates
     q, p = sim.init_classical()
     #  compute initial Hamiltonian
-    h_q = sim.H_q()
+    h_q = sim.h_q()
     h_tot = h_q + sim.h_qc(q, p)
     #  compute eigenvectors
     evals, evecs = np.linalg.eigh(h_tot)
@@ -99,12 +143,12 @@ def fssh_dynamics(traj, sim):
             break
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
             # compute adiabatic density matrix
-            den_mat_adb = np.outer(psi_adb, np.conjugate(psi_adb))
-            den_mat_adb[range(num_states), range(num_states)] = act_surf
+            rho_adb = np.outer(psi_adb, np.conjugate(psi_adb))
+            rho_adb[range(num_states), range(num_states)] = act_surf
             # transform to diabatic basis
-            den_mat_db = auxilliary.rho_0_adb_to_db(den_mat_adb, evecs)
+            rho_db = auxilliary.rho_0_adb_to_db(rho_adb, evecs)
             # save populations
-            pops_db[t_ind] = np.real(np.diag(den_mat_db))
+            pops_db[t_ind] = np.real(np.diag(rho_db))
             # save energies
             ec[t_ind] = sim.h_c(q, p)
             eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db), np.matmul(h_tot, psi_db)))
@@ -197,7 +241,7 @@ def mf_dynamics(traj, sim):
     #  initialize classical coordinates
     q, p = sim.init_classical()
     #  compute initial Hamiltonian
-    h_q = sim.H_q()
+    h_q = sim.h_q()
     h_tot = h_q + sim.h_qc(q, p)
     num_states = len(h_q)
     # initial wavefunction in diabatic basis
@@ -214,7 +258,7 @@ def mf_dynamics(traj, sim):
         if t_ind == len(tdat):
             break
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
-            ec[t_ind] = sim.H_c(q, p)
+            ec[t_ind] = sim.h_c(q, p)
             eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db),np.matmul(h_tot, psi_db)))
             pops_db[t_ind] = np.abs(psi_db)**2
             t_ind += 1
