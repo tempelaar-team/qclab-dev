@@ -42,6 +42,8 @@ def run_dynamics(sim):
             traj_obj, msg = ray.get(r)
             print(msg)
             data_obj.add_data(traj_obj)
+        del results
+    ray.shutdown()
     data_file = open(data_obj.filename, 'wb')
     pickle.dump(data_obj, data_file)
     data_file.close()
