@@ -46,7 +46,8 @@ def rho_0_db_to_adb(rho_0_db, eigvec): # transforms density matrix from db to ad
     return rho_0_db
 
 def get_dkk(evec_i, evec_j, ev_diff, sim):  # computes dkk_{ij} using sparse methods
-
+    # TODO need to add this function
+    return dkkq, dkkp
 def get_dab_phase(evals, evecs, sim):
     dabq_phase = np.ones(len(evals))
     dabp_phase = np.ones(len(evals))

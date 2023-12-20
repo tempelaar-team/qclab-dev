@@ -71,7 +71,6 @@ def fssh_dynamics(traj, sim):
     dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim)
     if np.sum(np.abs(np.imag(dab_q_phase))**2 + np.abs(np.imag(dab_p_phase))**2) > 1e-10:
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase))**2 + np.abs(np.imag(dab_p_phase))**2) )
-
     #  initial wavefunction in diabatic basis
     psi_db = sim.psi_db_0
     # determine initial adiabatic wavefunction in fixed gauge
@@ -92,21 +91,29 @@ def fssh_dynamics(traj, sim):
     pops_db = np.zeros((len(tdat), num_states))
     ec = np.zeros((len(tdat)))
     eq = np.zeros((len(tdat)))
+    # begin timesteps
     t_ind = 0
     hop_count = 0
     for t_bath_ind  in np.arange(0, len(tdat_bath)):
         if t_ind == len(tdat):
             break
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
+            # compute adiabatic density matrix
             den_mat_adb = np.outer(psi_adb, np.conjugate(psi_adb))
             den_mat_adb[range(num_states), range(num_states)] = act_surf
+            # transform to diabatic basis
             den_mat_db = auxilliary.rho_0_adb_to_db(den_mat_adb, evecs)
+            # save populations
             pops_db[t_ind] = np.real(np.diag(den_mat_db))
+            # save energies
             ec[t_ind] = sim.h_c(q, p)
             eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db), np.matmul(h_tot, psi_db)))
             t_ind += 1
+        # compute quantum force
         fq, fp = sim.quantumforce(evecs[:, act_surf_ind], sim)
+        # evolve classical coordinates
         q, p = auxilliary.rk4_c(q, p, (fq, fp), sim.w_c, sim.dt_bath)
+        # evolve quantum subsystem saving prevous eigenvector values
         evecs_previous = np.copy(evecs)
         h_tot = h_q + sim.h_qc(q, p)
         evals, evecs = np.linalg.eigh(h_tot)
@@ -115,15 +122,20 @@ def fssh_dynamics(traj, sim):
         diag_matrix = np.diag(evals_exp)
         psi_adb = np.dot(diag_matrix, psi_adb)
         psi_db = auxilliary.vec_adb_to_db(psi_adb, evecs)
+        # compute random value
         rand = np.random.rand()
+        # compute wavefunction overlaps
         prod = np.matmul(np.conj(evecs[:, act_surf_ind]), evecs_previous)
+        # compute hopping probability
         hop_prob = -2*np.real(prod * (psi_adb / psi_adb[act_surf_ind]))
         hop_prob[act_surf_ind] = 0
         bin_edge = 0
+        # loop over states
         for k in range(len(hop_prob)):
             hop_prob[k] = auxilliary.nan_num(hop_prob[k])
             bin_edge = bin_edge + hop_prob[k]
             if rand < bin_edge:
+                # compute nonadiabatic couplings
                 eig_k = evecs[:, act_surf_ind]
                 eig_j = evecs[:, k]
                 eigval_k = evecs[act_surf_ind]
@@ -140,6 +152,7 @@ def fssh_dynamics(traj, sim):
                           np.abs(np.sin(np.angle(dkkp[np.argmax(np.abs(dkkp))]))),
                           '\n magnitude: ', np.abs(dkkp[np.argmax(np.abs(dkkp))]),
                           '\n value: ', dkkp[np.argmax(np.abs(dkkp))])
+                # compute rescalings
                 delta_q = np.real(dkkp)
                 delta_p = np.real(dkkq)
                 akkq = np.sum((1 / 2) * np.abs(
@@ -158,13 +171,16 @@ def fssh_dynamics(traj, sim):
                         gamma = 0
                     else:
                         gamma = gamma / (2 * (akkq + akkp))
-                    p = p - np.real(gamma) * delta_p  # rescale
-                    q = q + np.real(gamma) * delta_q  # rescale
+                    # rescale classical coordinates
+                    p = p - np.real(gamma) * delta_p
+                    q = q + np.real(gamma) * delta_q
+                    # update active surface
                     act_surf_ind = k
                     act_surf = np.zeros_like(act_surf)
                     act_surf[act_surf_ind] = 1
                     hop_count += 1
                 break
+    # save data
     traj.add_to_dic('pops_db', pops_db)
     traj.add_to_dic('t', tdat)
     traj.add_to_dic('eq', eq)
