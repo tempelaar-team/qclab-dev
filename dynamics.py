@@ -91,6 +91,32 @@ def cfssh_dynamics(traj, sim):
     # initial wavefunction in branches
     psi_adb_branch = np.zeros((num_branches, num_states), dtype=complex)
     psi_adb_branch[:] = psi_adb
+    # transform to diabatic basis
+    psi_db_branch = np.zeros_like(psi_adb_branch).astype(complex)
+    for i in range(num_branches):
+        psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_0)
+
+    # initialize active surfaces
+    act_surf_ind_branch = np.arange(0, num_branches, dtype=int)
+    act_surf_branch = np.diag(np.ones(num_branches))
+    # initialize classical oscillator frequency
+    w_c_branch = np.zeros((num_branches, *np.shape(sim.w_c)))
+    # initialize Hamiltonian
+    h_q_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
+    h_q_branch[:] = sim.h_q()
+    h_tot_branch = h_q_branch + auxilliary.h_qc_branch(q_branch, p_branch, sim.h_qc, num_branches, num_states)
+    # initialize eigenvalues and eigenvectors
+    evals_branch = np.zeros((num_branches, num_states))
+    evecs_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
+    evals_branch[:] = evals_0
+    evecs_branch[:] = evecs_0
+    if sim.dmat_const > 0:
+        u_ij = np.zeros((num_branches, num_branches, num_states, num_states), dtype=complex)
+        e_ij = np.zeros((num_branches, num_branches, num_states))
+        u_ij[:, :] = evecs_0
+        e_ij[:, :] = evals_0
+
+    t_ind = 0
 
 
 

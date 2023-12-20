@@ -72,3 +72,26 @@ def get_dab_phase(evals, evecs, sim):
         dabq_phase[i+1:] = np.exp(1.0j * dkkq_angle) * dabq_phase[i+1:]
         dabp_phase[i+1:] = np.exp(1.0j * dkkp_angle) * dabp_phase[i+1:]
     return dabq_phase, dabp_phase
+
+def h_qc_branch(q_branch, p_branch, h_qc_func , num_branches, num_states):
+    out = np.zeros((num_branches, num_states),dtype=complex)
+    for i in range(num_branches):
+        out[i] = h_qc_func(q_branch, p_branch)
+    return out
+
+def get_branch_eigs(q_branch, p_branch, u_ij_previous,h_q_mat, h_qc_func):
+    u_ij = np.zeros_like(u_ij_previous)
+    num_branches = np.shape(u_ij_previous)[0]
+    num_states = np.shape(u_ij_previous)[-1]
+    e_ij = np.zeros((num_branches, num_branches, num_states))
+    for i in range(num_branches):
+        for j in range(i, num_branches):
+            branch_mat = h_q_mat + h_qc_func((q_branch[i] + q_branch[j])/2, (p_branch[i] + p_branch[j])/2)
+            e_ij[i, j], u_ij[i,j] = np.linalg.eigh(branch_mat)
+            e_ij[j,i] = e_ij[i,j]
+            u_ij[i,j], _ = sign_adjust(u_ij[i,j], u_ij_previous[i,j], e_ij[i,j])
+            u_ij[j,i], _ = u_ij[i, j]
+    return e_ij, u_ij
+
+
+def sign_adjust():
