@@ -1,5 +1,5 @@
 from system import *
-import spin_boson
+import spin_boson as sb
 
 
 def sample_qp_wigner(q0, p0, bet, freq):
@@ -120,6 +120,6 @@ def initialize(sim):  # here we compute Hq, Hqc(q,p), generator of q,p and gradi
     sim.phrot, sim.phrot_d = truncate_phrot(phrot)
     sim.phrot_s = np.conj(phrot)
     sim.coef = truncate_coef(coef)
-    sim.grr, sim.gri, sim.gir, sim.gii = spin_boson.get_gmat(sim.strot)
+    sim.grr, sim.gri, sim.gir, sim.gii = sb.get_gmat(sim.strot)
 
     return sim
