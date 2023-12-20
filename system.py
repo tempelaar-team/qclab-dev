@@ -11,14 +11,12 @@ Parameters
 Temporarily specified here.
 """
 nstate = 30  # number of states/sites
-ndyn_state = 30  # number of states/sites after truncation (e.g. number of dynamical states)
-ndyn_phset = 30  # number of sets of phonon modes after truncation
-nph_per_set = 1  # number of phonon modes per set
 J = 1.0  # nearest-neighbor interaction strength
-
 trunc_states = []  # states to exclude from dynamics
 trunc_modes = []  # phonon modes to exclude from dynamics
-
+ndyn_state = nstate - len(trunc_states)  # number of states/sites after truncation (e.g. number of dynamical states)
+ndyn_phset = nstate - len(trunc_modes)  # number of sets of phonon modes after truncation
+nph_per_set = 1  # number of phonon modes per set
 
 # As an example holstein model is used here
 """
