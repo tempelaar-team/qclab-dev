@@ -85,9 +85,9 @@ def mf_dynamics(traj, sim):
             pops_db[t_ind] = np.abs(psi_db)**2
             t_ind += 1
         fq, fp = sim.quantum_force(psi_db)
-        q, p = auxilliary.RK4_C(q, p, (fq, fp), sim.w_list, sim.dt_bath)
+        q, p = auxilliary.rk4_c(q, p, (fq, fp), sim.w_list, sim.dt_bath)
         h_tot = h_q + sim.h_qc(q, p)
-        psi_db = auxilliary.RK4_Q(h_tot, psi_db, sim.dt_bath)
+        psi_db = auxilliary.rk4_q(h_tot, psi_db, sim.dt_bath)
     # add data to trajectory object
     traj.add_to_dic('pops_db', pops_db)
     traj.add_to_dic('t', tdat)
