@@ -17,7 +17,7 @@ if __name__ == '__main__':
     # initialize simulation object
     sim = simulation.Simulation(input_file)
     # attach cluster args to sim
-    sim.cluster_args = cluster_args
+    sim.cluster_args = eval(cluster_args)
     # initialize simulation functions
     path = os.path.abspath(sim.model_dir)
     sys.path.append(path)

@@ -1,6 +1,6 @@
 ## Example input file for the Holstein lattice ##
 ## dynamics inputs ##
-model_dir='/home/akrotz/PycharmProjects/pyMQC/holstein_lattice/'
+model_dir='/home/akrotz/Research/pyMQC/holstein_lattice/'
 num_procs=4
 num_trajs=4
 dynamics_method='MF'
