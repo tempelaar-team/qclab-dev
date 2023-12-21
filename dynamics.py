@@ -176,9 +176,10 @@ def fssh_dynamics(traj, sim):
     pops_db = np.zeros((len(tdat), num_states))
     ec = np.zeros((len(tdat)))
     eq = np.zeros((len(tdat)))
-    eq_init = evals[act_surf_ind]
     # adjust h_q so that the initial quantum energy is always 0
-    h_q = h_q - (np.identity(num_states) * eq_init)
+    eq_init = evals[act_surf_ind]
+    h_q = h_q - np.identity(num_states)*eq_init
+    h_tot = h_q + sim.h_qc(q,p)
     # begin timesteps
     t_ind = 0
     hop_count = 0
@@ -308,9 +309,10 @@ def mf_dynamics(traj, sim):
     pops_db = np.zeros((len(tdat), num_states))  # diabatic populations
     ec = np.zeros((len(tdat)))  # classical energy
     eq = np.zeros((len(tdat)))  # quantum energy
-    eq_init = np.real(np.matmul(np.conjugate(psi_db),np.matmul(h_tot, psi_db)))
     # adjust h_q so that the initial quantum energy is always 0
+    eq_init = np.real(np.matmul(np.conjugate(psi_db),np.matmul(h_tot, psi_db)))
     h_q = h_q - np.identity(num_states)*eq_init
+    h_tot = h_q + sim.h_qc(q,p)
     t_ind = 0
     for t_bath_ind in np.arange(0, len(tdat_bath)):
         if t_ind == len(tdat):
