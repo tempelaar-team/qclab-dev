@@ -1,7 +1,7 @@
 import numpy as np
 
 def initialize(sim):
-
+    # model specific parameter default values
     defaults = {
         "temp":1,# temperature
         "w":1, # classical oscillator frequency
@@ -12,16 +12,25 @@ def initialize(sim):
     inputs = list(sim.input_params)  # inputs is list of keys in input_params
     for key in inputs:  # copy input values into defaults
         defaults[key] = sim.input_params[key]
+    # load model specific parameters
     sim.g = defaults["g"]
     sim.temp = defaults["temp"]
     sim.j = defaults["j"]
     sim.num_states = defaults["num_states"]
     sim.w = defaults["w"]
     def init_classical():
+        """
+        Initialize classical coordiantes according to Boltzmann statistics
+        :return: position (q) and momentum (p)
+        """
         q = np.random.normal(loc = 0, scale = np.sqrt(sim.temp),size = sim.num_states)
         p = np.random.normal(loc = 0, scale = np.sqrt(sim.temp/(sim.w)), size=sim.num_states)
         return q, p
     def h_q():
+        """
+        Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
+        :return: h_q Hamiltonian
+        """
         out = np.zeros((sim.num_states, sim.num_states), dtype=complex)
         for i in range(sim.num_states-1):
             out[i,i+1] = -sim.j
@@ -31,10 +40,22 @@ def initialize(sim):
         return out
 
     def h_qc(q,p):
+        """
+        Holstein Hamiltonian on a lattice in real-space
+        :param q: position coordinate q(t)
+        :param p: momentum coordiante p(t)
+        :return: h_qc(q,p) Hamiltonian
+        """
         out = np.diag(sim.g*np.sqrt(2*(sim.w**3))*q)
         return out
 
     def h_c(q, p):
+        """
+        Harmonic osccilator Hamiltonian
+        :param q: position coordinate q(t)
+        :param p: momentum coordinate p(t)
+        :return: h_c(q,p) Hamiltonian
+        """
         return np.real(np.sum((1/2)*((p**2) + (sim.w**2)*(q**2))))
 
     # initialize derivatives of h wrt q and p
@@ -51,16 +72,18 @@ def initialize(sim):
     # nonzero matrix elements
     dq_mels = dq_mat[dq_ind]
     dp_mels = dp_mat[dp_ind]
+    # necessary variables for computing expectation values
     dq_vars = (dq_shape, dq_ind, dq_mels, dp_shape, dp_ind, dp_mels)
 
-    # equip sim with necessary functions
+    # equip simulation object with necessary functions
     sim.init_classical = init_classical
     sim.w_c = sim.w
     sim.h_q = h_q
     sim.h_qc = h_qc
     sim.h_c = h_c
     sim.dq_vars = dq_vars
-    sim.calc_dir = 'holstein_lattice_g_'+str(sim.g)+'_j_'+str(sim.j)+'_w_'+str(sim.w)+'_temp_'+str(sim.temp)+'_nstates_'+str(sim.num_states)
+    sim.calc_dir = 'holstein_lattice_g_'+str(sim.g)+'_j_'+str(sim.j)+'_w_'+str(sim.w)+\
+                   '_temp_'+str(sim.temp)+'_nstates_'+str(sim.num_states)
     sim.psi_db_0 = 1/np.sqrt(sim.num_states) * np.ones(sim.num_states,dtype=complex)
 
     return sim
