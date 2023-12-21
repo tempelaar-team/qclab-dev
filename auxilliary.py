@@ -16,6 +16,8 @@ def rk4_c(q, p, qf, w, dt):
     p = p + 0.166667 * (l1 + 2 * l2 + 2 * l3 + l4)
     return q, p
 
+
+
 @jit(nopython=True)
 def rk4_q(h, psi, dt):
     k1 = (-1j * h.dot(psi))
@@ -100,7 +102,7 @@ def sign_adjust():
 def matprod_sparse(shape, ind, mels, vec1, vec2): # calculates <1|mat|2>
     i_ind, j_ind, k_ind = ind
     prod = np.conj(vec1)[j_ind]*mels*vec2[k_ind]
-    out_mat = np.zeros((shape[1],shape[0])) + 0.0j
+    out_mat = np.zeros((shape[0])) + 0.0j
     for i in range(len(i_ind)):
         out_mat[i_ind[i]] += prod[i]
     return out_mat

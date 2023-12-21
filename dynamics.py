@@ -306,4 +306,4 @@ def mf_dynamics(traj, sim):
     traj.add_to_dic('ec', ec)
     end_time = time.time()
     msg = 'trial index: ' + str(traj.index) + ' time: ' + str(np.round(end_time - start_time, 3)) + ' seed: ' + str(traj.seed)
-    return traj, msg
+    return traj, eq+ec
