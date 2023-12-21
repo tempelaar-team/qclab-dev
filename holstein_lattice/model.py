@@ -23,11 +23,13 @@ def initialize(sim):
     def init_classical():
         """
         Initialize classical coordiantes according to Boltzmann statistics
-        :return: position (q) and momentum (p)
+        :return: z = sqrt(w/2)*(q + i*(p/w)), z* = sqrt(w/2)*(q - i*(p/w))
         """
         q = np.random.normal(loc = 0, scale = np.sqrt(sim.temp),size = sim.num_states)
         p = np.random.normal(loc = 0, scale = np.sqrt(sim.temp/(sim.w)), size=sim.num_states)
-        return q, p
+        z = np.sqrt(sim.w/2)*(q + 1.0j*(p/sim.w))
+        zc = np.conjugate(z)
+        return z, zc
     def h_q():
         """
         Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
@@ -41,24 +43,24 @@ def initialize(sim):
         out[-1,0] = -sim.j
         return out
 
-    def h_qc(q,p):
+    def h_qc(z, zc):
         """
         Holstein Hamiltonian on a lattice in real-space
-        :param q: position coordinate q(t)
-        :param p: momentum coordiante p(t)
-        :return: h_qc(q,p) Hamiltonian
+        :param z: z coordinate
+        :param zc: z^{*} conjugate z
+        :return: h_qc(z,z^{*}) Hamiltonian
         """
-        out = np.diag(sim.g*np.sqrt(2*(sim.w**3))*q)
+        out = np.diag(sim.g*sim.w*(z + zc))
         return out
 
-    def h_c(q, p):
+    def h_c(z, zc):
         """
         Harmonic osccilator Hamiltonian
-        :param q: position coordinate q(t)
-        :param p: momentum coordinate p(t)
-        :return: h_c(q,p) Hamiltonian
+        :param z: z(t)
+        :param zc: conjugate z(t)
+        :return: h_c(z,zc) Hamiltonian
         """
-        return np.real(np.sum((1/2)*((p**2) + (sim.w**2)*(q**2))))
+        return np.real(np.sum(sim.w*zc*z))
     """
     Initialize the rotation matrices of quantum and classical subsystems
     """
@@ -111,7 +113,3 @@ def initialize(sim):
     sim.psi_db_0 = 1/np.sqrt(sim.num_states) * np.ones(sim.num_states,dtype=complex)
 
     return sim
-
-
-
-
