@@ -1,7 +1,7 @@
 import ray
 import time
 import dill as pickle
-import path
+import os
 import simulation
 import numpy as np
 import auxilliary
