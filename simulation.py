@@ -10,7 +10,8 @@ class Simulation:
             "dt": 0.1, # timestep of output
             "dt_bath":0.01, # bath timestep
             "model_dir":"./", # model directory
-            "pab_cohere":True # Uses full adiabatic wavefunction to compute hopping probabilities
+            "pab_cohere":True, # Uses full adiabatic wavefunction to compute hopping probabilities
+            "gauge_fix":1 # gauge fixing level 0, 1, 2
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
@@ -28,6 +29,8 @@ class Simulation:
         self.dt = defaults['dt']
         self.dt_bath = defaults['dt_bath']
         self.model_dir = defaults['model_dir']
+        self.pab_cohere = defaults['pab_cohere']
+        self.gauge_fix = defaults['gauge_fix']
         self.input_file = input_file
         self.input_params = defaults
 class Trajectory:

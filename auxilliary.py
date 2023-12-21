@@ -48,9 +48,9 @@ def rho_0_db_to_adb(rho_0_db, eigvec): # transforms density matrix from db to ad
     return rho_0_db
 
 
-def get_dab_phase(evals, evecs, sim):
-    dabq_phase = np.ones(len(evals))
-    dabp_phase = np.ones(len(evals))
+def get_dab_phase(evals, evecs, dq_vars):
+    dabq_phase = np.ones(len(evals), dtype=complex)
+    dabp_phase = np.ones(len(evals), dtype=complex)
     for i in range(len(evals)-1):
         j = i + 1
         evec_i = evecs[:, i]
@@ -62,7 +62,7 @@ def get_dab_phase(evals, evecs, sim):
         if np.abs(ev_diff) < 1e-14:
             plus = 1
             print('Warning: Degenerate eigenvalues')
-        dkkq, dkkp = get_dkk(evec_i, evec_j, ev_diff + plus, sim)
+        dkkq, dkkp = get_dab(evec_i, evec_j, ev_diff + plus, dq_vars)
         dkkq_angle = np.angle(dkkq[np.argmax(np.abs(dkkq))])
         dkkp_angle = np.angle(dkkp[np.argmax(np.abs(dkkp))])
         if np.max(np.abs(dkkq)) < 1e-14:
@@ -94,8 +94,23 @@ def get_branch_eigs(q_branch, p_branch, u_ij_previous,h_q_mat, h_qc_func):
     return e_ij, u_ij
 
 
-def sign_adjust():
-    return
+def sign_adjust(evecs, evecs_previous, evals, sim):
+    phase_out = np.ones((len(evals)), dtype=complex)
+    if sim.gauge_fix >= 1:
+        phases = np.exp(-1.0j * np.angle(np.einsum('jk,jk->k', np.conjugate(evecs_previous), evecs)))
+        evecs = np.einsum('jk,k->jk', evecs, phases)
+        phase_out *= phases
+    if sim.gauge_fix >= 2:
+        dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs, evals, sim.dq_vars)
+        dab_phase_list = np.conjugate(dabQ_phase_list)
+        phase_out *= dab_phase_list
+        evecs = np.einsum('jk,k->jk', evecs, dab_phase_list)
+    if sim.gauge_fix >= 0:
+        signs = np.sign(np.einsum('jk,jk->k', np.conjugate(evecs_previous), evecs))
+        evecs = np.einsum('jk,k->jk', evecs, signs)
+        phase_out *= signs
+    return evecs, phase_out
+
 @jit(nopython=True)
 def matprod_sparse(shape, ind, mels, vec1, vec2): # calculates <1|mat|2>
     i_ind, j_ind, k_ind = ind
@@ -110,8 +125,21 @@ def quantum_force(psi,dq_vars): # computes <\psi|\nabla H|\psi> using sparse met
     fp = matprod_sparse(dp_shape, dp_ind, dp_mels, psi, psi)
     return fq, fp
 
-def get_dkk(evec_k, evec_j, ev_diff, dq_vars):  # computes d_{kj} using sparse methods
+def get_dab(evec_a, evec_b, ev_diff, dq_vars):  # computes d_{ab} using sparse methods
     (dq_shape, dq_ind, dq_mels, dp_shape, dp_ind, dp_mels) = dq_vars
-    dkkq = matprod_sparse(dq_shape, dq_ind, dq_mels, evec_k, evec_j)/ev_diff
-    dkkp = matprod_sparse(dp_shape, dp_ind, dp_mels, evec_k, evec_j)/ev_diff
+    dkkq = matprod_sparse(dq_shape, dq_ind, dq_mels, evec_a, evec_b)/ev_diff
+    dkkp = matprod_sparse(dp_shape, dp_ind, dp_mels, evec_a, evec_b)/ev_diff
     return dkkq, dkkp
+
+@jit(nopython=True)
+def nan_num(num):
+    if np.isnan(num):
+        return 0.0
+    if num == np.inf:
+        return 100e100
+    if num == -np.inf:
+        return -100e100
+    else:
+        return num
+
+nan_num_vec = np.vectorize(nan_num)

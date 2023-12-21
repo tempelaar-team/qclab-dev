@@ -68,11 +68,11 @@ def cfssh_dynamics(traj, sim):
     num_states = len(evals_0)
     num_branches = num_states
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.dq_vars)
     # execute phase shift
     evecs_0 = np.matmul(evecs_0, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.dq_vars)
     if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
     #  initial wavefunction in diabatic basis
@@ -146,11 +146,11 @@ def fssh_dynamics(traj, sim):
     evals, evecs = np.linalg.eigh(h_tot)
     num_states = len(h_q)
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim.dq_vars)
     # execute phase shift
     evecs = np.matmul(evecs, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim.dq_vars)
     if np.sum(np.abs(np.imag(dab_q_phase))**2 + np.abs(np.imag(dab_p_phase))**2) > 1e-10:
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase))**2 + np.abs(np.imag(dab_p_phase))**2) )
     #  initial wavefunction in diabatic basis
@@ -231,39 +231,39 @@ def fssh_dynamics(traj, sim):
                 # compute nonadiabatic couplings
                 eig_k = evecs[:, act_surf_ind]
                 eig_j = evecs[:, k]
-                eigval_k = evecs[act_surf_ind]
-                eigval_j = evecs[k]
+                eigval_k = evals[act_surf_ind]
+                eigval_j = evals[k]
                 ev_diff = eigval_j - eigval_k
-                dkkq, dkkp = auxilliary.get_dkk(eig_k, eig_j, ev_diff, sim)
-                if np.abs(np.sin(np.angle(dkkq[np.argmax(np.abs(dkkq))]))) > 1e-2:
+                dkjq, dkjp = auxilliary.get_dab(eig_k, eig_j, ev_diff, sim.dq_vars)
+                if np.abs(np.sin(np.angle(dkjq[np.argmax(np.abs(dkjq))]))) > 1e-2:
                     print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
-                          np.abs(np.sin(np.angle(dkkq[np.argmax(np.abs(dkkq))]))),
-                          '\n magnitude: ', np.abs(dkkq[np.argmax(np.abs(dkkq))]),
-                          '\n value: ', dkkq[np.argmax(np.abs(dkkq))])
-                if np.abs(np.sin(np.angle(dkkq[np.argmax(np.abs(dkkq))]))) > 1e-2:
+                          np.abs(np.sin(np.angle(dkjq[np.argmax(np.abs(dkjq))]))),
+                          '\n magnitude: ', np.abs(dkjq[np.argmax(np.abs(dkjq))]),
+                          '\n value: ', dkjq[np.argmax(np.abs(dkjq))])
+                if np.abs(np.sin(np.angle(dkjq[np.argmax(np.abs(dkjq))]))) > 1e-2:
                     print('ERROR IMAGINARY DKKP: \n', 'angle: ',
-                          np.abs(np.sin(np.angle(dkkp[np.argmax(np.abs(dkkp))]))),
-                          '\n magnitude: ', np.abs(dkkp[np.argmax(np.abs(dkkp))]),
-                          '\n value: ', dkkp[np.argmax(np.abs(dkkp))])
+                          np.abs(np.sin(np.angle(dkjp[np.argmax(np.abs(dkjp))]))),
+                          '\n magnitude: ', np.abs(dkjp[np.argmax(np.abs(dkjp))]),
+                          '\n value: ', dkjp[np.argmax(np.abs(dkjp))])
                 # compute rescalings
-                delta_q = np.real(dkkp)
-                delta_p = np.real(dkkq)
-                akkq = np.sum((1 / 2) * np.abs(
+                delta_q = np.real(dkjp)
+                delta_p = np.real(dkjq)
+                akjq = np.sum((1 / 2) * np.abs(
                     delta_p) ** 2)
-                akkp = np.sum((1 / 2) * (np.nan_to_num(sim.w_c) ** 2) * np.abs(
+                akjp = np.sum((1 / 2) * (np.nan_to_num(sim.w_c) ** 2) * np.abs(
                     delta_q) ** 2)
-                bkkq = np.sum((p * delta_p))
-                bkkp = -np.sum((np.nan_to_num(sim.w_c) ** 2) * q * delta_q)
-                disc = (bkkq + bkkp) ** 2 - 4 * (akkq + akkp) * ev_diff
+                bkjq = np.sum((p * delta_p))
+                bkjp = -np.sum((np.nan_to_num(sim.w_c) ** 2) * q * delta_q)
+                disc = (bkjq + bkjp) ** 2 - 4 * (akjq + akjp) * ev_diff
                 if disc >= 0:
-                    if bkkq + bkkp < 0:
-                        gamma = (bkkq + bkkp) + np.sqrt(disc)
+                    if bkjq + bkjp < 0:
+                        gamma = (bkjq + bkjp) + np.sqrt(disc)
                     else:
-                        gamma = (bkkq + bkkp) - np.sqrt(disc)
-                    if akkp + akkq == 0:
+                        gamma = (bkjq + bkjp) - np.sqrt(disc)
+                    if akjp + akjq == 0:
                         gamma = 0
                     else:
-                        gamma = gamma / (2 * (akkq + akkp))
+                        gamma = gamma / (2 * (akjq + akjp))
                     # rescale classical coordinates
                     p = p - np.real(gamma) * delta_p
                     q = q + np.real(gamma) * delta_q
