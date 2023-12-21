@@ -6,9 +6,6 @@ class Simulation:
             "dynamics_method": "MF",  # which dynamics method, "MF", "FSSH", "CFSSH"
             "num_procs": 4,  # number of processors to use
             "num_trajs": 4,  # number of trajectories to run
-            "qp_dist": "boltz",  # phonon coordinate sampling function. Default: thermal Boltzmann distribution
-            "specden": "single",  # phonon modes spectral density. Default: single mode per state/site
-            "Hstruc": "spin_boson"  # Total hamiltonian structure. Default: spin-boson type hamiltonian
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
@@ -22,10 +19,6 @@ class Simulation:
         self.dynamics_method = defaults['dynamics_method']
         self.num_procs = defaults['num_procs']
         self.num_trajs = defaults['num_trajs']
-        self.qp_dist = defaults['qp_dist']
-        self.specden = defaults['specden']
-        self.Hstruc = defaults['Hstruc']
-
 class Trajectory:
     def __init__(self, seed, index):
         self.seed = seed  # seed used to initialize random variables
