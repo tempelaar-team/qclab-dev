@@ -29,8 +29,8 @@ def initialize(sim):
         """
         q = np.random.normal(loc = 0, scale = np.sqrt(sim.temp),size = sim.num_states)
         p = np.random.normal(loc = 0, scale = np.sqrt(sim.temp/(sim.w)), size=sim.num_states)
-        z = np.sqrt(sim.w/2)*(q + 1.0j*(p/sim.w))
-        zc = np.conjugate(z)
+        z = np.sqrt(sim.w)*np.sqrt(sim.w/2)*(q + 1.0j*(p/sim.w))
+        zc = np.sqrt(sim.w)*np.conjugate(z)
         return z, zc
     def h_q():
         """
@@ -47,12 +47,12 @@ def initialize(sim):
 
     def h_qc(z, zc):
         """
-        Holstein Hamiltonian on a lattice in real-space
+        Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
         :param z: z coordinate
         :param zc: z^{*} conjugate z
         :return: h_qc(z,z^{*}) Hamiltonian
         """
-        out = np.diag(sim.g*sim.w*(z + zc))
+        out = np.diag(sim.g*(z + zc))
         return out
 
     def h_c(z, zc):
@@ -62,7 +62,7 @@ def initialize(sim):
         :param zc: conjugate z(t)
         :return: h_c(z,zc) Hamiltonian
         """
-        return np.real(np.sum(sim.w*zc*z))
+        return np.real(np.sum(zc*z))
     """
     Initialize the rotation matrices of quantum and classical subsystems
     """
@@ -89,8 +89,8 @@ def initialize(sim):
     dz_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states),dtype=complex)
     dzc_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states),dtype=complex)
     for i in range(sim.num_states):
-        dz_mat[i,i,i] = sim.g*sim.w
-        dzc_mat[i,i,i] = sim.g*sim.w
+        dz_mat[i,i,i] = sim.g
+        dzc_mat[i,i,i] = sim.g
     dz_shape = np.shape(dz_mat)
     dzc_shape = np.shape(dzc_mat)
     # position of nonzero matrix elements
@@ -104,7 +104,6 @@ def initialize(sim):
 
     # equip simulation object with necessary functions
     sim.init_classical = init_classical
-    sim.w_c = sim.w
     sim.h_q = h_q
     sim.h_qc = h_qc
     sim.h_c = h_c

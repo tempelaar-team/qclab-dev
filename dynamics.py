@@ -143,11 +143,11 @@ def fssh_dynamics(traj, sim):
     evals, evecs = np.linalg.eigh(h_tot)
     num_states = len(h_q)
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim.diff_vars)
     # execute phase shift
     evecs = np.matmul(evecs, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim.diff_vars)
     if np.sum(np.abs(np.imag(dab_q_phase))**2 + np.abs(np.imag(dab_p_phase))**2) > 1e-10:
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase))**2 + np.abs(np.imag(dab_p_phase))**2) )
     #  initial wavefunction in diabatic basis
@@ -208,7 +208,7 @@ def fssh_dynamics(traj, sim):
         # compute quantum force
         fz, fzc = auxilliary.quantum_force(evecs[:, act_surf_ind], sim.diff_vars)
         # evolve classical coordinates
-        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.w_c, sim.dt_bath)
+        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.dt_bath)
         # evolve quantum subsystem saving prevous eigenvector values
         evecs_previous = np.copy(evecs)
         h_tot = h_q + sim.h_qc(z, zc)
@@ -245,8 +245,8 @@ def fssh_dynamics(traj, sim):
                 # dkj_q is wrt q dkj_p is wrt p.
                 dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, sim.diff_vars)
                 # check that nonadiabatic couplings are real-valued
-                dkj_q = np.sqrt(sim.w/2)*(dkj_z + dkj_zc)
-                dkj_p = np.sqrt(1/(sim.w*2))*1.0j*(dkj_z - dkj_zc)
+                dkj_q = np.sqrt(1/2)*(dkj_z + dkj_zc)
+                dkj_p = np.sqrt(1/(2))*1.0j*(dkj_z - dkj_zc)
                 if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
                     print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
                           np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
@@ -260,8 +260,8 @@ def fssh_dynamics(traj, sim):
                 # compute rescalings
                 delta_z = dkj_zc
                 delta_zc = dkj_z
-                akj_z = np.real(np.sum(sim.w_c*delta_z*delta_zc))
-                bkj_z = np.real(np.sum(1j*(sim.w_c*zc*dkj_zc - sim.w_c*z*dkj_z)))
+                akj_z = np.real(np.sum(delta_zc*delta_z))
+                bkj_z = np.real(np.sum(1j*(zc*delta_z - z*delta_zc)))
                 ckj_z = ev_diff
                 disc = bkj_z**2 - 4*akj_z*ckj_z
                 if disc >= 0:
@@ -273,8 +273,8 @@ def fssh_dynamics(traj, sim):
                         gamma = 0
                     else:
                         gamma = gamma / (2*akj_z)
-                    z = z - 1.0j*np.real(gamma)*delta_zc
-                    zc = zc + 1.0j*np.real(gamma)*delta_z
+                    z = z - 1.0j*np.real(gamma)*delta_z
+                    zc = zc + 1.0j*np.real(gamma)*delta_zc
                     # update active surface
                     act_surf_ind = k
                     act_surf = np.zeros_like(act_surf)
@@ -330,7 +330,7 @@ def mf_dynamics(traj, sim):
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[t_ind])
             t_ind += 1
         fz, fzc = auxilliary.quantum_force(psi_db, sim.diff_vars)
-        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.w_c, sim.dt_bath)
+        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.dt_bath)
         h_tot = h_q + sim.h_qc(z, zc)
         psi_db = auxilliary.rk4_q(h_tot, psi_db, sim.dt_bath)
     # add data to trajectory object

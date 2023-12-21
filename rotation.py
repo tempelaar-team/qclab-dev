@@ -60,7 +60,7 @@ def rotate(sim):
         return h_dz + h_dzc
 
     def h_c(z,zc):
-        return np.real(np.sum(sim.w*z*zc))
+        return np.real(np.sum(z*zc))
     init_classical_old = sim.init_classical
     def init_classical():
         z,zc = init_classical_old()
@@ -70,15 +70,12 @@ def rotate(sim):
 
     # equip simulation object with necessary functions
     sim.init_classical = init_classical
-    sim.w_c = sim.w
     sim.h_q = h_q
     sim.h_qc = h_qc
     sim.h_c = h_c
     sim.U_c = U_c
     sim.U_q = U_q
     sim.diff_vars = diff_vars
-    sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \
-                   '_temp_' + str(sim.temp) + '_nstates_' + str(sim.num_states)
     # rotate initial diabatic wavefunction
     sim.psi_db_0 = np.matmul(np.conjugate(np.transpose(U_q)), sim.psi_db_0)
 
