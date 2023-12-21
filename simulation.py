@@ -8,7 +8,8 @@ class Simulation:
             "num_trajs": 4,  # number of trajectories to run
             "tmax": 10, # maximum simulation time
             "dt": 0.1, # timestep of output
-            "dt_bath":0.01 # bath timestep
+            "dt_bath":0.01, # bath timestep
+            "model_dir":"./" # model directory
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
@@ -22,6 +23,12 @@ class Simulation:
         self.dynamics_method = defaults['dynamics_method']
         self.num_procs = defaults['num_procs']
         self.num_trajs = defaults['num_trajs']
+        self.tmax = defaults['tmax']
+        self.dt = defaults['dt']
+        self.dt_bath = defaults['dt_bath']
+        self.model_dir = defaults['model_dir']
+        self.input_file = input_file
+        self.input_params = defaults
 class Trajectory:
     def __init__(self, seed, index):
         self.seed = seed  # seed used to initialize random variables

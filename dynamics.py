@@ -1,7 +1,7 @@
 import ray
 import time
 import dill as pickle
-import os
+from os import path
 import simulation
 import numpy as np
 import auxilliary
@@ -120,7 +120,7 @@ def cfssh_dynamics(traj, sim):
 
 
 
-
+    msg = ''
     return traj, msg
 
 @ray.remote
@@ -262,7 +262,7 @@ def fssh_dynamics(traj, sim):
         end_time - start_time) + ' seed: ' + str(traj.seed)
     return traj, msg
 
-@ray.remte
+@ray.remote
 def mf_dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)

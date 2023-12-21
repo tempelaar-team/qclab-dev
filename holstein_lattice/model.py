@@ -2,9 +2,25 @@ import numpy as np
 
 def initialize(sim):
 
+    defaults = {
+        "temp":1,# temperature
+        "w":1, # classical oscillator frequency
+        "j":1, # hopping integral
+        "num_states":20, # number of states
+        "g":1, # electron-phonon coupling
+    }
+    inputs = list(sim.input_params)  # inputs is list of keys in input_params
+    for key in inputs:  # copy input values into defaults
+        defaults[key] = sim.input_params[key]
+    sim.g = defaults["g"]
+    sim.temp = defaults["temp"]
+    sim.j = defaults["j"]
+    sim.num_states = defaults["num_states"]
+    sim.w = defaults["w"]
+
     def init_classical():
-        q = np.random.normal(loc = 0, scale = np.sqrt(sim.T),size = sim.num_states)
-        p = np.random.normal(loc = 0, scale = np.sqrt(sim.T/(sim.w)), size=sim.num_states)
+        q = np.random.normal(loc = 0, scale = np.sqrt(sim.temp),size = sim.num_states)
+        p = np.random.normal(loc = 0, scale = np.sqrt(sim.temp/(sim.w)), size=sim.num_states)
         return q, p
     def h_q():
         out = np.zeros((sim.num_states, sim.num_states), dtype=complex)

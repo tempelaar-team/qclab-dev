@@ -95,3 +95,4 @@ def get_branch_eigs(q_branch, p_branch, u_ij_previous,h_q_mat, h_qc_func):
 
 
 def sign_adjust():
+    return

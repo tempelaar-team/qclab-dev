@@ -3,11 +3,11 @@ import time
 import numpy as np
 import dynamics
 import simulation
-import initialize
+import os
 
 if __name__ == '__main__':
     start_time = time.time()
-    args = sys.argv[-1]
+    args = sys.argv[1:]
     if not args:
         print('Usage: python main.py [opts] input_file cluster_args')
         sys.exit()
@@ -16,8 +16,13 @@ if __name__ == '__main__':
     opt = args[0]
     # initialize simulation object
     sim = simulation.Simulation(input_file)
+    # attach cluster args to sim
+    sim.cluster_args = cluster_args
     # initialize simulation functions
-    sim = initialize.initialize(sim)
+    path = os.path.abspath(sim.model_dir)
+    sys.path.append(path)
+    import model
+    sim = model.initialize(sim)
     # run dynamics
     sim = dynamics.run_dynamics(sim)
 

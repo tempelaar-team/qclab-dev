@@ -1,6 +1,7 @@
 from system import *
 import spin_boson as sb
-
+import sys
+import os
 
 def sample_qp_wigner(q0, p0, bet, freq):
     """
@@ -76,7 +77,7 @@ def truncate_coef(vec):
     return vecminor
 
 
-def initialize(sim):  # here we compute Hq, Hqc(q,p), generator of q,p and gradient of Hqc
+def initialize_old(sim):  # here we compute Hq, Hqc(q,p), generator of q,p and gradient of Hqc
     """Sample phonon frequencies and couplings"""
     if sim.specden != 'single':
         sim.frq, sim.g = sample_w_g[sim.specden](sim.w_cutoff, sim.reorg_en)
