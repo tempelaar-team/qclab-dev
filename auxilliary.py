@@ -1,6 +1,7 @@
 from numba import jit
 import numpy as np
 
+
 @jit(nopython=True)
 def rk4_c(z, zc, qf, dt):
     """
@@ -13,10 +14,10 @@ def rk4_c(z, zc, qf, dt):
     """
     fz, fzc = qf
     # convert fz and fzc to fq and fp
-    fq = np.real(np.sqrt(1/2)*(fz+fzc))
-    fp = np.real(1j*np.sqrt(1/(2))*(fz - fzc))
-    q = np.real((z + zc)/np.sqrt(2))
-    p = np.real(-1.0j*(z - zc)*np.sqrt(1/2))
+    fq = np.real(np.sqrt(1 / 2) * (fz + fzc))
+    fp = np.real(1j * np.sqrt(1 / 2) * (fz - fzc))
+    q = np.real((z + zc) / np.sqrt(2))
+    p = np.real(-1.0j * (z - zc) * np.sqrt(1 / 2))
     k1 = dt * (p + fp)
     l1 = -dt * (q + fq)  # [wn2] is w_alpha ^ 2
     k2 = dt * ((p + 0.5 * l1) + fp)
@@ -27,8 +28,7 @@ def rk4_c(z, zc, qf, dt):
     l4 = -dt * ((q + k3) + fq)
     q = q + 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     p = p + 0.166667 * (l1 + 2 * l2 + 2 * l3 + l4)
-    return np.sqrt(1/2)*(q + 1.0j*(p)), np.sqrt(1/2)*(q - 1.0j*(p))
-
+    return np.sqrt(1 / 2) * (q + 1.0j * p), np.sqrt(1 / 2) * (q - 1.0j * p)
 
 
 @jit(nopython=True)
@@ -47,13 +47,14 @@ def rk4_q(h, psi, dt):
     psi = psi + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return psi
 
+
 def vec_adb_to_db(psi_adb, eigvec):
     """
     Transforms a vector in adiabatic basis to diabatic basis
-    \psi_{db} = V\psi_{adb}
-    :param psi_adb: adiabatic vector \psi_{adb}
+    psi_{db} = V psi_{adb}
+    :param psi_adb: adiabatic vector psi_{adb}
     :param eigvec: eigenvectors V
-    :return: diabatic vector \psi_{db}
+    :return: diabatic vector psi_{db}
     """
     psi_db = np.matmul(eigvec, psi_adb)
     return psi_db
@@ -62,35 +63,36 @@ def vec_adb_to_db(psi_adb, eigvec):
 def vec_db_to_adb(psi_db, eigvec):
     """
     Transforms a vector in diabatic basis to adiabatic basis
-    \psi_{adb} = V^{\dagger}\psi_{db}
-    :param psi_db: diabatic vector \psi_{db}
+    psi_{adb} = V^{dagger}psi_{db}
+    :param psi_db: diabatic vector psi_{db}
     :param eigvec: eigenvectors V
-    :return: adiabatic vector \psi_{adb}
+    :return: adiabatic vector psi_{adb}
     """
-    psi_adb = np.matmul(np.conjugate(np.transpose(eigvec)),psi_db)
+    psi_adb = np.matmul(np.conjugate(np.transpose(eigvec)), psi_db)
     return psi_adb
 
+
 @jit(nopython=True)
-def rho_0_adb_to_db(rho_0_adb, eigvec): # transforms density matrix from adb to db representation
+def rho_0_adb_to_db(rho_0_adb, eigvec):  # transforms density matrix from adb to db representation
     """
-    Transforms a density matrix \rho_{adb} from adiabatic to diabatic basis:
-    \rho_{db} = V\rho_{adb}V^{\dagger}
-    :param rho_0_adb: adiabatic density matrix \rho_{adb}
+    Transforms a density matrix rho_{adb} from adiabatic to diabatic basis:
+    rho_{db} = Vrho_{adb}V^{dagger}
+    :param rho_0_adb: adiabatic density matrix rho_{adb}
     :param eigvec: eigenvectors V
-    :return: diabatic density matrix \rho_{db}
+    :return: diabatic density matrix rho_{db}
     """
     rho_0_db = np.dot(np.dot(eigvec, rho_0_adb + 0.0j), np.conj(eigvec).transpose())
     return rho_0_db
 
 
 @jit(nopython=True)
-def rho_0_db_to_adb(rho_0_db, eigvec): # transforms density matrix from db to adb representation
+def rho_0_db_to_adb(rho_0_db, eigvec):  # transforms density matrix from db to adb representation
     """
-    Transforms a density matrix \rho_{db} from diabatic to adiabatic basis:
-    \rho_{adb} = V^{\dagger}\rho_{db}V
-    :param rho_0_db: diabatic density matrix \rho_{db}
+    Transforms a density matrix rho_{db} from diabatic to adiabatic basis:
+    rho_{adb} = V^{dagger}rho_{db}V
+    :param rho_0_db: diabatic density matrix rho_{db}
     :param eigvec: eigenvectors V
-    :return:  adiabatic density matrix \rho_{adb}
+    :return:  adiabatic density matrix rho_{adb}
     """
     rho_0_db = np.dot(np.dot(np.conj(eigvec).transpose(), rho_0_db + 0.0j), eigvec)
     return rho_0_db
@@ -98,15 +100,14 @@ def rho_0_db_to_adb(rho_0_db, eigvec): # transforms density matrix from db to ad
 
 def get_dab_phase(evals, evecs, diff_vars):
     """
-    Computes the diagonal gauge transformation G such that (VG)^{\dagger}\nabla(VG) is real-valued.
-    :param evals: eigenvalues
-    :param evecs: eigenvectors (V)
-    :param dq_vars: sparse matrix variables of \nabla_{q} H and \nabla_{p} H (stored in sim.dq_vars)
-    :return: dabq_phase (diag(G^{\dagger}) calculated using d_{ab}^{q}), dabp_phase (diag(G^{\dagger}) calculated using d_{ab}^{p})
+    Computes the diagonal gauge transformation G such that (VG)^{dagger}\nabla(VG) is real-valued. :param evals:
+    eigenvalues :param evecs: eigenvectors (V) :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{
+    zc} H (stored in sim.dq_vars) :return: dabq_phase (diag(G^{dagger}) calculated using d_{ab}^{q}), dabp_phase (
+    diag(G^{dagger}) calculated using d_{ab}^{p})
     """
     dabq_phase = np.ones(len(evals), dtype=complex)
     dabp_phase = np.ones(len(evals), dtype=complex)
-    for i in range(len(evals)-1):
+    for i in range(len(evals) - 1):
         j = i + 1
         evec_i = evecs[:, i]
         evec_j = evecs[:, j]
@@ -119,36 +120,38 @@ def get_dab_phase(evals, evecs, diff_vars):
             print('Warning: Degenerate eigenvalues')
         dkk_z, dkk_zc = get_dab(evec_i, evec_j, ev_diff + plus, diff_vars)
         # convert to q/p nonadiabatic couplings
-        dkkq = np.sqrt(1/2)*(dkk_z + dkk_zc)
-        dkkp = np.sqrt(1/(2))*1.0j*(dkk_z - dkk_zc)
+        dkkq = np.sqrt(1 / 2) * (dkk_z + dkk_zc)
+        dkkp = np.sqrt(1 / 2) * 1.0j * (dkk_z - dkk_zc)
         dkkq_angle = np.angle(dkkq[np.argmax(np.abs(dkkq))])
         dkkp_angle = np.angle(dkkp[np.argmax(np.abs(dkkp))])
         if np.max(np.abs(dkkq)) < 1e-14:
             dkkq_angle = 0
         if np.max(np.abs(dkkp)) < 1e-14:
             dkkp_angle = 0
-        dabq_phase[i+1:] = np.exp(1.0j * dkkq_angle) * dabq_phase[i+1:]
-        dabp_phase[i+1:] = np.exp(1.0j * dkkp_angle) * dabp_phase[i+1:]
+        dabq_phase[i + 1:] = np.exp(1.0j * dkkq_angle) * dabq_phase[i + 1:]
+        dabp_phase[i + 1:] = np.exp(1.0j * dkkp_angle) * dabp_phase[i + 1:]
     return dabq_phase, dabp_phase
 
-def h_qc_branch(q_branch, p_branch, h_qc_func , num_branches, num_states):
-    out = np.zeros((num_branches, num_states),dtype=complex)
+
+def h_qc_branch(q_branch, p_branch, h_qc_func, num_branches, num_states):
+    out = np.zeros((num_branches, num_states), dtype=complex)
     for i in range(num_branches):
         out[i] = h_qc_func(q_branch, p_branch)
     return out
 
-def get_branch_eigs(q_branch, p_branch, u_ij_previous,h_q_mat, h_qc_func):
+
+def get_branch_eigs(q_branch, p_branch, u_ij_previous, h_q_mat, h_qc_func):
     u_ij = np.zeros_like(u_ij_previous)
     num_branches = np.shape(u_ij_previous)[0]
     num_states = np.shape(u_ij_previous)[-1]
     e_ij = np.zeros((num_branches, num_branches, num_states))
     for i in range(num_branches):
         for j in range(i, num_branches):
-            branch_mat = h_q_mat + h_qc_func((q_branch[i] + q_branch[j])/2, (p_branch[i] + p_branch[j])/2)
-            e_ij[i, j], u_ij[i,j] = np.linalg.eigh(branch_mat)
-            e_ij[j,i] = e_ij[i,j]
-            u_ij[i,j], _ = sign_adjust(u_ij[i,j], u_ij_previous[i,j], e_ij[i,j])
-            u_ij[j,i], _ = u_ij[i, j]
+            branch_mat = h_q_mat + h_qc_func((q_branch[i] + q_branch[j]) / 2, (p_branch[i] + p_branch[j]) / 2)
+            e_ij[i, j], u_ij[i, j] = np.linalg.eigh(branch_mat)
+            e_ij[j, i] = e_ij[i, j]
+            u_ij[i, j], _ = sign_adjust(u_ij[i, j], u_ij_previous[i, j], e_ij[i, j])
+            u_ij[j, i], _ = u_ij[i, j]
     return e_ij, u_ij
 
 
@@ -171,8 +174,8 @@ def sign_adjust(evecs, evecs_previous, evals, sim):
         evecs = np.einsum('jk,k->jk', evecs, phases)
         phase_out *= phases
     if sim.gauge_fix >= 2:
-        dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs, evals, sim.diff_vars)
-        dab_phase_list = np.conjugate(dabQ_phase_list)
+        dab_q_phase_list, dab_p_phase_list = get_dab_phase(evecs, evals, sim.diff_vars)
+        dab_phase_list = np.conjugate(dab_q_phase_list)
         phase_out *= dab_phase_list
         evecs = np.einsum('jk,k->jk', evecs, dab_phase_list)
     if sim.gauge_fix >= 0:
@@ -181,8 +184,9 @@ def sign_adjust(evecs, evecs_previous, evals, sim):
         phase_out *= signs
     return evecs, phase_out
 
+
 @jit(nopython=True)
-def matprod_sparse(shape, ind, mels, vec1, vec2): # calculates <1|mat|2>
+def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
     """
     Computes the expectation value f_{i} = <1|H^{i}_{jk}|2>
     where H^{i}_{jk} is a tensor (like \nabla_{i} H_{jk} )
@@ -194,23 +198,26 @@ def matprod_sparse(shape, ind, mels, vec1, vec2): # calculates <1|mat|2>
     :return: f_{i}
     """
     i_ind, j_ind, k_ind = ind
-    prod = np.conj(vec1)[j_ind]*mels*vec2[k_ind]
+    prod = np.conj(vec1)[j_ind] * mels * vec2[k_ind]
     out_mat = np.zeros((shape[0])) + 0.0j
     for i in range(len(i_ind)):
         out_mat[i_ind[i]] += prod[i]
     return out_mat
-def quantum_force(psi,diff_vars): # computes <\psi|\nabla H|\psi> using sparse methods
+
+
+def quantum_force(psi, diff_vars):  # computes <\psi|\nabla H|\psi> using sparse methods
     """
     Computes the Hellman-Feynmann force using the formula
-    f_{q(p)} = <psi| \nabla_{q(p)} H |\psi>
+    f_{q(p)} = <psi| \nabla_{q(p)} H |psi>
     :param psi: |psi>
-    :param dq_vars: sparse matrix variables of \nabla_{q} H and \nabla_{p} H (stored in sim.dq_vars)
-    :return: f_{q} and f_{p}
+    :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
+    :return: f_{z} and f_{zc}
     """
     (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
     fz = matprod_sparse(dz_shape, dz_ind, dz_mels, psi, psi)
     fzc = matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
     return fz, fzc
+
 
 def get_dab(evec_a, evec_b, ev_diff, diff_vars):  # computes d_{ab} using sparse methods
     """
@@ -219,13 +226,14 @@ def get_dab(evec_a, evec_b, ev_diff, diff_vars):  # computes d_{ab} using sparse
     :param evec_a: |a>
     :param evec_b: |b>
     :param ev_diff: e_{b} - e_{a}
-    :param dq_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
+    :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
     :return: d_{ab}^{z} and d_{ab}^{zc}
     """
     (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    dab_z = matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b)/ev_diff
-    dab_zc = matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b)/ev_diff
+    dab_z = matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
+    dab_zc = matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
     return dab_z, dab_zc
+
 
 @jit(nopython=True)
 def nan_num(num):
@@ -240,5 +248,7 @@ def nan_num(num):
         return -100e100
     else:
         return num
+
+
 # vectorized form of nan_num
 nan_num_vec = np.vectorize(nan_num)

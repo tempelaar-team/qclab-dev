@@ -7,18 +7,18 @@ import simulation
 import numpy as np
 import auxilliary
 
+
 def run_dynamics(sim):
-    start_time = time.time()
     # make calculation directory if needed
-    if not(os.path.exists(sim.calc_dir)):
+    if not (os.path.exists(sim.calc_dir)):
         os.mkdir(sim.calc_dir)
     # initialize ray cluster
     ray.shutdown()
     ray.init(**sim.cluster_args)
     if sim.num_procs > sim.num_trajs:
         sim.num_procs = sim.num_trajs
-    ray_sim = ray.put(sim) # put simulation object in shared memory
-    data_filename = sim.calc_dir + '/data.out' # output data object
+    ray_sim = ray.put(sim)  # put simulation object in shared memory
+    data_filename = sim.calc_dir + '/data.out'  # output data object
     if path.exists(data_filename):
         data_file = open(data_filename, 'rb')
         data_obj = pickle.load(data_file)
@@ -35,13 +35,13 @@ def run_dynamics(sim):
         index_list = [run * sim.num_procs + i + last_index for i in range(sim.num_procs)]
         seed_list = [seeds[run * sim.num_procs + i] for i in range(sim.num_procs)]
         if sim.dynamics_method == "MF":
-            results = [mf_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim) \
+            results = [mf_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
                        for i in range(sim.num_procs)]
         elif sim.dynamics_method == "FSSH":
-            results = [fssh_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim) \
+            results = [fssh_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
                        for i in range(sim.num_procs)]
         elif sim.dynamics_method == "CFSSH":
-            results = [cfssh_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim) \
+            results = [cfssh_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
                        for i in range(sim.num_procs)]
         for r in results:
             traj_obj, msg = ray.get(r)
@@ -53,6 +53,7 @@ def run_dynamics(sim):
     pickle.dump(data_obj, data_file)
     data_file.close()
     return sim
+
 
 @ray.remote
 def cfssh_dynamics(traj, sim):
@@ -85,8 +86,8 @@ def cfssh_dynamics(traj, sim):
     z_branch[:] = z
     zc_branch[:] = zc
     # initialize outputs
-    tdat = np.arange(0,sim.tmax + sim.dt, sim.dt)
-    tdat_bath = np.arange(0,sim.tmax + sim.dt_bath, sim.dt_bath)
+    tdat = np.arange(0, sim.tmax + sim.dt, sim.dt)
+    tdat_bath = np.arange(0, sim.tmax + sim.dt_bath, sim.dt_bath)
     ec = np.zeros((len(tdat)))
     eq = np.zeros((len(tdat)))
     pops_db = np.zeros((len(tdat), num_states))
@@ -97,14 +98,13 @@ def cfssh_dynamics(traj, sim):
     psi_adb_branch = np.zeros((num_branches, num_states), dtype=complex)
     psi_adb_branch[:] = psi_adb
     # initial wavefunction as a delta function in each branch
-    psi_adb_delta_branch = np.diag(np.ones(num_branches), dtype=complex)
+    psi_adb_delta_branch = np.diag(np.ones(num_branches)).astype(complex)
     # transform to diabatic basis
     psi_db_branch = np.zeros_like(psi_adb_branch).astype(complex)
     psi_db_delta_branch = np.zeros_like(psi_adb_branch).astype(complex)
     for i in range(num_branches):
         psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_0)
         psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_0)
-
 
     # initialize active surfaces
     act_surf_ind_branch = np.arange(0, num_branches, dtype=int)
@@ -130,6 +130,7 @@ def cfssh_dynamics(traj, sim):
     msg = ''
     return traj, msg
 
+
 @ray.remote
 def fssh_dynamics(traj, sim):
     start_time = time.time()
@@ -148,30 +149,30 @@ def fssh_dynamics(traj, sim):
     evecs = np.matmul(evecs, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
     dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim.diff_vars)
-    if np.sum(np.abs(np.imag(dab_q_phase))**2 + np.abs(np.imag(dab_p_phase))**2) > 1e-10:
-        print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase))**2 + np.abs(np.imag(dab_p_phase))**2) )
+    if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
+        print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
     #  initial wavefunction in diabatic basis
     psi_db = sim.psi_db_0
     # determine initial adiabatic wavefunction in fixed gauge
     psi_adb = auxilliary.vec_db_to_adb(psi_db, evecs)
     # initial wavefunction where it is only on active surface
-    psi_adb_delta = np.zeros((num_states), dtype=complex)
+    psi_adb_delta = np.zeros(num_states, dtype=complex)
     # determine initial active surface
     intervals = np.zeros(num_states)
     for n in range(num_states):
-        intervals[n] = np.sum(np.real(np.abs(psi_adb)**2)[0:n+1])
+        intervals[n] = np.sum(np.real(np.abs(psi_adb) ** 2)[0:n + 1])
     rand_val = np.random.rand()
     # initialize active surface index
     act_surf_ind = np.arange(num_states)[intervals > rand_val][0]
     # intialize psi_adb_delta
-    psi_adb_delta[act_surf_ind] = 1.0+0.0j
+    psi_adb_delta[act_surf_ind] = 1.0 + 0.0j
     # transform to diabatic basis
     psi_db_delta = auxilliary.vec_adb_to_db(psi_adb_delta, evecs)
     # initialize active surface
     act_surf = np.zeros(num_states, dtype=int)
     act_surf[act_surf_ind] = 1
     # initialize outputs
-    tdat = np.arange(0,sim.tmax + sim.dt, sim.dt)
+    tdat = np.arange(0, sim.tmax + sim.dt, sim.dt)
     tdat_bath = np.arange(0, sim.tmax + sim.dt_bath, sim.dt_bath)
     pops_db = np.zeros((len(tdat), num_states))
     ec = np.zeros((len(tdat)))
@@ -185,7 +186,7 @@ def fssh_dynamics(traj, sim):
     # begin timesteps
     t_ind = 0
     hop_count = 0
-    for t_bath_ind  in np.arange(0, len(tdat_bath)):
+    for t_bath_ind in np.arange(0, len(tdat_bath)):
         if t_ind == len(tdat):
             break
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
@@ -226,9 +227,9 @@ def fssh_dynamics(traj, sim):
         prod = np.matmul(np.conj(evecs[:, act_surf_ind]), evecs_previous)
         # compute hopping probability
         if sim.pab_cohere:
-            hop_prob = -2*np.real(prod * (psi_adb / psi_adb[act_surf_ind]))
+            hop_prob = -2 * np.real(prod * (psi_adb / psi_adb[act_surf_ind]))
         else:
-            hop_prob = -2*np.real(prod * (psi_adb_delta / psi_adb_delta[act_surf_ind]))
+            hop_prob = -2 * np.real(prod * (psi_adb_delta / psi_adb_delta[act_surf_ind]))
         hop_prob[act_surf_ind] = 0
         bin_edge = 0
         # loop over states
@@ -245,8 +246,8 @@ def fssh_dynamics(traj, sim):
                 # dkj_q is wrt q dkj_p is wrt p.
                 dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, sim.diff_vars)
                 # check that nonadiabatic couplings are real-valued
-                dkj_q = np.sqrt(1/2)*(dkj_z + dkj_zc)
-                dkj_p = np.sqrt(1/(2))*1.0j*(dkj_z - dkj_zc)
+                dkj_q = np.sqrt(1 / 2) * (dkj_z + dkj_zc)
+                dkj_p = np.sqrt(1 / 2) * 1.0j * (dkj_z - dkj_zc)
                 if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
                     print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
                           np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
@@ -260,10 +261,10 @@ def fssh_dynamics(traj, sim):
                 # compute rescalings
                 delta_z = dkj_zc
                 delta_zc = dkj_z
-                akj_z = np.real(np.sum(delta_zc*delta_z))
-                bkj_z = np.real(np.sum(1j*(zc*delta_z - z*delta_zc)))
+                akj_z = np.real(np.sum(delta_zc * delta_z))
+                bkj_z = np.real(np.sum(1j * (zc * delta_z - z * delta_zc)))
                 ckj_z = ev_diff
-                disc = bkj_z**2 - 4*akj_z*ckj_z
+                disc = bkj_z ** 2 - 4 * akj_z * ckj_z
                 if disc >= 0:
                     if bkj_z < 0:
                         gamma = bkj_z + np.sqrt(disc)
@@ -272,9 +273,9 @@ def fssh_dynamics(traj, sim):
                     if akj_z == 0:
                         gamma = 0
                     else:
-                        gamma = gamma / (2*akj_z)
-                    z = z - 1.0j*np.real(gamma)*delta_z
-                    zc = zc + 1.0j*np.real(gamma)*delta_zc
+                        gamma = gamma / (2 * akj_z)
+                    z = z - 1.0j * np.real(gamma) * delta_z
+                    zc = zc + 1.0j * np.real(gamma) * delta_zc
                     # update active surface
                     act_surf_ind = k
                     act_surf = np.zeros_like(act_surf)
@@ -289,7 +290,8 @@ def fssh_dynamics(traj, sim):
     end_time = time.time()
     msg = 'trial index: ' + str(traj.index) + ' hop count: ' + str(hop_count) + ' time: ' + str(
         end_time - start_time) + ' seed: ' + str(traj.seed)
-    return traj, eq+ec#msg
+    return traj, eq + ec  # msg
+
 
 @ray.remote
 def mf_dynamics(traj, sim):
@@ -310,19 +312,19 @@ def mf_dynamics(traj, sim):
     ec = np.zeros((len(tdat)))  # classical energy
     eq = np.zeros((len(tdat)))  # quantum energy
     # adjust h_q so that the initial quantum energy is always 0
-    eq_init = np.real(np.matmul(np.conjugate(psi_db),np.matmul(h_tot, psi_db)))
-    h_q = h_q - np.identity(num_states)*eq_init
-    h_tot = h_q + sim.h_qc(z,zc)
+    eq_init = np.real(np.matmul(np.conjugate(psi_db), np.matmul(h_tot, psi_db)))
+    h_q = h_q - np.identity(num_states) * eq_init
+    h_tot = h_q + sim.h_qc(z, zc)
     t_ind = 0
     for t_bath_ind in np.arange(0, len(tdat_bath)):
         if t_ind == len(tdat):
             break
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
             # save diabatic populations
-            pops_db[t_ind] = np.abs(psi_db)**2
+            pops_db[t_ind] = np.abs(psi_db) ** 2
             # save energies
             ec[t_ind] = sim.h_c(z, zc)
-            eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db),np.matmul(h_tot, psi_db)))
+            eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db), np.matmul(h_tot, psi_db)))
             e_tot_0 = ec[0] + eq[0]  # energy at t=0
             e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
             # check that energy is conserved within 1% of the classical energy
@@ -339,5 +341,6 @@ def mf_dynamics(traj, sim):
     traj.add_to_dic('eq', eq)
     traj.add_to_dic('ec', ec)
     end_time = time.time()
-    msg = 'trial index: ' + str(traj.index) + ' time: ' + str(np.round(end_time - start_time, 3)) + ' seed: ' + str(traj.seed)
+    msg = 'trial index: ' + str(traj.index) + ' time: ' + str(np.round(end_time - start_time, 3)) + ' seed: ' + str(
+        traj.seed)
     return traj, msg

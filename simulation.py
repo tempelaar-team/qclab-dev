@@ -1,4 +1,6 @@
 import numpy as np
+
+
 class Simulation:
     def __init__(self, input_file):
         # Define default values
@@ -6,12 +8,12 @@ class Simulation:
             "dynamics_method": "MF",  # which dynamics method, "MF", "FSSH", "CFSSH"
             "num_procs": 4,  # number of processors to use
             "num_trajs": 4,  # number of trajectories to run
-            "tmax": 10, # maximum simulation time
-            "dt": 0.1, # timestep of output
-            "dt_bath":0.01, # bath timestep
-            "model_dir":"./", # model directory
-            "pab_cohere":True, # Uses full adiabatic wavefunction to compute hopping probabilities
-            "gauge_fix":1 # gauge fixing level 0, 1, 2
+            "tmax": 10,  # maximum simulation time
+            "dt": 0.1,  # timestep of output
+            "dt_bath": 0.01,  # bath timestep
+            "model_dir": "./",  # model directory
+            "pab_cohere": True,  # Uses full adiabatic wavefunction to compute hopping probabilities
+            "gauge_fix": 1  # gauge fixing level 0, 1, 2
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
@@ -33,14 +35,18 @@ class Simulation:
         self.gauge_fix = defaults['gauge_fix']
         self.input_file = input_file
         self.input_params = defaults
+
+
 class Trajectory:
     def __init__(self, seed, index):
         self.seed = seed  # seed used to initialize random variables
         self.index = index  # index of trajectory
         self.data_dic = {}  # dictionary to store data
+
     def add_to_dic(self, name, data):
         self.data_dic.__setitem__(name, data)
         return
+
 
 class Data:
     def __init__(self, filename):
