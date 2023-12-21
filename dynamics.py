@@ -199,7 +199,7 @@ def fssh_dynamics(traj, sim):
             e_tot_0 = ec[0] + eq[0]  # energy at t=0
             e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
             # check that energy is conserved within 1% of the classical energy
-            if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[t_ind]
+            if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[t_ind]:
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[t_ind])
             t_ind += 1
         # compute quantum force
@@ -324,7 +324,7 @@ def mf_dynamics(traj, sim):
             e_tot_0 = ec[0] + eq[0]  # energy at t=0
             e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
             # check that energy is conserved within 1% of the classical energy
-            if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[t_ind]
+            if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[t_ind]:
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[t_ind])
             t_ind += 1
         fq, fp = auxilliary.quantum_force(psi_db, sim.dq_vars)
