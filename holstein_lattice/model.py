@@ -17,7 +17,6 @@ def initialize(sim):
     sim.j = defaults["j"]
     sim.num_states = defaults["num_states"]
     sim.w = defaults["w"]
-
     def init_classical():
         q = np.random.normal(loc = 0, scale = np.sqrt(sim.temp),size = sim.num_states)
         p = np.random.normal(loc = 0, scale = np.sqrt(sim.temp/(sim.w)), size=sim.num_states)
@@ -32,9 +31,11 @@ def initialize(sim):
         return out
 
     def h_qc(q,p):
-        out = np.zeros((sim.num_states, sim.num_states), dtype=complex)
-        out[range(sim.num_states),range(sim.num_states)] = sim.g*np.sqrt(2*(sim.w**3))*q
+        out = np.diag(sim.g*np.sqrt(2*(sim.w**3))*q)
         return out
+
+    def h_c(q, p):
+        return np.real(np.sum((1/2)*((p**2) + (sim.w**2)*(q**2))))
 
     # initialize derivatives of h wrt q and p
     # tensors have dimension # classical osc \times # quantum states \times # quantum states
@@ -57,7 +58,10 @@ def initialize(sim):
     sim.w_c = sim.w
     sim.h_q = h_q
     sim.h_qc = h_qc
+    sim.h_c = h_c
     sim.dq_vars = dq_vars
+    sim.calc_dir = 'holstein_lattice_g_'+str(sim.g)+'_j_'+str(sim.j)+'_w_'+str(sim.w)+'_temp_'+str(sim.temp)+'_nstates_'+str(sim.num_states)
+    sim.psi_db_0 = 1/np.sqrt(sim.num_states) * np.ones(sim.num_states,dtype=complex)
 
     return sim
 

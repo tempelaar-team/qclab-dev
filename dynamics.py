@@ -2,12 +2,17 @@ import ray
 import time
 import dill as pickle
 from os import path
+import os
 import simulation
 import numpy as np
 import auxilliary
 
 def run_dynamics(sim):
     start_time = time.time()
+    # make calculation directory if needed
+    if not(os.path.exists(sim.calc_dir)):
+        os.mkdir(sim.calc_dir)
+    # initialize ray cluster
     ray.shutdown()
     ray.init(**sim.cluster_args)
     if sim.num_procs > sim.num_trajs:
@@ -28,7 +33,7 @@ def run_dynamics(sim):
     seeds = np.array([n for n in np.arange(last_index, sim.num_trajs + last_index)])
     for run in range(0, int(sim.num_trajs / sim.num_procs)):
         index_list = [run * sim.num_procs + i + last_index for i in range(sim.num_procs)]
-        seed_list = [seeds[run * sim.nprocs + i + last_index] for i in range(sim.nprocs)]
+        seed_list = [seeds[run * sim.num_procs + i + last_index] for i in range(sim.num_procs)]
         if sim.dynamics_method == "MF":
             results = [mf_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim) \
                        for i in range(sim.num_procs)]
@@ -182,7 +187,7 @@ def fssh_dynamics(traj, sim):
             eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db), np.matmul(h_tot, psi_db)))
             t_ind += 1
         # compute quantum force
-        fq, fp = sim.quantumforce(evecs[:, act_surf_ind], sim)
+        fq, fp = auxilliary.quantum_force(evecs[:, act_surf_ind], sim.dq_vars)
         # evolve classical coordinates
         q, p = auxilliary.rk4_c(q, p, (fq, fp), sim.w_c, sim.dt_bath)
         # evolve quantum subsystem saving prevous eigenvector values
@@ -290,7 +295,7 @@ def mf_dynamics(traj, sim):
             eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db),np.matmul(h_tot, psi_db)))
             pops_db[t_ind] = np.abs(psi_db)**2
             t_ind += 1
-        fq, fp = sim.quantum_force(psi_db)
+        fq, fp = auxilliary.quantum_force(psi_db, sim.dq_vars)
         q, p = auxilliary.rk4_c(q, p, (fq, fp), sim.w_c, sim.dt_bath)
         h_tot = h_q + sim.h_qc(q, p)
         psi_db = auxilliary.rk4_q(h_tot, psi_db, sim.dt_bath)
@@ -300,5 +305,5 @@ def mf_dynamics(traj, sim):
     traj.add_to_dic('eq', eq)
     traj.add_to_dic('ec', ec)
     end_time = time.time()
-    msg = 'trial index: ', + str(traj.index) + ' time: ' + str(np.round(end_time - start_time, 3)) + ' seed: ' + str(traj.seed)
+    msg = 'trial index: ' + str(traj.index) + ' time: ' + str(np.round(end_time - start_time, 3)) + ' seed: ' + str(traj.seed)
     return traj, msg
