@@ -69,12 +69,13 @@ def cfssh_dynamics(traj, sim):
     num_states = len(evals_0)
     num_branches = num_states
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.diff_vars)
     # execute phase shift
     evecs_0 = np.matmul(evecs_0, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.diff_vars)
     if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
+        # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
     #  initial wavefunction in diabatic basis
     psi_db = sim.psi_db_0
@@ -150,6 +151,7 @@ def fssh_dynamics(traj, sim):
     # recalculate phases and check that they are zero
     dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim.diff_vars)
     if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
+        # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
     #  initial wavefunction in diabatic basis
     psi_db = sim.psi_db_0
@@ -210,7 +212,7 @@ def fssh_dynamics(traj, sim):
         fz, fzc = auxilliary.quantum_force(evecs[:, act_surf_ind], sim.diff_vars)
         # evolve classical coordinates
         z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.dt_bath)
-        # evolve quantum subsystem saving prevous eigenvector values
+        # evolve quantum subsystem saving previous eigenvector values
         evecs_previous = np.copy(evecs)
         h_tot = h_q + sim.h_qc(z, zc)
         evals, evecs = np.linalg.eigh(h_tot)
@@ -274,6 +276,7 @@ def fssh_dynamics(traj, sim):
                         gamma = 0
                     else:
                         gamma = gamma / (2 * akj_z)
+                    # adjust classical coordinates
                     z = z - 1.0j * np.real(gamma) * delta_z
                     zc = zc + 1.0j * np.real(gamma) * delta_zc
                     # update active surface
