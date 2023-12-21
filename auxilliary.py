@@ -5,12 +5,11 @@ import numpy as np
 def rk4_c(z, zc, qf, dt):
     """
     4-th order Runge-Kutta for classical coordinates
-    :param q: position coordiantes q(t)
-    :param p: momentum coordinates p(t)
-    :param qf: tuple of quantum forces qf = (fq, fp)
-    :param w: classical frequencies (stored in sim.w_c)
+    :param z: complex coordinate z
+    :param zc: conjugate coordinate zc
+    :param qf: tuple of quantum forces qf = (fz, fzc)
     :param dt: timestep dt
-    :return: q(t+dt), p(t+dt)
+    :return: z(t+dt), zc(t+dt)
     """
     fz, fzc = qf
     # convert fz and fzc to fq and fp
