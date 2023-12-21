@@ -193,6 +193,11 @@ def fssh_dynamics(traj, sim):
             # save energies
             ec[t_ind] = sim.h_c(q, p)
             eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db), np.matmul(h_tot, psi_db)))
+            e_tot_0 = ec[0] + eq[0]  # energy at t=0
+            e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
+            e_trans = np.abs(ec[t_ind] - eq[t_ind]) # transferred energy between quantum and classical subsystems
+            if np.abs(e_tot_t - e_tot_0) > 0.01 * e_trans: # check that energy is conserved within 1% of transferred energy
+                print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / e_trans)
             t_ind += 1
         # compute quantum force
         fq, fp = auxilliary.quantum_force(evecs[:, act_surf_ind], sim.dq_vars)
@@ -306,9 +311,16 @@ def mf_dynamics(traj, sim):
         if t_ind == len(tdat):
             break
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
+            # save diabatic populations
+            pops_db[t_ind] = np.abs(psi_db)**2
+            # save energies
             ec[t_ind] = sim.h_c(q, p)
             eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db),np.matmul(h_tot, psi_db)))
-            pops_db[t_ind] = np.abs(psi_db)**2
+            e_tot_0 = ec[0] + eq[0]  # energy at t=0
+            e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
+            e_trans = np.abs(ec[t_ind] - eq[t_ind]) # transferred energy between quantum and classical subsystems
+            if np.abs(e_tot_t - e_tot_0) > 0.01 * e_trans: # check that energy is conserved within 1% of transferred energy
+                print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / e_trans)
             t_ind += 1
         fq, fp = auxilliary.quantum_force(psi_db, sim.dq_vars)
         q, p = auxilliary.rk4_c(q, p, (fq, fp), sim.w_c, sim.dt_bath)
