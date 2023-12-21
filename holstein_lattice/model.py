@@ -20,6 +20,8 @@ def initialize(sim):
     sim.j = defaults["j"]
     sim.num_states = defaults["num_states"]
     sim.w = defaults["w"]
+    sim.quantum_rotation = defaults["quantum_rotation"]
+    sim.classical_rotation = defaults["classical_rotation"]
     def init_classical():
         """
         Initialize classical coordiantes according to Boltzmann statistics
@@ -84,20 +86,21 @@ def initialize(sim):
 
     # initialize derivatives of h wrt q and p
     # tensors have dimension # classical osc \times # quantum states \times # quantum states
-    dq_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states),dtype=complex)
-    dp_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states),dtype=complex)
+    dz_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states),dtype=complex)
+    dzc_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states),dtype=complex)
     for i in range(sim.num_states):
-        dq_mat[i,i,i] = sim.g*np.sqrt(2*(sim.w**3))
-    dq_shape = np.shape(dq_mat)
-    dp_shape = np.shape(dp_mat)
+        dz_mat[i,i,i] = sim.g*sim.w
+        dzc_mat[i,i,i] = sim.g*sim.w
+    dz_shape = np.shape(dz_mat)
+    dzc_shape = np.shape(dzc_mat)
     # position of nonzero matrix elements
-    dq_ind = np.where(np.abs(dq_mat) > 1e-18)
-    dp_ind = np.where(np.abs(dp_mat) > 1e-18)
+    dz_ind = np.where(np.abs(dz_mat) > 1e-18)
+    dzc_ind = np.where(np.abs(dzc_mat) > 1e-18)
     # nonzero matrix elements
-    dq_mels = dq_mat[dq_ind]
-    dp_mels = dp_mat[dp_ind]
+    dz_mels = dz_mat[dz_ind]
+    dzc_mels = dzc_mat[dzc_ind]
     # necessary variables for computing expectation values
-    dq_vars = (dq_shape, dq_ind, dq_mels, dp_shape, dp_ind, dp_mels)
+    diff_vars = (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels)
 
     # equip simulation object with necessary functions
     sim.init_classical = init_classical
@@ -107,7 +110,7 @@ def initialize(sim):
     sim.h_c = h_c
     sim.U_c = U_c
     sim.U_q = U_q
-    sim.dq_vars = dq_vars
+    sim.diff_vars = diff_vars
     sim.calc_dir = 'holstein_lattice_g_'+str(sim.g)+'_j_'+str(sim.j)+'_w_'+str(sim.w)+\
                    '_temp_'+str(sim.temp)+'_nstates_'+str(sim.num_states)
     sim.psi_db_0 = 1/np.sqrt(sim.num_states) * np.ones(sim.num_states,dtype=complex)
