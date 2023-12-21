@@ -47,9 +47,7 @@ def rho_0_db_to_adb(rho_0_db, eigvec): # transforms density matrix from db to ad
     rho_0_db = np.dot(np.dot(np.conj(eigvec).transpose(), rho_0_db + 0.0j), eigvec)
     return rho_0_db
 
-def get_dkk(evec_i, evec_j, ev_diff, sim):  # computes dkk_{ij} using sparse methods
-    # TODO need to add this function
-    return dkkq, dkkp
+
 def get_dab_phase(evals, evecs, sim):
     dabq_phase = np.ones(len(evals))
     dabp_phase = np.ones(len(evals))
@@ -106,8 +104,14 @@ def matprod_sparse(shape, ind, mels, vec1, vec2): # calculates <1|mat|2>
     for i in range(len(i_ind)):
         out_mat[i_ind[i]] += prod[i]
     return out_mat
-def quantum_force(psi,dq_vars):
+def quantum_force(psi,dq_vars): # computes <\psi|\nabla H|\psi> using sparse methods
     (dq_shape, dq_ind, dq_mels, dp_shape, dp_ind, dp_mels) = dq_vars
     fq = matprod_sparse(dq_shape, dq_ind, dq_mels, psi, psi)
     fp = matprod_sparse(dp_shape, dp_ind, dp_mels, psi, psi)
     return fq, fp
+
+def get_dkk(evec_k, evec_j, ev_diff, dq_vars):  # computes d_{kj} using sparse methods
+    (dq_shape, dq_ind, dq_mels, dp_shape, dp_ind, dp_mels) = dq_vars
+    dkkq = matprod_sparse(dq_shape, dq_ind, dq_mels, evec_k, evec_j)/ev_diff
+    dkkp = matprod_sparse(dp_shape, dp_ind, dp_mels, evec_k, evec_j)/ev_diff
+    return dkkq, dkkp
