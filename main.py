@@ -25,7 +25,7 @@ if __name__ == '__main__':
     import model
     sim = model.initialize(sim)
     # rotate basis
-    #sim = rotation.rotate(sim)
+    sim = rotation.rotate(sim)
     # run dynamics
     sim = dynamics.run_dynamics(sim)
 
