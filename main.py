@@ -3,6 +3,7 @@ import time
 import numpy as np
 import dynamics
 import simulation
+import rotation
 import os
 
 if __name__ == '__main__':
@@ -23,6 +24,8 @@ if __name__ == '__main__':
     sys.path.append(path)
     import model
     sim = model.initialize(sim)
+    # rotate basis
+    sim = rotation.rotate(sim)
     # run dynamics
     sim = dynamics.run_dynamics(sim)
 

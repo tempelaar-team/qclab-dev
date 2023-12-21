@@ -8,6 +8,8 @@ def initialize(sim):
         "j":1, # hopping integral
         "num_states":20, # number of states
         "g":1, # electron-phonon coupling
+        "quantum_rotation":None, # rotation of quantum subspace
+        "classical_rotation":None, # rotation of classical subspace
     }
     inputs = list(sim.input_params)  # inputs is list of keys in input_params
     for key in inputs:  # copy input values into defaults
@@ -57,6 +59,26 @@ def initialize(sim):
         :return: h_c(q,p) Hamiltonian
         """
         return np.real(np.sum((1/2)*((p**2) + (sim.w**2)*(q**2))))
+    """
+    Initialize the rotation matrices of quantum and classical subsystems
+    """
+    if sim.quantum_rotation == 'fourier':
+        def U_q():
+            out = np.fft.fft(np.identity(sim.num_states))/np.sqrt(sim.num_states)
+            return out
+    else:
+        def U_q():
+            out = np.identity(sim.num_states)
+            return out
+    if sim.classical_rotation == 'fourier':
+        def U_c():
+            out = np.fft.fft(np.identity(sim.num_states))/np.sqrt(sim.num_states)
+            return out
+    else:
+        def U_c():
+            out = np.identity(sim.num_states)
+            return out
+
 
     # initialize derivatives of h wrt q and p
     # tensors have dimension # classical osc \times # quantum states \times # quantum states
@@ -81,6 +103,8 @@ def initialize(sim):
     sim.h_q = h_q
     sim.h_qc = h_qc
     sim.h_c = h_c
+    sim.U_c = U_c
+    sim.U_q = U_q
     sim.dq_vars = dq_vars
     sim.calc_dir = 'holstein_lattice_g_'+str(sim.g)+'_j_'+str(sim.j)+'_w_'+str(sim.w)+\
                    '_temp_'+str(sim.temp)+'_nstates_'+str(sim.num_states)
