@@ -2,7 +2,7 @@ from numba import jit
 import numpy as np
 
 @jit(nopython=True)
-def rk4_c(z, zc, qf, w, dt):
+def rk4_c(z, zc, qf, dt):
     """
     4-th order Runge-Kutta for classical coordinates
     :param q: position coordiantes q(t)
@@ -14,21 +14,21 @@ def rk4_c(z, zc, qf, w, dt):
     """
     fz, fzc = qf
     # convert fz and fzc to fq and fp
-    fq = np.real(np.sqrt(w/2)*(fz+fzc))
-    fp = np.real(1j*np.sqrt(1/(2*w))*(fz - fzc))
-    q = np.real((z + zc)/np.sqrt(2*w))
-    p = np.real(-1.0j*(z - zc)*np.sqrt(w/2))
+    fq = np.real(np.sqrt(1/2)*(fz+fzc))
+    fp = np.real(1j*np.sqrt(1/(2))*(fz - fzc))
+    q = np.real((z + zc)/np.sqrt(2))
+    p = np.real(-1.0j*(z - zc)*np.sqrt(1/2))
     k1 = dt * (p + fp)
-    l1 = -dt * (w ** 2 * q + fq)  # [wn2] is w_alpha ^ 2
+    l1 = -dt * (q + fq)  # [wn2] is w_alpha ^ 2
     k2 = dt * ((p + 0.5 * l1) + fp)
-    l2 = -dt * (w ** 2 * (q + 0.5 * k1) + fq)
+    l2 = -dt * ((q + 0.5 * k1) + fq)
     k3 = dt * ((p + 0.5 * l2) + fp)
-    l3 = -dt * (w ** 2 * (q + 0.5 * k2) + fq)
+    l3 = -dt * ((q + 0.5 * k2) + fq)
     k4 = dt * ((p + l3) + fp)
-    l4 = -dt * (w ** 2 * (q + k3) + fq)
+    l4 = -dt * ((q + k3) + fq)
     q = q + 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     p = p + 0.166667 * (l1 + 2 * l2 + 2 * l3 + l4)
-    return np.sqrt(w/2)*(q + 1.0j*(p/w)), np.sqrt(w/2)*(q - 1.0j*(p/w))
+    return np.sqrt(1/2)*(q + 1.0j*(p)), np.sqrt(1/2)*(q - 1.0j*(p))
 
 
 
@@ -97,7 +97,7 @@ def rho_0_db_to_adb(rho_0_db, eigvec): # transforms density matrix from db to ad
     return rho_0_db
 
 
-def get_dab_phase(evals, evecs, sim):
+def get_dab_phase(evals, evecs, diff_vars):
     """
     Computes the diagonal gauge transformation G such that (VG)^{\dagger}\nabla(VG) is real-valued.
     :param evals: eigenvalues
@@ -118,10 +118,10 @@ def get_dab_phase(evals, evecs, sim):
         if np.abs(ev_diff) < 1e-14:
             plus = 1
             print('Warning: Degenerate eigenvalues')
-        dkk_z, dkk_zc = get_dab(evec_i, evec_j, ev_diff + plus, sim.diff_vars)
+        dkk_z, dkk_zc = get_dab(evec_i, evec_j, ev_diff + plus, diff_vars)
         # convert to q/p nonadiabatic couplings
-        dkkq = np.sqrt(sim.w_c/2)*(dkk_z + dkk_zc)
-        dkkp = np.sqrt(1/(sim.w_c*2))*1.0j*(dkk_z - dkk_zc)
+        dkkq = np.sqrt(1/2)*(dkk_z + dkk_zc)
+        dkkp = np.sqrt(1/(2))*1.0j*(dkk_z - dkk_zc)
         dkkq_angle = np.angle(dkkq[np.argmax(np.abs(dkkq))])
         dkkp_angle = np.angle(dkkp[np.argmax(np.abs(dkkp))])
         if np.max(np.abs(dkkq)) < 1e-14:
@@ -172,7 +172,7 @@ def sign_adjust(evecs, evecs_previous, evals, sim):
         evecs = np.einsum('jk,k->jk', evecs, phases)
         phase_out *= phases
     if sim.gauge_fix >= 2:
-        dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs, evals, sim.dq_vars)
+        dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs, evals, sim.diff_vars)
         dab_phase_list = np.conjugate(dabQ_phase_list)
         phase_out *= dab_phase_list
         evecs = np.einsum('jk,k->jk', evecs, dab_phase_list)
