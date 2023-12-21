@@ -13,3 +13,5 @@ g=1 # electron-phonon coupling
 w=1 # phonon frequency
 j=1 # hopping integral
 temp=1 # temperature
+quantum_rotation='fourier' # rotation of quantum subsystem
+classical_rotation='fourier' # rotation of classical subsystem
