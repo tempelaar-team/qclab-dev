@@ -10,8 +10,8 @@ def run_dynamics(sim):
     start_time = time.time()
     ray.shutdown()
     ray.init(sim.cluster_args)
-    if sim.num_procs > sim.num_trials:
-        sim.num_procs = sim.num_trials
+    if sim.num_procs > sim.num_trajs:
+        sim.num_procs = sim.num_trajs
     ray_sim = ray.put(sim) # put simulation object in shared memory
     data_filename = sim.calc_dir + '/data.out' # output data object
     if path.exists(data_filename):
@@ -25,8 +25,8 @@ def run_dynamics(sim):
         last_index = 0
         # initialize data object
         data_obj = simulation.Data(data_filename)
-    seeds = np.array([n for n in np.arange(last_index, sim.trials + last_index)])
-    for run in range(0, int(sim.num_trials / sim.num_procs)):
+    seeds = np.array([n for n in np.arange(last_index, sim.num_trajs + last_index)])
+    for run in range(0, int(sim.num_trajs / sim.num_procs)):
         index_list = [run * sim.num_procs + i + last_index for i in range(sim.num_procs)]
         seed_list = [seeds[run * sim.nprocs + i + last_index] for i in range(sim.nprocs)]
         if sim.dynamics_method == "MF":
