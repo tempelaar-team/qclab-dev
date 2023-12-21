@@ -3,6 +3,15 @@ import numpy as np
 
 @jit(nopython=True)
 def rk4_c(q, p, qf, w, dt):
+    """
+    4-th order Runge-Kutta for classical coordinates
+    :param q: position coordiantes q(t)
+    :param p: momentum coordinates p(t)
+    :param qf: tuple of quantum forces qf = (fq, fp)
+    :param w: classical frequencies (stored in sim.w_c)
+    :param dt: timestep dt
+    :return: q(t+dt), p(t+dt)
+    """
     fq, fp = qf
     k1 = dt * (p + fp)
     l1 = -dt * (w ** 2 * q + fq)  # [wn2] is w_alpha ^ 2
@@ -20,6 +29,13 @@ def rk4_c(q, p, qf, w, dt):
 
 @jit(nopython=True)
 def rk4_q(h, psi, dt):
+    """
+    4-th order Runge-Kutta for quantum wavefunction
+    :param h: Hamiltonian h(t)
+    :param psi: wavefunction psi(t)
+    :param dt: timestep dt
+    :return: psi(t+dt)
+    """
     k1 = (-1j * h.dot(psi))
     k2 = (-1j * h.dot(psi + 0.5 * dt * k1))
     k3 = (-1j * h.dot(psi + 0.5 * dt * k2))
@@ -28,22 +44,50 @@ def rk4_q(h, psi, dt):
     return psi
 
 def vec_adb_to_db(psi_adb, eigvec):
+    """
+    Transforms a vector in adiabatic basis to diabatic basis
+    \psi_{db} = V\psi_{adb}
+    :param psi_adb: adiabatic vector \psi_{adb}
+    :param eigvec: eigenvectors V
+    :return: diabatic vector \psi_{db}
+    """
     psi_db = np.matmul(eigvec, psi_adb)
     return psi_db
 
 
 def vec_db_to_adb(psi_db, eigvec):
+    """
+    Transforms a vector in diabatic basis to adiabatic basis
+    \psi_{adb} = V^{\dagger}\psi_{db}
+    :param psi_db: diabatic vector \psi_{db}
+    :param eigvec: eigenvectors V
+    :return: adiabatic vector \psi_{adb}
+    """
     psi_adb = np.matmul(np.conjugate(np.transpose(eigvec)),psi_db)
     return psi_adb
 
 @jit(nopython=True)
 def rho_0_adb_to_db(rho_0_adb, eigvec): # transforms density matrix from adb to db representation
+    """
+    Transforms a density matrix \rho_{adb} from adiabatic to diabatic basis:
+    \rho_{db} = V\rho_{adb}V^{\dagger}
+    :param rho_0_adb: adiabatic density matrix \rho_{adb}
+    :param eigvec: eigenvectors V
+    :return: diabatic density matrix \rho_{db}
+    """
     rho_0_db = np.dot(np.dot(eigvec, rho_0_adb + 0.0j), np.conj(eigvec).transpose())
     return rho_0_db
 
 
 @jit(nopython=True)
 def rho_0_db_to_adb(rho_0_db, eigvec): # transforms density matrix from db to adb representation
+    """
+    Transforms a density matrix \rho_{db} from diabatic to adiabatic basis:
+    \rho_{adb} = V^{\dagger}\rho_{db}V
+    :param rho_0_db: diabatic density matrix \rho_{db}
+    :param eigvec: eigenvectors V
+    :return:  adiabatic density matrix \rho_{adb}
+    """
     rho_0_db = np.dot(np.dot(np.conj(eigvec).transpose(), rho_0_db + 0.0j), eigvec)
     return rho_0_db
 
