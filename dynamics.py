@@ -68,11 +68,11 @@ def cfssh_dynamics(traj, sim):
     num_states = len(evals_0)
     num_branches = num_states
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.dq_vars)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.diff_vars)
     # execute phase shift
     evecs_0 = np.matmul(evecs_0, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.dq_vars)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.diff_vars)
     if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
     #  initial wavefunction in diabatic basis
@@ -135,19 +135,19 @@ def fssh_dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
     #  initialize classical coordinates
-    q, p = sim.init_classical()
+    z, zc = sim.init_classical()
     #  compute initial Hamiltonian
     h_q = sim.h_q()
-    h_tot = h_q + sim.h_qc(q, p)
+    h_tot = h_q + sim.h_qc(z, zc)
     #  compute eigenvectors
     evals, evecs = np.linalg.eigh(h_tot)
     num_states = len(h_q)
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim.dq_vars)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim)
     # execute phase shift
     evecs = np.matmul(evecs, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim.dq_vars)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim)
     if np.sum(np.abs(np.imag(dab_q_phase))**2 + np.abs(np.imag(dab_p_phase))**2) > 1e-10:
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase))**2 + np.abs(np.imag(dab_p_phase))**2) )
     #  initial wavefunction in diabatic basis
@@ -178,8 +178,10 @@ def fssh_dynamics(traj, sim):
     eq = np.zeros((len(tdat)))
     # adjust h_q so that the initial quantum energy is always 0
     eq_init = evals[act_surf_ind]
-    h_q = h_q - np.identity(num_states)*eq_init
-    h_tot = h_q + sim.h_qc(q,p)
+    h_q = h_q - np.identity(num_states) * eq_init
+    h_tot = h_q + sim.h_qc(z, zc)
+    # update eigenvalues
+    evals, _ = np.linalg.eigh(h_tot)
     # begin timesteps
     t_ind = 0
     hop_count = 0
@@ -195,7 +197,7 @@ def fssh_dynamics(traj, sim):
             # save populations
             pops_db[t_ind] = np.real(np.diag(rho_db))
             # save energies
-            ec[t_ind] = sim.h_c(q, p)
+            ec[t_ind] = sim.h_c(z, zc)
             eq[t_ind] = evals[act_surf_ind]
             e_tot_0 = ec[0] + eq[0]  # energy at t=0
             e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
@@ -204,18 +206,18 @@ def fssh_dynamics(traj, sim):
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[t_ind])
             t_ind += 1
         # compute quantum force
-        fq, fp = auxilliary.quantum_force(evecs[:, act_surf_ind], sim.dq_vars)
+        fz, fzc = auxilliary.quantum_force(evecs[:, act_surf_ind], sim.diff_vars)
         # evolve classical coordinates
-        q, p = auxilliary.rk4_c(q, p, (fq, fp), sim.w_c, sim.dt_bath)
+        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.w_c, sim.dt_bath)
         # evolve quantum subsystem saving prevous eigenvector values
         evecs_previous = np.copy(evecs)
-        h_tot = h_q + sim.h_qc(q, p)
+        h_tot = h_q + sim.h_qc(z, zc)
         evals, evecs = np.linalg.eigh(h_tot)
         evecs, evec_phases = auxilliary.sign_adjust(evecs, evecs_previous, evals, sim)
         evals_exp = np.exp(-1j * evals * sim.dt_bath)
         diag_matrix = np.diag(evals_exp)
-        psi_adb = np.dot(diag_matrix, psi_adb)
-        psi_adb_delta = np.dot(diag_matrix, psi_adb_delta)
+        psi_adb = np.copy(np.dot(diag_matrix, auxilliary.vec_db_to_adb(psi_db, evecs)))
+        psi_adb_delta = np.copy(np.dot(diag_matrix, auxilliary.vec_db_to_adb(psi_db_delta, evecs)))
         psi_db = auxilliary.vec_adb_to_db(psi_adb, evecs)
         psi_db_delta = auxilliary.vec_adb_to_db(psi_adb_delta, evecs)
         # compute random value
@@ -241,8 +243,10 @@ def fssh_dynamics(traj, sim):
                 eval_j = evals[k]
                 ev_diff = eval_j - eval_k
                 # dkj_q is wrt q dkj_p is wrt p.
-                dkj_q, dkj_p = auxilliary.get_dab(evec_k, evec_j, ev_diff, sim.dq_vars)
+                dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, sim.diff_vars)
                 # check that nonadiabatic couplings are real-valued
+                dkj_q = np.sqrt(sim.w/2)*(dkj_z + dkj_zc)
+                dkj_p = np.sqrt(1/(sim.w*2))*1.0j*(dkj_z - dkj_zc)
                 if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
                     print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
                           np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
@@ -254,27 +258,44 @@ def fssh_dynamics(traj, sim):
                           '\n magnitude: ', np.abs(dkj_p[np.argmax(np.abs(dkj_p))]),
                           '\n value: ', dkj_p[np.argmax(np.abs(dkj_p))])
                 # compute rescalings
-                delta_q = np.real(dkj_p)
-                delta_p = np.real(dkj_q)
-                akj_q = np.sum((1 / 2) * np.abs(
-                    delta_p) ** 2)
-                akj_p = np.sum((1 / 2) * (np.nan_to_num(sim.w_c) ** 2) * np.abs(
-                    delta_q) ** 2)
-                bkj_q = np.sum((p * delta_p))
-                bkj_p = -np.sum((np.nan_to_num(sim.w_c) ** 2) * q * delta_q)
-                disc = (bkj_q + bkj_p) ** 2 - 4 * (akj_q + akj_p) * ev_diff
+                delta_z = dkj_zc
+                delta_zc = dkj_z
+                akj_z = np.real(np.sum(sim.w_c*delta_z*delta_zc))
+                bkj_z = np.real(np.sum(1j*(sim.w_c*zc*dkj_zc - sim.w_c*z*dkj_z)))
+                ckj_z = ev_diff
+                disc = bkj_z**2 - 4*akj_z*ckj_z
                 if disc >= 0:
-                    if bkj_q + bkj_p < 0:
-                        gamma = (bkj_q + bkj_p) + np.sqrt(disc)
+                    if bkj_z < 0:
+                        gamma = bkj_z + np.sqrt(disc)
                     else:
-                        gamma = (bkj_q + bkj_p) - np.sqrt(disc)
-                    if akj_p + akj_q == 0:
+                        gamma = bkj_z - np.sqrt(disc)
+                    if akj_z == 0:
                         gamma = 0
                     else:
-                        gamma = gamma / (2 * (akj_q + akj_p))
-                    # rescale classical coordinates
-                    p = p - np.real(gamma) * delta_p
-                    q = q + np.real(gamma) * delta_q
+                        gamma = gamma / (2*akj_z)
+                    z = z - 1.0j*np.real(gamma)*delta_zc
+                    zc = zc + 1.0j*np.real(gamma)*delta_z
+                #delta_q = np.real(dkj_p)
+                #delta_p = np.real(dkj_q)
+                #akj_q = np.sum((1 / 2) * np.abs(
+                #    delta_p) ** 2)
+                #akj_p = np.sum((1 / 2) * (np.nan_to_num(sim.w_c) ** 2) * np.abs(
+                #    delta_q) ** 2)
+                #bkj_q = np.sum((p * delta_p))
+                #bkj_p = -np.sum((np.nan_to_num(sim.w_c) ** 2) * q * delta_q)
+                #disc = (bkj_q + bkj_p) ** 2 - 4 * (akj_q + akj_p) * ev_diff
+                #if disc >= 0:
+                #    if bkj_q + bkj_p < 0:
+                #        gamma = (bkj_q + bkj_p) + np.sqrt(disc)
+                #    else:
+                #        gamma = (bkj_q + bkj_p) - np.sqrt(disc)
+                #    if akj_p + akj_q == 0:
+                #        gamma = 0
+                #    else:
+                #        gamma = gamma / (2 * (akj_q + akj_p))
+                #    # rescale classical coordinates
+                #    p = p - np.real(gamma) * delta_p
+                #    q = q + np.real(gamma) * delta_q
                     # update active surface
                     act_surf_ind = k
                     act_surf = np.zeros_like(act_surf)
@@ -289,17 +310,17 @@ def fssh_dynamics(traj, sim):
     end_time = time.time()
     msg = 'trial index: ' + str(traj.index) + ' hop count: ' + str(hop_count) + ' time: ' + str(
         end_time - start_time) + ' seed: ' + str(traj.seed)
-    return traj, msg
+    return traj, eq+ec#msg
 
 @ray.remote
 def mf_dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
     #  initialize classical coordinates
-    q, p = sim.init_classical()
+    z, zc = sim.init_classical()
     #  compute initial Hamiltonian
     h_q = sim.h_q()
-    h_tot = h_q + sim.h_qc(q, p)
+    h_tot = h_q + sim.h_qc(z, zc)
     num_states = len(h_q)
     # initial wavefunction in diabatic basis
     psi_db = sim.psi_db_0
@@ -312,7 +333,7 @@ def mf_dynamics(traj, sim):
     # adjust h_q so that the initial quantum energy is always 0
     eq_init = np.real(np.matmul(np.conjugate(psi_db),np.matmul(h_tot, psi_db)))
     h_q = h_q - np.identity(num_states)*eq_init
-    h_tot = h_q + sim.h_qc(q,p)
+    h_tot = h_q + sim.h_qc(z,zc)
     t_ind = 0
     for t_bath_ind in np.arange(0, len(tdat_bath)):
         if t_ind == len(tdat):
@@ -321,7 +342,7 @@ def mf_dynamics(traj, sim):
             # save diabatic populations
             pops_db[t_ind] = np.abs(psi_db)**2
             # save energies
-            ec[t_ind] = sim.h_c(q, p)
+            ec[t_ind] = sim.h_c(z, zc)
             eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db),np.matmul(h_tot, psi_db)))
             e_tot_0 = ec[0] + eq[0]  # energy at t=0
             e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
@@ -329,9 +350,9 @@ def mf_dynamics(traj, sim):
             if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[t_ind]:
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[t_ind])
             t_ind += 1
-        fq, fp = auxilliary.quantum_force(psi_db, sim.dq_vars)
-        q, p = auxilliary.rk4_c(q, p, (fq, fp), sim.w_c, sim.dt_bath)
-        h_tot = h_q + sim.h_qc(q, p)
+        fz, fzc = auxilliary.quantum_force(psi_db, sim.diff_vars)
+        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.w_c, sim.dt_bath)
+        h_tot = h_q + sim.h_qc(z, zc)
         psi_db = auxilliary.rk4_q(h_tot, psi_db, sim.dt_bath)
     # add data to trajectory object
     traj.add_to_dic('pops_db', pops_db)

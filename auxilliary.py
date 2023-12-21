@@ -2,7 +2,7 @@ from numba import jit
 import numpy as np
 
 @jit(nopython=True)
-def rk4_c(q, p, qf, w, dt):
+def rk4_c(z, zc, qf, w, dt):
     """
     4-th order Runge-Kutta for classical coordinates
     :param q: position coordiantes q(t)
@@ -12,7 +12,12 @@ def rk4_c(q, p, qf, w, dt):
     :param dt: timestep dt
     :return: q(t+dt), p(t+dt)
     """
-    fq, fp = qf
+    fz, fzc = qf
+    # convert fz and fzc to fq and fp
+    fq = np.real(np.sqrt(w/2)*(fz+fzc))
+    fp = np.real(1j*np.sqrt(1/(2*w))*(fz - fzc))
+    q = np.real((z + zc)/np.sqrt(2*w))
+    p = np.real(-1.0j*(z - zc)*np.sqrt(w/2))
     k1 = dt * (p + fp)
     l1 = -dt * (w ** 2 * q + fq)  # [wn2] is w_alpha ^ 2
     k2 = dt * ((p + 0.5 * l1) + fp)
@@ -23,7 +28,7 @@ def rk4_c(q, p, qf, w, dt):
     l4 = -dt * (w ** 2 * (q + k3) + fq)
     q = q + 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     p = p + 0.166667 * (l1 + 2 * l2 + 2 * l3 + l4)
-    return q, p
+    return np.sqrt(w/2)*(q + 1.0j*(p/w)), np.sqrt(w/2)*(q - 1.0j*(p/w))
 
 
 
@@ -92,7 +97,7 @@ def rho_0_db_to_adb(rho_0_db, eigvec): # transforms density matrix from db to ad
     return rho_0_db
 
 
-def get_dab_phase(evals, evecs, dq_vars):
+def get_dab_phase(evals, evecs, sim):
     """
     Computes the diagonal gauge transformation G such that (VG)^{\dagger}\nabla(VG) is real-valued.
     :param evals: eigenvalues
@@ -113,7 +118,10 @@ def get_dab_phase(evals, evecs, dq_vars):
         if np.abs(ev_diff) < 1e-14:
             plus = 1
             print('Warning: Degenerate eigenvalues')
-        dkkq, dkkp = get_dab(evec_i, evec_j, ev_diff + plus, dq_vars)
+        dkk_z, dkk_zc = get_dab(evec_i, evec_j, ev_diff + plus, sim.diff_vars)
+        # convert to q/p nonadiabatic couplings
+        dkkq = np.sqrt(sim.w_c/2)*(dkk_z + dkk_zc)
+        dkkp = np.sqrt(1/(sim.w_c*2))*1.0j*(dkk_z - dkk_zc)
         dkkq_angle = np.angle(dkkq[np.argmax(np.abs(dkkq))])
         dkkp_angle = np.angle(dkkp[np.argmax(np.abs(dkkp))])
         if np.max(np.abs(dkkq)) < 1e-14:
@@ -192,7 +200,7 @@ def matprod_sparse(shape, ind, mels, vec1, vec2): # calculates <1|mat|2>
     for i in range(len(i_ind)):
         out_mat[i_ind[i]] += prod[i]
     return out_mat
-def quantum_force(psi,dq_vars): # computes <\psi|\nabla H|\psi> using sparse methods
+def quantum_force(psi,diff_vars): # computes <\psi|\nabla H|\psi> using sparse methods
     """
     Computes the Hellman-Feynmann force using the formula
     f_{q(p)} = <psi| \nabla_{q(p)} H |\psi>
@@ -200,25 +208,25 @@ def quantum_force(psi,dq_vars): # computes <\psi|\nabla H|\psi> using sparse met
     :param dq_vars: sparse matrix variables of \nabla_{q} H and \nabla_{p} H (stored in sim.dq_vars)
     :return: f_{q} and f_{p}
     """
-    (dq_shape, dq_ind, dq_mels, dp_shape, dp_ind, dp_mels) = dq_vars
-    fq = matprod_sparse(dq_shape, dq_ind, dq_mels, psi, psi)
-    fp = matprod_sparse(dp_shape, dp_ind, dp_mels, psi, psi)
-    return fq, fp
+    (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
+    fz = matprod_sparse(dz_shape, dz_ind, dz_mels, psi, psi)
+    fzc = matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
+    return fz, fzc
 
-def get_dab(evec_a, evec_b, ev_diff, dq_vars):  # computes d_{ab} using sparse methods
+def get_dab(evec_a, evec_b, ev_diff, diff_vars):  # computes d_{ab} using sparse methods
     """
     Computes the nonadiabatic coupling using the formula
-    d_{ab}^{q(p)} = <a|\nabla_{q(p)} H|b>/(e_{b} - e_{a})
+    d_{ab}^{z(zc)} = <a|\nabla_{z(zc)} H|b>/(e_{b} - e_{a})
     :param evec_a: |a>
     :param evec_b: |b>
     :param ev_diff: e_{b} - e_{a}
-    :param dq_vars: sparse matrix variables of \nabla_{q} H and \nabla_{p} H (stored in sim.dq_vars)
-    :return: d_{ab}^{q} and d_{ab}^{p}
+    :param dq_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
+    :return: d_{ab}^{z} and d_{ab}^{zc}
     """
-    (dq_shape, dq_ind, dq_mels, dp_shape, dp_ind, dp_mels) = dq_vars
-    dab_q = matprod_sparse(dq_shape, dq_ind, dq_mels, evec_a, evec_b)/ev_diff
-    dab_p = matprod_sparse(dp_shape, dp_ind, dp_mels, evec_a, evec_b)/ev_diff
-    return dab_q, dab_p
+    (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
+    dab_z = matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b)/ev_diff
+    dab_zc = matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b)/ev_diff
+    return dab_z, dab_zc
 
 @jit(nopython=True)
 def nan_num(num):
