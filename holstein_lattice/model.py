@@ -94,8 +94,8 @@ def initialize(sim):
     dz_shape = np.shape(dz_mat)
     dzc_shape = np.shape(dzc_mat)
     # position of nonzero matrix elements
-    dz_ind = np.where(np.abs(dz_mat) > 1e-18)
-    dzc_ind = np.where(np.abs(dzc_mat) > 1e-18)
+    dz_ind = np.where(np.abs(dz_mat) > 1e-12)
+    dzc_ind = np.where(np.abs(dzc_mat) > 1e-12)
     # nonzero matrix elements
     dz_mels = dz_mat[dz_ind]
     dzc_mels = dzc_mat[dzc_ind]
