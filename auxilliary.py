@@ -179,7 +179,7 @@ def get_dab(evec_a, evec_b, ev_diff, dq_vars):  # computes d_{ab} using sparse m
 @jit(nopython=True)
 def nan_num(num):
     """
-    converts a number (potentially  nan) to a large or small number using numba acceleration
+    converts nan to a large or small number using numba acceleration
     """
     if np.isnan(num):
         return 0.0
