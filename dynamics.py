@@ -33,7 +33,7 @@ def run_dynamics(sim):
     seeds = np.array([n for n in np.arange(last_index, sim.num_trajs + last_index)])
     for run in range(0, int(sim.num_trajs / sim.num_procs)):
         index_list = [run * sim.num_procs + i + last_index for i in range(sim.num_procs)]
-        seed_list = [seeds[run * sim.num_procs + i + last_index] for i in range(sim.num_procs)]
+        seed_list = [seeds[run * sim.num_procs + i] for i in range(sim.num_procs)]
         if sim.dynamics_method == "MF":
             results = [mf_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim) \
                        for i in range(sim.num_procs)]
@@ -306,4 +306,4 @@ def mf_dynamics(traj, sim):
     traj.add_to_dic('ec', ec)
     end_time = time.time()
     msg = 'trial index: ' + str(traj.index) + ' time: ' + str(np.round(end_time - start_time, 3)) + ' seed: ' + str(traj.seed)
-    return traj, eq+ec
+    return traj, msg
