@@ -49,6 +49,13 @@ def rho_0_db_to_adb(rho_0_db, eigvec): # transforms density matrix from db to ad
 
 
 def get_dab_phase(evals, evecs, dq_vars):
+    """
+    Computes the diagonal gauge transformation G such that (VG)^{\dagger}\nabla(VG) is real-valued.
+    :param evals: eigenvalues
+    :param evecs: eigenvectors (V)
+    :param dq_vars: sparse matrix variables of \nabla_{q} H and \nabla_{p} H (stored in sim.dq_vars)
+    :return: dabq_phase (diag(G^{\dagger}) calculated using d_{ab}^{q}), dabp_phase (diag(G^{\dagger}) calculated using d_{ab}^{p})
+    """
     dabq_phase = np.ones(len(evals), dtype=complex)
     dabp_phase = np.ones(len(evals), dtype=complex)
     for i in range(len(evals)-1):
@@ -104,8 +111,8 @@ def sign_adjust(evecs, evecs_previous, evals, sim):
     :param evecs: eigenvectors at t=t
     :param evecs_previous: eigenvectors at t=t-dt
     :param evals: eigenvalues at t=t (only for gauge_fix==2)
-    :param sim:
-    :return:
+    :param sim: simulation object
+    :return: eigenvectors at time t=t satisfying parallel transport
     """
     phase_out = np.ones((len(evals)), dtype=complex)
     if sim.gauge_fix >= 1:
