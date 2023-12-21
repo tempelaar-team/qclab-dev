@@ -1,4 +1,5 @@
 import numpy as np
+from numba import jit
 
 def rotate(sim):
     """
@@ -47,9 +48,10 @@ def rotate(sim):
 
 
     # now we can reconstruct h_qc in the rotated basis
+    @jit(nopython=True)
     def h_qc(z,zc):
-        h_dz = np.zeros((dz_shape[1],dz_shape[2]), dtype=complex)
-        h_dzc = np.zeros((dzc_shape[1],dzc_shape[2]), dtype=complex)
+        h_dz = np.ascontiguousarray(np.zeros((dz_shape[1],dz_shape[2]))) + 0.0j
+        h_dzc = np.ascontiguousarray(np.zeros((dzc_shape[1],dzc_shape[2]))) + 0.0j
         for i in range(len(dz_mels)):
             h_dz[dz_ind[1][i],dz_ind[2][i]] += dz_mels[i]*z[dz_ind[0][i]]
             h_dzc[dzc_ind[1][i],dzc_ind[2][i]] += dzc_mels[i]*zc[dz_ind[0][i]]
