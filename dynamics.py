@@ -127,9 +127,6 @@ def cfssh_dynamics(traj, sim):
         e_ij[:, :] = evals_0
 
     t_ind = 0
-
-
-
     msg = ''
     return traj, msg
 
@@ -228,42 +225,44 @@ def fssh_dynamics(traj, sim):
             hop_prob[k] = auxilliary.nan_num(hop_prob[k])
             bin_edge = bin_edge + hop_prob[k]
             if rand < bin_edge:
-                # compute nonadiabatic couplings
-                eig_k = evecs[:, act_surf_ind]
-                eig_j = evecs[:, k]
-                eigval_k = evals[act_surf_ind]
-                eigval_j = evals[k]
-                ev_diff = eigval_j - eigval_k
-                dkjq, dkjp = auxilliary.get_dab(eig_k, eig_j, ev_diff, sim.dq_vars)
-                if np.abs(np.sin(np.angle(dkjq[np.argmax(np.abs(dkjq))]))) > 1e-2:
+                # compute nonadiabatic coupling d_{kj}= <k|\nabla H|j>/(e_{j} - e_{k})
+                evec_k = evecs[:, act_surf_ind]
+                evec_j = evecs[:, k]
+                eval_k = evals[act_surf_ind]
+                eval_j = evals[k]
+                ev_diff = eval_j - eval_k
+                # dkj_q is wrt q dkj_p is wrt p.
+                dkj_q, dkj_p = auxilliary.get_dab(evec_k, evec_j, ev_diff, sim.dq_vars)
+                # check that nonadiabatic couplings are real-valued
+                if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
                     print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
-                          np.abs(np.sin(np.angle(dkjq[np.argmax(np.abs(dkjq))]))),
-                          '\n magnitude: ', np.abs(dkjq[np.argmax(np.abs(dkjq))]),
-                          '\n value: ', dkjq[np.argmax(np.abs(dkjq))])
-                if np.abs(np.sin(np.angle(dkjq[np.argmax(np.abs(dkjq))]))) > 1e-2:
+                          np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
+                          '\n magnitude: ', np.abs(dkj_q[np.argmax(np.abs(dkj_q))]),
+                          '\n value: ', dkj_q[np.argmax(np.abs(dkj_q))])
+                if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
                     print('ERROR IMAGINARY DKKP: \n', 'angle: ',
-                          np.abs(np.sin(np.angle(dkjp[np.argmax(np.abs(dkjp))]))),
-                          '\n magnitude: ', np.abs(dkjp[np.argmax(np.abs(dkjp))]),
-                          '\n value: ', dkjp[np.argmax(np.abs(dkjp))])
+                          np.abs(np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))),
+                          '\n magnitude: ', np.abs(dkj_p[np.argmax(np.abs(dkj_p))]),
+                          '\n value: ', dkj_p[np.argmax(np.abs(dkj_p))])
                 # compute rescalings
-                delta_q = np.real(dkjp)
-                delta_p = np.real(dkjq)
-                akjq = np.sum((1 / 2) * np.abs(
+                delta_q = np.real(dkj_p)
+                delta_p = np.real(dkj_q)
+                akj_q = np.sum((1 / 2) * np.abs(
                     delta_p) ** 2)
-                akjp = np.sum((1 / 2) * (np.nan_to_num(sim.w_c) ** 2) * np.abs(
+                akj_p = np.sum((1 / 2) * (np.nan_to_num(sim.w_c) ** 2) * np.abs(
                     delta_q) ** 2)
-                bkjq = np.sum((p * delta_p))
-                bkjp = -np.sum((np.nan_to_num(sim.w_c) ** 2) * q * delta_q)
-                disc = (bkjq + bkjp) ** 2 - 4 * (akjq + akjp) * ev_diff
+                bkj_q = np.sum((p * delta_p))
+                bkj_p = -np.sum((np.nan_to_num(sim.w_c) ** 2) * q * delta_q)
+                disc = (bkj_q + bkj_p) ** 2 - 4 * (akj_q + akj_p) * ev_diff
                 if disc >= 0:
-                    if bkjq + bkjp < 0:
-                        gamma = (bkjq + bkjp) + np.sqrt(disc)
+                    if bkj_q + bkj_p < 0:
+                        gamma = (bkj_q + bkj_p) + np.sqrt(disc)
                     else:
-                        gamma = (bkjq + bkjp) - np.sqrt(disc)
-                    if akjp + akjq == 0:
+                        gamma = (bkj_q + bkj_p) - np.sqrt(disc)
+                    if akj_p + akj_q == 0:
                         gamma = 0
                     else:
-                        gamma = gamma / (2 * (akjq + akjp))
+                        gamma = gamma / (2 * (akj_q + akj_p))
                     # rescale classical coordinates
                     p = p - np.real(gamma) * delta_p
                     q = q + np.real(gamma) * delta_q
