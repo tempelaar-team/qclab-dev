@@ -94,14 +94,26 @@ def get_branch_eigs(q_branch, p_branch, u_ij_previous,h_q_mat, h_qc_func):
     return e_ij, u_ij
 
 
-def sign_adjust(evecs, evecs_previous, evals, sim):
+def sign_adjust(evecs, evecs_previous, evals, dq_vars):
+    """
+    Adjusts the gauge of eigenvectors at a t=t to enforce parallel transport with respect to t=t-dt
+    using different levels of accuracy.
+    gauge_fix == 0 -- adjust the overall sign so that <a(t-dt)|a(t)> is positive
+    gauge_fix == 1 -- adjust the phase so that <a(t-dt)|a(t)> is real-valued
+    gauge_fix == 2 -- computes the gauge transformation that ensures d_{ab}(t) is real-valued
+    :param evecs: eigenvectors at t=t
+    :param evecs_previous: eigenvectors at t=t-dt
+    :param evals: eigenvalues at t=t (only for gauge_fix==2)
+    :param sim:
+    :return:
+    """
     phase_out = np.ones((len(evals)), dtype=complex)
     if sim.gauge_fix >= 1:
         phases = np.exp(-1.0j * np.angle(np.einsum('jk,jk->k', np.conjugate(evecs_previous), evecs)))
         evecs = np.einsum('jk,k->jk', evecs, phases)
         phase_out *= phases
     if sim.gauge_fix >= 2:
-        dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs, evals, sim.dq_vars)
+        dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs, evals, dq_vars)
         dab_phase_list = np.conjugate(dabQ_phase_list)
         phase_out *= dab_phase_list
         evecs = np.einsum('jk,k->jk', evecs, dab_phase_list)
@@ -113,6 +125,16 @@ def sign_adjust(evecs, evecs_previous, evals, sim):
 
 @jit(nopython=True)
 def matprod_sparse(shape, ind, mels, vec1, vec2): # calculates <1|mat|2>
+    """
+    Computes the expectation value f_{i} = <1|H^{i}_{jk}|2>
+    where H^{i}_{jk} is a tensor (like \nabla_{i} H_{jk} )
+    :param shape: shape of H tensor
+    :param ind: list of i,j,k coordinates where H tensor is nonzero
+    :param mels: list of nonzero values of H tensor
+    :param vec1: |1>
+    :param vec2: |2>
+    :return: f_{i}
+    """
     i_ind, j_ind, k_ind = ind
     prod = np.conj(vec1)[j_ind]*mels*vec2[k_ind]
     out_mat = np.zeros((shape[0])) + 0.0j
@@ -120,19 +142,38 @@ def matprod_sparse(shape, ind, mels, vec1, vec2): # calculates <1|mat|2>
         out_mat[i_ind[i]] += prod[i]
     return out_mat
 def quantum_force(psi,dq_vars): # computes <\psi|\nabla H|\psi> using sparse methods
+    """
+    Computes the Hellman-Feynmann force using the formula
+    f_{q(p)} = <psi| \nabla_{q(p)} H |\psi>
+    :param psi: |psi>
+    :param dq_vars: sparse matrix variables of \nabla_{q} H and \nabla_{p} H (stored in sim.dq_vars)
+    :return: f_{q} and f_{p}
+    """
     (dq_shape, dq_ind, dq_mels, dp_shape, dp_ind, dp_mels) = dq_vars
     fq = matprod_sparse(dq_shape, dq_ind, dq_mels, psi, psi)
     fp = matprod_sparse(dp_shape, dp_ind, dp_mels, psi, psi)
     return fq, fp
 
 def get_dab(evec_a, evec_b, ev_diff, dq_vars):  # computes d_{ab} using sparse methods
+    """
+    Computes the nonadiabatic coupling using the formula
+    d_{ab}^{q(p)} = <a|\nabla_{q(p)} H|b>/(e_{b} - e_{a})
+    :param evec_a: |a>
+    :param evec_b: |b>
+    :param ev_diff: e_{b} - e_{a}
+    :param dq_vars: sparse matrix variables of \nabla_{q} H and \nabla_{p} H (stored in sim.dq_vars)
+    :return: d_{ab}^{q} and d_{ab}^{p}
+    """
     (dq_shape, dq_ind, dq_mels, dp_shape, dp_ind, dp_mels) = dq_vars
-    dkkq = matprod_sparse(dq_shape, dq_ind, dq_mels, evec_a, evec_b)/ev_diff
-    dkkp = matprod_sparse(dp_shape, dp_ind, dp_mels, evec_a, evec_b)/ev_diff
-    return dkkq, dkkp
+    dab_q = matprod_sparse(dq_shape, dq_ind, dq_mels, evec_a, evec_b)/ev_diff
+    dab_p = matprod_sparse(dp_shape, dp_ind, dp_mels, evec_a, evec_b)/ev_diff
+    return dab_q, dab_p
 
 @jit(nopython=True)
 def nan_num(num):
+    """
+    converts a number (potentially  nan) to a large or small number using numba acceleration
+    """
     if np.isnan(num):
         return 0.0
     if num == np.inf:
@@ -141,5 +182,5 @@ def nan_num(num):
         return -100e100
     else:
         return num
-
+# vectorized form of nan_num
 nan_num_vec = np.vectorize(nan_num)

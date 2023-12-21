@@ -211,7 +211,7 @@ def fssh_dynamics(traj, sim):
         evecs_previous = np.copy(evecs)
         h_tot = h_q + sim.h_qc(q, p)
         evals, evecs = np.linalg.eigh(h_tot)
-        evecs, evec_phases = auxilliary.sign_adjust(evecs, evecs_previous, evals, sim)
+        evecs, evec_phases = auxilliary.sign_adjust(evecs, evecs_previous, evals, sim.dq_vars)
         evals_exp = np.exp(-1j * evals * sim.dt_bath)
         diag_matrix = np.diag(evals_exp)
         psi_adb = np.dot(diag_matrix, psi_adb)
