@@ -4,6 +4,7 @@ import numpy as np
 import dynamics
 import simulation
 import os
+import ray
 
 if __name__ == '__main__':
     start_time = time.time()

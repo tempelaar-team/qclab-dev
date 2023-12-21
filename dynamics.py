@@ -9,7 +9,7 @@ import auxilliary
 def run_dynamics(sim):
     start_time = time.time()
     ray.shutdown()
-    ray.init(sim.cluster_args)
+    ray.init(**sim.cluster_args)
     if sim.num_procs > sim.num_trajs:
         sim.num_procs = sim.num_trajs
     ray_sim = ray.put(sim) # put simulation object in shared memory
