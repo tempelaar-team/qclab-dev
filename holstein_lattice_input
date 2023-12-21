@@ -5,7 +5,11 @@ num_states=20 # number of lattice sites
 g=1 # electron-phonon coupling
 w=1 # phonon frequency
 j=1 # hopping integral
+T=1 # temperature
 ## dynamics inputs ##
 num_procs=4
 num_trajs=4
 dynamics_method='MF'
+tmax=10
+dt=0.1
+dt_bath=0.01

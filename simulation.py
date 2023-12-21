@@ -6,6 +6,9 @@ class Simulation:
             "dynamics_method": "MF",  # which dynamics method, "MF", "FSSH", "CFSSH"
             "num_procs": 4,  # number of processors to use
             "num_trajs": 4,  # number of trajectories to run
+            "tmax": 10, # maximum simulation time
+            "dt": 0.1, # timestep of output
+            "dt_bath":0.01 # bath timestep
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
