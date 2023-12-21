@@ -59,20 +59,20 @@ def cfssh_dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
     # initialize classical coordinates
-    q, p = sim.init_classical()
+    z, zc = sim.init_classical()
     # compute initial Hamiltonian
     h_q = sim.h_q()
-    h_tot = h_q + sim.h_qc(q, p)
+    h_tot = h_q + sim.h_qc(z, zc)
     # compute initial eigenvalues and eigenvectors
     evals_0, evecs_0 = np.linalg.eigh(h_tot)
     num_states = len(evals_0)
     num_branches = num_states
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.diff_vars)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
     # execute phase shift
     evecs_0 = np.matmul(evecs_0, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.diff_vars)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
     if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
     #  initial wavefunction in diabatic basis
@@ -80,10 +80,10 @@ def cfssh_dynamics(traj, sim):
     # determine initial adiabatic wavefunction in fixed gauge
     psi_adb = auxilliary.vec_db_to_adb(psi_db, evecs_0)
     # initialize branches of classical coordinates
-    q_branch = np.zeros((num_branches, *np.shape(q)))
-    p_branch = np.zeros((num_branches, *np.shape(p)))
-    q_branch[:] = q
-    p_branch[:] = p
+    z_branch = np.zeros((num_branches, *np.shape(z)))
+    zc_branch = np.zeros((num_branches, *np.shape(zc)))
+    z_branch[:] = z
+    zc_branch[:] = zc
     # initialize outputs
     tdat = np.arange(0,sim.tmax + sim.dt, sim.dt)
     tdat_bath = np.arange(0,sim.tmax + sim.dt_bath, sim.dt_bath)
@@ -114,7 +114,7 @@ def cfssh_dynamics(traj, sim):
     # initialize Hamiltonian
     h_q_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
     h_q_branch[:] = sim.h_q()
-    h_tot_branch = h_q_branch + auxilliary.h_qc_branch(q_branch, p_branch, sim.h_qc, num_branches, num_states)
+    h_tot_branch = h_q_branch + auxilliary.h_qc_branch(z_branch, zc_branch, sim.h_qc, num_branches, num_states)
     # initialize eigenvalues and eigenvectors
     evals_branch = np.zeros((num_branches, num_states))
     evecs_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
@@ -275,27 +275,6 @@ def fssh_dynamics(traj, sim):
                         gamma = gamma / (2*akj_z)
                     z = z - 1.0j*np.real(gamma)*delta_zc
                     zc = zc + 1.0j*np.real(gamma)*delta_z
-                #delta_q = np.real(dkj_p)
-                #delta_p = np.real(dkj_q)
-                #akj_q = np.sum((1 / 2) * np.abs(
-                #    delta_p) ** 2)
-                #akj_p = np.sum((1 / 2) * (np.nan_to_num(sim.w_c) ** 2) * np.abs(
-                #    delta_q) ** 2)
-                #bkj_q = np.sum((p * delta_p))
-                #bkj_p = -np.sum((np.nan_to_num(sim.w_c) ** 2) * q * delta_q)
-                #disc = (bkj_q + bkj_p) ** 2 - 4 * (akj_q + akj_p) * ev_diff
-                #if disc >= 0:
-                #    if bkj_q + bkj_p < 0:
-                #        gamma = (bkj_q + bkj_p) + np.sqrt(disc)
-                #    else:
-                #        gamma = (bkj_q + bkj_p) - np.sqrt(disc)
-                #    if akj_p + akj_q == 0:
-                #        gamma = 0
-                #    else:
-                #        gamma = gamma / (2 * (akj_q + akj_p))
-                #    # rescale classical coordinates
-                #    p = p - np.real(gamma) * delta_p
-                #    q = q + np.real(gamma) * delta_q
                     # update active surface
                     act_surf_ind = k
                     act_surf = np.zeros_like(act_surf)
