@@ -94,7 +94,7 @@ def get_branch_eigs(q_branch, p_branch, u_ij_previous,h_q_mat, h_qc_func):
     return e_ij, u_ij
 
 
-def sign_adjust(evecs, evecs_previous, evals, dq_vars):
+def sign_adjust(evecs, evecs_previous, evals, sim):
     """
     Adjusts the gauge of eigenvectors at a t=t to enforce parallel transport with respect to t=t-dt
     using different levels of accuracy.
@@ -113,7 +113,7 @@ def sign_adjust(evecs, evecs_previous, evals, dq_vars):
         evecs = np.einsum('jk,k->jk', evecs, phases)
         phase_out *= phases
     if sim.gauge_fix >= 2:
-        dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs, evals, dq_vars)
+        dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs, evals, sim.dq_vars)
         dab_phase_list = np.conjugate(dabQ_phase_list)
         phase_out *= dab_phase_list
         evecs = np.einsum('jk,k->jk', evecs, dab_phase_list)
