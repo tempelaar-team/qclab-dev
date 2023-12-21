@@ -19,6 +19,8 @@ def rotate(sim):
         return h_q_mat
 
     # reconstruct \nabla_{z}H and \nabla_{zc}H tensors
+    # note that this will not scale well if the dimensions become too large, can be made more efficient by
+    # performing the rotation with sparse matrix methods.
     dz_mat = np.zeros(dz_shape, dtype=complex)
     dzc_mat = np.zeros(dzc_shape, dtype=complex)
     dz_mat[dz_ind] = dz_mels
