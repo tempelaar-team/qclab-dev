@@ -9,7 +9,8 @@ class Simulation:
             "tmax": 10, # maximum simulation time
             "dt": 0.1, # timestep of output
             "dt_bath":0.01, # bath timestep
-            "model_dir":"./" # model directory
+            "model_dir":"./", # model directory
+            "pab_cohere":True # Uses full adiabatic wavefunction to compute hopping probabilities
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params

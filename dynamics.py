@@ -96,10 +96,15 @@ def cfssh_dynamics(traj, sim):
     # initial wavefunction in branches
     psi_adb_branch = np.zeros((num_branches, num_states), dtype=complex)
     psi_adb_branch[:] = psi_adb
+    # initial wavefunction as a delta function in each branch
+    psi_adb_delta_branch = np.diag(np.ones(num_branches), dtype=complex)
     # transform to diabatic basis
     psi_db_branch = np.zeros_like(psi_adb_branch).astype(complex)
+    psi_db_delta_branch = np.zeros_like(psi_adb_branch).astype(complex)
     for i in range(num_branches):
         psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_0)
+        psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_0)
+
 
     # initialize active surfaces
     act_surf_ind_branch = np.arange(0, num_branches, dtype=int)
@@ -152,6 +157,8 @@ def fssh_dynamics(traj, sim):
     psi_db = sim.psi_db_0
     # determine initial adiabatic wavefunction in fixed gauge
     psi_adb = auxilliary.vec_db_to_adb(psi_db, evecs)
+    # initial wavefunction where it is only on active surface
+    psi_adb_delta = np.zeros((num_states), dtype=complex)
     # determine initial active surface
     intervals = np.zeros(num_states)
     for n in range(num_states):
@@ -159,6 +166,10 @@ def fssh_dynamics(traj, sim):
     rand_val = np.random.rand()
     # initialize active surface index
     act_surf_ind = np.arange(num_states)[intervals > rand_val][0]
+    # intialize psi_adb_delta
+    psi_adb_delta[act_surf_ind] = 1.0+0.0j
+    # transform to diabatic basis
+    psi_db_delta = auxilliary.vec_adb_to_db(psi_adb_delta, evecs)
     # initialize active surface
     act_surf = np.zeros(num_states, dtype=int)
     act_surf[act_surf_ind] = 1
@@ -198,13 +209,18 @@ def fssh_dynamics(traj, sim):
         evals_exp = np.exp(-1j * evals * sim.dt_bath)
         diag_matrix = np.diag(evals_exp)
         psi_adb = np.dot(diag_matrix, psi_adb)
+        psi_adb_delta = np.dot(diag_matrix, psi_adb_delta)
         psi_db = auxilliary.vec_adb_to_db(psi_adb, evecs)
+        psi_db_delta = auxilliary.vec_adb_to_db(psi_adb_delta, evecs)
         # compute random value
         rand = np.random.rand()
         # compute wavefunction overlaps
         prod = np.matmul(np.conj(evecs[:, act_surf_ind]), evecs_previous)
         # compute hopping probability
-        hop_prob = -2*np.real(prod * (psi_adb / psi_adb[act_surf_ind]))
+        if sim.pab_cohere:
+            hop_prob = -2*np.real(prod * (psi_adb / psi_adb[act_surf_ind]))
+        else:
+            hop_prob = -2*np.real(prod * (psi_adb_delta / psi_adb_delta[act_surf_ind]))
         hop_prob[act_surf_ind] = 0
         bin_edge = 0
         # loop over states
