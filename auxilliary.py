@@ -232,6 +232,14 @@ def quantum_force(psi, diff_vars):  # computes <\psi|\nabla H|\psi> using sparse
     fzc = matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
     return fz, fzc
 
+def quantum_force_branch(evecs_branch, act_surf_ind_branch, diff_vars):
+    (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
+    fz_branch = np.zeros((dz_shape[1], dz_shape[0]), dtype=complex)
+    fzc_branch = np.zeros((dz_shape[1], dz_shape[0]), dtype=complex)
+    for i in range(dz_shape[1]):
+        fz_branch[i], fzc_branch[i] = quantum_force(evecs_branch[i][:,act_surf_ind_branch[i]], diff_vars)
+    return fz_branch, fzc_branch
+
 
 def get_dab(evec_a, evec_b, ev_diff, diff_vars):  # computes d_{ab} using sparse methods
     """

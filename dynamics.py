@@ -203,7 +203,9 @@ def cfssh_dynamics(traj, sim):
             # check that energy is conserved within 1% of the initial classical energy
             if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[0]:
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
-        fz_branch, fzc_branch = auxilliary.quantum_force_branch(evecs_branch, )
+        fz_branch, fzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, sim.diff_vars)
+        z_branch, zc_branch = auxilliary.rk4_c(z_branch, zc_branch,(fz_branch, fzc_branch), sim.w_c, sim.dt_bath)
+
     msg = ''
     return traj, msg
 
