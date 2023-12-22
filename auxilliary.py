@@ -159,6 +159,13 @@ def get_branch_pair_eigs(z_branch, zc_branch, u_ij_previous, h_q_mat, sim):
     return e_ij, u_ij
 
 
+def get_branch_eigs(z_branch, zc_branch, evecs_previous, h_q_mat, sim):
+    num_branches = np.shape(evecs_previous)[0]
+    num_states = np.shape(evecs_previous)[1]
+    evals_branch, evecs_branch = np.linalg.eigh(h_tot_branch(z_branch, zc_branch, h_q_mat, sim.h_qc,num_branches,num_states))
+    evecs_branch, evecs_phases = sign_adjust_branch(evecs_branch, evecs_previous)
+    return evals_branch, evecs_branch, evecs_phases
+
 def get_classical_overlap(z_branch, zc_branch, w):
     out_mat = np.zeros((len(z_branch), len(z_branch)))
     q_branch = (1/np.sqrt(2*w))*(z_branch + zc_branch)
@@ -198,6 +205,29 @@ def sign_adjust(evecs, evecs_previous, evals, sim):
         phase_out *= signs
     return evecs, phase_out
 
+def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, sim):
+    phase_out = np.ones((len(evecs_branch), len(evecs_branch)), dtype=complex)
+    if sim.gauge_fix >= 1:
+        phases = np.exp(-1.0j*np.angle(np.einsum('ijk,ijk->ik',np.conjugate(evecs_branch_previous),evecs_branch)))
+        evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,phases)
+        phase_out *= phases
+    if sim.gauge_fix >= 2:
+        dab_phase_mat = np.ones((len(evecs_branch),len(evecs_branch)),dtype=complex)
+        for i in range(len(evecs_branch)):
+            dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs_branch[i], evals_branch[i], sim)
+            dab_phase_list = np.conjugate(dabQ_phase_list)
+            dab_phase_mat[i] = dab_phase_list
+            phase_out[i] *= dab_phase_list
+        #    evecs_branch[i] = np.einsum('jk,k->jk',evecs_branch[i],dab_phase_list)
+        evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,dab_phase_mat)
+    if sim.gauge_fix >= 0:
+        signs = np.sign(np.einsum('ijk,ijk->ik',np.conjugate(evecs_branch_previous),evecs_branch))
+
+        evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,signs)
+        phase_out *= signs
+    #for i in range(nbranches):
+    #    evecs_branch[i] = operators.sign_adjust(evecs_branch[i],evecs_branch_previous[i], gauge_ind)
+    return evecs_branch, phase_out
 
 @jit(nopython=True)
 def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
