@@ -13,7 +13,9 @@ class Simulation:
             "dt_bath": 0.01,  # bath timestep
             "model_dir": "./",  # model directory
             "pab_cohere": True,  # Uses full adiabatic wavefunction to compute hopping probabilities
-            "gauge_fix": 1  # gauge fixing level 0, 1, 2
+            "gauge_fix": 1,  # gauge fixing level 0, 1, 2
+            "dmat_const":0, # density matrix construction type for CFSSH
+            "branch_update":1, # frequency of updating branch eigenvectors for CFSSH
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
@@ -33,6 +35,8 @@ class Simulation:
         self.model_dir = defaults['model_dir']
         self.pab_cohere = defaults['pab_cohere']
         self.gauge_fix = defaults['gauge_fix']
+        self.dmat_const = defaults['dmat_const']
+        self.branch_update = defaults['branch_update']
         self.input_file = input_file
         self.input_params = defaults
 

@@ -3,12 +3,12 @@
 model_dir='/home/akrotz/PycharmProjects/pyMQC/holstein_lattice/'
 num_procs=1
 num_trajs=1
-dynamics_method='FSSH'
+dynamics_method='CFSSH'
 tmax=10
 dt=0.1
 dt_bath=0.01
 ## model specific inputs ##
-num_states=20 # number of lattice sites
+num_states=10 # number of lattice sites
 g=1 # electron-phonon coupling
 w=1 # phonon frequency
 j=1 # hopping integral

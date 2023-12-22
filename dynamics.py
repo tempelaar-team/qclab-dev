@@ -69,11 +69,11 @@ def cfssh_dynamics(traj, sim):
     num_states = len(evals_0)
     num_branches = num_states
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.diff_vars)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
     # execute phase shift
     evecs_0 = np.matmul(evecs_0, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim.diff_vars)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
     if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
         # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
@@ -82,8 +82,8 @@ def cfssh_dynamics(traj, sim):
     # determine initial adiabatic wavefunction in fixed gauge
     psi_adb = auxilliary.vec_db_to_adb(psi_db, evecs_0)
     # initialize branches of classical coordinates
-    z_branch = np.zeros((num_branches, *np.shape(z)))
-    zc_branch = np.zeros((num_branches, *np.shape(zc)))
+    z_branch = np.zeros((num_branches, *np.shape(z)),dtype=complex)
+    zc_branch = np.zeros((num_branches, *np.shape(zc)),dtype=complex)
     z_branch[:] = z
     zc_branch[:] = zc
     # initialize outputs
@@ -112,9 +112,10 @@ def cfssh_dynamics(traj, sim):
     act_surf_ind_branch = np.arange(0, num_branches, dtype=int)
     act_surf_branch = np.diag(np.ones(num_branches))
     # initialize Hamiltonian
-    h_q_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
-    h_q_branch[:] = sim.h_q()
-    h_tot_branch = h_q_branch + auxilliary.h_qc_branch(z_branch, zc_branch, sim.h_qc, num_branches, num_states)
+    #h_q_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
+    #h_q_branch[:] = sim.h_q()
+    h_tot_branch = auxilliary.h_tot_branch(z_branch, zc_branch, h_q, sim.h_qc, num_branches, num_states)
+    #h_q_branch + auxilliary.h_qc_branch(z_branch, zc_branch, sim.h_qc, num_branches, num_states)
     # initialize eigenvalues and eigenvectors
     evals_branch = np.zeros((num_branches, num_states))
     evecs_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
@@ -134,7 +135,7 @@ def cfssh_dynamics(traj, sim):
     eq_branch = np.zeros((num_branches))
     for i in range(num_branches):
         ec_branch[i] = sim.h_c(z_branch[i], zc_branch[i])
-        eq_branch[i] = evals_branch[act_surf_ind_branch[i]]
+        eq_branch[i] = evals_branch[i][act_surf_ind_branch[i]]
     hop_count = 0
     t_ind = 0
     for t_bath_ind in np.arange(0, len(tdat_bath)):
@@ -196,8 +197,8 @@ def cfssh_dynamics(traj, sim):
                     rho_db += auxilliary.rho_0_adb_to_db(rho_adb[i], evecs_branch[i])
                     rho_adb_fssh = np.outer(psi_adb_branch[i], np.conjugate(psi_adb_branch[i]))
                     rho_db_fssh += auxilliary.rho_0_adb_to_db(rho_adb_0[i,i]*rho_adb_fssh, evecs_branch[i])
-            pops_db[t_ind] = np.diag(rho_db)
-            pops_db_fssh[t_ind] = np.diag(rho_db_fssh)
+            pops_db[t_ind] = np.real(np.diag(rho_db))
+            pops_db_fssh[t_ind] = np.real(np.diag(rho_db_fssh))
             for i in range(num_branches):
                 ec[t_ind] += sim.h_c(z_branch[i], zc_branch[i])
                 eq[t_ind] += evals_branch[i][act_surf_ind_branch[i]]
@@ -208,7 +209,6 @@ def cfssh_dynamics(traj, sim):
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
         fz_branch, fzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, sim.diff_vars)
         z_branch, zc_branch = auxilliary.rk4_c(z_branch, zc_branch,(fz_branch, fzc_branch), w_c_branch, sim.dt_bath)
-        h_tot = h_tot_branch(z_branch, zc_branch, h_q, sim.h_qc, num_branches, num_states)
         evecs_branch_previous = np.copy(evecs_branch)
         # obtain branch eigenvalues and eigenvectors (sign adjust in function)
         evals_branch, evecs_branch, evecs_phases = auxilliary.get_branch_eigs(z_branch, zc_branch, evecs_branch_previous, h_q, sim)

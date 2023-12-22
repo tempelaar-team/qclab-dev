@@ -134,7 +134,7 @@ def get_dab_phase(evals, evecs, sim):
     return dabq_phase, dabp_phase
 
 
-def h_tot_branch(z_branch, zc_branch,h_q, h_qc_func, num_branches, num_states):
+def h_tot_branch(z_branch, zc_branch, h_q, h_qc_func, num_branches, num_states):
     """
     evaluates h_qc_func over each branch
     """
@@ -163,7 +163,7 @@ def get_branch_eigs(z_branch, zc_branch, evecs_previous, h_q_mat, sim):
     num_branches = np.shape(evecs_previous)[0]
     num_states = np.shape(evecs_previous)[1]
     evals_branch, evecs_branch = np.linalg.eigh(h_tot_branch(z_branch, zc_branch, h_q_mat, sim.h_qc,num_branches,num_states))
-    evecs_branch, evecs_phases = sign_adjust_branch(evecs_branch, evecs_previous)
+    evecs_branch, evecs_phases = sign_adjust_branch(evecs_branch, evecs_previous, evals_branch, sim)
     return evals_branch, evecs_branch, evecs_phases
 
 def get_classical_overlap(z_branch, zc_branch, w):
