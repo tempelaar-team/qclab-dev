@@ -60,7 +60,7 @@ def initialize(sim):
 
     def h_c(z, zc):
         """
-        Harmonic osccilator Hamiltonian
+        Harmonic oscillator Hamiltonian
         :param z: z(t)
         :param zc: conjugate z(t)
         :return: h_c(z,zc) Hamiltonian
