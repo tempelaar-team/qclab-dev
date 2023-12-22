@@ -134,27 +134,27 @@ def get_dab_phase(evals, evecs, sim):
     return dabq_phase, dabp_phase
 
 
-def h_qc_branch(z_branch, zc_branch, h_qc_func, num_branches, num_states):
+def h_tot_branch(z_branch, zc_branch,h_q, h_qc_func, num_branches, num_states):
     """
     evaluates h_qc_func over each branch
     """
-    out = np.zeros((num_branches, num_states), dtype=complex)
+    out = np.zeros((num_branches, num_states, num_states), dtype=complex)
     for i in range(num_branches):
-        out[i] = h_qc_func(z_branch, zc_branch)
+        out[i] = h_q + h_qc_func(z_branch[i], zc_branch[i])
     return out
 
 
-def get_branch_eigs(z_branch, zc_branch, u_ij_previous, h_q_mat, h_qc_func):
+def get_branch_pair_eigs(z_branch, zc_branch, u_ij_previous, h_q_mat, sim):
     u_ij = np.zeros_like(u_ij_previous)
     num_branches = np.shape(u_ij_previous)[0]
     num_states = np.shape(u_ij_previous)[-1]
     e_ij = np.zeros((num_branches, num_branches, num_states))
     for i in range(num_branches):
         for j in range(i, num_branches):
-            branch_mat = h_q_mat + h_qc_func((z_branch[i] + z_branch[j]) / 2, (zc_branch[i] + zc_branch[j]) / 2)
+            branch_mat = h_q_mat + sim.h_qc((z_branch[i] + z_branch[j]) / 2, (zc_branch[i] + zc_branch[j]) / 2)
             e_ij[i, j], u_ij[i, j] = np.linalg.eigh(branch_mat)
             e_ij[j, i] = e_ij[i, j]
-            u_ij[i, j], _ = sign_adjust(u_ij[i, j], u_ij_previous[i, j], e_ij[i, j])
+            u_ij[i, j], _ = sign_adjust(u_ij[i, j], u_ij_previous[i, j], e_ij[i, j], sim)
             u_ij[j, i], _ = u_ij[i, j]
     return e_ij, u_ij
 

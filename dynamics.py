@@ -139,7 +139,7 @@ def cfssh_dynamics(traj, sim):
             break
         if sim.branch_update == 2 and sim.dmat_const == 1: # update every bath timestep
             u_ij_previous = np.copy(u_ij)
-            e_ij, u_ij = auxilliary.get_branch_eigs(z_branch, zc_branch, u_ij_previous, h_q, sim.h_qc)
+            e_ij, u_ij = auxilliary.get_branch_pair_eigs(z_branch, zc_branch, u_ij_previous, h_q, sim)
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
             overlap = auxilliary.get_classical_overlap(z_branch, zc_branch, sim.w_c)
             rho_db = np.zeros((num_states, num_states), dtype=complex)
@@ -147,7 +147,7 @@ def cfssh_dynamics(traj, sim):
             # only update branches every output timestep and check that the local gauge is converged
             if sim.branch_update == 1 and sim.dmat_const == 1:
                 u_ij_previous = np.copy(u_ij)
-                e_ij, u_ij = auxilliary.get_branch_eigs(z_branch, zc_branch, u_ij_previous, h_q, sim.h_qc)
+                e_ij, u_ij = auxilliary.get_branch_pair_eigs(z_branch, zc_branch, u_ij_previous, h_q, sim)
             if sim.branch_update == 0 and sim.dmat_const == 1:
                 u_ij_previous = np.copy(u_ij)
             if sim.dmat_const == 1:
@@ -205,6 +205,9 @@ def cfssh_dynamics(traj, sim):
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
         fz_branch, fzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, sim.diff_vars)
         z_branch, zc_branch = auxilliary.rk4_c(z_branch, zc_branch,(fz_branch, fzc_branch), sim.w_c, sim.dt_bath)
+        h_tot = h_tot_branch(z_branch, zc_branch, h_q, sim.h_qc, num_branches, num_states)
+        evecs_branch_previous = np.copy(evecs_branch)
+        evals_branch, evecs_branch = np.linalg.eigh()
 
     msg = ''
     return traj, msg
