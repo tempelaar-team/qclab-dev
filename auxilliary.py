@@ -159,11 +159,14 @@ def get_branch_eigs(z_branch, zc_branch, u_ij_previous, h_q_mat, h_qc_func):
     return e_ij, u_ij
 
 
-def get_classical_overlap(z_branch, zc_branch):
+def get_classical_overlap(z_branch, zc_branch, w):
     out_mat = np.zeros((len(z_branch), len(z_branch)))
+    q_branch = (1/np.sqrt(2*w))*(z_branch + zc_branch)
+    p_branch = -1.0j*np.sqrt(w/2)*(z_branch - zc_branch)
     for i in range(len(z_branch)):
         for j in range(len(z_branch)):
-            out_mat[i,j] = np.exp(-(1/2))
+            out_mat[i,j] = np.exp(-(1/2))*np.sum(np.abs((p_branch[i] - p_branch[j]) * (q_branch[i] - q_branch[j])))
+    return out_mat
 
 
 def sign_adjust(evecs, evecs_previous, evals, sim):

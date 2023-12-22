@@ -140,8 +140,70 @@ def cfssh_dynamics(traj, sim):
         if sim.branch_update == 2 and sim.dmat_const == 1: # update every bath timestep
             u_ij_previous = np.copy(u_ij)
             e_ij, u_ij = auxilliary.get_branch_eigs(z_branch, zc_branch, u_ij_previous, h_q, sim.h_qc)
-        if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * dt_bath:
-            overlap = auxilliary.get_classical_overlap(z_branch, zc_branch)
+        if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
+            overlap = auxilliary.get_classical_overlap(z_branch, zc_branch, sim.w_c)
+            rho_db = np.zeros((num_states, num_states), dtype=complex)
+            rho_db_fssh = np.zeros((num_states, num_states), dtype=complex)
+            # only update branches every output timestep and check that the local gauge is converged
+            if sim.branch_update == 1 and sim.dmat_const == 1:
+                u_ij_previous = np.copy(u_ij)
+                e_ij, u_ij = auxilliary.get_branch_eigs(z_branch, zc_branch, u_ij_previous, h_q, sim.h_qc)
+            if sim.branch_update == 0 and sim.dmat_const == 1:
+                u_ij_previous = np.copy(u_ij)
+            if sim.dmat_const == 1:
+                for i in range(num_states):
+                    for j in range(num_states):
+                        if i != j:
+                            a_i = act_surf_ind_branch[i]
+                            a_j = act_surf_ind_branch[j]
+                            if a_i == i and a_j == j:
+                                if sim.branch_update == 0:
+                                    branch_mat = h_q + sim.h_qc((z_branch[i] + z_branch[j])/2, (zc_branch[i] + zc_branch[j])/2)
+                                    e_ij[i,j], u_ij[i,j] = np.linalg.eigh(branch_mat)
+                                    u_ij[i,j], _ = auxilliary.sign_adjust(u_ij[i,j], u_ij_previous[i,j], e_ij[i,j], sim)
+                                for n in range(num_branches):
+                                    for m in range(num_branches):
+                                        rho_db[n, m] += u_ij[i,j][n, i]*rho_adb_0[i,j]*overlap[i,j]*\
+                                            np.exp(-1.0j*(phase_branch[i] - phase_branch[j])) * np.conjugate(u_ij[i,j])[m, j]
+                        if i == j:
+                            a_i = act_surf_ind_branch[i]
+                            e_ij[i,j], u_ij[i,j] = evals_branch[i], evecs_branch[i]
+                            rho_adb_fssh = np.outer(psi_adb_branch[i], np.conjugate(psi_adb_branch[i]))
+                            rho_adb_fssh[range(num_states), range(num_states)] = act_surf_branch[i]
+                            rho_db_fssh += auxilliary.rho_0_adb_to_db(rho_adb_0[i,i]*rho_adb_fssh, u_ij[i,j])
+                            for k in range(num_branches):
+                                if a_i == k:
+                                    for n in range(num_branches):
+                                        for m in range(num_branches):
+                                            rho_db[n, m] += u_ij[i,j][n, k]*rho_adb_0[i,i]*np.conjugate(u_ij[i,j])[m,k]
+            if sim.dmat_const == 0:
+                rho_adb = np.zeros((num_branches, num_states, num_states), dtype=complex)
+                rho_adb_coh = np.zeros((num_states, num_states), dtype=complex)
+                for i in range(num_states):
+                    for j in range(num_states):
+                        if i != j:
+                            a_i = act_surf_ind_branch[i]
+                            a_j = act_surf_ind_branch[j]
+                            if a_i == i and a_j == j:
+                                rho_adb_coh[i, j] = rho_adb_0[i, j] * overlap[i, j] * np.exp(-1.0j*(phase_branch[i] - phase_branch[j]))
+                rho_diag = np.diag(rho_adb_0).reshape((-1,1))*act_surf_branch
+                np.einsum('...jj->...j',rho_adb)[...] = rho_diag
+                rho_adb = rho_adb + rho_adb_coh/num_branches
+                for i in range(num_branches):
+                    rho_db += auxilliary.rho_0_adb_to_db(rho_adb[i], evecs_branch[i])
+                    rho_adb_fssh = np.outer(psi_adb_branch[i], np.conjugate(psi_adb_branch[i]))
+                    rho_db_fssh += auxilliary.rho_0_adb_to_db(rho_adb_0[i,i]*rho_adb_fssh, evecs_branch[i])
+            pops_db[t_ind] = np.diag(rho_db)
+            pops_db_fssh[t_ind] = np.diag(rho_db_fssh)
+            for i in range(num_branches):
+                ec[t_ind] += sim.h_c(z_branch[i], zc_branch[i])
+                eq[t_ind] += evals_branch[i][act_surf_ind_branch[i]]
+            e_tot_0 = ec[0] + eq[0]  # energy at t=0
+            e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
+            # check that energy is conserved within 1% of the initial classical energy
+            if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[0]:
+                print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
+        fz_branch, fzc_branch = auxilliary.quantum_force_branch(evecs_branch, )
     msg = ''
     return traj, msg
 
@@ -307,7 +369,7 @@ def fssh_dynamics(traj, sim):
     end_time = time.time()
     msg = 'trial index: ' + str(traj.index) + ' hop count: ' + str(hop_count) + ' time: ' + str(
         end_time - start_time) + ' seed: ' + str(traj.seed)
-    return traj, eq + ec  # msg
+    return traj, msg
 
 
 @ray.remote

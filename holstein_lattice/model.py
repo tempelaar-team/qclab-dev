@@ -87,7 +87,7 @@ def initialize(sim):
             out = np.identity(sim.num_states)
             return out
 
-    # initialize derivatives of h wrt q and p
+    # initialize derivatives of h wrt z and zc
     # tensors have dimension # classical osc \times # quantum states \times # quantum states
     dz_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states), dtype=complex)
     dzc_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states), dtype=complex)
