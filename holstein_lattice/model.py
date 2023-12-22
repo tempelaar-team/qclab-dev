@@ -31,8 +31,8 @@ def initialize(sim):
         """
         q = np.random.normal(loc=0, scale=np.sqrt(sim.temp), size=sim.num_states)
         p = np.random.normal(loc=0, scale=np.sqrt(sim.temp / sim.w), size=sim.num_states)
-        z = np.sqrt(sim.w) * np.sqrt(sim.w / 2) * (q + 1.0j * (p / sim.w))
-        zc = np.sqrt(sim.w) * np.conjugate(z)
+        z =  np.sqrt(sim.w / 2) * (q + 1.0j * (p / sim.w))
+        zc = np.conjugate(z)
         return z, zc
 
     def h_q():
@@ -55,7 +55,7 @@ def initialize(sim):
         :param zc: z^{*} conjugate z
         :return: h_qc(z,z^{*}) Hamiltonian
         """
-        out = np.diag(sim.g * (z + zc))
+        out = np.diag(sim.g * np.sqrt(sim.w) * (z + zc))
         return out
 
     def h_c(z, zc):
@@ -65,7 +65,7 @@ def initialize(sim):
         :param zc: conjugate z(t)
         :return: h_c(z,zc) Hamiltonian
         """
-        return np.real(np.sum(zc * z))
+        return np.real(np.sum(sim.w*zc * z))
 
     """
     Initialize the rotation matrices of quantum and classical subsystems
@@ -92,8 +92,8 @@ def initialize(sim):
     dz_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states), dtype=complex)
     dzc_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states), dtype=complex)
     for i in range(sim.num_states):
-        dz_mat[i, i, i] = sim.g
-        dzc_mat[i, i, i] = sim.g
+        dz_mat[i, i, i] = sim.g*np.sqrt(sim.w)
+        dzc_mat[i, i, i] = sim.g*np.sqrt(sim.w)
     dz_shape = np.shape(dz_mat)
     dzc_shape = np.shape(dzc_mat)
     # position of nonzero matrix elements
@@ -112,6 +112,7 @@ def initialize(sim):
     sim.h_c = h_c
     sim.u_c = u_c
     sim.u_q = u_q
+    sim.w_c = sim.w*np.ones(sim.num_states)
     sim.diff_vars = diff_vars
     sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \
                    '_temp_' + str(sim.temp) + '_nstates_' + str(sim.num_states)

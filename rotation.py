@@ -9,8 +9,8 @@ def rotate(sim):
     :param sim: simulation object
     :return: simulation object in rotated basis
     """
-    u_q = sim.U_q()  # quantum rotation matrix
-    u_c = sim.U_c()  # classical rotation matrix
+    u_q = sim.u_q()  # quantum rotation matrix
+    u_c = sim.u_c()  # classical rotation matrix
 
     (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = sim.diff_vars
 
