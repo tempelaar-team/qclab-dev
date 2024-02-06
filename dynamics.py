@@ -208,7 +208,8 @@ def cfssh_dynamics(traj, sim):
             if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[0]:
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
         fz_branch, fzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, sim.diff_vars)
-        z_branch, zc_branch = auxilliary.rk4_c(z_branch, zc_branch,(fz_branch, fzc_branch), w_c_branch, sim.dt_bath)
+        for i in range(num_branches):
+            z_branch[i], zc_branch[i] = auxilliary.rk4_c(z_branch[i], zc_branch[i],(fz_branch[i], fzc_branch[i]), sim.dt_bath, sim)
         evecs_branch_previous = np.copy(evecs_branch)
         # obtain branch eigenvalues and eigenvectors (sign adjust in function)
         evals_branch, evecs_branch, evecs_phases = auxilliary.get_branch_eigs(z_branch, zc_branch, evecs_branch_previous, h_q, sim)
@@ -252,8 +253,8 @@ def cfssh_dynamics(traj, sim):
                     # dkj_q is wrt q dkj_p is wrt p.
                     dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, sim.diff_vars)
                     # check that nonadiabatic couplings are real-valued
-                    dkj_q = np.sqrt(sim.w_c / 2) * (dkj_z + dkj_zc)
-                    dkj_p = np.sqrt(1 / (2 * sim.w_c)) * 1.0j * (dkj_z - dkj_zc)
+                    dkj_q = np.sqrt(sim.h*sim.m / 2) * (dkj_z + dkj_zc)
+                    dkj_p = np.sqrt(1 / (2 * sim.h*sim.m)) * 1.0j * (dkj_z - dkj_zc)
                     if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
                         print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
                               np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
@@ -267,27 +268,33 @@ def cfssh_dynamics(traj, sim):
                     # compute rescalings
                     delta_z = dkj_zc
                     delta_zc = dkj_z
-                    akj_z = np.real(np.sum(sim.w_c * delta_zc * delta_z))
-                    bkj_z = np.real(np.sum(1j * sim.w_c * (zc_branch[i] * delta_z - z_branch[i] * delta_zc)))
-                    ckj_z = ev_diff
-                    disc = bkj_z ** 2 - 4 * akj_z * ckj_z
-                    if disc >= 0:
-                        if bkj_z < 0:
-                            gamma = bkj_z + np.sqrt(disc)
-                        else:
-                            gamma = bkj_z - np.sqrt(disc)
-                        if akj_z == 0:
-                            gamma = 0
-                        else:
-                            gamma = gamma / (2 * akj_z)
-                        # adjust classical coordinates
-                        z_branch[i] = z_branch[i] - 1.0j * np.real(gamma) * delta_z
-                        zc_branch[i] = zc_branch[i] + 1.0j * np.real(gamma) * delta_zc
-                        # update active surface
+                    z_branch[i], zc_branch[i], hopped = sim.hop(z_branch[i], zc_branch[i], delta_z, delta_zc)
+                    if hopped:
                         act_surf_ind_branch[i] = k
                         act_surf_branch[i] = np.zeros_like(act_surf_branch[i])
                         act_surf_branch[i][act_surf_ind_branch[i]] = 1
                         hop_count += 1
+                    #akj_z = np.real(np.sum(sim.w_c * delta_zc * delta_z))
+                    #bkj_z = np.real(np.sum(1j * sim.w_c * (zc_branch[i] * delta_z - z_branch[i] * delta_zc)))
+                    #ckj_z = ev_diff
+                    #disc = bkj_z ** 2 - 4 * akj_z * ckj_z
+                    #if disc >= 0:
+                    #    if bkj_z < 0:
+                    #        gamma = bkj_z + np.sqrt(disc)
+                    #    else:
+                    #        gamma = bkj_z - np.sqrt(disc)
+                    #    if akj_z == 0:
+                    #        gamma = 0
+                    #    else:
+                    #        gamma = gamma / (2 * akj_z)
+                    #    # adjust classical coordinates
+                    #    z_branch[i] = z_branch[i] - 1.0j * np.real(gamma) * delta_z
+                    #    zc_branch[i] = zc_branch[i] + 1.0j * np.real(gamma) * delta_zc
+                    #    # update active surface
+                    #    act_surf_ind_branch[i] = k
+                    #    act_surf_branch[i] = np.zeros_like(act_surf_branch[i])
+                    #    act_surf_branch[i][act_surf_ind_branch[i]] = 1
+                    #    hop_count += 1
                     break
     # save data
     traj.add_to_dic('pops_db', pops_db)
@@ -380,7 +387,7 @@ def fssh_dynamics(traj, sim):
         # compute quantum force
         fz, fzc = auxilliary.quantum_force(evecs[:, act_surf_ind], sim.diff_vars)
         # evolve classical coordinates
-        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.w_c, sim.dt_bath)
+        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.dt_bath, sim)
         # evolve quantum subsystem saving previous eigenvector values
         evecs_previous = np.copy(evecs)
         h_tot = h_q + sim.h_qc(z, zc)
@@ -417,8 +424,8 @@ def fssh_dynamics(traj, sim):
                 # dkj_q is wrt q dkj_p is wrt p.
                 dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, sim.diff_vars)
                 # check that nonadiabatic couplings are real-valued
-                dkj_q = np.sqrt(sim.w_c / 2) * (dkj_z + dkj_zc)
-                dkj_p = np.sqrt(1 / (2*sim.w_c)) * 1.0j * (dkj_z - dkj_zc)
+                dkj_q = np.sqrt(sim.h*sim.m / 2) * (dkj_z + dkj_zc)
+                dkj_p = np.sqrt(1 / (2*sim.h*sim.m)) * 1.0j * (dkj_z - dkj_zc)
                 if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
                     print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
                           np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
@@ -432,27 +439,33 @@ def fssh_dynamics(traj, sim):
                 # compute rescalings
                 delta_z = dkj_zc
                 delta_zc = dkj_z
-                akj_z = np.real(np.sum(sim.w_c * delta_zc * delta_z))
-                bkj_z = np.real(np.sum(1j * sim.w_c * (zc * delta_z - z * delta_zc)))
-                ckj_z = ev_diff
-                disc = bkj_z ** 2 - 4 * akj_z * ckj_z
-                if disc >= 0:
-                    if bkj_z < 0:
-                        gamma = bkj_z + np.sqrt(disc)
-                    else:
-                        gamma = bkj_z - np.sqrt(disc)
-                    if akj_z == 0:
-                        gamma = 0
-                    else:
-                        gamma = gamma / (2 * akj_z)
-                    # adjust classical coordinates
-                    z = z - 1.0j * np.real(gamma) * delta_z
-                    zc = zc + 1.0j * np.real(gamma) * delta_zc
-                    # update active surface
+                z, zc, hopped = sim.hop(z,zc,delta_z,delta_zc)
+                if hopped:
                     act_surf_ind = k
                     act_surf = np.zeros_like(act_surf)
                     act_surf[act_surf_ind] = 1
                     hop_count += 1
+                #akj_z = np.real(np.sum(sim.w_c * delta_zc * delta_z))
+                #bkj_z = np.real(np.sum(1j * sim.w_c * (zc * delta_z - z * delta_zc)))
+                #ckj_z = ev_diff
+                #disc = bkj_z ** 2 - 4 * akj_z * ckj_z
+                #if disc >= 0:
+                #    if bkj_z < 0:
+                #        gamma = bkj_z + np.sqrt(disc)
+                #    else:
+                #        gamma = bkj_z - np.sqrt(disc)
+                #    if akj_z == 0:
+                #        gamma = 0
+                #    else:
+                #        gamma = gamma / (2 * akj_z)
+                #    # adjust classical coordinates
+                #    z = z - 1.0j * np.real(gamma) * delta_z
+                #    zc = zc + 1.0j * np.real(gamma) * delta_zc
+                #    # update active surface
+                #    act_surf_ind = k
+                #    act_surf = np.zeros_like(act_surf)
+                #    act_surf[act_surf_ind] = 1
+                #    hop_count += 1
                 break
     # save data
     traj.add_to_dic('pops_db', pops_db)
@@ -503,8 +516,8 @@ def mf_dynamics(traj, sim):
             if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[0]:
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
             t_ind += 1
-        fz, fzc = auxilliary.quantum_force(psi_db, sim.diff_vars)
-        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc),sim.w_c, sim.dt_bath)
+        fz, fzc = auxilliary.quantum_force(psi_db, z, zc, sim)
+        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.dt_bath, sim)
         h_tot = h_q + sim.h_qc(z, zc)
         psi_db = auxilliary.rk4_q(h_tot, psi_db, sim.dt_bath)
     # add data to trajectory object

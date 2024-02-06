@@ -129,6 +129,12 @@ def initialize(sim):
         """
         return auxilliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a, psi_b)
 
+    def hop(z, zc, delta_z, delta_zc):
+        hopped = False
+
+
+        return z, zc, hopped
+
     # equip simulation object with necessary functions
     sim.init_classical = init_classical
     sim.h_q = h_q
@@ -141,6 +147,7 @@ def initialize(sim):
     sim.dh_c_dz = dh_c_dz
     sim.dh_c_dzc = dh_c_dzc
     sim.h = sim.w*np.ones(sim.num_states)
+    sim.hop = hop
     sim.diff_vars = diff_vars
     sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \
                    '_temp_' + str(sim.temp) + '_nstates_' + str(sim.num_states)
