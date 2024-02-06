@@ -67,6 +67,12 @@ def initialize(sim):
         """
         return np.real(np.sum(sim.w*zc * z))
 
+    def dh_c_dz(z, zc):
+        return sim.w*zc
+
+    def dh_c_dzc(z, zc):
+        return sim.w*z
+
     """
     Initialize the rotation matrices of quantum and classical subsystems
     """
@@ -106,7 +112,7 @@ def initialize(sim):
     # necessary variables for computing expectation values
     diff_vars = (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels)
 
-    def dh_qc_dz(psi_a, psi_b):
+    def dh_qc_dz(psi_a, psi_b, z, zc):
         """
         Computes <\psi_a| dH_qc/dz  |\psi_b>
         :param psi_a:
@@ -114,7 +120,7 @@ def initialize(sim):
         :return:
         """
         return auxilliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a, psi_b)
-    def dh_qc_dzc(psi_a,psi_b):
+    def dh_qc_dzc(psi_a, psi_b, z, zc):
         """
         Computes <\psi_a| dH_qc/dz*  |\psi_b>
         :param psi_a:
@@ -132,7 +138,9 @@ def initialize(sim):
     sim.u_q = u_q
     sim.dh_qc_dz = dh_qc_dz
     sim.dh_qc_dzc = dh_qc_dzc
-    sim.w_c = sim.w*np.ones(sim.num_states)
+    sim.dh_c_dz = dh_c_dz
+    sim.dh_c_dzc = dh_c_dzc
+    sim.h = sim.w*np.ones(sim.num_states)
     sim.diff_vars = diff_vars
     sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \
                    '_temp_' + str(sim.temp) + '_nstates_' + str(sim.num_states)

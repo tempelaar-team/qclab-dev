@@ -2,23 +2,43 @@ from numba import jit
 import numpy as np
 
 
+def rk4_c(z, zc, qf, dt, sim):
+    fz, fzc = qf
+    # k values evolve z
+    # l values evolve zc
+    k1 = -1.0j*(sim.dh_c_dzc(z,zc) + fzc)
+    l1 = +1.0j*(sim.dh_c_dz(z,zc)  + fz )
+    k2 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k1, zc + 0.5*dt*l1) + fzc)
+    l2 = +1.0j*(sim.dh_c_dz(z + 0.5*dt*k1, zc + 0.5*dt*l1) + fz)
+    k3 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k2, zc + 0.5*dt*l2) + fzc)
+    l3 = +1.0j*(sim.dh_c_dz(z + 0.5*dt*k2, zc + 0.5*dt*l2) + fz)
+    k4 = -1.0j*(sim.dh_c_dzc(z + dt*k3, zc + dt*l3) + fzc)
+    l4 = +1.0j*(sim.dh_c_dz(z + dt*k3, zc + dt*l3) + fz)
+    z = z + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
+    zc = zc + dt * 0.166667 * (l1 + 2 * l2 + 2 * l3 + l4)
+    return z, zc
+
+
 @jit(nopython=True)
-def rk4_c(z, zc, qf, w, dt):
+def rk4_c_old(z, zc, qf, m, h, dt):
     """
     4-th order Runge-Kutta for classical coordinates
     :param z: complex coordinate z
     :param zc: conjugate coordinate zc
     :param qf: tuple of quantum forces qf = (fz, fzc)
-    :param w: classical oscillator frequency
+    :param m: mass of each coordinate
+    :param h: auxilliary frequency of each coordinate
     :param dt: timestep dt
     :return: z(t+dt), zc(t+dt)
     """
     fz, fzc = qf
     # convert fz and fzc to fq and fp
-    fq = np.real(np.sqrt(w / 2) * (fz + fzc))
-    fp = np.real(1j * np.sqrt(1 / (2*w)) * (fz - fzc))
-    q = np.real((z + zc) / np.sqrt(2*w))
-    p = np.real(-1.0j * (z - zc) * np.sqrt(w / 2))
+    fq = np.real(np.sqrt((m*h) / 2) * (fz + fzc))
+    fp = np.real(1j * np.sqrt(1 / (2*(m*h))) * (fz - fzc))
+    # fq and fp are derivatives of h_qc wrt q and p respectively
+
+    q = np.real((z + zc) / np.sqrt(2*m*h))
+    p = np.real(-1.0j * (z - zc) * np.sqrt(m*h / 2))
     k1 = dt * (p + fp)
     l1 = -dt * (w**2 * q + fq)  # [wn2] is w_alpha ^ 2
     k2 = dt * ((p + 0.5 * l1) + fp)
@@ -121,8 +141,8 @@ def get_dab_phase(evals, evecs, sim):
             print('Warning: Degenerate eigenvalues')
         dkk_z, dkk_zc = get_dab(evec_i, evec_j, ev_diff + plus, sim.diff_vars)
         # convert to q/p nonadiabatic couplings
-        dkkq = np.sqrt(sim.w / 2) * (dkk_z + dkk_zc)
-        dkkp = np.sqrt(1 / (2*sim.w)) * 1.0j * (dkk_z - dkk_zc)
+        dkkq = np.sqrt(sim.h * sim.m / 2) * (dkk_z + dkk_zc)
+        dkkp = np.sqrt(1 / (2*sim.h*sim.m)) * 1.0j * (dkk_z - dkk_zc)
         dkkq_angle = np.angle(dkkq[np.argmax(np.abs(dkkq))])
         dkkp_angle = np.angle(dkkp[np.argmax(np.abs(dkkp))])
         if np.max(np.abs(dkkq)) < 1e-14:
@@ -166,10 +186,10 @@ def get_branch_eigs(z_branch, zc_branch, evecs_previous, h_q_mat, sim):
     evecs_branch, evecs_phases = sign_adjust_branch(evecs_branch, evecs_previous, evals_branch, sim)
     return evals_branch, evecs_branch, evecs_phases
 
-def get_classical_overlap(z_branch, zc_branch, w):
+def get_classical_overlap(z_branch, zc_branch, sim):
     out_mat = np.zeros((len(z_branch), len(z_branch)))
-    q_branch = (1/np.sqrt(2*w))*(z_branch + zc_branch)
-    p_branch = -1.0j*np.sqrt(w/2)*(z_branch - zc_branch)
+    q_branch = (1/np.sqrt(2*sim.m*sim.h))*(z_branch + zc_branch)
+    p_branch = -1.0j*np.sqrt(sim.h*sim.m/2)*(z_branch - zc_branch)
     for i in range(len(z_branch)):
         for j in range(len(z_branch)):
             out_mat[i,j] = np.exp(-(1/2))*np.sum(np.abs((p_branch[i] - p_branch[j]) * (q_branch[i] - q_branch[j])))
@@ -249,7 +269,7 @@ def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
     return out_mat
 
 
-def quantum_force(psi, diff_vars):  # computes <\psi|\nabla H|\psi> using sparse methods
+def quantum_force(psi, z, zc, sim):  # computes <\psi|\nabla H|\psi> using sparse methods
     """
     Computes the Hellman-Feynmann force using the formula
     f_{q(p)} = <psi| \nabla_{q(p)} H |psi>
@@ -257,21 +277,21 @@ def quantum_force(psi, diff_vars):  # computes <\psi|\nabla H|\psi> using sparse
     :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
     :return: f_{z} and f_{zc}
     """
-    (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    fz = matprod_sparse(dz_shape, dz_ind, dz_mels, psi, psi)
-    fzc = matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
+    #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
+    fz = sim.dh_qc_dz(psi, psi, z, zc)#matprod_sparse(dz_shape, dz_ind, dz_mels, psi, psi)
+    fzc = sim.dh_qc_dzc(psi, psi, z, zc)#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
     return fz, fzc
 
-def quantum_force_branch(evecs_branch, act_surf_ind_branch, diff_vars):
-    (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    fz_branch = np.zeros((dz_shape[1], dz_shape[0]), dtype=complex)
-    fzc_branch = np.zeros((dz_shape[1], dz_shape[0]), dtype=complex)
-    for i in range(dz_shape[1]):
-        fz_branch[i], fzc_branch[i] = quantum_force(evecs_branch[i][:,act_surf_ind_branch[i]], diff_vars)
+def quantum_force_branch(evecs_branch, act_surf_ind_branch, z, zc, sim):
+    #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
+    fz_branch = np.zeros((len(evecs_branch), len(z)), dtype=complex)
+    fzc_branch = np.zeros((len(evecs_branch), len(z)), dtype=complex)
+    for i in range(len(evecs_branch)):
+        fz_branch[i], fzc_branch[i] = quantum_force(evecs_branch[i][:,act_surf_ind_branch[i]], z, zc, sim)
     return fz_branch, fzc_branch
 
 
-def get_dab(evec_a, evec_b, ev_diff, diff_vars):  # computes d_{ab} using sparse methods
+def get_dab(evec_a, evec_b, ev_diff, z, zc, sim):  # computes d_{ab} using sparse methods
     """
     Computes the nonadiabatic coupling using the formula
     d_{ab}^{z(zc)} = <a|\nabla_{z(zc)} H|b>/(e_{b} - e_{a})
@@ -281,9 +301,9 @@ def get_dab(evec_a, evec_b, ev_diff, diff_vars):  # computes d_{ab} using sparse
     :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
     :return: d_{ab}^{z} and d_{ab}^{zc}
     """
-    (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    dab_z = matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
-    dab_zc = matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
+    #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
+    dab_z = sim.dh_qc_dz(evec_a, evec_b, z, zc) / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
+    dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z, zc) / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
     return dab_z, dab_zc
 
 
