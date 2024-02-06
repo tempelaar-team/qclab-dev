@@ -1,5 +1,5 @@
 import numpy as np
-
+import auxilliary
 
 def initialize(sim):
     # model specific parameter default values
@@ -87,6 +87,7 @@ def initialize(sim):
             out = np.identity(sim.num_states)
             return out
 
+
     # initialize derivatives of h wrt z and zc
     # tensors have dimension # classical osc \times # quantum states \times # quantum states
     dz_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states), dtype=complex)
@@ -105,6 +106,23 @@ def initialize(sim):
     # necessary variables for computing expectation values
     diff_vars = (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels)
 
+    def dh_qc_dz(psi_a, psi_b):
+        """
+        Computes <\psi_a| dH_qc/dz  |\psi_b>
+        :param psi_a:
+        :param psi_b:
+        :return:
+        """
+        return auxilliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a, psi_b)
+    def dh_qc_dzc(psi_a,psi_b):
+        """
+        Computes <\psi_a| dH_qc/dz*  |\psi_b>
+        :param psi_a:
+        :param psi_b:
+        :return:
+        """
+        return auxilliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a, psi_b)
+
     # equip simulation object with necessary functions
     sim.init_classical = init_classical
     sim.h_q = h_q
@@ -112,6 +130,8 @@ def initialize(sim):
     sim.h_c = h_c
     sim.u_c = u_c
     sim.u_q = u_q
+    sim.dh_qc_dz = dh_qc_dz
+    sim.dh_qc_dzc = dh_qc_dzc
     sim.w_c = sim.w*np.ones(sim.num_states)
     sim.diff_vars = diff_vars
     sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \
