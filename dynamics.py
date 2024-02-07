@@ -60,20 +60,20 @@ def cfssh_dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
     # initialize classical coordinates
-    z, zc = sim.init_classical()
+    z, zc = sim.init_classical(sim)
     # compute initial Hamiltonian
     h_q = sim.h_q()
-    h_tot = h_q + sim.h_qc(z, zc)
+    h_tot = h_q + sim.h_qc(z, zc, sim)
     # compute initial eigenvalues and eigenvectors
     evals_0, evecs_0 = np.linalg.eigh(h_tot)
     num_states = len(evals_0)
     num_branches = num_states
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z, zc, sim)
     # execute phase shift
     evecs_0 = np.matmul(evecs_0, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z, zc, sim)
     if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
         # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
@@ -114,16 +114,13 @@ def cfssh_dynamics(traj, sim):
     # initialize Hamiltonian
     #h_q_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
     #h_q_branch[:] = sim.h_q()
-    h_tot_branch = auxilliary.h_tot_branch(z_branch, zc_branch, h_q, sim.h_qc, num_branches, num_states)
+    h_tot_branch = auxilliary.h_tot_branch(z_branch, zc_branch, h_q, sim.h_qc, num_branches, num_states, sim)
     #h_q_branch + auxilliary.h_qc_branch(z_branch, zc_branch, sim.h_qc, num_branches, num_states)
     # initialize eigenvalues and eigenvectors
     evals_branch = np.zeros((num_branches, num_states))
     evecs_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
     evals_branch[:] = evals_0
     evecs_branch[:] = evecs_0
-    # initialize branch frequencies
-    w_c_branch = np.zeros((num_branches, *np.shape(sim.w_c)))
-    w_c_branch[:] = sim.w_c
 
     # initialize branch-pair eigenvalues and eigenvectors
     if sim.dmat_const > 0:
@@ -134,7 +131,7 @@ def cfssh_dynamics(traj, sim):
     ec_branch = np.zeros((num_branches))
     eq_branch = np.zeros((num_branches))
     for i in range(num_branches):
-        ec_branch[i] = sim.h_c(z_branch[i], zc_branch[i])
+        ec_branch[i] = sim.h_c(z_branch[i], zc_branch[i], sim)
         eq_branch[i] = evals_branch[i][act_surf_ind_branch[i]]
     hop_count = 0
     t_ind = 0
@@ -145,7 +142,7 @@ def cfssh_dynamics(traj, sim):
             u_ij_previous = np.copy(u_ij)
             e_ij, u_ij = auxilliary.get_branch_pair_eigs(z_branch, zc_branch, u_ij_previous, h_q, sim)
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
-            overlap = auxilliary.get_classical_overlap(z_branch, zc_branch, sim.w_c)
+            overlap = auxilliary.get_classical_overlap(z_branch, zc_branch, sim)
             rho_db = np.zeros((num_states, num_states), dtype=complex)
             rho_db_fssh = np.zeros((num_states, num_states), dtype=complex)
             # only update branches every output timestep and check that the local gauge is converged
@@ -162,9 +159,10 @@ def cfssh_dynamics(traj, sim):
                             a_j = act_surf_ind_branch[j]
                             if a_i == i and a_j == j:
                                 if sim.branch_update == 0:
-                                    branch_mat = h_q + sim.h_qc((z_branch[i] + z_branch[j])/2, (zc_branch[i] + zc_branch[j])/2)
+                                    branch_mat = h_q + sim.h_qc((z_branch[i] + z_branch[j])/2, (zc_branch[i] + zc_branch[j])/2, sim)
                                     e_ij[i,j], u_ij[i,j] = np.linalg.eigh(branch_mat)
-                                    u_ij[i,j], _ = auxilliary.sign_adjust(u_ij[i,j], u_ij_previous[i,j], e_ij[i,j], sim)
+                                    u_ij[i,j], _ = auxilliary.sign_adjust(u_ij[i,j], u_ij_previous[i,j], e_ij[i,j], \
+                                                 (z_branch[i] + z_branch[j])/2, (zc_branch[i] + zc_branch[j])/2, sim)
                                 for n in range(num_branches):
                                     for m in range(num_branches):
                                         rho_db[n, m] += u_ij[i,j][n, i]*rho_adb_0[i,j]*overlap[i,j]*\
@@ -200,15 +198,17 @@ def cfssh_dynamics(traj, sim):
             pops_db[t_ind] = np.real(np.diag(rho_db))
             pops_db_fssh[t_ind] = np.real(np.diag(rho_db_fssh))
             for i in range(num_branches):
-                ec[t_ind] += sim.h_c(z_branch[i], zc_branch[i])
+                ec[t_ind] += sim.h_c(z_branch[i], zc_branch[i], sim)
                 eq[t_ind] += evals_branch[i][act_surf_ind_branch[i]]
             e_tot_0 = ec[0] + eq[0]  # energy at t=0
             e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
             # check that energy is conserved within 1% of the initial classical energy
             if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[0]:
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
-        fz_branch, fzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, sim.diff_vars)
-        z_branch, zc_branch = auxilliary.rk4_c(z_branch, zc_branch,(fz_branch, fzc_branch), w_c_branch, sim.dt_bath)
+            t_ind += 1
+        fz_branch, fzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, zc_branch, sim)
+        for i in range(num_branches):
+            z_branch[i], zc_branch[i] = auxilliary.rk4_c(z_branch[i], zc_branch[i],(fz_branch[i], fzc_branch[i]), sim.dt_bath, sim)
         evecs_branch_previous = np.copy(evecs_branch)
         # obtain branch eigenvalues and eigenvectors (sign adjust in function)
         evals_branch, evecs_branch, evecs_phases = auxilliary.get_branch_eigs(z_branch, zc_branch, evecs_branch_previous, h_q, sim)
@@ -250,10 +250,10 @@ def cfssh_dynamics(traj, sim):
                     eval_j = evals_branch[i][k]
                     ev_diff = eval_j - eval_k
                     # dkj_q is wrt q dkj_p is wrt p.
-                    dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, sim.diff_vars)
+                    dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, z_branch[i], zc_branch[i], sim)
                     # check that nonadiabatic couplings are real-valued
-                    dkj_q = np.sqrt(sim.w_c / 2) * (dkj_z + dkj_zc)
-                    dkj_p = np.sqrt(1 / (2 * sim.w_c)) * 1.0j * (dkj_z - dkj_zc)
+                    dkj_q = np.sqrt(sim.h*sim.m / 2) * (dkj_z + dkj_zc)
+                    dkj_p = np.sqrt(1 / (2 * sim.h*sim.m)) * 1.0j * (dkj_z - dkj_zc)
                     if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
                         print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
                               np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
@@ -267,23 +267,8 @@ def cfssh_dynamics(traj, sim):
                     # compute rescalings
                     delta_z = dkj_zc
                     delta_zc = dkj_z
-                    akj_z = np.real(np.sum(sim.w_c * delta_zc * delta_z))
-                    bkj_z = np.real(np.sum(1j * sim.w_c * (zc_branch[i] * delta_z - z_branch[i] * delta_zc)))
-                    ckj_z = ev_diff
-                    disc = bkj_z ** 2 - 4 * akj_z * ckj_z
-                    if disc >= 0:
-                        if bkj_z < 0:
-                            gamma = bkj_z + np.sqrt(disc)
-                        else:
-                            gamma = bkj_z - np.sqrt(disc)
-                        if akj_z == 0:
-                            gamma = 0
-                        else:
-                            gamma = gamma / (2 * akj_z)
-                        # adjust classical coordinates
-                        z_branch[i] = z_branch[i] - 1.0j * np.real(gamma) * delta_z
-                        zc_branch[i] = zc_branch[i] + 1.0j * np.real(gamma) * delta_zc
-                        # update active surface
+                    z_branch[i], zc_branch[i], hopped = sim.hop(z_branch[i], zc_branch[i], delta_z, delta_zc, ev_diff, sim)
+                    if hopped:
                         act_surf_ind_branch[i] = k
                         act_surf_branch[i] = np.zeros_like(act_surf_branch[i])
                         act_surf_branch[i][act_surf_ind_branch[i]] = 1
@@ -306,19 +291,19 @@ def fssh_dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
     #  initialize classical coordinates
-    z, zc = sim.init_classical()
+    z, zc = sim.init_classical(sim)
     #  compute initial Hamiltonian
     h_q = sim.h_q()
-    h_tot = h_q + sim.h_qc(z, zc)
+    h_tot = h_q + sim.h_qc(z, zc, sim)
     #  compute eigenvectors
     evals, evecs = np.linalg.eigh(h_tot)
     num_states = len(h_q)
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, z, zc, sim)
     # execute phase shift
     evecs = np.matmul(evecs, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, z, zc, sim)
     if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
         # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
@@ -351,7 +336,7 @@ def fssh_dynamics(traj, sim):
     # adjust h_q so that the initial quantum energy is always 0
     eq_init = evals[act_surf_ind]
     h_q = h_q - np.identity(num_states) * eq_init
-    h_tot = h_q + sim.h_qc(z, zc)
+    h_tot = h_q + sim.h_qc(z, zc, sim)
     # update eigenvalues
     evals, _ = np.linalg.eigh(h_tot)
     # begin timesteps
@@ -369,7 +354,7 @@ def fssh_dynamics(traj, sim):
             # save populations
             pops_db[t_ind] = np.real(np.diag(rho_db))
             # save energies
-            ec[t_ind] = sim.h_c(z, zc)
+            ec[t_ind] = sim.h_c(z, zc, sim)
             eq[t_ind] = evals[act_surf_ind]
             e_tot_0 = ec[0] + eq[0]  # energy at t=0
             e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
@@ -378,14 +363,14 @@ def fssh_dynamics(traj, sim):
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
             t_ind += 1
         # compute quantum force
-        fz, fzc = auxilliary.quantum_force(evecs[:, act_surf_ind], sim.diff_vars)
+        fz, fzc = auxilliary.quantum_force(evecs[:, act_surf_ind], z, zc, sim)
         # evolve classical coordinates
-        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.w_c, sim.dt_bath)
+        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.dt_bath, sim)
         # evolve quantum subsystem saving previous eigenvector values
         evecs_previous = np.copy(evecs)
-        h_tot = h_q + sim.h_qc(z, zc)
+        h_tot = h_q + sim.h_qc(z, zc, sim)
         evals, evecs = np.linalg.eigh(h_tot)
-        evecs, evec_phases = auxilliary.sign_adjust(evecs, evecs_previous, evals, sim)
+        evecs, evec_phases = auxilliary.sign_adjust(evecs, evecs_previous, evals, z, zc, sim)
         evals_exp = np.exp(-1j * evals * sim.dt_bath)
         diag_matrix = np.diag(evals_exp)
         psi_adb = np.copy(np.dot(diag_matrix, auxilliary.vec_db_to_adb(psi_db, evecs)))
@@ -415,10 +400,10 @@ def fssh_dynamics(traj, sim):
                 eval_j = evals[k]
                 ev_diff = eval_j - eval_k
                 # dkj_q is wrt q dkj_p is wrt p.
-                dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, sim.diff_vars)
+                dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, z, zc, sim)
                 # check that nonadiabatic couplings are real-valued
-                dkj_q = np.sqrt(sim.w_c / 2) * (dkj_z + dkj_zc)
-                dkj_p = np.sqrt(1 / (2*sim.w_c)) * 1.0j * (dkj_z - dkj_zc)
+                dkj_q = np.sqrt(sim.h*sim.m / 2) * (dkj_z + dkj_zc)
+                dkj_p = np.sqrt(1 / (2*sim.h*sim.m)) * 1.0j * (dkj_z - dkj_zc)
                 if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
                     print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
                           np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
@@ -432,23 +417,8 @@ def fssh_dynamics(traj, sim):
                 # compute rescalings
                 delta_z = dkj_zc
                 delta_zc = dkj_z
-                akj_z = np.real(np.sum(sim.w_c * delta_zc * delta_z))
-                bkj_z = np.real(np.sum(1j * sim.w_c * (zc * delta_z - z * delta_zc)))
-                ckj_z = ev_diff
-                disc = bkj_z ** 2 - 4 * akj_z * ckj_z
-                if disc >= 0:
-                    if bkj_z < 0:
-                        gamma = bkj_z + np.sqrt(disc)
-                    else:
-                        gamma = bkj_z - np.sqrt(disc)
-                    if akj_z == 0:
-                        gamma = 0
-                    else:
-                        gamma = gamma / (2 * akj_z)
-                    # adjust classical coordinates
-                    z = z - 1.0j * np.real(gamma) * delta_z
-                    zc = zc + 1.0j * np.real(gamma) * delta_zc
-                    # update active surface
+                z, zc, hopped = sim.hop(z,zc,delta_z,delta_zc, ev_diff, sim)
+                if hopped:
                     act_surf_ind = k
                     act_surf = np.zeros_like(act_surf)
                     act_surf[act_surf_ind] = 1
@@ -470,10 +440,10 @@ def mf_dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
     #  initialize classical coordinates
-    z, zc = sim.init_classical()
+    z, zc = sim.init_classical(sim)
     #  compute initial Hamiltonian
     h_q = sim.h_q()
-    h_tot = h_q + sim.h_qc(z, zc)
+    h_tot = h_q + sim.h_qc(z, zc, sim)
     num_states = len(h_q)
     # initial wavefunction in diabatic basis
     psi_db = sim.psi_db_0
@@ -486,7 +456,7 @@ def mf_dynamics(traj, sim):
     # adjust h_q so that the initial quantum energy is always 0
     eq_init = np.real(np.matmul(np.conjugate(psi_db), np.matmul(h_tot, psi_db)))
     h_q = h_q - np.identity(num_states) * eq_init
-    h_tot = h_q + sim.h_qc(z, zc)
+    h_tot = h_q + sim.h_qc(z, zc, sim)
     t_ind = 0
     for t_bath_ind in np.arange(0, len(tdat_bath)):
         if t_ind == len(tdat):
@@ -495,7 +465,7 @@ def mf_dynamics(traj, sim):
             # save diabatic populations
             pops_db[t_ind] = np.abs(psi_db) ** 2
             # save energies
-            ec[t_ind] = sim.h_c(z, zc)
+            ec[t_ind] = sim.h_c(z, zc, sim)
             eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db), np.matmul(h_tot, psi_db)))
             e_tot_0 = ec[0] + eq[0]  # energy at t=0
             e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
@@ -503,9 +473,9 @@ def mf_dynamics(traj, sim):
             if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[0]:
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
             t_ind += 1
-        fz, fzc = auxilliary.quantum_force(psi_db, sim.diff_vars)
-        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc),sim.w_c, sim.dt_bath)
-        h_tot = h_q + sim.h_qc(z, zc)
+        fz, fzc = auxilliary.quantum_force(psi_db, z, zc, sim)
+        z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.dt_bath, sim)
+        h_tot = h_q + sim.h_qc(z, zc, sim)
         psi_db = auxilliary.rk4_q(h_tot, psi_db, sim.dt_bath)
     # add data to trajectory object
     traj.add_to_dic('pops_db', pops_db)

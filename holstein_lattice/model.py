@@ -1,5 +1,7 @@
 import numpy as np
-
+import auxilliary
+import hop
+import h_c
 
 def initialize(sim):
     # model specific parameter default values
@@ -9,6 +11,7 @@ def initialize(sim):
         "j": 1,  # hopping integral
         "num_states": 20,  # number of states
         "g": 1,  # electron-phonon coupling
+        "m": 1, # mass of the classical oscillators
         "quantum_rotation": None,  # rotation of quantum subspace
         "classical_rotation": None,  # rotation of classical subspace
     }
@@ -19,21 +22,13 @@ def initialize(sim):
     sim.g = defaults["g"]
     sim.temp = defaults["temp"]
     sim.j = defaults["j"]
+    sim.m = defaults["m"]
     sim.num_states = defaults["num_states"]
     sim.w = defaults["w"]
     sim.quantum_rotation = defaults["quantum_rotation"]
     sim.classical_rotation = defaults["classical_rotation"]
 
-    def init_classical():
-        """
-        Initialize classical coordiantes according to Boltzmann statistics
-        :return: z = sqrt(w/2)*(q + i*(p/w)), z* = sqrt(w/2)*(q - i*(p/w))
-        """
-        q = np.random.normal(loc=0, scale=np.sqrt(sim.temp), size=sim.num_states)
-        p = np.random.normal(loc=0, scale=np.sqrt(sim.temp / sim.w), size=sim.num_states)
-        z =  np.sqrt(sim.w / 2) * (q + 1.0j * (p / sim.w))
-        zc = np.conjugate(z)
-        return z, zc
+
 
     def h_q():
         """
@@ -48,24 +43,15 @@ def initialize(sim):
         out[-1, 0] = -sim.j
         return out
 
-    def h_qc(z, zc):
+    def h_qc(z, zc, sim):
         """
         Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
         :param z: z coordinate
         :param zc: z^{*} conjugate z
         :return: h_qc(z,z^{*}) Hamiltonian
         """
-        out = np.diag(sim.g * np.sqrt(sim.w) * (z + zc))
+        out = np.diag(sim.g * np.sqrt(sim.h) * (z + zc))
         return out
-
-    def h_c(z, zc):
-        """
-        Harmonic oscillator Hamiltonian
-        :param z: z(t)
-        :param zc: conjugate z(t)
-        :return: h_c(z,zc) Hamiltonian
-        """
-        return np.real(np.sum(sim.w*zc * z))
 
     """
     Initialize the rotation matrices of quantum and classical subsystems
@@ -87,6 +73,7 @@ def initialize(sim):
             out = np.identity(sim.num_states)
             return out
 
+
     # initialize derivatives of h wrt z and zc
     # tensors have dimension # classical osc \times # quantum states \times # quantum states
     dz_mat = np.zeros((sim.num_states, sim.num_states, sim.num_states), dtype=complex)
@@ -105,14 +92,37 @@ def initialize(sim):
     # necessary variables for computing expectation values
     diff_vars = (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels)
 
+    def dh_qc_dz(psi_a, psi_b, z, zc):
+        """
+        Computes <\psi_a| dH_qc/dz  |\psi_b>
+        :param psi_a:
+        :param psi_b:
+        :return:
+        """
+        return auxilliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a, psi_b)
+    def dh_qc_dzc(psi_a, psi_b, z, zc):
+        """
+        Computes <\psi_a| dH_qc/dz*  |\psi_b>
+        :param psi_a:
+        :param psi_b:
+        :return:
+        """
+        return auxilliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a, psi_b)
+
+
     # equip simulation object with necessary functions
-    sim.init_classical = init_classical
+    sim.init_classical = h_c.harmonic_oscillator_init_classical_boltzmann
     sim.h_q = h_q
     sim.h_qc = h_qc
-    sim.h_c = h_c
+    sim.h_c = h_c.harmonic_oscillator
     sim.u_c = u_c
     sim.u_q = u_q
-    sim.w_c = sim.w*np.ones(sim.num_states)
+    sim.dh_qc_dz = dh_qc_dz
+    sim.dh_qc_dzc = dh_qc_dzc
+    sim.dh_c_dz = h_c.harmonic_oscillator_dh_c_dz
+    sim.dh_c_dzc = h_c.harmonic_oscillator_dh_c_dzc
+    sim.h = sim.w*np.ones(sim.num_states)
+    sim.hop = hop.harmonic_oscillator_hop
     sim.diff_vars = diff_vars
     sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \
                    '_temp_' + str(sim.temp) + '_nstates_' + str(sim.num_states)
