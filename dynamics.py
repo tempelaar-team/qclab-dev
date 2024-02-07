@@ -187,7 +187,7 @@ def cfssh_dynamics(traj, sim):
                             a_i = act_surf_ind_branch[i]
                             a_j = act_surf_ind_branch[j]
                             if a_i == i and a_j == j:
-                                rho_adb_coh[i, j] = rho_adb_0[i, j] * overlap[i, j] * np.exp(-1.0j*(phase_branch[i] - phase_branch[j]))
+                                rho_adb_coh[i, j] = rho_adb_0[i, j] * overlap[i, j] #* np.exp(-1.0j*(phase_branch[i] - phase_branch[j]))
                 rho_diag = np.diag(rho_adb_0).reshape((-1,1))*act_surf_branch
                 np.einsum('...jj->...j',rho_adb)[...] = rho_diag
                 rho_adb = rho_adb + rho_adb_coh/num_branches
@@ -205,6 +205,7 @@ def cfssh_dynamics(traj, sim):
             # check that energy is conserved within 1% of the initial classical energy
             if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[0]:
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
+            t_ind += 1
         fz_branch, fzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, zc_branch, sim)
         for i in range(num_branches):
             z_branch[i], zc_branch[i] = auxilliary.rk4_c(z_branch[i], zc_branch[i],(fz_branch[i], fzc_branch[i]), sim.dt_bath, sim)
