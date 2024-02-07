@@ -162,6 +162,7 @@ def initialize(sim):
     sim.dh_c_dz = dh_c_dz
     sim.dh_c_dzc = dh_c_dzc
     sim.h = sim.w*np.ones(sim.num_states)
+    sim.m = 1
     sim.hop = hop
     sim.diff_vars = diff_vars
     sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \

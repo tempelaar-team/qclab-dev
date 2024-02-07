@@ -121,9 +121,6 @@ def cfssh_dynamics(traj, sim):
     evecs_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
     evals_branch[:] = evals_0
     evecs_branch[:] = evecs_0
-    # initialize branch frequencies
-    w_c_branch = np.zeros((num_branches, *np.shape(sim.w_c)))
-    w_c_branch[:] = sim.w_c
 
     # initialize branch-pair eigenvalues and eigenvectors
     if sim.dmat_const > 0:
@@ -145,7 +142,7 @@ def cfssh_dynamics(traj, sim):
             u_ij_previous = np.copy(u_ij)
             e_ij, u_ij = auxilliary.get_branch_pair_eigs(z_branch, zc_branch, u_ij_previous, h_q, sim)
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
-            overlap = auxilliary.get_classical_overlap(z_branch, zc_branch, sim.w_c)
+            overlap = auxilliary.get_classical_overlap(z_branch, zc_branch, sim)
             rho_db = np.zeros((num_states, num_states), dtype=complex)
             rho_db_fssh = np.zeros((num_states, num_states), dtype=complex)
             # only update branches every output timestep and check that the local gauge is converged
@@ -208,7 +205,7 @@ def cfssh_dynamics(traj, sim):
             # check that energy is conserved within 1% of the initial classical energy
             if np.abs(e_tot_t - e_tot_0) > 0.01 * ec[0]:
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
-        fz_branch, fzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, sim.diff_vars)
+        fz_branch, fzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, zc_branch, sim)
         for i in range(num_branches):
             z_branch[i], zc_branch[i] = auxilliary.rk4_c(z_branch[i], zc_branch[i],(fz_branch[i], fzc_branch[i]), sim.dt_bath, sim)
         evecs_branch_previous = np.copy(evecs_branch)
@@ -252,7 +249,7 @@ def cfssh_dynamics(traj, sim):
                     eval_j = evals_branch[i][k]
                     ev_diff = eval_j - eval_k
                     # dkj_q is wrt q dkj_p is wrt p.
-                    dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, sim.diff_vars)
+                    dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, z_branch[i], zc_branch[i], sim)
                     # check that nonadiabatic couplings are real-valued
                     dkj_q = np.sqrt(sim.h*sim.m / 2) * (dkj_z + dkj_zc)
                     dkj_p = np.sqrt(1 / (2 * sim.h*sim.m)) * 1.0j * (dkj_z - dkj_zc)
@@ -365,7 +362,7 @@ def fssh_dynamics(traj, sim):
                 print('ERROR: energy not conserved! % error= ', 100 * np.abs(e_tot_t - e_tot_0) / ec[0])
             t_ind += 1
         # compute quantum force
-        fz, fzc = auxilliary.quantum_force(evecs[:, act_surf_ind], sim.diff_vars)
+        fz, fzc = auxilliary.quantum_force(evecs[:, act_surf_ind], z, zc, sim)
         # evolve classical coordinates
         z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.dt_bath, sim)
         # evolve quantum subsystem saving previous eigenvector values
