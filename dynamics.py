@@ -268,7 +268,7 @@ def cfssh_dynamics(traj, sim):
                     # compute rescalings
                     delta_z = dkj_zc
                     delta_zc = dkj_z
-                    z_branch[i], zc_branch[i], hopped = sim.hop(z_branch[i], zc_branch[i], delta_z, delta_zc)
+                    z_branch[i], zc_branch[i], hopped = sim.hop(z_branch[i], zc_branch[i], delta_z, delta_zc, ev_diff)
                     if hopped:
                         act_surf_ind_branch[i] = k
                         act_surf_branch[i] = np.zeros_like(act_surf_branch[i])
@@ -439,7 +439,7 @@ def fssh_dynamics(traj, sim):
                 # compute rescalings
                 delta_z = dkj_zc
                 delta_zc = dkj_z
-                z, zc, hopped = sim.hop(z,zc,delta_z,delta_zc)
+                z, zc, hopped = sim.hop(z,zc,delta_z,delta_zc, ev_diff)
                 if hopped:
                     act_surf_ind = k
                     act_surf = np.zeros_like(act_surf)
