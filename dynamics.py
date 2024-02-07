@@ -274,27 +274,6 @@ def cfssh_dynamics(traj, sim):
                         act_surf_branch[i] = np.zeros_like(act_surf_branch[i])
                         act_surf_branch[i][act_surf_ind_branch[i]] = 1
                         hop_count += 1
-                    #akj_z = np.real(np.sum(sim.w_c * delta_zc * delta_z))
-                    #bkj_z = np.real(np.sum(1j * sim.w_c * (zc_branch[i] * delta_z - z_branch[i] * delta_zc)))
-                    #ckj_z = ev_diff
-                    #disc = bkj_z ** 2 - 4 * akj_z * ckj_z
-                    #if disc >= 0:
-                    #    if bkj_z < 0:
-                    #        gamma = bkj_z + np.sqrt(disc)
-                    #    else:
-                    #        gamma = bkj_z - np.sqrt(disc)
-                    #    if akj_z == 0:
-                    #        gamma = 0
-                    #    else:
-                    #        gamma = gamma / (2 * akj_z)
-                    #    # adjust classical coordinates
-                    #    z_branch[i] = z_branch[i] - 1.0j * np.real(gamma) * delta_z
-                    #    zc_branch[i] = zc_branch[i] + 1.0j * np.real(gamma) * delta_zc
-                    #    # update active surface
-                    #    act_surf_ind_branch[i] = k
-                    #    act_surf_branch[i] = np.zeros_like(act_surf_branch[i])
-                    #    act_surf_branch[i][act_surf_ind_branch[i]] = 1
-                    #    hop_count += 1
                     break
     # save data
     traj.add_to_dic('pops_db', pops_db)
@@ -445,27 +424,6 @@ def fssh_dynamics(traj, sim):
                     act_surf = np.zeros_like(act_surf)
                     act_surf[act_surf_ind] = 1
                     hop_count += 1
-                #akj_z = np.real(np.sum(sim.w_c * delta_zc * delta_z))
-                #bkj_z = np.real(np.sum(1j * sim.w_c * (zc * delta_z - z * delta_zc)))
-                #ckj_z = ev_diff
-                #disc = bkj_z ** 2 - 4 * akj_z * ckj_z
-                #if disc >= 0:
-                #    if bkj_z < 0:
-                #        gamma = bkj_z + np.sqrt(disc)
-                #    else:
-                #        gamma = bkj_z - np.sqrt(disc)
-                #    if akj_z == 0:
-                #        gamma = 0
-                #    else:
-                #        gamma = gamma / (2 * akj_z)
-                #    # adjust classical coordinates
-                #    z = z - 1.0j * np.real(gamma) * delta_z
-                #    zc = zc + 1.0j * np.real(gamma) * delta_zc
-                #    # update active surface
-                #    act_surf_ind = k
-                #    act_surf = np.zeros_like(act_surf)
-                #    act_surf[act_surf_ind] = 1
-                #    hop_count += 1
                 break
     # save data
     traj.add_to_dic('pops_db', pops_db)
