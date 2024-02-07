@@ -187,7 +187,7 @@ def cfssh_dynamics(traj, sim):
                             a_i = act_surf_ind_branch[i]
                             a_j = act_surf_ind_branch[j]
                             if a_i == i and a_j == j:
-                                rho_adb_coh[i, j] = rho_adb_0[i, j] * overlap[i, j] #* np.exp(-1.0j*(phase_branch[i] - phase_branch[j]))
+                                rho_adb_coh[i, j] = rho_adb_0[i, j] * overlap[i, j] * np.exp(-1.0j*(phase_branch[i] - phase_branch[j]))
                 rho_diag = np.diag(rho_adb_0).reshape((-1,1))*act_surf_branch
                 np.einsum('...jj->...j',rho_adb)[...] = rho_diag
                 rho_adb = rho_adb + rho_adb_coh/num_branches
