@@ -11,6 +11,7 @@ def initialize(sim):
         "j": 1,  # hopping integral
         "num_states": 20,  # number of states
         "g": 1,  # electron-phonon coupling
+        "m": 1, # mass of the classical oscillators
         "quantum_rotation": None,  # rotation of quantum subspace
         "classical_rotation": None,  # rotation of classical subspace
     }
@@ -21,21 +22,13 @@ def initialize(sim):
     sim.g = defaults["g"]
     sim.temp = defaults["temp"]
     sim.j = defaults["j"]
+    sim.m = defaults["m"]
     sim.num_states = defaults["num_states"]
     sim.w = defaults["w"]
     sim.quantum_rotation = defaults["quantum_rotation"]
     sim.classical_rotation = defaults["classical_rotation"]
 
-    def init_classical():
-        """
-        Initialize classical coordiantes according to Boltzmann statistics
-        :return: z = sqrt(w/2)*(q + i*(p/w)), z* = sqrt(w/2)*(q - i*(p/w))
-        """
-        q = np.random.normal(loc=0, scale=np.sqrt(sim.temp), size=sim.num_states)
-        p = np.random.normal(loc=0, scale=np.sqrt(sim.temp / sim.w), size=sim.num_states)
-        z =  np.sqrt(sim.w / 2) * (q + 1.0j * (p / sim.w))
-        zc = np.conjugate(z)
-        return z, zc
+
 
     def h_q():
         """
@@ -59,11 +52,6 @@ def initialize(sim):
         """
         out = np.diag(sim.g * np.sqrt(sim.h) * (z + zc))
         return out
-
-
-
-
-
 
     """
     Initialize the rotation matrices of quantum and classical subsystems
@@ -123,7 +111,7 @@ def initialize(sim):
 
 
     # equip simulation object with necessary functions
-    sim.init_classical = init_classical
+    sim.init_classical = h_c.harmonic_oscillator_init_classical_boltzmann
     sim.h_q = h_q
     sim.h_qc = h_qc
     sim.h_c = h_c.harmonic_oscillator
@@ -134,7 +122,6 @@ def initialize(sim):
     sim.dh_c_dz = h_c.harmonic_oscillator_dh_c_dz
     sim.dh_c_dzc = h_c.harmonic_oscillator_dh_c_dzc
     sim.h = sim.w*np.ones(sim.num_states)
-    sim.m = 1
     sim.hop = hop.harmonic_oscillator_hop
     sim.diff_vars = diff_vars
     sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \

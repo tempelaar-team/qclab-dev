@@ -60,7 +60,7 @@ def cfssh_dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
     # initialize classical coordinates
-    z, zc = sim.init_classical()
+    z, zc = sim.init_classical(sim)
     # compute initial Hamiltonian
     h_q = sim.h_q()
     h_tot = h_q + sim.h_qc(z, zc, sim)
@@ -291,7 +291,7 @@ def fssh_dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
     #  initialize classical coordinates
-    z, zc = sim.init_classical()
+    z, zc = sim.init_classical(sim)
     #  compute initial Hamiltonian
     h_q = sim.h_q()
     h_tot = h_q + sim.h_qc(z, zc, sim)
@@ -440,7 +440,7 @@ def mf_dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
     #  initialize classical coordinates
-    z, zc = sim.init_classical()
+    z, zc = sim.init_classical(sim)
     #  compute initial Hamiltonian
     h_q = sim.h_q()
     h_tot = h_q + sim.h_qc(z, zc, sim)
