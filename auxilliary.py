@@ -6,14 +6,14 @@ def rk4_c(z, zc, qf, dt, sim):
     fz, fzc = qf
     # k values evolve z
     # l values evolve zc
-    k1 = -1.0j*(sim.dh_c_dzc(z,zc) + fzc)
-    l1 = +1.0j*(sim.dh_c_dz(z,zc)  + fz )
-    k2 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k1, zc + 0.5*dt*l1) + fzc)
-    l2 = +1.0j*(sim.dh_c_dz(z + 0.5*dt*k1, zc + 0.5*dt*l1) + fz)
-    k3 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k2, zc + 0.5*dt*l2) + fzc)
-    l3 = +1.0j*(sim.dh_c_dz(z + 0.5*dt*k2, zc + 0.5*dt*l2) + fz)
-    k4 = -1.0j*(sim.dh_c_dzc(z + dt*k3, zc + dt*l3) + fzc)
-    l4 = +1.0j*(sim.dh_c_dz(z + dt*k3, zc + dt*l3) + fz)
+    k1 = -1.0j*(sim.dh_c_dzc(z,zc,sim) + fzc)
+    l1 = +1.0j*(sim.dh_c_dz(z,zc, sim)  + fz )
+    k2 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k1, zc + 0.5*dt*l1, sim) + fzc)
+    l2 = +1.0j*(sim.dh_c_dz(z + 0.5*dt*k1, zc + 0.5*dt*l1, sim) + fz)
+    k3 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k2, zc + 0.5*dt*l2, sim) + fzc)
+    l3 = +1.0j*(sim.dh_c_dz(z + 0.5*dt*k2, zc + 0.5*dt*l2, sim) + fz)
+    k4 = -1.0j*(sim.dh_c_dzc(z + dt*k3, zc + dt*l3, sim) + fzc)
+    l4 = +1.0j*(sim.dh_c_dz(z + dt*k3, zc + dt*l3, sim) + fz)
     z = z + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     zc = zc + dt * 0.166667 * (l1 + 2 * l2 + 2 * l3 + l4)
     return z, zc
@@ -122,13 +122,13 @@ def get_dab_phase(evals, evecs, z, zc, sim):
     return dabq_phase, dabp_phase
 
 
-def h_tot_branch(z_branch, zc_branch, h_q, h_qc_func, num_branches, num_states):
+def h_tot_branch(z_branch, zc_branch, h_q, h_qc_func, num_branches, num_states, sim):
     """
     evaluates h_qc_func over each branch
     """
     out = np.zeros((num_branches, num_states, num_states), dtype=complex)
     for i in range(num_branches):
-        out[i] = h_q + h_qc_func(z_branch[i], zc_branch[i])
+        out[i] = h_q + h_qc_func(z_branch[i], zc_branch[i], sim)
     return out
 
 
@@ -139,7 +139,7 @@ def get_branch_pair_eigs(z_branch, zc_branch, u_ij_previous, h_q_mat, sim):
     e_ij = np.zeros((num_branches, num_branches, num_states))
     for i in range(num_branches):
         for j in range(i, num_branches):
-            branch_mat = h_q_mat + sim.h_qc((z_branch[i] + z_branch[j]) / 2, (zc_branch[i] + zc_branch[j]) / 2)
+            branch_mat = h_q_mat + sim.h_qc((z_branch[i] + z_branch[j]) / 2, (zc_branch[i] + zc_branch[j]) / 2, sim)
             e_ij[i, j], u_ij[i, j] = np.linalg.eigh(branch_mat)
             e_ij[j, i] = e_ij[i, j]
             u_ij[i, j], _ = sign_adjust(u_ij[i, j], u_ij_previous[i, j], e_ij[i, j], sim)
@@ -150,7 +150,7 @@ def get_branch_pair_eigs(z_branch, zc_branch, u_ij_previous, h_q_mat, sim):
 def get_branch_eigs(z_branch, zc_branch, evecs_previous, h_q_mat, sim):
     num_branches = np.shape(evecs_previous)[0]
     num_states = np.shape(evecs_previous)[1]
-    evals_branch, evecs_branch = np.linalg.eigh(h_tot_branch(z_branch, zc_branch, h_q_mat, sim.h_qc,num_branches,num_states))
+    evals_branch, evecs_branch = np.linalg.eigh(h_tot_branch(z_branch, zc_branch, h_q_mat, sim.h_qc,num_branches,num_states, sim))
     evecs_branch, evecs_phases = sign_adjust_branch(evecs_branch, evecs_previous, evals_branch, z_branch, zc_branch, sim)
     return evals_branch, evecs_branch, evecs_phases
 

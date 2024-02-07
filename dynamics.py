@@ -63,7 +63,7 @@ def cfssh_dynamics(traj, sim):
     z, zc = sim.init_classical()
     # compute initial Hamiltonian
     h_q = sim.h_q()
-    h_tot = h_q + sim.h_qc(z, zc)
+    h_tot = h_q + sim.h_qc(z, zc, sim)
     # compute initial eigenvalues and eigenvectors
     evals_0, evecs_0 = np.linalg.eigh(h_tot)
     num_states = len(evals_0)
@@ -114,7 +114,7 @@ def cfssh_dynamics(traj, sim):
     # initialize Hamiltonian
     #h_q_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
     #h_q_branch[:] = sim.h_q()
-    h_tot_branch = auxilliary.h_tot_branch(z_branch, zc_branch, h_q, sim.h_qc, num_branches, num_states)
+    h_tot_branch = auxilliary.h_tot_branch(z_branch, zc_branch, h_q, sim.h_qc, num_branches, num_states, sim)
     #h_q_branch + auxilliary.h_qc_branch(z_branch, zc_branch, sim.h_qc, num_branches, num_states)
     # initialize eigenvalues and eigenvectors
     evals_branch = np.zeros((num_branches, num_states))
@@ -131,7 +131,7 @@ def cfssh_dynamics(traj, sim):
     ec_branch = np.zeros((num_branches))
     eq_branch = np.zeros((num_branches))
     for i in range(num_branches):
-        ec_branch[i] = sim.h_c(z_branch[i], zc_branch[i])
+        ec_branch[i] = sim.h_c(z_branch[i], zc_branch[i], sim)
         eq_branch[i] = evals_branch[i][act_surf_ind_branch[i]]
     hop_count = 0
     t_ind = 0
@@ -159,7 +159,7 @@ def cfssh_dynamics(traj, sim):
                             a_j = act_surf_ind_branch[j]
                             if a_i == i and a_j == j:
                                 if sim.branch_update == 0:
-                                    branch_mat = h_q + sim.h_qc((z_branch[i] + z_branch[j])/2, (zc_branch[i] + zc_branch[j])/2)
+                                    branch_mat = h_q + sim.h_qc((z_branch[i] + z_branch[j])/2, (zc_branch[i] + zc_branch[j])/2, sim)
                                     e_ij[i,j], u_ij[i,j] = np.linalg.eigh(branch_mat)
                                     u_ij[i,j], _ = auxilliary.sign_adjust(u_ij[i,j], u_ij_previous[i,j], e_ij[i,j], \
                                                  (z_branch[i] + z_branch[j])/2, (zc_branch[i] + zc_branch[j])/2, sim)
@@ -198,7 +198,7 @@ def cfssh_dynamics(traj, sim):
             pops_db[t_ind] = np.real(np.diag(rho_db))
             pops_db_fssh[t_ind] = np.real(np.diag(rho_db_fssh))
             for i in range(num_branches):
-                ec[t_ind] += sim.h_c(z_branch[i], zc_branch[i])
+                ec[t_ind] += sim.h_c(z_branch[i], zc_branch[i], sim)
                 eq[t_ind] += evals_branch[i][act_surf_ind_branch[i]]
             e_tot_0 = ec[0] + eq[0]  # energy at t=0
             e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
@@ -294,7 +294,7 @@ def fssh_dynamics(traj, sim):
     z, zc = sim.init_classical()
     #  compute initial Hamiltonian
     h_q = sim.h_q()
-    h_tot = h_q + sim.h_qc(z, zc)
+    h_tot = h_q + sim.h_qc(z, zc, sim)
     #  compute eigenvectors
     evals, evecs = np.linalg.eigh(h_tot)
     num_states = len(h_q)
@@ -336,7 +336,7 @@ def fssh_dynamics(traj, sim):
     # adjust h_q so that the initial quantum energy is always 0
     eq_init = evals[act_surf_ind]
     h_q = h_q - np.identity(num_states) * eq_init
-    h_tot = h_q + sim.h_qc(z, zc)
+    h_tot = h_q + sim.h_qc(z, zc, sim)
     # update eigenvalues
     evals, _ = np.linalg.eigh(h_tot)
     # begin timesteps
@@ -354,7 +354,7 @@ def fssh_dynamics(traj, sim):
             # save populations
             pops_db[t_ind] = np.real(np.diag(rho_db))
             # save energies
-            ec[t_ind] = sim.h_c(z, zc)
+            ec[t_ind] = sim.h_c(z, zc, sim)
             eq[t_ind] = evals[act_surf_ind]
             e_tot_0 = ec[0] + eq[0]  # energy at t=0
             e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
@@ -368,7 +368,7 @@ def fssh_dynamics(traj, sim):
         z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.dt_bath, sim)
         # evolve quantum subsystem saving previous eigenvector values
         evecs_previous = np.copy(evecs)
-        h_tot = h_q + sim.h_qc(z, zc)
+        h_tot = h_q + sim.h_qc(z, zc, sim)
         evals, evecs = np.linalg.eigh(h_tot)
         evecs, evec_phases = auxilliary.sign_adjust(evecs, evecs_previous, evals, z, zc, sim)
         evals_exp = np.exp(-1j * evals * sim.dt_bath)
@@ -443,7 +443,7 @@ def mf_dynamics(traj, sim):
     z, zc = sim.init_classical()
     #  compute initial Hamiltonian
     h_q = sim.h_q()
-    h_tot = h_q + sim.h_qc(z, zc)
+    h_tot = h_q + sim.h_qc(z, zc, sim)
     num_states = len(h_q)
     # initial wavefunction in diabatic basis
     psi_db = sim.psi_db_0
@@ -456,7 +456,7 @@ def mf_dynamics(traj, sim):
     # adjust h_q so that the initial quantum energy is always 0
     eq_init = np.real(np.matmul(np.conjugate(psi_db), np.matmul(h_tot, psi_db)))
     h_q = h_q - np.identity(num_states) * eq_init
-    h_tot = h_q + sim.h_qc(z, zc)
+    h_tot = h_q + sim.h_qc(z, zc, sim)
     t_ind = 0
     for t_bath_ind in np.arange(0, len(tdat_bath)):
         if t_ind == len(tdat):
@@ -465,7 +465,7 @@ def mf_dynamics(traj, sim):
             # save diabatic populations
             pops_db[t_ind] = np.abs(psi_db) ** 2
             # save energies
-            ec[t_ind] = sim.h_c(z, zc)
+            ec[t_ind] = sim.h_c(z, zc, sim)
             eq[t_ind] = np.real(np.matmul(np.conjugate(psi_db), np.matmul(h_tot, psi_db)))
             e_tot_0 = ec[0] + eq[0]  # energy at t=0
             e_tot_t = ec[t_ind] + eq[t_ind]  # energy at t=t
@@ -475,7 +475,7 @@ def mf_dynamics(traj, sim):
             t_ind += 1
         fz, fzc = auxilliary.quantum_force(psi_db, z, zc, sim)
         z, zc = auxilliary.rk4_c(z, zc, (fz, fzc), sim.dt_bath, sim)
-        h_tot = h_q + sim.h_qc(z, zc)
+        h_tot = h_q + sim.h_qc(z, zc, sim)
         psi_db = auxilliary.rk4_q(h_tot, psi_db, sim.dt_bath)
     # add data to trajectory object
     traj.add_to_dic('pops_db', pops_db)

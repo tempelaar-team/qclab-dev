@@ -50,30 +50,30 @@ def initialize(sim):
         out[-1, 0] = -sim.j
         return out
 
-    def h_qc(z, zc):
+    def h_qc(z, zc, sim):
         """
         Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
         :param z: z coordinate
         :param zc: z^{*} conjugate z
         :return: h_qc(z,z^{*}) Hamiltonian
         """
-        out = np.diag(sim.g * np.sqrt(sim.w) * (z + zc))
+        out = np.diag(sim.g * np.sqrt(sim.h) * (z + zc))
         return out
 
-    def h_c(z, zc):
+    def h_c(z, zc, sim):
         """
         Harmonic oscillator Hamiltonian
         :param z: z(t)
         :param zc: conjugate z(t)
         :return: h_c(z,zc) Hamiltonian
         """
-        return np.real(np.sum(sim.w*zc * z))
+        return np.real(np.sum(sim.h*zc * z))
 
-    def dh_c_dz(z, zc):
-        return sim.w*zc
+    def dh_c_dz(z, zc, sim):
+        return sim.h*zc
 
-    def dh_c_dzc(z, zc):
-        return sim.w*z
+    def dh_c_dzc(z, zc, sim):
+        return sim.h*z
 
     """
     Initialize the rotation matrices of quantum and classical subsystems
