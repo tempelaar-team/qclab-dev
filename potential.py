@@ -1,7 +1,6 @@
 import simulation
 import numpy as np
 
-
 def boltzmann_harmonic():
     """
     Sample harmonic nuclear phase space variables from the Boltzmann distribution
