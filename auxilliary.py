@@ -19,38 +19,6 @@ def rk4_c(z, zc, qf, dt, sim):
     return z, zc
 
 
-@jit(nopython=True)
-def rk4_c_old(z, zc, qf, m, h, dt):
-    """
-    4-th order Runge-Kutta for classical coordinates
-    :param z: complex coordinate z
-    :param zc: conjugate coordinate zc
-    :param qf: tuple of quantum forces qf = (fz, fzc)
-    :param m: mass of each coordinate
-    :param h: auxilliary frequency of each coordinate
-    :param dt: timestep dt
-    :return: z(t+dt), zc(t+dt)
-    """
-    fz, fzc = qf
-    # convert fz and fzc to fq and fp
-    fq = np.real(np.sqrt((m*h) / 2) * (fz + fzc))
-    fp = np.real(1j * np.sqrt(1 / (2*(m*h))) * (fz - fzc))
-    # fq and fp are derivatives of h_qc wrt q and p respectively
-
-    q = np.real((z + zc) / np.sqrt(2*m*h))
-    p = np.real(-1.0j * (z - zc) * np.sqrt(m*h / 2))
-    k1 = dt * (p + fp)
-    l1 = -dt * (w**2 * q + fq)  # [wn2] is w_alpha ^ 2
-    k2 = dt * ((p + 0.5 * l1) + fp)
-    l2 = -dt * (w**2 * (q + 0.5 * k1) + fq)
-    k3 = dt * ((p + 0.5 * l2) + fp)
-    l3 = -dt * (w**2 * (q + 0.5 * k2) + fq)
-    k4 = dt * ((p + l3) + fp)
-    l4 = -dt * (w**2 * (q + k3) + fq)
-    q = q + 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
-    p = p + 0.166667 * (l1 + 2 * l2 + 2 * l3 + l4)
-    return np.sqrt(w / 2) * (q + 1.0j * (p/w)), np.sqrt(w / 2) * (q - 1.0j * (p/w))
-
 
 @jit(nopython=True)
 def rk4_q(h, psi, dt):
@@ -119,7 +87,7 @@ def rho_0_db_to_adb(rho_0_db, eigvec):  # transforms density matrix from db to a
     return rho_0_db
 
 
-def get_dab_phase(evals, evecs, sim):
+def get_dab_phase(evals, evecs, z, zc, sim):
     """
     Computes the diagonal gauge transformation G such that (VG)^{dagger}\nabla(VG) is real-valued. :param evals:
     eigenvalues :param evecs: eigenvectors (V) :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{
@@ -139,7 +107,7 @@ def get_dab_phase(evals, evecs, sim):
         if np.abs(ev_diff) < 1e-14:
             plus = 1
             print('Warning: Degenerate eigenvalues')
-        dkk_z, dkk_zc = get_dab(evec_i, evec_j, ev_diff + plus, sim.diff_vars)
+        dkk_z, dkk_zc = get_dab(evec_i, evec_j, ev_diff + plus, z, zc, sim)
         # convert to q/p nonadiabatic couplings
         dkkq = np.sqrt(sim.h * sim.m / 2) * (dkk_z + dkk_zc)
         dkkp = np.sqrt(1 / (2*sim.h*sim.m)) * 1.0j * (dkk_z - dkk_zc)
@@ -196,7 +164,7 @@ def get_classical_overlap(z_branch, zc_branch, sim):
     return out_mat
 
 
-def sign_adjust(evecs, evecs_previous, evals, sim):
+def sign_adjust(evecs, evecs_previous, evals, z, zc, sim):
     """
     Adjusts the gauge of eigenvectors at a t=t to enforce parallel transport with respect to t=t-dt
     using different levels of accuracy.
@@ -215,7 +183,7 @@ def sign_adjust(evecs, evecs_previous, evals, sim):
         evecs = np.einsum('jk,k->jk', evecs, phases)
         phase_out *= phases
     if sim.gauge_fix >= 2:
-        dab_q_phase_list, dab_p_phase_list = get_dab_phase(evecs, evals, sim)
+        dab_q_phase_list, dab_p_phase_list = get_dab_phase(evecs, evals, z, zc, sim)
         dab_phase_list = np.conjugate(dab_q_phase_list)
         phase_out *= dab_phase_list
         evecs = np.einsum('jk,k->jk', evecs, dab_phase_list)
@@ -225,7 +193,7 @@ def sign_adjust(evecs, evecs_previous, evals, sim):
         phase_out *= signs
     return evecs, phase_out
 
-def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, sim):
+def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, zc_branch, sim):
     phase_out = np.ones((len(evecs_branch), len(evecs_branch)), dtype=complex)
     if sim.gauge_fix >= 1:
         phases = np.exp(-1.0j*np.angle(np.einsum('ijk,ijk->ik',np.conjugate(evecs_branch_previous),evecs_branch)))
@@ -234,7 +202,7 @@ def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, sim):
     if sim.gauge_fix >= 2:
         dab_phase_mat = np.ones((len(evecs_branch),len(evecs_branch)),dtype=complex)
         for i in range(len(evecs_branch)):
-            dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs_branch[i], evals_branch[i], sim)
+            dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs_branch[i], evals_branch[i], z_branch[i], zc_branch[i], sim)
             dab_phase_list = np.conjugate(dabQ_phase_list)
             dab_phase_mat[i] = dab_phase_list
             phase_out[i] *= dab_phase_list

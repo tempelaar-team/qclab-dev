@@ -69,11 +69,11 @@ def cfssh_dynamics(traj, sim):
     num_states = len(evals_0)
     num_branches = num_states
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z, zc, sim)
     # execute phase shift
     evecs_0 = np.matmul(evecs_0, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z, zc, sim)
     if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
         # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
@@ -164,7 +164,8 @@ def cfssh_dynamics(traj, sim):
                                 if sim.branch_update == 0:
                                     branch_mat = h_q + sim.h_qc((z_branch[i] + z_branch[j])/2, (zc_branch[i] + zc_branch[j])/2)
                                     e_ij[i,j], u_ij[i,j] = np.linalg.eigh(branch_mat)
-                                    u_ij[i,j], _ = auxilliary.sign_adjust(u_ij[i,j], u_ij_previous[i,j], e_ij[i,j], sim)
+                                    u_ij[i,j], _ = auxilliary.sign_adjust(u_ij[i,j], u_ij_previous[i,j], e_ij[i,j], \
+                                                 (z_branch[i] + z_branch[j])/2, (zc_branch[i] + zc_branch[j])/2, sim)
                                 for n in range(num_branches):
                                     for m in range(num_branches):
                                         rho_db[n, m] += u_ij[i,j][n, i]*rho_adb_0[i,j]*overlap[i,j]*\
@@ -300,11 +301,11 @@ def fssh_dynamics(traj, sim):
     evals, evecs = np.linalg.eigh(h_tot)
     num_states = len(h_q)
     # compute initial gauge shift for real-valued derivative couplings
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, z, zc, sim)
     # execute phase shift
     evecs = np.matmul(evecs, np.diag(np.conjugate(dab_q_phase)))
     # recalculate phases and check that they are zero
-    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, sim)
+    dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals, evecs, z, zc, sim)
     if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
         # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
         print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
@@ -371,7 +372,7 @@ def fssh_dynamics(traj, sim):
         evecs_previous = np.copy(evecs)
         h_tot = h_q + sim.h_qc(z, zc)
         evals, evecs = np.linalg.eigh(h_tot)
-        evecs, evec_phases = auxilliary.sign_adjust(evecs, evecs_previous, evals, sim)
+        evecs, evec_phases = auxilliary.sign_adjust(evecs, evecs_previous, evals, z, zc, sim)
         evals_exp = np.exp(-1j * evals * sim.dt_bath)
         diag_matrix = np.diag(evals_exp)
         psi_adb = np.copy(np.dot(diag_matrix, auxilliary.vec_db_to_adb(psi_db, evecs)))
@@ -401,7 +402,7 @@ def fssh_dynamics(traj, sim):
                 eval_j = evals[k]
                 ev_diff = eval_j - eval_k
                 # dkj_q is wrt q dkj_p is wrt p.
-                dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, sim.diff_vars)
+                dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, z, zc, sim)
                 # check that nonadiabatic couplings are real-valued
                 dkj_q = np.sqrt(sim.h*sim.m / 2) * (dkj_z + dkj_zc)
                 dkj_p = np.sqrt(1 / (2*sim.h*sim.m)) * 1.0j * (dkj_z - dkj_zc)
