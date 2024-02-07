@@ -417,7 +417,7 @@ def fssh_dynamics(traj, sim):
                 # compute rescalings
                 delta_z = dkj_zc
                 delta_zc = dkj_z
-                z, zc, hopped = sim.hop(z,zc,delta_z,delta_zc, ev_diff)
+                z, zc, hopped = sim.hop(z,zc,delta_z,delta_zc, ev_diff, sim)
                 if hopped:
                     act_surf_ind = k
                     act_surf = np.zeros_like(act_surf)
