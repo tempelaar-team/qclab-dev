@@ -1,6 +1,7 @@
 import numpy as np
 import constants
 
+
 def harmonic_oscillator(z, zc, sim):
     """
     Harmonic oscillator Hamiltonian
