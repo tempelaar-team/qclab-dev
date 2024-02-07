@@ -1,7 +1,7 @@
 import numpy as np
 import auxilliary
 import hop
-
+import h_c
 
 def initialize(sim):
     # model specific parameter default values
@@ -60,20 +60,10 @@ def initialize(sim):
         out = np.diag(sim.g * np.sqrt(sim.h) * (z + zc))
         return out
 
-    def h_c(z, zc, sim):
-        """
-        Harmonic oscillator Hamiltonian
-        :param z: z(t)
-        :param zc: conjugate z(t)
-        :return: h_c(z,zc) Hamiltonian
-        """
-        return np.real(np.sum(sim.h*zc * z))
 
-    def dh_c_dz(z, zc, sim):
-        return sim.h*zc
 
-    def dh_c_dzc(z, zc, sim):
-        return sim.h*z
+
+
 
     """
     Initialize the rotation matrices of quantum and classical subsystems
@@ -136,13 +126,13 @@ def initialize(sim):
     sim.init_classical = init_classical
     sim.h_q = h_q
     sim.h_qc = h_qc
-    sim.h_c = h_c
+    sim.h_c = h_c.harmonic_oscillator
     sim.u_c = u_c
     sim.u_q = u_q
     sim.dh_qc_dz = dh_qc_dz
     sim.dh_qc_dzc = dh_qc_dzc
-    sim.dh_c_dz = dh_c_dz
-    sim.dh_c_dzc = dh_c_dzc
+    sim.dh_c_dz = h_c.harmonic_oscillator_dh_c_dz
+    sim.dh_c_dzc = h_c.harmonic_oscillator_dh_c_dzc
     sim.h = sim.w*np.ones(sim.num_states)
     sim.m = 1
     sim.hop = hop.harmonic_oscillator_hop
