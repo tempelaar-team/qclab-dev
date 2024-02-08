@@ -28,13 +28,36 @@ def wigner_harmonic():
     zc = np.conj(z)
     return z, zc
 
-def boltzmann_quartic(a, b):
+def boltzmann_quartic(a, b, qmax):
     """
     Sample nuclear phase space variables from the Boltzmann distribution of double-well (quartic) potential
     a: coefficient of 4th order term
     b: coefficient of 2nd order term
+    qmax: Positive end of the range of position coordinate to cover the important area of Boltzmann distribution
     """
-    'Here going to write Monte Carlo simulator to sample p & q from quartic potential'
+    # Potential energy function
+    dwell = lambda c4, c2, x: c4*x**4 + c2*x**2
+    step = 2*qmax/2000
+    x = np.arange(-qmax, qmax, step)
+
+    # Boltzmann distribution
+    dwell_boltz = lambda x: np.exp(-(1.0/sim.temp) * dwell(a, b, x))
+    y_boltz = [dwell_boltz(i) for i in x]
+
+    # Monte Carlo sampling for position
+    q = []
+    ymin, ymax = 0.0, max(y_boltz)
+    nsamp = sim.ndyn_phsets
+    while len(q) < nsamp:
+        qran = np.random.uniform(-qmax, qmax)
+        yran = np.random.uniform(ymin, ymax)
+        if yran <= dwell_boltz(qran):
+            q.append(qran)
+    # Momentum (normal distribution)
+    p = np.random.normal(loc=0, scale=np.sqrt(sim.temp), size=sim.ndyn_phsets)
+    # z coordinate
+    z = np.sqrt(sim.w / 2.0) * (q + 1.0j * p / sim.w)
+    zc = np.conj(z)
 
     return z, zc
 
