@@ -58,7 +58,6 @@ def boltzmann_quartic(a, b, qmax):
     # z coordinate
     z = np.sqrt(sim.w / 2.0) * (q + 1.0j * p / sim.w)
     zc = np.conj(z)
-
     return z, zc
 
 def boltzmann_morse(Ediss):
