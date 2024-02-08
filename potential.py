@@ -31,8 +31,8 @@ def wigner_harmonic():
 def boltzmann_quartic(a, b, qmax):
     """
     Sample nuclear phase space variables from the Boltzmann distribution of double-well (quartic) potential
-    a: coefficient of 4th order term
-    b: coefficient of 2nd order term
+    a: coefficient of 4th order term [energy/length^4]
+    b: coefficient of 2nd order term [energy/length^2]
     qmax: Positive end of the range of position coordinate to cover the important area of Boltzmann distribution
     """
     # Potential energy function
@@ -60,12 +60,36 @@ def boltzmann_quartic(a, b, qmax):
     zc = np.conj(z)
     return z, zc
 
-def boltzmann_morse(Ediss):
+def boltzmann_morse(Ediss, a, qmin, qmax):
     """
     Sample nuclear phase space variables from the Boltzmann distribution of double-well (quartic) potential
-    Ediss: dissociation energy
+    Ediss: Dissociation energy relative to the minimum of energy
+    a: Parameter for the width of the curve [length^-1]
+    qmin, qmax: Negative & positive end of the range of position coordinate to cover the important area of Boltzmann distribution
     """
-    'Here going to write Monte Carlo simulator to sample p & q from Morse potential'
+    # Potential energy function
+    morse = lambda x: Ediss * (1 - np.exp(-a*x))**2
+    step = (qmax - qmin) / 2000
+    x = np.arange(qmin, qmax, step)
+
+    # Boltzmann distribution
+    morse_boltz = lambda x: np.exp(-(1.0/sim.temp) * morse(x))
+    y_boltz = [morse_boltz(i) for i in x]
+
+    # Monte Carlo sampling for position
+    q = []
+    ymin, ymax = y_boltz[-1], 1.0  # Minimum is set at dissociation asymptote
+    nsamp = sim.ndyn_phsets
+    while len(q) < nsamp:
+        qran = np.random.uniform(qmin, qmax)
+        yran = np.random.uniform(ymin, ymax)
+        if yran <= dwell_boltz(qran):
+            q.append(qran)
+    # Momentum (normal distribution)
+    p = np.random.normal(loc=0, scale=np.sqrt(sim.temp), size=sim.ndyn_phsets)
+    # z coordinate
+    z = np.sqrt(sim.w / 2.0) * (q + 1.0j * p / sim.w)
+    zc = np.conj(z)
 
     return z, zc
 
