@@ -41,7 +41,7 @@ sim.calc_dir A string giving the calculation directory for the output of the sim
 
 
 ### SH/CSH Components ###
-sim.hop(z, zc, delta_z, delta_zc, ev_diff, sim)     The "hopping" function, when called it returns two values,
+sim.hop(z, zc, delta_z, delta_zc, ev_diff, sim)     The "hopping" function, when called it returns three values,
 sim.hop -> z, zc, hopped where z and zc are the updated classical coordinates and hopped is a boolean telling if a
 hop has occurred. delta_z and delta_zc are the rescaling directions for z and zc respectively. ev_diff is the energy
 difference of the hop.
