@@ -1,0 +1,37 @@
+The simulation object should contain a minimum set of objects necessary to carry out the dynamics.
+These include:
+
+
+### Mandatory Components ###
+sim.m   The mass of the classical coordinates. Should be a 1-D numpy array with the same length as the total number of
+classical coordinates. Any "structure" to the coordinates should be encoded into their ordering and not the shape of the
+array.
+
+sim.h   The frequency parameter of the classical coordinates. Can be physically motivated or not. Like sim.m it should
+be a 1-D numpy array with the same length as the total number of classical coordinates.
+
+sim.h_q(sim)     The quantum Hamiltonian. A function that when called as sim.h_q(sim) returns a 2-D numpy array describing the
+matrix elements of the Hamiltonian of the quantum subsystem.
+
+sim.h_qc(z, zc, sim) The quantum-classical Hamiltonian. A function that when called as sim.h_qc(z,zc,sim) returns a 2-D numpy
+array describing the matrix elements of the Hamiltonian of the quantum-classical interaction.
+
+sim.h_c(z, zc, sim) The classical Hamiltonian. A function that when called as sim.h_c(z,zc,sim) returns a float describing
+the energy of the classical coordiantes.
+
+sim.dh_c_dz(z, zc, sim)     The gradient of the classical Hamiltonian with respect to z. When called as
+sim.dh_c_dz(z, zc, sim) returns a 1-D numpy array where the length is the number of classical oscillators. Each element
+gives the component of the gradient corresponding to that coordinate.
+
+sim.dh_c_dzc(z, zc, sim)    The same as above but for the conjugate coordinate.
+
+sim.dh_qc_dz(vec_a, vec_b, z, zc, sim)    The matrix element between vec_a and vec_b of the gradient of the
+quantum-classical interaction with respect to z <a|d_{z}H_qc |b>. When called as sim.dh_qc_dz(z, zc, sim) returns a
+1-D numpy array where each entry corresponds to the term associated with that coordinate.
+
+sim.dh_qc_dzc(vec_a, vec_b, z, zc, sim)     The same as above but for the conjugate coordinate.
+
+### SH/CSH Components ###
+sim.hop(z, zc, delta_z, delta_zc, ev_diff, sim)     The "hopping" function, when called it returns two values,
+sim.hop -> z, zc, hopped where z and zc are the updated classical coordinates and hopped is a boolean telling if a
+hop has occurred.
