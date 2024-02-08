@@ -30,7 +30,7 @@ def initialize(sim):
 
 
 
-    def h_q():
+    def h_q(sim):
         """
         Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
         :return: h_q Hamiltonian
@@ -92,7 +92,7 @@ def initialize(sim):
     # necessary variables for computing expectation values
     diff_vars = (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels)
 
-    def dh_qc_dz(psi_a, psi_b, z, zc):
+    def dh_qc_dz(psi_a, psi_b, z, zc, sim):
         """
         Computes <\psi_a| dH_qc/dz  |\psi_b>
         :param psi_a:
@@ -100,7 +100,7 @@ def initialize(sim):
         :return:
         """
         return auxilliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a, psi_b)
-    def dh_qc_dzc(psi_a, psi_b, z, zc):
+    def dh_qc_dzc(psi_a, psi_b, z, zc, sim):
         """
         Computes <\psi_a| dH_qc/dz*  |\psi_b>
         :param psi_a:
@@ -123,7 +123,6 @@ def initialize(sim):
     sim.dh_c_dzc = h_c.harmonic_oscillator_dh_c_dzc
     sim.h = sim.w*np.ones(sim.num_states)
     sim.hop = hop.harmonic_oscillator_hop
-    sim.diff_vars = diff_vars
     sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \
                    '_temp_' + str(sim.temp) + '_nstates_' + str(sim.num_states)
     sim.psi_db_0 = 1 / np.sqrt(sim.num_states) * np.ones(sim.num_states, dtype=complex)

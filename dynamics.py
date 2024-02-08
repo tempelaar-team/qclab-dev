@@ -62,7 +62,7 @@ def cfssh_dynamics(traj, sim):
     # initialize classical coordinates
     z, zc = sim.init_classical(sim)
     # compute initial Hamiltonian
-    h_q = sim.h_q()
+    h_q = sim.h_q(sim)
     h_tot = h_q + sim.h_qc(z, zc, sim)
     # compute initial eigenvalues and eigenvectors
     evals_0, evecs_0 = np.linalg.eigh(h_tot)
@@ -293,7 +293,7 @@ def fssh_dynamics(traj, sim):
     #  initialize classical coordinates
     z, zc = sim.init_classical(sim)
     #  compute initial Hamiltonian
-    h_q = sim.h_q()
+    h_q = sim.h_q(sim)
     h_tot = h_q + sim.h_qc(z, zc, sim)
     #  compute eigenvectors
     evals, evecs = np.linalg.eigh(h_tot)
@@ -442,7 +442,7 @@ def mf_dynamics(traj, sim):
     #  initialize classical coordinates
     z, zc = sim.init_classical(sim)
     #  compute initial Hamiltonian
-    h_q = sim.h_q()
+    h_q = sim.h_q(sim)
     h_tot = h_q + sim.h_qc(z, zc, sim)
     num_states = len(h_q)
     # initial wavefunction in diabatic basis
