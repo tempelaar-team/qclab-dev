@@ -14,6 +14,8 @@ def boltzmann_harmonic():
     zc = np.conj(z)
     return z, zc
 
+
+
 def wigner_harmonic():
     """
     Sample harmonic nuclear phase space variables from Wigner distribution under

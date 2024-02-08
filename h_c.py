@@ -31,7 +31,7 @@ def harmonic_oscillator_dh_c_dzc(z, zc, sim):
     """
     return sim.h*z
 
-def harmonic_oscillator_init_classical_boltzmann(sim):
+def harmonic_oscillator_boltzmann(sim):
     """
     Initialize classical coordiantes according to Boltzmann statistics
     :param sim: simulation object with temperature, harmonic oscillator mass and frequency
