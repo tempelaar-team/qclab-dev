@@ -11,7 +11,8 @@ class Simulation:
             "tmax": 10,  # maximum simulation time
             "dt": 0.1,  # timestep of output
             "dt_bath": 0.01,  # bath timestep
-            "model_dir": "./",  # model directory
+            "model_module_path": "./model.py",  # path to model module file
+            ## SH and CSH specific inputs
             "pab_cohere": True,  # Uses full adiabatic wavefunction to compute hopping probabilities
             "gauge_fix": 1,  # gauge fixing level 0, 1, 2
             "dmat_const": 0, # density matrix construction type for CFSSH
