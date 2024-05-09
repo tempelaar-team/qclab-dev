@@ -3,7 +3,7 @@ import time
 import numpy as np
 import dynamics
 import simulation
-import rotation
+import importlib
 import os
 
 if __name__ == '__main__':
@@ -19,14 +19,14 @@ if __name__ == '__main__':
     sim = simulation.Simulation(input_file)
     # attach cluster args to sim
     sim.cluster_args = eval(cluster_args)
+    # import model module as model, from --
+    # https://stackoverflow.com/questions/301134/how-can-i-import-a-module-dynamically-given-its-name-as-string
+    spec = importlib.util.spec_from_file_location(sim.model_module_name,sim.model_module_path)
+    model = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(model)
     # initialize simulation functions
-    path = os.path.abspath(sim.model_dir)
-    sys.path.append(path)
-    import model
     sim = model.initialize(sim)
     # run dynamics
     sim = dynamics.run_dynamics(sim)
-
     end_time = time.time()
     print('took ', np.round(end_time - start_time, 3), ' seconds.')
-    # comment
