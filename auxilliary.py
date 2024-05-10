@@ -2,21 +2,13 @@ from numba import jit
 import numpy as np
 
 
-def rk4_c(z, zc, qf, dt, sim):
-    fz, fzc = qf
-    # k values evolve z
-    # l values evolve zc
-    k1 = -1.0j*(sim.dh_c_dzc(z,zc,sim) + fzc)
-    l1 = +1.0j*(sim.dh_c_dz(z,zc, sim)  + fz )
-    k2 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k1, zc + 0.5*dt*l1, sim) + fzc)
-    l2 = +1.0j*(sim.dh_c_dz(z + 0.5*dt*k1, zc + 0.5*dt*l1, sim) + fz)
-    k3 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k2, zc + 0.5*dt*l2, sim) + fzc)
-    l3 = +1.0j*(sim.dh_c_dz(z + 0.5*dt*k2, zc + 0.5*dt*l2, sim) + fz)
-    k4 = -1.0j*(sim.dh_c_dzc(z + dt*k3, zc + dt*l3, sim) + fzc)
-    l4 = +1.0j*(sim.dh_c_dz(z + dt*k3, zc + dt*l3, sim) + fz)
+def rk4_c(z, qfzc, dt, sim):
+    k1 = -1.0j*(sim.dh_c_dzc(z,sim) + qfzc)
+    k2 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k1, sim) + qfzc)
+    k3 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k2, sim) + qfzc)
+    k4 = -1.0j*(sim.dh_c_dzc(z + dt*k3, sim) + qfzc)
     z = z + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
-    zc = zc + dt * 0.166667 * (l1 + 2 * l2 + 2 * l3 + l4)
-    return z, zc
+    return z
 
 
 
@@ -29,13 +21,9 @@ def rk4_q(h, psi, dt):
     :param dt: timestep dt
     :return: psi(t+dt)
     """
-    #k1 = (-1j * h.dot(psi))
     k1 = (-1j * np.matmul(h, psi))
-    #k2 = (-1j * h.dot(psi + 0.5 * dt * k1))
     k2 = (-1j * np.matmul(h, psi + 0.5 * dt * k1))
-    #k3 = (-1j * h.dot(psi + 0.5 * dt * k2))
     k3 = (-1j * np.matmul(h, psi + 0.5 * dt * k2))
-    #k4 = (-1j * h.dot(psi + dt * k3))
     k4 = (-1j * np.matmul(h, psi + dt * k3))
     psi = psi + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return psi
@@ -91,7 +79,7 @@ def rho_0_db_to_adb(rho_0_db, eigvec):  # transforms density matrix from db to a
     return rho_0_db
 
 
-def get_dab_phase(evals, evecs, z, zc, sim):
+def get_dab_phase(evals, evecs, z, sim):
     """
     Computes the diagonal gauge transformation G such that (VG)^{dagger}\nabla(VG) is real-valued. :param evals:
     eigenvalues :param evecs: eigenvectors (V) :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{
@@ -111,7 +99,7 @@ def get_dab_phase(evals, evecs, z, zc, sim):
         if np.abs(ev_diff) < 1e-14:
             plus = 1
             print('Warning: Degenerate eigenvalues')
-        dkk_z, dkk_zc = get_dab(evec_i, evec_j, ev_diff + plus, z, zc, sim)
+        dkk_z, dkk_zc = get_dab(evec_i, evec_j, ev_diff + plus, z, sim)
         # convert to q/p nonadiabatic couplings
         dkkq = np.sqrt(sim.h * sim.m / 2) * (dkk_z + dkk_zc)
         dkkp = np.sqrt(1 / (2*sim.h*sim.m)) * 1.0j * (dkk_z - dkk_zc)
@@ -124,16 +112,6 @@ def get_dab_phase(evals, evecs, z, zc, sim):
         dabq_phase[i + 1:] = np.exp(1.0j * dkkq_angle) * dabq_phase[i + 1:]
         dabp_phase[i + 1:] = np.exp(1.0j * dkkp_angle) * dabp_phase[i + 1:]
     return dabq_phase, dabp_phase
-
-
-def h_tot_branch(z_branch, zc_branch, h_q, h_qc_func, num_branches, num_states, sim):
-    """
-    evaluates h_qc_func over each branch
-    """
-    out = np.zeros((num_branches, num_states, num_states), dtype=complex)
-    for i in range(num_branches):
-        out[i] = h_q + h_qc_func(z_branch[i], zc_branch[i], sim)
-    return out
 
 def h_qc_branch(z_branch, sim):
     """
@@ -149,14 +127,14 @@ def h_qc_branch(z_branch, sim):
 
 
 
-def get_branch_pair_eigs(z_branch, zc_branch, u_ij_previous, h_q_mat, sim):
+def get_branch_pair_eigs(z_branch, u_ij_previous, h_q_mat, sim):
     u_ij = np.zeros_like(u_ij_previous)
     num_branches = np.shape(u_ij_previous)[0]
     num_states = np.shape(u_ij_previous)[-1]
     e_ij = np.zeros((num_branches, num_branches, num_states))
     for i in range(num_branches):
         for j in range(i, num_branches):
-            branch_mat = h_q_mat + sim.h_qc((z_branch[i] + z_branch[j]) / 2, (zc_branch[i] + zc_branch[j]) / 2, sim)
+            branch_mat = h_q_mat + sim.h_qc((z_branch[i] + z_branch[j]) / 2, sim)
             e_ij[i, j], u_ij[i, j] = np.linalg.eigh(branch_mat)
             e_ij[j, i] = e_ij[i, j]
             u_ij[i, j], _ = sign_adjust(u_ij[i, j], u_ij_previous[i, j], e_ij[i, j], sim)
@@ -164,15 +142,9 @@ def get_branch_pair_eigs(z_branch, zc_branch, u_ij_previous, h_q_mat, sim):
     return e_ij, u_ij
 
 
-def get_branch_eigs(z_branch, zc_branch, evecs_previous, h_q_mat, sim):
-    num_branches = np.shape(evecs_previous)[0]
-    num_states = np.shape(evecs_previous)[1]
-    evals_branch, evecs_branch = np.linalg.eigh(h_tot_branch(z_branch, zc_branch, h_q_mat, sim.h_qc,num_branches,num_states, sim))
-    evecs_branch, evecs_phases = sign_adjust_branch(evecs_branch, evecs_previous, evals_branch, z_branch, zc_branch, sim)
-    return evals_branch, evecs_branch, evecs_phases
-
-def get_classical_overlap(z_branch, zc_branch, sim):
+def get_classical_overlap(z_branch, sim):
     out_mat = np.zeros((len(z_branch), len(z_branch)))
+    zc_branch = np.conjugate(z_branch)
     q_branch = (1/np.sqrt(2*sim.m*sim.h))*(z_branch + zc_branch)
     p_branch = -1.0j*np.sqrt(sim.h*sim.m/2)*(z_branch - zc_branch)
     for i in range(len(z_branch)):
@@ -180,35 +152,6 @@ def get_classical_overlap(z_branch, zc_branch, sim):
             out_mat[i,j] = np.exp(-(1/2)*np.sum(np.abs((p_branch[i] - p_branch[j]) * (q_branch[i] - q_branch[j]))))
     return out_mat
 
-
-def sign_adjust(evecs, evecs_previous, evals, z, zc, sim):
-    """
-    Adjusts the gauge of eigenvectors at a t=t to enforce parallel transport with respect to t=t-dt
-    using different levels of accuracy.
-    gauge_fix == 0 -- adjust the overall sign so that <a(t-dt)|a(t)> is positive
-    gauge_fix == 1 -- adjust the phase so that <a(t-dt)|a(t)> is real-valued
-    gauge_fix == 2 -- computes the gauge transformation that ensures d_{ab}(t) is real-valued
-    :param evecs: eigenvectors at t=t
-    :param evecs_previous: eigenvectors at t=t-dt
-    :param evals: eigenvalues at t=t (only for gauge_fix==2)
-    :param sim: simulation object
-    :return: eigenvectors at time t=t satisfying parallel transport
-    """
-    phase_out = np.ones((len(evals)), dtype=complex)
-    if sim.gauge_fix >= 1:
-        phases = np.exp(-1.0j * np.angle(np.einsum('jk,jk->k', np.conjugate(evecs_previous), evecs)))
-        evecs = np.einsum('jk,k->jk', evecs, phases)
-        phase_out *= phases
-    if sim.gauge_fix >= 2:
-        dab_q_phase_list, dab_p_phase_list = get_dab_phase(evecs, evals, z, zc, sim)
-        dab_phase_list = np.conjugate(dab_q_phase_list)
-        phase_out *= dab_phase_list
-        evecs = np.einsum('jk,k->jk', evecs, dab_phase_list)
-    if sim.gauge_fix >= 0:
-        signs = np.sign(np.einsum('jk,jk->k', np.conjugate(evecs_previous), evecs))
-        evecs = np.einsum('jk,k->jk', evecs, signs)
-        phase_out *= signs
-    return evecs, phase_out
 
 def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim):
     phase_out = np.ones((len(evecs_branch), len(evecs_branch)), dtype=complex)
@@ -219,7 +162,7 @@ def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_bran
     if sim.gauge_fix >= 2:
         dab_phase_mat = np.ones((len(evecs_branch),len(evecs_branch)),dtype=complex)
         for i in range(len(evecs_branch)):
-            dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs_branch[i], evals_branch[i], z_branch[i], zc_branch[i], sim)
+            dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs_branch[i], evals_branch[i], z_branch[i], sim)
             dab_phase_list = np.conjugate(dabQ_phase_list)
             dab_phase_mat[i] = dab_phase_list
             phase_out[i] *= dab_phase_list
@@ -230,8 +173,6 @@ def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_bran
 
         evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,signs)
         phase_out *= signs
-    #for i in range(nbranches):
-    #    evecs_branch[i] = operators.sign_adjust(evecs_branch[i],evecs_branch_previous[i], gauge_ind)
     return evecs_branch, phase_out
 
 @jit(nopython=True)
@@ -254,7 +195,7 @@ def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
     return out_mat
 
 
-def quantum_force(psi, z, zc, sim):  # computes <\psi|\nabla H|\psi> using sparse methods
+def quantum_force(psi, z, sim):  # computes <\psi|\nabla H|\psi> using sparse methods
     """
     Computes the Hellman-Feynmann force using the formula
     f_{q(p)} = <psi| \nabla_{q(p)} H |psi>
@@ -263,20 +204,22 @@ def quantum_force(psi, z, zc, sim):  # computes <\psi|\nabla H|\psi> using spars
     :return: f_{z} and f_{zc}
     """
     #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    fz = sim.dh_qc_dz(psi, psi, z, zc)#matprod_sparse(dz_shape, dz_ind, dz_mels, psi, psi)
-    fzc = sim.dh_qc_dzc(psi, psi, z, zc)#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
-    return fz, fzc
+    #fz = sim.dh_qc_dz(psi, psi, z)#matprod_sparse(dz_shape, dz_ind, dz_mels, psi, psi)
+    fzc = sim.dh_qc_dzc(psi, psi, z)#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
+    return fzc
 
-def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, zc_branch, sim):
-    #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    fz_branch = np.zeros(np.shape(z_branch), dtype=complex)
-    fzc_branch = np.zeros(np.shape(zc_branch), dtype=complex)
-    for i in range(len(evecs_branch)):
-        fz_branch[i], fzc_branch[i] = quantum_force(evecs_branch[i][:,act_surf_ind_branch[i]], z_branch[i], zc_branch[i], sim)
-    return fz_branch, fzc_branch
+def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
+    fzc_branch = np.zeros(np.shape(z_branch), dtype=complex)
+    if act_surf_ind_branch is None:
+        for i in range(len(evecs_branch)):
+            fzc_branch[i] = quantum_force(evecs_branch[i], z_branch[i], sim)
+    else:
+        for i in range(len(evecs_branch)):
+            fzc_branch[i] = quantum_force(evecs_branch[i][:,act_surf_ind_branch[i]], z_branch[i], sim)
+    return fzc_branch
 
 
-def get_dab(evec_a, evec_b, ev_diff, z, zc, sim):  # computes d_{ab} using sparse methods
+def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse methods
     """
     Computes the nonadiabatic coupling using the formula
     d_{ab}^{z(zc)} = <a|\nabla_{z(zc)} H|b>/(e_{b} - e_{a})
@@ -287,8 +230,8 @@ def get_dab(evec_a, evec_b, ev_diff, z, zc, sim):  # computes d_{ab} using spars
     :return: d_{ab}^{z} and d_{ab}^{zc}
     """
     #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    dab_z = sim.dh_qc_dz(evec_a, evec_b, z, zc) / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
-    dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z, zc) / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
+    dab_z = sim.dh_qc_dz(evec_a, evec_b, z) / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
+    dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z) / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
     return dab_z, dab_zc
 
 
@@ -309,13 +252,3 @@ def nan_num(num):
 
 # vectorized form of nan_num
 nan_num_vec = np.vectorize(nan_num)
-
-def prop_phase(phase_branch, evals_branch, dt):
-    """
-    Propagates the complex-phase of each branch
-    :param phase_branch: list of phases(t)
-    :param evals_branch: eigenvalues of each branch
-    :return: phases(t+dt)
-    """
-    phase_out = phase_branch + dt*np.diag(evals_branch)
-    return phase_out

@@ -186,11 +186,11 @@ def dynamics(traj, sim):
             ######## Output timestep ########
 
     if sim.method == 'MF':
-        qfz_branch = auxilliary.quantum_force_branch(psi_db_branch, None, z_branch, sim)
+        qfzc_branch = auxilliary.quantum_force_branch(psi_db_branch, None, z_branch, sim)
     if sim.method == 'FSSH' or sim.method == 'CFSSH':
-        qfz_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim)
+        qfzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim)
 
-    z_branch = auxilliary.rk4_c(z, qfz_branch, sim.dt_bath, sim)
+    z_branch = auxilliary.rk4_c(z, qfzc_branch, sim.dt_bath, sim)
     h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z, sim)
     if sim.method == 'MF':
         psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath)
