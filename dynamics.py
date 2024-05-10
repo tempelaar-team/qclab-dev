@@ -34,15 +34,18 @@ def run_dynamics(sim):
     for run in range(0, int(sim.num_trajs / sim.num_procs)):
         index_list = [run * sim.num_procs + i + last_index for i in range(sim.num_procs)]
         seed_list = [seeds[run * sim.num_procs + i] for i in range(sim.num_procs)]
-        if sim.dynamics_method == "MF":
-            results = [mf_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
-                       for i in range(sim.num_procs)]
-        elif sim.dynamics_method == "FSSH":
-            results = [fssh_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
-                       for i in range(sim.num_procs)]
-        elif sim.dynamics_method == "CFSSH":
-            results = [cfssh_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
-                       for i in range(sim.num_procs)]
+
+        results = [dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)]
+
+        #if sim.dynamics_method == "MF":
+        #    results = [mf_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
+        #               for i in range(sim.num_procs)]
+        #elif sim.dynamics_method == "FSSH":
+        #    results = [fssh_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
+        #               for i in range(sim.num_procs)]
+        #elif sim.dynamics_method == "CFSSH":
+        #    results = [cfssh_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
+        #               for i in range(sim.num_procs)]
         for r in results:
             traj_obj, msg = ray.get(r)
             print(msg)
@@ -55,8 +58,222 @@ def run_dynamics(sim):
     return sim
 
 
+
+@ray.remote
+def dynamics(traj, sim):
+    start_time = time.time()
+    np.random.seed(traj.seed)
+    # initialize classical coordinate
+    z = sim.init_classical(sim)
+    # initial wavefunction in diabatic basis
+    psi_db = sim.psi_db_0
+    # store the number of states
+    num_states = len(psi_db)
+    sim.num_states = num_states
+    num_branches = sim.num_branches
+    # compute initial Hamiltonian
+    h_q = sim.h_q(sim)
+    h_tot = h_q + sim.h_qc(z, sim)
+    # initialize outputs
+    tdat = np.arange(0, sim.tmax + sim.dt, sim.dt)
+    tdat_bath = np.arange(0, sim.tmax + sim.dt_bath, sim.dt_bath)
+    ec = np.zeros((len(tdat)))
+    eq = np.zeros((len(tdat)))
+    pops_db_mf = np.zeros((len(tdat), num_states))
+    pops_db_fssh = np.zeros((len(tdat), num_states))
+    pops_db_cfssh = np.zeros((len(tdat), num_states))
+    resp_func_mf = np.zeros((len(tdat)),dtype=complex)
+    resp_func_cfssh = np.zeros((len(tdat)), dtype=complex)
+
+    # initialize classical coordinates in each branch
+    z_branch = np.zeros((num_branches, *np.shape(z)), dtype=complex)
+    z_branch[:] = z
+
+
+
+    if sim.method == 'MF':
+        assert sim.dmat_const is None
+        assert sim.branch_update is None
+        assert num_branches == 1
+    if sim.method == 'CSH' or sim.method == 'SH':
+        ######## Surface Hopping specific initialization #######
+        # compute initial eigenvalues and eigenvectors
+        evals_0, evecs_0 = np.linalg.eigh(h_tot)
+        # compute initial gauge shift for real-valued derivative couplings
+        dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z, sim)
+        # execute phase shift
+        evecs_0 = np.matmul(evecs_0, np.diag(np.conjugate(dab_q_phase)))
+        # recalculate phases and check that they are zero
+        dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z, sim)
+        if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
+            # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
+            print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
+        # determine initial adiabatic wavefunction in fixed gauge
+        psi_adb = auxilliary.vec_db_to_adb(psi_db, evecs_0)
+        # initial wavefunction in branches
+        psi_adb_branch = np.zeros((num_branches, num_states), dtype=complex)
+        psi_adb_branch[:] = psi_adb
+
+        # initialize eigenvalues and eigenvectors in each branch
+        evals_branch = np.zeros((num_branches, num_states))
+        evecs_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
+        evals_branch[:] = evals_0
+        evecs_branch[:] = evecs_0
+
+        # Options for deterministic branch simulation, num_branches==num_states
+        if sim.sh_deterministic:
+            assert num_branches == num_states
+            # initial wavefunction as a delta function in each branch
+            psi_adb_delta_branch = np.diag(np.ones(num_branches)).astype(complex)
+            # transform to diabatic basis
+            psi_db_branch = np.zeros_like(psi_adb_branch).astype(complex)
+            psi_db_delta_branch = np.zeros_like(psi_adb_branch).astype(complex)
+            for i in range(num_branches):
+                psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_0)
+                psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_0)
+        else:
+            if sim.method == 'CFSSH':
+                assert num_branches > 1
+            # determine initial active surfaces
+            intervals = np.zeros(num_states)
+            for n in range(num_states):
+                intervals[n] = np.sum(np.real(np.abs(psi_adb) ** 2)[0:n + 1])
+            rand_val = np.random.rand(num_branches)
+            # initialize active surface index
+            act_surf_ind_0 = np.zeros((num_branches), dtype=int)
+            for n in range(num_states):
+                act_surf_ind_0[n] = np.arange(num_states)[intervals > rand_val[n]][0]
+            act_surf_ind_0 = np.sort(act_surf_ind_0)
+
+            # initialize active surface and active surface index in each branch
+            act_surf_ind_branch = np.copy(act_surf_ind_0)
+            act_surf_branch = np.zeros((num_branches, num_states), dtype=int)
+            act_surf_branch[np.arange(num_branches, dtype=int), act_surf_ind_branch] = 1
+
+            # initial wavefunction as a delta function in each branch
+            psi_adb_delta_branch = np.zeros((num_branches, num_states), dtype=complex)
+            psi_adb_delta_branch[np.arange(num_branches, dtype=int), act_surf_ind_0] = 1.0+0.j
+            # transform to diabatic basis
+            psi_db_branch = np.zeros_like(psi_adb_branch).astype(complex)
+            psi_db_delta_branch = np.zeros_like(psi_adb_branch).astype(complex)
+            for i in range(num_branches):
+                psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_0)
+                psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_0)
+
+
+
+            # initialize branch-pair eigenvalues and eigenvectors
+            if sim.dmat_const > 0:
+                u_ij = np.zeros((num_branches, num_branches, num_states, num_states), dtype=complex)
+                e_ij = np.zeros((num_branches, num_branches, num_states))
+                u_ij[:, :] = evecs_0
+                e_ij[:, :] = evals_0
+
+
+        # surface hopping specific outputs
+
+
+        ######## Coherent Surface Hopping specific initialization ########
+        # store the phase of each branch
+        phase_branch = np.zeros(num_branches)
+
+    ######## Time Evolution ########
+    t_ind = 0
+    for t_bath_ind in np.arange(0, len(tdat_bath)):
+        if t_ind == len(tdat):
+            break
+        if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
+            ######## Output timestep ########
+
+    if sim.method == 'MF':
+        qfz_branch = auxilliary.quantum_force_branch(psi_db_branch, None, z_branch, sim)
+    if sim.method == 'FSSH' or sim.method == 'CFSSH':
+        qfz_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim)
+
+    z_branch = auxilliary.rk4_c(z, qfz_branch, sim.dt_bath, sim)
+    h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z, sim)
+    if sim.method == 'MF':
+        psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath)
+    if sim.method == 'FSSH' or sim.method == 'CFSSH':
+        evecs_branch_previous = np.copy(evecs_branch)
+        # obtain branch eigenvalues and eigenvectors
+        evals_branch, evecs_branch = np.linalg.eigh(h_tot_branch)
+        # adjust gauge of eigenvectors
+        evecs_branch = auxilliary.sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim)#TODO fix sign_adjust_branch
+        # propagate phases
+        phase_branch = phase_branch + sim.dt_bath * evals_branch[np.arange(num_branches,dtype=int),act_surf_ind_0]
+        # construct eigenvalue exponential
+        evals_exp_branch = np.exp(-1.0j * evals_branch * sim.dt_bath)
+        # draw a random number (same for all branches)
+        rand = np.random.rand()
+        for i in range(num_branches):
+            # evolve wavefunctions in each branch
+            diag_matrix = np.diag(evals_exp_branch[i])
+
+            psi_adb_branch[i] = np.copy(auxilliary.vec_db_to_adb(psi_db_branch[i], evecs_branch[i]))
+            psi_adb_delta_branch[i] = np.copy(auxilliary.vec_db_to_adb(psi_db_delta_branch[i], evecs_branch[i]))
+
+            psi_adb_branch[i] = np.copy(np.dot(diag_matrix, psi_adb_branch[i]))
+            psi_adb_delta_branch[i] = np.copy(np.dot(diag_matrix, psi_adb_delta_branch[i]))
+
+            psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_branch[i])
+            psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_branch[i])
+            # compute hopping probabilities
+            prod = np.matmul(np.conjugate(evecs_branch[i][:, act_surf_ind_branch[i]]), evecs_branch_previous[i])
+            if sim.pab_cohere:
+                hop_prob = -2 * np.real(prod * (psi_adb_branch[i] / psi_adb_branch[i][act_surf_ind_branch[i]]))
+            if not sim.pab_cohere:
+                hop_prob = -2 * np.real(
+                    prod * (psi_adb_delta_branch[i] / psi_adb_delta_branch[i][act_surf_ind_branch[i]]))
+            hop_prob[act_surf_ind_branch[i]] = 0
+            bin_edge = 0
+            # hop if possible
+            for k in range(len(hop_prob)):
+                hop_prob[k] = auxilliary.nan_num(hop_prob[k])
+                bin_edge = bin_edge + hop_prob[k]
+                if rand < bin_edge:
+                    # compute nonadiabatic coupling d_{kj}= <k|\nabla H|j>/(e_{j} - e_{k})
+                    evec_k = evecs_branch[i][:, act_surf_ind_branch[i]]
+                    evec_j = evecs_branch[i][:, k]
+                    eval_k = evals_branch[i][act_surf_ind_branch[i]]
+                    eval_j = evals_branch[i][k]
+                    ev_diff = eval_j - eval_k
+                    # dkj_q is wrt q dkj_p is wrt p.
+                    dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, z_branch[i], sim)
+                    # check that nonadiabatic couplings are real-valued
+                    dkj_q = np.sqrt(sim.h * sim.m / 2) * (dkj_z + dkj_zc)
+                    dkj_p = np.sqrt(1 / (2 * sim.h * sim.m)) * 1.0j * (dkj_z - dkj_zc)
+                    if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
+                        print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
+                              np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
+                              '\n magnitude: ', np.abs(dkj_q[np.argmax(np.abs(dkj_q))]),
+                              '\n value: ', dkj_q[np.argmax(np.abs(dkj_q))])
+                    if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
+                        print('ERROR IMAGINARY DKKP: \n', 'angle: ',
+                              np.abs(np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))),
+                              '\n magnitude: ', np.abs(dkj_p[np.argmax(np.abs(dkj_p))]),
+                              '\n value: ', dkj_p[np.argmax(np.abs(dkj_p))])
+                    # compute rescalings
+                    delta_z = dkj_zc
+                    z_branch[i], hopped = sim.hop(z_branch[i], delta_z, ev_diff, sim)
+                    if hopped:
+                        act_surf_ind_branch[i] = k
+                        act_surf_branch[i] = np.zeros_like(act_surf_branch[i])
+                        act_surf_branch[i][act_surf_ind_branch[i]] = 1
+                    break
+    traj.add_to_dic('t', tdat)
+    traj.add_to_dic('eq', eq)
+    traj.add_to_dic('ec', ec)
+    traj.add_to_dic('pops_db_mf', pops_db_mf)
+    traj.add_to_dic('pops_db_fssh', pops_db_fssh)
+    traj.add_to_dic('pops_db_cfssh', pops_db_cfssh)
+    end_time = time()
+    msg = 'trial index: ' + str(traj.index) +  ' time: ' + str(end_time - start_time) + ' seed: ' + str(traj.seed)
+    return traj, msg
+
 @ray.remote
 def cfssh_dynamics(traj, sim):
+    # TODO -- add phase evolution!!!
     start_time = time.time()
     np.random.seed(traj.seed)
     # initialize classical coordinates

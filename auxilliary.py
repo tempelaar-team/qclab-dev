@@ -20,19 +20,23 @@ def rk4_c(z, zc, qf, dt, sim):
 
 
 
-@jit(nopython=True)
+#@jit(nopython=True)
 def rk4_q(h, psi, dt):
     """
-    4-th order Runge-Kutta for quantum wavefunction
+    4-th order Runge-Kutta for quantum wavefunction, works with branch wavefunctions
     :param h: Hamiltonian h(t)
     :param psi: wavefunction psi(t)
     :param dt: timestep dt
     :return: psi(t+dt)
     """
-    k1 = (-1j * h.dot(psi))
-    k2 = (-1j * h.dot(psi + 0.5 * dt * k1))
-    k3 = (-1j * h.dot(psi + 0.5 * dt * k2))
-    k4 = (-1j * h.dot(psi + dt * k3))
+    #k1 = (-1j * h.dot(psi))
+    k1 = (-1j * np.matmul(h, psi))
+    #k2 = (-1j * h.dot(psi + 0.5 * dt * k1))
+    k2 = (-1j * np.matmul(h, psi + 0.5 * dt * k1))
+    #k3 = (-1j * h.dot(psi + 0.5 * dt * k2))
+    k3 = (-1j * np.matmul(h, psi + 0.5 * dt * k2))
+    #k4 = (-1j * h.dot(psi + dt * k3))
+    k4 = (-1j * np.matmul(h, psi + dt * k3))
     psi = psi + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return psi
 
@@ -131,6 +135,19 @@ def h_tot_branch(z_branch, zc_branch, h_q, h_qc_func, num_branches, num_states, 
         out[i] = h_q + h_qc_func(z_branch[i], zc_branch[i], sim)
     return out
 
+def h_qc_branch(z_branch, sim):
+    """
+    evaluates h_qc over each branch
+    :param z_branch:
+    :param sim:
+    :return:
+    """
+    out = np.zeros((sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
+    for i in range(sim.num_branches):
+        out[i] += sim.h_qc(z_branch[i], sim)
+    return out
+
+
 
 def get_branch_pair_eigs(z_branch, zc_branch, u_ij_previous, h_q_mat, sim):
     u_ij = np.zeros_like(u_ij_previous)
@@ -193,7 +210,7 @@ def sign_adjust(evecs, evecs_previous, evals, z, zc, sim):
         phase_out *= signs
     return evecs, phase_out
 
-def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, zc_branch, sim):
+def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim):
     phase_out = np.ones((len(evecs_branch), len(evecs_branch)), dtype=complex)
     if sim.gauge_fix >= 1:
         phases = np.exp(-1.0j*np.angle(np.einsum('ijk,ijk->ik',np.conjugate(evecs_branch_previous),evecs_branch)))
