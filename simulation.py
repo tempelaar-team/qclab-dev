@@ -5,7 +5,7 @@ class Simulation:
     def __init__(self, input_file):
         # Define default values
         defaults = {
-            "dynamics_method": "MF",  # which dynamics method, "MF", "FSSH", "CFSSH"
+            "dynamics_method": "FSSH",  # which dynamics method, "MF", "FSSH", "CFSSH"
             "num_procs": 4,  # number of processors to use
             "num_trajs": 4,  # number of trajectories to run
             "tmax": 10,  # maximum simulation time
@@ -13,6 +13,8 @@ class Simulation:
             "dt_bath": 0.01,  # bath timestep
             "model_module_path": "./model.py",  # path to model module file
             ## SH and CSH specific inputs
+            "sh_deterministic":True,
+            "num_branches":None, # number of branches to use
             "pab_cohere": True,  # Uses full adiabatic wavefunction to compute hopping probabilities
             "gauge_fix": 1,  # gauge fixing level 0, 1, 2
             "dmat_const": 0, # density matrix construction type for CFSSH
@@ -41,6 +43,11 @@ class Simulation:
         self.branch_update = defaults['branch_update']
         self.input_file = input_file
         self.input_params = defaults
+        self.num_branches = defaults['num_branches']
+        self.sh_deterministic = defaults['sh_deterministic']
+        if self.sh_deterministic:
+            self.num_branches == None
+
 
 
 class Trajectory:

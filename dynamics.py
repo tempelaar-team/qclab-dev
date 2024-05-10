@@ -34,18 +34,7 @@ def run_dynamics(sim):
     for run in range(0, int(sim.num_trajs / sim.num_procs)):
         index_list = [run * sim.num_procs + i + last_index for i in range(sim.num_procs)]
         seed_list = [seeds[run * sim.num_procs + i] for i in range(sim.num_procs)]
-
-        results = [dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)]
-
-        #if sim.dynamics_method == "MF":
-        #    results = [mf_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
-        #               for i in range(sim.num_procs)]
-        #elif sim.dynamics_method == "FSSH":
-        #    results = [fssh_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
-        #               for i in range(sim.num_procs)]
-        #elif sim.dynamics_method == "CFSSH":
-        #    results = [cfssh_dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim)
-        #               for i in range(sim.num_procs)]
+        results = [dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim) for i in range(sim.num_procs)]
         for r in results:
             traj_obj, msg = ray.get(r)
             print(msg)
@@ -70,6 +59,8 @@ def dynamics(traj, sim):
     # store the number of states
     num_states = len(psi_db)
     sim.num_states = num_states
+    if sim.num_branches is None:
+        sim.num_branches = num_states
     num_branches = sim.num_branches
     # compute initial Hamiltonian
     h_q = sim.h_q(sim)
@@ -89,13 +80,12 @@ def dynamics(traj, sim):
     z_branch = np.zeros((num_branches, *np.shape(z)), dtype=complex)
     z_branch[:] = z
 
-
-
-    if sim.method == 'MF':
+    if sim.dynamics_method == 'MF':
+        assert sim.pab_cohere is None
         assert sim.dmat_const is None
         assert sim.branch_update is None
         assert num_branches == 1
-    if sim.method == 'CSH' or sim.method == 'SH':
+    if sim.dynamics_method == 'CFSSH' or sim.dynamics_method == 'FSSH':
         ######## Surface Hopping specific initialization #######
         # compute initial eigenvalues and eigenvectors
         evals_0, evecs_0 = np.linalg.eigh(h_tot)
@@ -132,7 +122,7 @@ def dynamics(traj, sim):
                 psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_0)
                 psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_0)
         else:
-            if sim.method == 'CFSSH':
+            if sim.dynamics_method == 'CFSSH':
                 assert num_branches > 1
             # determine initial active surfaces
             intervals = np.zeros(num_states)
@@ -184,22 +174,23 @@ def dynamics(traj, sim):
             break
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
             ######## Output timestep ########
+            pass
 
-    if sim.method == 'MF':
+    if sim.dynamics_method == 'MF':
         qfzc_branch = auxilliary.quantum_force_branch(psi_db_branch, None, z_branch, sim)
-    if sim.method == 'FSSH' or sim.method == 'CFSSH':
+    if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
         qfzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim)
 
     z_branch = auxilliary.rk4_c(z, qfzc_branch, sim.dt_bath, sim)
     h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z, sim)
-    if sim.method == 'MF':
+    if sim.dynamics_method == 'MF':
         psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath)
-    if sim.method == 'FSSH' or sim.method == 'CFSSH':
+    if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
         evecs_branch_previous = np.copy(evecs_branch)
         # obtain branch eigenvalues and eigenvectors
         evals_branch, evecs_branch = np.linalg.eigh(h_tot_branch)
         # adjust gauge of eigenvectors
-        evecs_branch = auxilliary.sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim)#TODO fix sign_adjust_branch
+        evecs_branch,_ = auxilliary.sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim)#TODO fix sign_adjust_branch
         # propagate phases
         phase_branch = phase_branch + sim.dt_bath * evals_branch[np.arange(num_branches,dtype=int),act_surf_ind_0]
         # construct eigenvalue exponential
@@ -209,7 +200,6 @@ def dynamics(traj, sim):
         for i in range(num_branches):
             # evolve wavefunctions in each branch
             diag_matrix = np.diag(evals_exp_branch[i])
-
             psi_adb_branch[i] = np.copy(auxilliary.vec_db_to_adb(psi_db_branch[i], evecs_branch[i]))
             psi_adb_delta_branch[i] = np.copy(auxilliary.vec_db_to_adb(psi_db_delta_branch[i], evecs_branch[i]))
 
@@ -267,7 +257,7 @@ def dynamics(traj, sim):
     traj.add_to_dic('pops_db_mf', pops_db_mf)
     traj.add_to_dic('pops_db_fssh', pops_db_fssh)
     traj.add_to_dic('pops_db_cfssh', pops_db_cfssh)
-    end_time = time()
+    end_time = time.time()
     msg = 'trial index: ' + str(traj.index) +  ' time: ' + str(end_time - start_time) + ' seed: ' + str(traj.seed)
     return traj, msg
 

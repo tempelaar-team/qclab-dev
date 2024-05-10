@@ -205,7 +205,7 @@ def quantum_force(psi, z, sim):  # computes <\psi|\nabla H|\psi> using sparse me
     """
     #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
     #fz = sim.dh_qc_dz(psi, psi, z)#matprod_sparse(dz_shape, dz_ind, dz_mels, psi, psi)
-    fzc = sim.dh_qc_dzc(psi, psi, z)#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
+    fzc = sim.dh_qc_dzc(psi, psi, z, sim)#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
     return fzc
 
 def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
@@ -230,8 +230,8 @@ def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse me
     :return: d_{ab}^{z} and d_{ab}^{zc}
     """
     #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    dab_z = sim.dh_qc_dz(evec_a, evec_b, z) / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
-    dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z) / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
+    dab_z = sim.dh_qc_dz(evec_a, evec_b, z, sim) / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
+    dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z, sim) / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
     return dab_z, dab_zc
 
 
