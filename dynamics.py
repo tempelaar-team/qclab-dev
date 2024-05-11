@@ -100,7 +100,7 @@ def dynamics(traj, sim):
             # or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
             print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
         # determine initial adiabatic wavefunction in fixed gauge
-        psi_adb = auxilliary.vec_db_to_adb(psi_db, evecs_0)
+        psi_adb = auxilliary.vec_0_db_to_adb(psi_db, evecs_0)
         # determine initial adiabatic density matrix
         rho_adb_0 = np.outer(psi_adb, np.conj(psi_adb))
         # initial wavefunction in branches
@@ -116,14 +116,6 @@ def dynamics(traj, sim):
         # Options for deterministic branch simulation, num_branches==num_states
         if sim.sh_deterministic:
             assert num_branches == num_states
-            # initial wavefunction as a delta function in each branch
-            psi_adb_delta_branch = np.diag(np.ones(num_branches)).astype(complex)
-            # transform to diabatic basis
-            psi_db_branch = np.zeros_like(psi_adb_branch).astype(complex)
-            psi_db_delta_branch = np.zeros_like(psi_adb_branch).astype(complex)
-            for i in range(num_branches): # TODO can be made more efficient
-                psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_0)
-                psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_0)
             act_surf_ind_0 = np.arange(num_branches,dtype=int)
         else:
             if sim.dynamics_method == 'CFSSH':
@@ -135,7 +127,7 @@ def dynamics(traj, sim):
             rand_val = np.random.rand(num_branches)
             # initialize active surface index
             act_surf_ind_0 = np.zeros((num_branches), dtype=int)
-            for n in range(num_states):
+            for n in range(num_branches):
                 act_surf_ind_0[n] = np.arange(num_states)[intervals > rand_val[n]][0]
             act_surf_ind_0 = np.sort(act_surf_ind_0)
 
@@ -158,11 +150,8 @@ def dynamics(traj, sim):
         psi_adb_delta_branch = np.zeros((num_branches, num_states), dtype=complex)
         psi_adb_delta_branch[np.arange(num_branches, dtype=int), act_surf_ind_0] = 1.0 + 0.j
         # transform to diabatic basis
-        psi_db_branch = np.zeros_like(psi_adb_branch).astype(complex)
-        psi_db_delta_branch = np.zeros_like(psi_adb_branch).astype(complex)
-        for i in range(num_branches):
-            psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_0)
-            psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_0)
+        psi_db_branch = auxilliary.vec_adb_to_db(psi_adb_branch, evecs_branch)
+        psi_db_delta_branch = auxilliary.vec_adb_to_db(psi_adb_delta_branch, evecs_branch)
 
         # surface hopping specific outputs
 
@@ -182,7 +171,7 @@ def dynamics(traj, sim):
             ######## CFSSH ########
             if sim.dynamics_method == 'CFSSH':
 
-
+                pass
 
 
             ######## FSSH ########
@@ -224,19 +213,21 @@ def dynamics(traj, sim):
         phase_branch = phase_branch + sim.dt_bath * evals_branch[np.arange(num_branches,dtype=int),act_surf_ind_0]
         # construct eigenvalue exponential
         evals_exp_branch = np.exp(-1.0j * evals_branch * sim.dt_bath)
+        # evolve wavefunction
+        diag_matrix_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
+        diag_matrix_branch[:,range(num_states),range(num_states)] = evals_exp_branch
+        psi_adb_branch = np.copy(auxilliary.vec_db_to_adb(psi_db_branch, evecs_branch))
+        psi_adb_delta = np.copy(auxilliary.vec_db_to_adb(psi_db_delta_branch, evecs_branch))
+        # multiply by propagator
+        psi_adb_branch = np.copy(np.einsum('nab,nb->na', diag_matrix_branch, psi_adb_branch, optimize='greedy'))
+        psi_adb_delta_branch = np.copy(np.einsum('nab,nb->na', diag_matrix_branch, psi_adb_delta_branch, optimize='greedy'))
+        # transform back to diabatic basis
+        psi_db_branch = auxilliary.vec_adb_to_db(psi_adb_branch, evecs_branch)
+        psi_db_delta_branch = auxilliary.vec_adb_to_db(psi_adb_delta_branch, evecs_branch)
+
         # draw a random number (same for all branches)
         rand = np.random.rand()
         for i in range(num_branches):
-            # evolve wavefunctions in each branch
-            diag_matrix = np.diag(evals_exp_branch[i])
-            psi_adb_branch[i] = np.copy(auxilliary.vec_db_to_adb(psi_db_branch[i], evecs_branch[i]))
-            psi_adb_delta_branch[i] = np.copy(auxilliary.vec_db_to_adb(psi_db_delta_branch[i], evecs_branch[i]))
-
-            psi_adb_branch[i] = np.copy(np.dot(diag_matrix, psi_adb_branch[i]))
-            psi_adb_delta_branch[i] = np.copy(np.dot(diag_matrix, psi_adb_delta_branch[i]))
-
-            psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_branch[i])
-            psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_branch[i])
             # compute hopping probabilities
             prod = np.matmul(np.conjugate(evecs_branch[i][:, act_surf_ind_branch[i]]), evecs_branch_previous[i])
             if sim.pab_cohere:

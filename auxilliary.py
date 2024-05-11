@@ -41,7 +41,7 @@ def vec_adb_to_db(psi_adb, eigvec):
     return psi_db
 
 
-def vec_db_to_adb(psi_db, eigvec):
+def vec_0_db_to_adb(psi_db, eigvec):
     """
     Transforms a vector in diabatic basis to adiabatic basis
     psi_{adb} = V^{dagger}psi_{db}
@@ -52,11 +52,27 @@ def vec_db_to_adb(psi_db, eigvec):
     psi_adb = np.matmul(np.conjugate(np.transpose(eigvec)), psi_db)
     return psi_adb
 
+def vec_db_to_adb(psi_db_branch, eigvec_branch):
+    """
+    Transforms a vector in diabatic basis to adiabatic basis
+    psi_{adb} = V^{dagger}psi_{db}
+    :param psi_db: diabatic vector psi_{db}
+    :param eigvec: eigenvectors V
+    :return: adiabatic vector psi_{adb}
+    """
+    #psi_adb = np.matmul(np.conjugate(np.transpose(eigvec)), psi_db)
+    psi_adb_branch = np.einsum('nba,nb->na',np.conjugate(eigvec_branch), psi_db_branch, optimize='greedy')
+    return psi_adb_branch
+
+def vec_adb_to_db(psi_adb_branch, eigvec_branch):
+    psi_db_branch = np.einsum('nab,nb->na', eigvec_branch, psi_adb_branch, optimize='greedy')
+    return psi_db_branch
+
 def rho_adb_to_db(rho_0_adb, eigvec):
-    return np.einsum('nij,njk,nkl->nil', eigvec, rho_0_adb, np.conj(np.transpose(eigvec)))
+    return np.einsum('nij,njk,nlk->nil', eigvec, rho_0_adb, np.conj(eigvec), optimize='greedy')
 
 def rho_db_to_adb(rho_0_db, eigvec):
-    return np.einsum('nij,njk,nkl->nil', np.conj(np.transpose(eigvec)), rho_0_db, eigvec)
+    return np.einsum('nji,njk,nkl->nil', np.conj(eigvec), rho_0_db, eigvec, optimize='greedy')
 
 @jit(nopython=True)
 def rho_0_adb_to_db(rho_0_adb, eigvec):  # transforms density matrix from adb to db representation
@@ -159,7 +175,7 @@ def get_classical_overlap(z_branch, sim):
 
 
 def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim):
-    phase_out = np.ones((len(evecs_branch), len(evecs_branch)), dtype=complex)
+    phase_out = np.ones((len(evecs_branch), len(evecs_branch[0])), dtype=complex)
     if sim.gauge_fix >= 1:
         phases = np.exp(-1.0j*np.angle(np.einsum('ijk,ijk->ik',np.conjugate(evecs_branch_previous),evecs_branch)))
         evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,phases)
