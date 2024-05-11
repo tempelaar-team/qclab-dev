@@ -52,6 +52,11 @@ def vec_db_to_adb(psi_db, eigvec):
     psi_adb = np.matmul(np.conjugate(np.transpose(eigvec)), psi_db)
     return psi_adb
 
+def rho_adb_to_db(rho_0_adb, eigvec):
+    return np.einsum('nij,njk,nkl->nil', eigvec, rho_0_adb, np.conj(np.transpose(eigvec)))
+
+def rho_db_to_adb(rho_0_db, eigvec):
+    return np.einsum('nij,njk,nkl->nil', np.conj(np.transpose(eigvec)), rho_0_db, eigvec)
 
 @jit(nopython=True)
 def rho_0_adb_to_db(rho_0_adb, eigvec):  # transforms density matrix from adb to db representation

@@ -101,6 +101,8 @@ def dynamics(traj, sim):
             print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
         # determine initial adiabatic wavefunction in fixed gauge
         psi_adb = auxilliary.vec_db_to_adb(psi_db, evecs_0)
+        # determine initial adiabatic density matrix
+        rho_adb_0 = np.outer(psi_adb, np.conj(psi_adb))
         # initial wavefunction in branches
         psi_adb_branch = np.zeros((num_branches, num_states), dtype=complex)
         psi_adb_branch[:] = psi_adb
@@ -119,9 +121,10 @@ def dynamics(traj, sim):
             # transform to diabatic basis
             psi_db_branch = np.zeros_like(psi_adb_branch).astype(complex)
             psi_db_delta_branch = np.zeros_like(psi_adb_branch).astype(complex)
-            for i in range(num_branches):
+            for i in range(num_branches): # TODO can be made more efficient
                 psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_0)
                 psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_0)
+            act_surf_ind_0 = np.arange(num_branches,dtype=int)
         else:
             if sim.dynamics_method == 'CFSSH':
                 assert num_branches > 1
@@ -136,30 +139,30 @@ def dynamics(traj, sim):
                 act_surf_ind_0[n] = np.arange(num_states)[intervals > rand_val[n]][0]
             act_surf_ind_0 = np.sort(act_surf_ind_0)
 
-            # initialize active surface and active surface index in each branch
-            act_surf_ind_branch = np.copy(act_surf_ind_0)
-            act_surf_branch = np.zeros((num_branches, num_states), dtype=int)
-            act_surf_branch[np.arange(num_branches, dtype=int), act_surf_ind_branch] = 1
-
-            # initial wavefunction as a delta function in each branch
-            psi_adb_delta_branch = np.zeros((num_branches, num_states), dtype=complex)
-            psi_adb_delta_branch[np.arange(num_branches, dtype=int), act_surf_ind_0] = 1.0+0.j
-            # transform to diabatic basis
-            psi_db_branch = np.zeros_like(psi_adb_branch).astype(complex)
-            psi_db_delta_branch = np.zeros_like(psi_adb_branch).astype(complex)
-            for i in range(num_branches):
-                psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_0)
-                psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_0)
 
 
 
-            # initialize branch-pair eigenvalues and eigenvectors
-            if sim.dmat_const > 0:
-                u_ij = np.zeros((num_branches, num_branches, num_states, num_states), dtype=complex)
-                e_ij = np.zeros((num_branches, num_branches, num_states))
-                u_ij[:, :] = evecs_0
-                e_ij[:, :] = evals_0
 
+        # initialize branch-pair eigenvalues and eigenvectors
+        if sim.dmat_const > 0:
+            u_ij = np.zeros((num_branches, num_branches, num_states, num_states), dtype=complex)
+            e_ij = np.zeros((num_branches, num_branches, num_states))
+            u_ij[:, :] = evecs_0
+            e_ij[:, :] = evals_0
+        # initialize active surface and active surface index in each branch
+        act_surf_ind_branch = np.copy(act_surf_ind_0)
+        act_surf_branch = np.zeros((num_branches, num_states), dtype=int)
+        act_surf_branch[np.arange(num_branches, dtype=int), act_surf_ind_branch] = 1
+
+        # initial wavefunction as a delta function in each branch
+        psi_adb_delta_branch = np.zeros((num_branches, num_states), dtype=complex)
+        psi_adb_delta_branch[np.arange(num_branches, dtype=int), act_surf_ind_0] = 1.0 + 0.j
+        # transform to diabatic basis
+        psi_db_branch = np.zeros_like(psi_adb_branch).astype(complex)
+        psi_db_delta_branch = np.zeros_like(psi_adb_branch).astype(complex)
+        for i in range(num_branches):
+            psi_db_branch[i] = auxilliary.vec_adb_to_db(psi_adb_branch[i], evecs_0)
+            psi_db_delta_branch[i] = auxilliary.vec_adb_to_db(psi_adb_delta_branch[i], evecs_0)
 
         # surface hopping specific outputs
 
@@ -175,6 +178,31 @@ def dynamics(traj, sim):
             break
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
             ######## Output timestep ########
+
+            ######## CFSSH ########
+            if sim.dynamics_method == 'CFSSH':
+
+
+
+
+            ######## FSSH ########
+            if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
+                rho_adb_fssh = np.einsum('ni,nj->nij', psi_adb_branch, np.conj(psi_adb_branch))
+                np.einsum('...jj->...j', rho_adb_fssh)[...] = act_surf_branch
+                # TODO if not outputing coherences, would be more efficient to only calculate (diabatic) populations
+                rho_db_fssh = auxilliary.rho_adb_to_db(rho_adb_fssh, evecs_branch)
+                if sim.sh_deterministic:
+                    pops_db_fssh[t_ind] = np.real(np.diag(np.sum(np.diag(rho_adb_0)[:,np.newaxis,np.newaxis]*rho_db_fssh,axis=0)))
+                else:
+                    pops_db_fssh[t_ind] = np.real(np.diag(np.sum(rho_db_fssh/num_branches, axis=0)))
+
+            ######## MF ########
+            if sim.dynamics_method == 'MF':
+                pops_db_mf[t_ind] = np.sum(np.abs(psi_db_branch)**2, axis=0)
+
+
+
+
             pass
 
     if sim.dynamics_method == 'MF':
