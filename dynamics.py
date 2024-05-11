@@ -135,6 +135,7 @@ def dynamics(traj, sim):
 
 
 
+
         # initialize branch-pair eigenvalues and eigenvectors
         if sim.dmat_const > 0:
             u_ij = np.zeros((num_branches, num_branches, num_states, num_states), dtype=complex)
