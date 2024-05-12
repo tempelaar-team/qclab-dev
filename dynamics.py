@@ -70,16 +70,34 @@ def dynamics(traj, sim):
     tdat_bath = np.arange(0, sim.tmax + sim.dt_bath, sim.dt_bath)
     ec = np.zeros((len(tdat)))
     eq = np.zeros((len(tdat)))
-    pops_db_mf = np.zeros((len(tdat), num_states))
-    pops_db_fssh = np.zeros((len(tdat), num_states))
-    pops_db_cfssh = np.zeros((len(tdat), num_states))
-    resp_func_mf = np.zeros((len(tdat)),dtype=complex)
-    resp_func_cfssh = np.zeros((len(tdat)), dtype=complex)
 
     # initialize classical coordinates in each branch
     z_branch = np.zeros((num_branches, *np.shape(z)), dtype=complex)
     z_branch[:] = z
 
+    rho_db_0 = np.outer(psi_db, np.conj(psi_db))
+    ######## Initialize outputs ########
+    quantum_obs_0, quantum_obs_names = sim.quantum_observables(sim, rho_db_0)
+    assert len(quantum_obs_0) == len(quantum_obs_names)
+    num_quantum_obs = len(quantum_obs_0)
+    classical_obs_0, classical_obs_names = sim.classical_observables(sim, z)
+    assert len(classical_obs_0) == len(classical_obs_names)
+    num_classical_obs = len(classical_obs_0)
+    if sim.calc_mf_obs: # TODO there are rules associated with what calc_#_obs can be depending on what dynamics_method is
+        output_quantum_mf_obs = np.array(
+            [np.zeros((len(tdat), np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
+             for n in range(num_quantum_obs)], dtype='object')
+    if sim.calc_fssh_obs:
+        output_quantum_fssh_obs = np.array(
+            [np.zeros((len(tdat), np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
+             for n in range(num_quantum_obs)], dtype='object')
+    if sim.calc_cfssh_obs:
+        output_quantum_cfssh_obs = np.array(
+            [np.zeros((len(tdat), np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
+             for n in range(num_quantum_obs)], dtype='object')
+    output_classical_obs = np.array([np.zeros((len(tdat), np.shape(classical_obs_0[n])), dtype=classical_obs_0[n].dtype) \
+                                     for n in range(num_classical_obs)], dtype='object')
+    ####################################
     if sim.dynamics_method == 'MF':
         assert sim.pab_cohere is None
         assert sim.dmat_const is None
@@ -142,14 +160,13 @@ def dynamics(traj, sim):
         act_surf_branch = np.zeros((num_branches, num_states), dtype=int)
         act_surf_branch[np.arange(num_branches, dtype=int), act_surf_ind_branch] = 1
 
-        # initial wavefunction as a delta function in each branch
+        # initialize wavefunction as a delta function in each branch
         psi_adb_delta_branch = np.zeros((num_branches, num_states), dtype=complex)
         psi_adb_delta_branch[np.arange(num_branches, dtype=int), act_surf_ind_0] = 1.0 + 0.j
         # transform to diabatic basis
         psi_db_branch = auxilliary.vec_adb_to_db(psi_adb_branch, evecs_branch)
         psi_db_delta_branch = auxilliary.vec_adb_to_db(psi_adb_delta_branch, evecs_branch)
 
-        # surface hopping specific outputs
 
 
         ######## Coherent Surface Hopping specific initialization ########
@@ -165,28 +182,40 @@ def dynamics(traj, sim):
             ######## Output timestep ########
 
             ######## CFSSH ########
-            if sim.dynamics_method == 'CFSSH':
-
-                pass
-
+            if sim.calc_cfssh_obs:
+                rho_db_cfssh = np.zeros((num_states, num_states), dtype=complex)
+                quantum_cfssh_obs_t,_ = sim.quantum_observables(sim, rho_db_cfssh)
+                for obs_n in range(num_quantum_obs):
+                    output_quantum_cfssh_obs[n][t_ind] = quantum_cfssh_obs_t[n]
+            #######################
 
             ######## FSSH ########
-            if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
+            if sim.calc_fssh_obs:
                 rho_adb_fssh = np.einsum('ni,nj->nij', psi_adb_branch, np.conj(psi_adb_branch))
                 np.einsum('...jj->...j', rho_adb_fssh)[...] = act_surf_branch
-                # TODO if not outputing coherences, would be more efficient to only calculate (diabatic) populations
                 rho_db_fssh = auxilliary.rho_adb_to_db(rho_adb_fssh, evecs_branch)
                 if sim.sh_deterministic:
-                    pops_db_fssh[t_ind] = np.real(np.diag(np.sum(np.diag(rho_adb_0)[:,np.newaxis,np.newaxis]*rho_db_fssh,axis=0)))
+                    rho_db_fssh = np.sum(np.diag(rho_adb_0)[:,np.newaxis,np.newaxis]*rho_db_fssh,axis=0)
                 else:
-                    pops_db_fssh[t_ind] = np.real(np.diag(np.sum(rho_db_fssh/num_branches, axis=0)))
+                    rho_db_fssh = np.sum(rho_db_fssh/num_branches, axis=0)
+                quantum_fssh_obs_t,_ = sim.quantum_observables(sim, rho_db_fssh)
+                for obs_n in range(num_quantum_obs):
+                    output_quantum_fssh_obs[n][t_ind] = quantum_fssh_obs_t[n]
+            ######################
 
             ######## MF ########
-            if sim.dynamics_method == 'MF':
-                pops_db_mf[t_ind] = np.sum(np.abs(psi_db_branch)**2, axis=0)
+            if sim.calc_mf_obs:
+                rho_db_mf = np.einsum('ni,nk->ik', psi_db_branch, np.conj(psi_db_branch))
+                quantum_mf_obs_t,_ = sim.quantum_observables(sim, rho_db_mf)
+                for obs_n in range(num_quantum_obs):
+                    output_quantum_mf_obs[n][t_ind] = quantum_mf_obs_t[n]
+            ####################
 
-
-
+            ######## classical observables ########
+            classical_obs_t, _ = sim.classical_observables(sim, z)
+            for obs_n in range(num_classical_obs):
+                output_classical_obs[n][t_ind] = classical_obs_t[n]
+            #######################################
 
             pass
 
@@ -277,9 +306,13 @@ def dynamics(traj, sim):
     traj.add_to_dic('t', tdat)
     traj.add_to_dic('eq', eq)
     traj.add_to_dic('ec', ec)
-    traj.add_to_dic('pops_db_mf', pops_db_mf)
-    traj.add_to_dic('pops_db_fssh', pops_db_fssh)
-    traj.add_to_dic('pops_db_cfssh', pops_db_cfssh)
+    for n in range(num_quantum_obs):
+        if sim.calc_mf_obs:
+            traj.add_to_dic(quantum_obs_names[n]+'_mf', output_quantum_mf_obs[n])
+        if sim.calc_fssh_obs:
+            traj.add_to_dic(quantum_obs_names[n]+'_fssh', output_quantum_fssh_obs[n])
+        if sim.calc_cfssh_obs:
+            traj.add_to_dic(quantum_obs_names[n]+'_cfssh', output_quantum_cfssh_obs[n])
     end_time = time.time()
     msg = 'trial index: ' + str(traj.index) +  ' time: ' + str(end_time - start_time) + ' seed: ' + str(traj.seed)
     return traj, msg
