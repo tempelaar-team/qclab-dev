@@ -313,6 +313,8 @@ def dynamics(traj, sim):
             traj.add_to_dic(quantum_obs_names[n]+'_fssh', output_quantum_fssh_obs[n])
         if sim.calc_cfssh_obs:
             traj.add_to_dic(quantum_obs_names[n]+'_cfssh', output_quantum_cfssh_obs[n])
+    for n in range(num_classical_obs):
+        traj.add_to_dic(classical_obs_names[n], output_classical_obs[n])
     end_time = time.time()
     msg = 'trial index: ' + str(traj.index) +  ' time: ' + str(end_time - start_time) + ' seed: ' + str(traj.seed)
     return traj, msg
