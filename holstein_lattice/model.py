@@ -1,7 +1,5 @@
 import numpy as np
 import auxilliary
-import hop
-import h_c
 
 def initialize(sim):
     # model specific parameter default values

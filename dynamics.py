@@ -131,11 +131,6 @@ def dynamics(traj, sim):
                 act_surf_ind_0[n] = np.arange(num_states)[intervals > rand_val[n]][0]
             act_surf_ind_0 = np.sort(act_surf_ind_0)
 
-
-
-
-
-
         # initialize branch-pair eigenvalues and eigenvectors
         if sim.dmat_const > 0:
             u_ij = np.zeros((num_branches, num_branches, num_states, num_states), dtype=complex)
@@ -203,13 +198,19 @@ def dynamics(traj, sim):
     z_branch = auxilliary.rk4_c(z, qfzc_branch, sim.dt_bath, sim)
     h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z, sim)
     if sim.dynamics_method == 'MF':
+
+        ######## quantum propagation in diabatic basis ########
         psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath)
+        #######################################################
+
     if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
+
+        ######## quantum propagation in adiabatic basis ########
         evecs_branch_previous = np.copy(evecs_branch)
         # obtain branch eigenvalues and eigenvectors
         evals_branch, evecs_branch = np.linalg.eigh(h_tot_branch)
         # adjust gauge of eigenvectors
-        evecs_branch,_ = auxilliary.sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim)#TODO fix sign_adjust_branch
+        evecs_branch,_ = auxilliary.sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim)
         # propagate phases
         phase_branch = phase_branch + sim.dt_bath * evals_branch[np.arange(num_branches,dtype=int),act_surf_ind_0]
         # construct eigenvalue exponential
@@ -225,6 +226,7 @@ def dynamics(traj, sim):
         # transform back to diabatic basis
         psi_db_branch = auxilliary.vec_adb_to_db(psi_adb_branch, evecs_branch)
         psi_db_delta_branch = auxilliary.vec_adb_to_db(psi_adb_delta_branch, evecs_branch)
+        #######################################################
 
         # draw a random number (same for all branches)
         rand = np.random.rand()

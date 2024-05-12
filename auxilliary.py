@@ -29,7 +29,7 @@ def rk4_q(h, psi, dt):
     return psi
 
 
-def vec_adb_to_db(psi_adb, eigvec):
+def vec_0_adb_to_db(psi_adb, eigvec):
     """
     Transforms a vector in adiabatic basis to diabatic basis
     psi_{db} = V psi_{adb}
