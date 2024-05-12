@@ -84,19 +84,16 @@ def dynamics(traj, sim):
     assert len(classical_obs_0) == len(classical_obs_names)
     num_classical_obs = len(classical_obs_0)
     if sim.calc_mf_obs: # TODO there are rules associated with what calc_#_obs can be depending on what dynamics_method is
-        output_quantum_mf_obs = np.array(
-            [np.zeros((len(tdat), np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
-             for n in range(num_quantum_obs)], dtype='object')
+        output_quantum_mf_obs = [np.zeros((len(tdat), *np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
+             for n in range(num_quantum_obs)]
     if sim.calc_fssh_obs:
-        output_quantum_fssh_obs = np.array(
-            [np.zeros((len(tdat), np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
-             for n in range(num_quantum_obs)], dtype='object')
+        output_quantum_fssh_obs = [np.zeros((len(tdat), *np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
+             for n in range(num_quantum_obs)]
     if sim.calc_cfssh_obs:
-        output_quantum_cfssh_obs = np.array(
-            [np.zeros((len(tdat), np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
-             for n in range(num_quantum_obs)], dtype='object')
-    output_classical_obs = np.array([np.zeros((len(tdat), np.shape(classical_obs_0[n])), dtype=classical_obs_0[n].dtype) \
-                                     for n in range(num_classical_obs)], dtype='object')
+        output_quantum_cfssh_obs = [np.zeros((len(tdat), *np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
+             for n in range(num_quantum_obs)]
+    output_classical_obs = [np.zeros((len(tdat), *np.shape(classical_obs_0[n])), dtype=classical_obs_0[n].dtype) \
+                                     for n in range(num_classical_obs)]
     ####################################
     if sim.dynamics_method == 'MF':
         assert sim.pab_cohere is None
@@ -181,12 +178,15 @@ def dynamics(traj, sim):
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
             ######## Output timestep ########
 
+
+            #################################
+
             ######## CFSSH ########
             if sim.calc_cfssh_obs:
                 rho_db_cfssh = np.zeros((num_states, num_states), dtype=complex)
                 quantum_cfssh_obs_t,_ = sim.quantum_observables(sim, rho_db_cfssh)
                 for obs_n in range(num_quantum_obs):
-                    output_quantum_cfssh_obs[n][t_ind] = quantum_cfssh_obs_t[n]
+                    output_quantum_cfssh_obs[obs_n][t_ind] = quantum_cfssh_obs_t[obs_n]
             #######################
 
             ######## FSSH ########
@@ -200,7 +200,7 @@ def dynamics(traj, sim):
                     rho_db_fssh = np.sum(rho_db_fssh/num_branches, axis=0)
                 quantum_fssh_obs_t,_ = sim.quantum_observables(sim, rho_db_fssh)
                 for obs_n in range(num_quantum_obs):
-                    output_quantum_fssh_obs[n][t_ind] = quantum_fssh_obs_t[n]
+                    output_quantum_fssh_obs[obs_n][t_ind] = quantum_fssh_obs_t[obs_n]
             ######################
 
             ######## MF ########
@@ -208,13 +208,13 @@ def dynamics(traj, sim):
                 rho_db_mf = np.einsum('ni,nk->ik', psi_db_branch, np.conj(psi_db_branch))
                 quantum_mf_obs_t,_ = sim.quantum_observables(sim, rho_db_mf)
                 for obs_n in range(num_quantum_obs):
-                    output_quantum_mf_obs[n][t_ind] = quantum_mf_obs_t[n]
+                    output_quantum_mf_obs[obs_n][t_ind] = quantum_mf_obs_t[obs_n]
             ####################
 
             ######## classical observables ########
             classical_obs_t, _ = sim.classical_observables(sim, z)
             for obs_n in range(num_classical_obs):
-                output_classical_obs[n][t_ind] = classical_obs_t[n]
+                output_classical_obs[obs_n][t_ind] = classical_obs_t[obs_n]
             #######################################
 
             pass

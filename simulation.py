@@ -13,12 +13,16 @@ class Simulation:
             "dt_bath": 0.01,  # bath timestep
             "model_module_path": "./model.py",  # path to model module file
             ## SH and CSH specific inputs
+            "calc_fssh_obs":True,
+            "calc_cfssh_obs":True,
             "sh_deterministic":True,
             "num_branches":None, # number of branches to use
             "pab_cohere": True,  # Uses full adiabatic wavefunction to compute hopping probabilities
             "gauge_fix": 1,  # gauge fixing level 0, 1, 2
             "dmat_const": 0, # density matrix construction type for CFSSH
             "branch_update":1, # frequency of updating branch eigenvectors for CFSSH # 2 update only when needed
+            ## MF specific inputs
+            "calc_mf_obs":True,
         }
         # Read input values from input_file
         input_params = {}  # store them in input_params
@@ -47,6 +51,19 @@ class Simulation:
         self.sh_deterministic = defaults['sh_deterministic']
         if self.sh_deterministic:
             self.num_branches == None
+        if self.dynamics_method == 'MF':
+            self.calc_cfssh_obs = False
+            self.calc_fssh_obs = False
+            self.calc_mf_obs = defaults['calc_mf_obs']
+        if self.dynamics_method == 'FSSH':
+            self.calc_cfssh_obs = False
+            self.calc_mf_obs = False
+            self.calc_fssh_obs = defaults['calc_fssh_obs']
+        if self.dynamics_method == 'CFSSH':
+            self.calc_cfssh_obs = defaults['calc_cfssh_obs']
+            self.calc_fssh_obs = defaults['calc_fssh_obs']
+            self.calc_mf_obs = False
+
 
 
 

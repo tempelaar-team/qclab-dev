@@ -175,12 +175,12 @@ def initialize(sim):
         names = ['rho_db', 'pops_db']
         op1 = rho_db
         op2 = np.diag(rho_db)
-        return np.array([op1, op2],dtype=object), names
+        return [op1, op2], names
 
     def classical_observables(sim, z):
         names = ['ph_occ']
         op1 = np.abs(z)**2
-        return np.array([op1],dtype=object), names
+        return [op1], names
 
 
     # equip simulation object with necessary functions
