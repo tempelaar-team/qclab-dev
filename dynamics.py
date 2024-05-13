@@ -183,32 +183,35 @@ def dynamics(traj, sim):
 
             ######## CFSSH ########
             if sim.calc_cfssh_obs:
-                rho_db_cfssh = np.zeros((num_states, num_states), dtype=complex)
-                quantum_cfssh_obs_t,_ = sim.quantum_observables(sim, rho_db_cfssh)
-                for obs_n in range(num_quantum_obs):
-                    output_quantum_cfssh_obs[obs_n][t_ind] = quantum_cfssh_obs_t[obs_n]
+                rho_db_cfssh_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
+                for nb in range(num_branches):
+                    quantum_cfssh_obs_t, _ = sim.quantum_observables(sim, rho_db_cfssh_branch[nb], z_branch[nb])
+                    for obs_n in range(num_quantum_obs):
+                        output_quantum_cfssh_obs[obs_n][t_ind] += quantum_cfssh_obs_t[obs_n]
             #######################
 
             ######## FSSH ########
             if sim.calc_fssh_obs:
                 rho_adb_fssh = np.einsum('ni,nj->nij', psi_adb_branch, np.conj(psi_adb_branch))
                 np.einsum('...jj->...j', rho_adb_fssh)[...] = act_surf_branch
-                rho_db_fssh = auxilliary.rho_adb_to_db(rho_adb_fssh, evecs_branch)
+                rho_db_fssh_branch = auxilliary.rho_adb_to_db(rho_adb_fssh, evecs_branch)
                 if sim.sh_deterministic:
-                    rho_db_fssh = np.sum(np.diag(rho_adb_0)[:,np.newaxis,np.newaxis]*rho_db_fssh,axis=0)
+                    rho_db_fssh_branch = np.diag(rho_adb_0)[:,np.newaxis,np.newaxis]*rho_db_fssh_branch
                 else:
-                    rho_db_fssh = np.sum(rho_db_fssh/num_branches, axis=0)
-                quantum_fssh_obs_t,_ = sim.quantum_observables(sim, rho_db_fssh)
-                for obs_n in range(num_quantum_obs):
-                    output_quantum_fssh_obs[obs_n][t_ind] = quantum_fssh_obs_t[obs_n]
+                    rho_db_fssh_branch = rho_db_fssh_branch/num_branches
+                for nb in range(num_branches):
+                    quantum_fssh_obs_t, _ = sim.quantum_observables(sim, rho_db_fssh_branch[nb], z_branch[nb])
+                    for obs_n in range(num_quantum_obs):
+                        output_quantum_fssh_obs[obs_n][t_ind] += quantum_fssh_obs_t[obs_n]
             ######################
 
             ######## MF ########
             if sim.calc_mf_obs:
-                rho_db_mf = np.einsum('ni,nk->ik', psi_db_branch, np.conj(psi_db_branch))
-                quantum_mf_obs_t,_ = sim.quantum_observables(sim, rho_db_mf)
-                for obs_n in range(num_quantum_obs):
-                    output_quantum_mf_obs[obs_n][t_ind] = quantum_mf_obs_t[obs_n]
+                rho_db_mf_branch = np.einsum('ni,nk->nik', psi_db_branch, np.conj(psi_db_branch))
+                for nb in range(num_branches):
+                    quantum_mf_obs_t, _ = sim.quantum_observables(sim, rho_db_mf_branch[nb], z_branch[nb])
+                    for obs_n in range(num_quantum_obs):
+                        output_quantum_mf_obs[obs_n][t_ind] += quantum_mf_obs_t[obs_n]
             ####################
 
             ######## classical observables ########
@@ -259,6 +262,7 @@ def dynamics(traj, sim):
 
         # draw a random number (same for all branches)
         rand = np.random.rand()
+        # TODO -- talk to Roel about rand in CFSSH/FSSH, can we actually do CFSSH with stochastic branch sampling?
         for i in range(num_branches):
             # compute hopping probabilities
             prod = np.matmul(np.conjugate(evecs_branch[i][:, act_surf_ind_branch[i]]), evecs_branch_previous[i])

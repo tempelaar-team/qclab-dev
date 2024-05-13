@@ -171,7 +171,7 @@ def initialize(sim):
         """
         return sim.h * z
 
-    def quantum_observables(sim, rho_db):
+    def quantum_observables(sim, rho_db, z):
         names = ['rho_db', 'pops_db']
         op1 = rho_db
         op2 = np.diag(rho_db)
