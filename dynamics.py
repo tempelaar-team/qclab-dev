@@ -76,7 +76,11 @@ def dynamics(traj, sim):
     z_branch[:] = z
 
     rho_db_0 = np.outer(psi_db, np.conj(psi_db))
-    ######## Initialize outputs ########
+
+############################################################
+#                      INITIALIZE OUTPUTS                #
+############################################################
+
     quantum_obs_0, quantum_obs_names = sim.quantum_observables(sim, rho_db_0)
     assert len(quantum_obs_0) == len(quantum_obs_names)
     num_quantum_obs = len(quantum_obs_0)
@@ -101,7 +105,11 @@ def dynamics(traj, sim):
         assert sim.branch_update is None
         assert num_branches == 1
     if sim.dynamics_method == 'CFSSH' or sim.dynamics_method == 'FSSH':
-        ######## Surface Hopping specific initialization #######
+
+        ############################################################
+        #              SURFACE HOPPING SPECIFIC INITIALIZATION     #
+        ############################################################
+
         # compute initial eigenvalues and eigenvectors
         evals_0, evecs_0 = np.linalg.eigh(h_tot)
         # compute initial gauge shift for real-valued derivative couplings
@@ -166,31 +174,44 @@ def dynamics(traj, sim):
 
 
 
-        ######## Coherent Surface Hopping specific initialization ########
+
+        ############################################################
+        #         COHERENT SURFACE HOPPING SPECIFIC INITIALIZATION#
+        ############################################################
+
         # store the phase of each branch
         phase_branch = np.zeros(num_branches)
 
-    ######## Time Evolution ########
+
+    ############################################################
+    #                        TIME EVOLUTION                   #
+    ############################################################
+
     t_ind = 0
     for t_bath_ind in np.arange(0, len(tdat_bath)):
         if t_ind == len(tdat):
             break
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
-            ######## Output timestep ########
+
+        ############################################################
+        #                            OUTPUT TIMESTEP               #
+        ############################################################
 
 
-            #################################
-
-            ######## CFSSH ########
+            ############################################################
+            #                                 CFSSH                    #
+            ############################################################
             if sim.calc_cfssh_obs:
                 rho_db_cfssh_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
                 for nb in range(num_branches):
                     quantum_cfssh_obs_t, _ = sim.quantum_observables(sim, rho_db_cfssh_branch[nb], z_branch[nb])
                     for obs_n in range(num_quantum_obs):
                         output_quantum_cfssh_obs[obs_n][t_ind] += quantum_cfssh_obs_t[obs_n]
-            #######################
 
-            ######## FSSH ########
+
+            ############################################################
+            #                                 FSSH                    #
+            ############################################################
             if sim.calc_fssh_obs:
                 rho_adb_fssh = np.einsum('ni,nj->nij', psi_adb_branch, np.conj(psi_adb_branch))
                 np.einsum('...jj->...j', rho_adb_fssh)[...] = act_surf_branch
@@ -203,22 +224,26 @@ def dynamics(traj, sim):
                     quantum_fssh_obs_t, _ = sim.quantum_observables(sim, rho_db_fssh_branch[nb], z_branch[nb])
                     for obs_n in range(num_quantum_obs):
                         output_quantum_fssh_obs[obs_n][t_ind] += quantum_fssh_obs_t[obs_n]
-            ######################
 
-            ######## MF ########
+
+            ############################################################
+            #                                  MF                     #
+            ############################################################
             if sim.calc_mf_obs:
                 rho_db_mf_branch = np.einsum('ni,nk->nik', psi_db_branch, np.conj(psi_db_branch))
                 for nb in range(num_branches):
                     quantum_mf_obs_t, _ = sim.quantum_observables(sim, rho_db_mf_branch[nb], z_branch[nb])
                     for obs_n in range(num_quantum_obs):
                         output_quantum_mf_obs[obs_n][t_ind] += quantum_mf_obs_t[obs_n]
-            ####################
 
-            ######## classical observables ########
+
+            ############################################################
+            #                         CLASSICAL OBSERVABLES            #
+            ############################################################
             classical_obs_t, _ = sim.classical_observables(sim, z)
             for obs_n in range(num_classical_obs):
                 output_classical_obs[obs_n][t_ind] = classical_obs_t[obs_n]
-            #######################################
+            
 
             pass
 
@@ -230,7 +255,6 @@ def dynamics(traj, sim):
     z_branch = auxilliary.rk4_c(z, qfzc_branch, sim.dt_bath, sim)
     h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z, sim)
     if sim.dynamics_method == 'MF':
-
         ######## quantum propagation in diabatic basis ########
         psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath)
         #######################################################
