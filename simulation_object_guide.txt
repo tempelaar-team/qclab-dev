@@ -38,11 +38,19 @@ the diabatic basis.
 
 sim.calc_dir A string giving the calculation directory for the output of the simulation.
 
-sim.quantum_observables(sim, rho_db, z)    A function that evaluates the desired observables in terms of the simulation
-object and the diabatic density matrix. Returns a list of the observables and a list of strings that are the names of
-each observable.
+sim.mf_observables(sim, rho_db_branch, z_branch)    A function that evaluates the desired observables in terms of the simulation
+object and the diabatic density matrix for mean-field dynamics (only when sim.calc_mf_obs==True). Returns 
+a dictionary of observables 
 
-sim.classical observables(sim, z) Same as quantum_observables but for the classical coordinates.
+sim.fssh_observables(sim, rho_db_branch, z_branch)      Same as sim.mf_observables but onle evaluated when sim.calc_fssh_obs==True.
+
+sim.cfssh_observables(sim, rho_db_branch, z_branch)      Same as sim.mf_observables but only evaluated when sim.calc_fssh_obs==True.
+
+sim.calc_mf_obs: Boolean, if True evaluates sim.mf_observables
+
+sim.calc_fssh_obs: Boolean, if True evaluates sim.fssh_observables
+
+sim.calc_cfssh_obs: Boolean, if True evaluates sim.cfssh_observables
 
 
 

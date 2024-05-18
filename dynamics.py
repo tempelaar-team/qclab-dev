@@ -92,7 +92,7 @@ def dynamics(traj, sim):
         dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z, sim)
         if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
             # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
-            # or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
+            # and/or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
             print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
         # determine initial adiabatic wavefunction in fixed gauge
         psi_adb = auxilliary.vec_0_db_to_adb(psi_db, evecs_0)
@@ -170,6 +170,9 @@ def dynamics(traj, sim):
             ############################################################
             #                                 CFSSH                    #
             ############################################################
+
+
+
             if sim.calc_cfssh_obs:
                 rho_db_cfssh_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
                 cfssh_observables_t = sim.cfssh_observables(sim, rho_db_cfssh_branch, z_branch)
