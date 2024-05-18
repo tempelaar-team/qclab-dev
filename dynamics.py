@@ -74,9 +74,11 @@ def dynamics(traj, sim):
     z_branch = np.zeros((num_branches, *np.shape(z)), dtype=complex)
     z_branch[:] = z
     if sim.dynamics_method == 'MF':
-        assert sim.pab_cohere is None
-        assert sim.dmat_const is None
-        assert sim.branch_update is None
+        psi_db_branch = np.zeros((num_branches, num_states), dtype=complex)
+        psi_db_branch[:] = psi_db
+        #assert sim.pab_cohere is None
+        #assert sim.dmat_const is None
+        #assert sim.branch_update is None
         assert num_branches == 1
     if sim.dynamics_method == 'CFSSH' or sim.dynamics_method == 'FSSH':
         ############################################################
@@ -170,17 +172,15 @@ def dynamics(traj, sim):
             ############################################################
             #                                 CFSSH                    #
             ############################################################
-
-
-
             if sim.calc_cfssh_obs:
-                rho_db_cfssh_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
-                if sim.cfssh_dmat_const == 0:
+                # calculate overlap matrix
+                overlap = auxilliary.get_classical_overlap(z_branch, sim)
+                if sim.dmat_const == 0:
                     # Inexpensive density matrix construction
                     rho_adb_cfssh_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
                     rho_adb_cfssh_coh = np.zeros((num_states, num_states), dtype=complex)
-                    for i in range(num_states):
-                        for j in range(i, num_states):
+                    for i in range(num_branches):
+                        for j in range(i, num_branches):
                             a_i = act_surf_ind_branch[i]
                             a_j = act_surf_ind_branch[j]
                             a_i_0 = act_surf_ind_0[i]
@@ -205,7 +205,7 @@ def dynamics(traj, sim):
                         rho_adb_cfssh_branch = (rho_adb_cfssh_branch + rho_adb_cfssh_coh / num_branches) / num_branches
                     rho_db_cfssh_branch = auxilliary.rho_adb_to_db(rho_adb_cfssh_branch, evecs_branch)
                 # expensive CFSSH density matrix construction
-                if sim.cfssh_dmat_const == 1:
+                if sim.dmat_const == 1:
 
                     pass
                 cfssh_observables_t = sim.cfssh_observables(sim, rho_db_cfssh_branch, z_branch)
@@ -238,7 +238,7 @@ def dynamics(traj, sim):
                 rho_db_mf_branch = np.einsum('ni,nk->nik', psi_db_branch, np.conj(psi_db_branch))
                 mf_observables_t = sim.mf_observables(sim, rho_db_mf_branch, z_branch)
                 if t_ind == 0 and t_bath_ind == 0:
-                    for key in fssh_observables_t.keys():
+                    for key in mf_observables_t.keys():
                         traj.new_observable(key + '_mf', (len(tdat), *np.shape(mf_observables_t[key])), mf_observables_t[key].dtype)
                 traj.add_observable_dic(t_ind, mf_observables_t)
 
@@ -270,6 +270,7 @@ def dynamics(traj, sim):
         ############################################################
         #               QUANTUM PROPAGATION IN DIABATIC BASIS      #
         ############################################################
+        print(np.shape(h_tot_branch), np.shape(psi_db_branch))
         psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath)
 
     if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':

@@ -10,10 +10,8 @@ def rk4_c(z, qfzc, dt, sim):
     z = z + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return z
 
-
-
 #@jit(nopython=True)
-def rk4_q(h, psi, dt):
+def rk4_q(h, psi, dt, path=None):
     """
     4-th order Runge-Kutta for quantum wavefunction, works with branch wavefunctions
     :param h: Hamiltonian h(t)
@@ -21,10 +19,10 @@ def rk4_q(h, psi, dt):
     :param dt: timestep dt
     :return: psi(t+dt)
     """
-    k1 = (-1j * np.matmul(h, psi))
-    k2 = (-1j * np.matmul(h, psi + 0.5 * dt * k1))
-    k3 = (-1j * np.matmul(h, psi + 0.5 * dt * k2))
-    k4 = (-1j * np.matmul(h, psi + dt * k3))
+    k1 = (-1j * np.einsum('nij,nj->ni', h, psi, optimize=path))
+    k2 = (-1j * np.einsum('nij,nj->ni', h, psi + 0.5 * dt * k1, optimize=path))
+    k3 = (-1j * np.einsum('nij,nj->ni', h, psi + 0.5 * dt * k2, optimize=path))
+    k4 = (-1j * np.einsum('nij,nj->ni', h, psi + dt * k3, optimize=path))
     psi = psi + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return psi
 

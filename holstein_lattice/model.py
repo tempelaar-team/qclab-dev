@@ -179,7 +179,11 @@ def initialize(sim):
         output_dictionary = {'rho_db':rho_db,'pops_db':pops_db,'ph_occ':np.abs(z)**2}
         return output_dictionary
 
-
+    rand_herm_mat = np.random.rand(sim.num_branches, sim.num_states, sim.num_states) + 0.0j
+    rand_herm_mat += np.transpose(rand_herm_mat, axes=(0,2,1))
+    rand_vec = np.random.rand(sim.num_branches, sim.num_states)
+    sim.branch_mat_branch_vec_path = np.einsum_path('nij,nj->ni', rand_herm_mat, rand_vec, optimize='greedy')
+    print(sim.branch_mat_branch_vec_path)
 
     # equip simulation object with necessary functions
     sim.init_classical = harmonic_oscillator_boltzmann
