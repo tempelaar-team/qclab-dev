@@ -135,6 +135,18 @@ def dynamics(traj, sim):
         evecs_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
         evals_branch[:] = evals_0
         evecs_branch[:] = evecs_0
+        # initialize branch-pair eigenvalues and eigenvectors
+        if sim.dmat_const > 0:
+            evecs_branch_pair = np.zeros((num_branches, num_branches, num_states, num_states), dtype=complex)
+            evals_branch_pair = np.zeros((num_branches, num_branches, num_states))
+            evals_branch_pair[:, :] = evecs_0
+            evals_branch_pair[:, :] = evals_0
+        
+
+
+        ############################################################
+        #                   ACTIVE SURFACE INITIALIZATION          #
+        ############################################################
 
         # Options for deterministic branch simulation, num_branches==num_states
         if sim.sh_deterministic:
@@ -154,17 +166,16 @@ def dynamics(traj, sim):
                 act_surf_ind_0[n] = np.arange(num_states)[intervals > rand_val[n]][0]
             act_surf_ind_0 = np.sort(act_surf_ind_0)
 
-        # initialize branch-pair eigenvalues and eigenvectors
-        if sim.dmat_const > 0:
-            u_ij = np.zeros((num_branches, num_branches, num_states, num_states), dtype=complex)
-            e_ij = np.zeros((num_branches, num_branches, num_states))
-            u_ij[:, :] = evecs_0
-            e_ij[:, :] = evals_0
         # initialize active surface and active surface index in each branch
         act_surf_ind_branch = np.copy(act_surf_ind_0)
         act_surf_branch = np.zeros((num_branches, num_states), dtype=int)
         act_surf_branch[np.arange(num_branches, dtype=int), act_surf_ind_branch] = 1
+        
 
+
+        ############################################################
+        #                    WAVEFUNCTION INITIALIZATION           #
+        ############################################################
         # initialize wavefunction as a delta function in each branch
         psi_adb_delta_branch = np.zeros((num_branches, num_states), dtype=complex)
         psi_adb_delta_branch[np.arange(num_branches, dtype=int), act_surf_ind_0] = 1.0 + 0.j
@@ -174,11 +185,15 @@ def dynamics(traj, sim):
 
 
 
+        
+
+
+
+
 
         ############################################################
         #         COHERENT SURFACE HOPPING SPECIFIC INITIALIZATION#
         ############################################################
-
         # store the phase of each branch
         phase_branch = np.zeros(num_branches)
 
@@ -203,10 +218,8 @@ def dynamics(traj, sim):
             ############################################################
             if sim.calc_cfssh_obs:
                 rho_db_cfssh_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
-                for nb in range(num_branches):
-                    quantum_cfssh_obs_t, _ = sim.quantum_observables(sim, rho_db_cfssh_branch[nb], z_branch[nb])
-                    for obs_n in range(num_quantum_obs):
-                        output_quantum_cfssh_obs[obs_n][t_ind] += quantum_cfssh_obs_t[obs_n]
+
+                cfssh_observables_t = sim.observables(sim, rho_db_cfssh_branch, z_branch)
 
 
             ############################################################
@@ -220,10 +233,7 @@ def dynamics(traj, sim):
                     rho_db_fssh_branch = np.diag(rho_adb_0)[:,np.newaxis,np.newaxis]*rho_db_fssh_branch
                 else:
                     rho_db_fssh_branch = rho_db_fssh_branch/num_branches
-                for nb in range(num_branches):
-                    quantum_fssh_obs_t, _ = sim.quantum_observables(sim, rho_db_fssh_branch[nb], z_branch[nb])
-                    for obs_n in range(num_quantum_obs):
-                        output_quantum_fssh_obs[obs_n][t_ind] += quantum_fssh_obs_t[obs_n]
+                fssh_observables_t = sim.observables(sim, rho_db_fssh_branch, z_branch)
 
 
             ############################################################
@@ -231,18 +241,27 @@ def dynamics(traj, sim):
             ############################################################
             if sim.calc_mf_obs:
                 rho_db_mf_branch = np.einsum('ni,nk->nik', psi_db_branch, np.conj(psi_db_branch))
-                for nb in range(num_branches):
-                    quantum_mf_obs_t, _ = sim.quantum_observables(sim, rho_db_mf_branch[nb], z_branch[nb])
-                    for obs_n in range(num_quantum_obs):
-                        output_quantum_mf_obs[obs_n][t_ind] += quantum_mf_obs_t[obs_n]
+                mf_observables_t = sim.observables(sim, rho_db_mf_branch, z_branch)
+            
+            
+            # Add observables from timestep to output dictionary
+            observables_output = auxilliary.combine_dictionary(observables_output, observables_t)
+
 
 
             ############################################################
             #                         CLASSICAL OBSERVABLES            #
             ############################################################
-            classical_obs_t, _ = sim.classical_observables(sim, z)
-            for obs_n in range(num_classical_obs):
-                output_classical_obs[obs_n][t_ind] = classical_obs_t[obs_n]
+            # We will not calculate any purely classical observables because
+            # the branch separation in principle implies a dependence of the 
+            # contribution of the classical trajectory on the statistics of the 
+            # branch sampling. Therefore purely classical terms are only present in MF/FSSH
+            # where a single branch is used and so using the ordinary FSSH/MF observables
+            # generation should be efficient. 
+            #classical_obs_t = sim.classical_observables(sim, z_branch)
+            #classical_obs_t, _ = sim.classical_observables(sim, z)
+            #for obs_n in range(num_classical_obs):
+            #    output_classical_obs[obs_n][t_ind] = classical_obs_t[obs_n]
             
 
             pass

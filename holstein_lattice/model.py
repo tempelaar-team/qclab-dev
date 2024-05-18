@@ -172,15 +172,14 @@ def initialize(sim):
         return sim.h * z
 
     def quantum_observables(sim, rho_db, z):
-        names = ['rho_db', 'pops_db']
-        op1 = rho_db
-        op2 = np.diag(rho_db)
-        return [op1, op2], names
+        pops_db = np.diag(rho_db)
+        output_dictionary = {'rho_db':rho_db,'pops_db':np.diag(rho_db)}
+        return output_dictionary
 
     def classical_observables(sim, z):
-        names = ['ph_occ']
-        op1 = np.abs(z)**2
-        return [op1], names
+        ph_occ = np.abs(z)**2
+        output_dictionary = {'ph_occ':ph_occ}
+        return output_dictionary
 
 
     # equip simulation object with necessary functions
