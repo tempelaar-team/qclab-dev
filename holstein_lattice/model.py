@@ -171,15 +171,14 @@ def initialize(sim):
         """
         return sim.h * z
 
-    def quantum_observables(sim, rho_db, z):
+    def observables(sim, rho_db_branch, z_branch):
+        rho_db = np.sum(rho_db_branch,axis=0)
         pops_db = np.diag(rho_db)
-        output_dictionary = {'rho_db':rho_db,'pops_db':np.diag(rho_db)}
+        contributions = np.einsum('nii->n',rho_db_branch) # weights of each branch
+        z = np.einsum('n,nj->j',contributions, z_branch)
+        output_dictionary = {'rho_db':rho_db,'pops_db':pops_db,'ph_occ':np.abs(z)**2}
         return output_dictionary
 
-    def classical_observables(sim, z):
-        ph_occ = np.abs(z)**2
-        output_dictionary = {'ph_occ':ph_occ}
-        return output_dictionary
 
 
     # equip simulation object with necessary functions
@@ -195,8 +194,9 @@ def initialize(sim):
     sim.dh_c_dz = harmonic_oscillator_dh_c_dz
     sim.dh_c_dzc = harmonic_oscillator_dh_c_dzc
     sim.h = sim.w*np.ones(sim.num_states)
-    sim.quantum_observables = quantum_observables
-    sim.classical_observables = classical_observables
+    sim.mf_observables = observables
+    sim.fssh_observables = observables
+    sim.cfssh_observables = observables
     sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \
                    '_temp_' + str(sim.temp) + '_nstates_' + str(sim.num_states)
     sim.psi_db_0 = 1 / np.sqrt(sim.num_states) * np.ones(sim.num_states, dtype=complex)

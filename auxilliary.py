@@ -273,3 +273,15 @@ def nan_num(num):
 
 # vectorized form of nan_num
 nan_num_vec = np.vectorize(nan_num)
+
+
+def add_dictionary(dict_1, dict_2):
+    # adds entries of dict_2 to dict_1
+    keys_1 = dict_1.keys()
+    keys_2 = dict_2.keys()
+    for nk in len(keys_2):
+        if keys_2[nk] in keys_1:
+            dict_1[keys_2[nk]] += dict_2[keys_2[nk]]
+        else:
+            dict_1[keys_2[nk]] = dict_2[keys_2[nk]]
+    return dict_1

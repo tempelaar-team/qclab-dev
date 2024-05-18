@@ -76,6 +76,15 @@ class Trajectory:
     def add_to_dic(self, name, data):
         self.data_dic.__setitem__(name, data)
         return
+    def new_observable(self, name, shape, type):
+        self.data_dic[name] = np.zeros(shape, dtype=type)
+        return
+    def add_observable_dic(self, ind, dic):
+        for key in dic.keys():
+            if key in self.data_dic.keys():
+                self.data_dic[key][ind] += dic[key]
+        return
+
 
 
 class Data:

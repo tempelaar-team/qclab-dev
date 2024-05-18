@@ -70,46 +70,18 @@ def dynamics(traj, sim):
     tdat_bath = np.arange(0, sim.tmax + sim.dt_bath, sim.dt_bath)
     ec = np.zeros((len(tdat)))
     eq = np.zeros((len(tdat)))
-
     # initialize classical coordinates in each branch
     z_branch = np.zeros((num_branches, *np.shape(z)), dtype=complex)
     z_branch[:] = z
-
-    rho_db_0 = np.outer(psi_db, np.conj(psi_db))
-
-############################################################
-#                      INITIALIZE OUTPUTS                #
-############################################################
-
-    quantum_obs_0, quantum_obs_names = sim.quantum_observables(sim, rho_db_0)
-    assert len(quantum_obs_0) == len(quantum_obs_names)
-    num_quantum_obs = len(quantum_obs_0)
-    classical_obs_0, classical_obs_names = sim.classical_observables(sim, z)
-    assert len(classical_obs_0) == len(classical_obs_names)
-    num_classical_obs = len(classical_obs_0)
-    if sim.calc_mf_obs: # TODO there are rules associated with what calc_#_obs can be depending on what dynamics_method is
-        output_quantum_mf_obs = [np.zeros((len(tdat), *np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
-             for n in range(num_quantum_obs)]
-    if sim.calc_fssh_obs:
-        output_quantum_fssh_obs = [np.zeros((len(tdat), *np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
-             for n in range(num_quantum_obs)]
-    if sim.calc_cfssh_obs:
-        output_quantum_cfssh_obs = [np.zeros((len(tdat), *np.shape(quantum_obs_0[n])), dtype=quantum_obs_0[n].dtype) \
-             for n in range(num_quantum_obs)]
-    output_classical_obs = [np.zeros((len(tdat), *np.shape(classical_obs_0[n])), dtype=classical_obs_0[n].dtype) \
-                                     for n in range(num_classical_obs)]
-    ####################################
     if sim.dynamics_method == 'MF':
         assert sim.pab_cohere is None
         assert sim.dmat_const is None
         assert sim.branch_update is None
         assert num_branches == 1
     if sim.dynamics_method == 'CFSSH' or sim.dynamics_method == 'FSSH':
-
         ############################################################
         #              SURFACE HOPPING SPECIFIC INITIALIZATION     #
         ############################################################
-
         # compute initial eigenvalues and eigenvectors
         evals_0, evecs_0 = np.linalg.eigh(h_tot)
         # compute initial gauge shift for real-valued derivative couplings
@@ -129,7 +101,6 @@ def dynamics(traj, sim):
         # initial wavefunction in branches
         psi_adb_branch = np.zeros((num_branches, num_states), dtype=complex)
         psi_adb_branch[:] = psi_adb
-
         # initialize eigenvalues and eigenvectors in each branch
         evals_branch = np.zeros((num_branches, num_states))
         evecs_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
@@ -141,13 +112,10 @@ def dynamics(traj, sim):
             evals_branch_pair = np.zeros((num_branches, num_branches, num_states))
             evals_branch_pair[:, :] = evecs_0
             evals_branch_pair[:, :] = evals_0
-        
-
 
         ############################################################
         #                   ACTIVE SURFACE INITIALIZATION          #
         ############################################################
-
         # Options for deterministic branch simulation, num_branches==num_states
         if sim.sh_deterministic:
             assert num_branches == num_states
@@ -165,13 +133,10 @@ def dynamics(traj, sim):
             for n in range(num_branches):
                 act_surf_ind_0[n] = np.arange(num_states)[intervals > rand_val[n]][0]
             act_surf_ind_0 = np.sort(act_surf_ind_0)
-
         # initialize active surface and active surface index in each branch
         act_surf_ind_branch = np.copy(act_surf_ind_0)
         act_surf_branch = np.zeros((num_branches, num_states), dtype=int)
         act_surf_branch[np.arange(num_branches, dtype=int), act_surf_ind_branch] = 1
-        
-
 
         ############################################################
         #                    WAVEFUNCTION INITIALIZATION           #
@@ -183,25 +148,15 @@ def dynamics(traj, sim):
         psi_db_branch = auxilliary.vec_adb_to_db(psi_adb_branch, evecs_branch)
         psi_db_delta_branch = auxilliary.vec_adb_to_db(psi_adb_delta_branch, evecs_branch)
 
-
-
-        
-
-
-
-
-
         ############################################################
         #         COHERENT SURFACE HOPPING SPECIFIC INITIALIZATION#
         ############################################################
         # store the phase of each branch
         phase_branch = np.zeros(num_branches)
 
-
     ############################################################
     #                        TIME EVOLUTION                   #
     ############################################################
-
     t_ind = 0
     for t_bath_ind in np.arange(0, len(tdat_bath)):
         if t_ind == len(tdat):
@@ -212,15 +167,16 @@ def dynamics(traj, sim):
         #                            OUTPUT TIMESTEP               #
         ############################################################
 
-
             ############################################################
             #                                 CFSSH                    #
             ############################################################
             if sim.calc_cfssh_obs:
                 rho_db_cfssh_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
-
-                cfssh_observables_t = sim.observables(sim, rho_db_cfssh_branch, z_branch)
-
+                cfssh_observables_t = sim.cfssh_observables(sim, rho_db_cfssh_branch, z_branch)
+                if t_ind == 0 and t_bath_ind == 0:
+                    for key in cfssh_observables_t.keys():
+                        traj.new_observable(key + '_cfssh', (len(tdat), *np.shape(cfssh_observables_t[key])), cfssh_observables_t[key].dtype)
+                traj.add_observable_dic(t_ind, cfssh_observables_t)
 
             ############################################################
             #                                 FSSH                    #
@@ -233,21 +189,22 @@ def dynamics(traj, sim):
                     rho_db_fssh_branch = np.diag(rho_adb_0)[:,np.newaxis,np.newaxis]*rho_db_fssh_branch
                 else:
                     rho_db_fssh_branch = rho_db_fssh_branch/num_branches
-                fssh_observables_t = sim.observables(sim, rho_db_fssh_branch, z_branch)
-
+                fssh_observables_t = sim.fssh_observables(sim, rho_db_fssh_branch, z_branch)
+                if t_ind == 0 and t_bath_ind == 0:
+                    for key in fssh_observables_t.keys():
+                        traj.new_observable(key + '_fssh', (len(tdat), *np.shape(fssh_observables_t[key])), fssh_observables_t[key].dtype)
+                traj.add_observable_dic(t_ind, fssh_observables_t)
 
             ############################################################
             #                                  MF                     #
             ############################################################
             if sim.calc_mf_obs:
                 rho_db_mf_branch = np.einsum('ni,nk->nik', psi_db_branch, np.conj(psi_db_branch))
-                mf_observables_t = sim.observables(sim, rho_db_mf_branch, z_branch)
-            
-            
-            # Add observables from timestep to output dictionary
-            observables_output = auxilliary.combine_dictionary(observables_output, observables_t)
-
-
+                mf_observables_t = sim.mf_observables(sim, rho_db_mf_branch, z_branch)
+                if t_ind == 0 and t_bath_ind == 0:
+                    for key in fssh_observables_t.keys():
+                        traj.new_observable(key + '_mf', (len(tdat), *np.shape(mf_observables_t[key])), mf_observables_t[key].dtype)
+                traj.add_observable_dic(t_ind, mf_observables_t)
 
             ############################################################
             #                         CLASSICAL OBSERVABLES            #
@@ -274,13 +231,15 @@ def dynamics(traj, sim):
     z_branch = auxilliary.rk4_c(z, qfzc_branch, sim.dt_bath, sim)
     h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z, sim)
     if sim.dynamics_method == 'MF':
-        ######## quantum propagation in diabatic basis ########
+        ############################################################
+        #               QUANTUM PROPAGATION IN DIABATIC BASIS      #
+        ############################################################
         psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath)
-        #######################################################
 
     if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
-
-        ######## quantum propagation in adiabatic basis ########
+        ############################################################
+        #              QUANTUM PROPAGATION IN ADIABATIC BASIS     #
+        ############################################################
         evecs_branch_previous = np.copy(evecs_branch)
         # obtain branch eigenvalues and eigenvectors
         evals_branch, evecs_branch = np.linalg.eigh(h_tot_branch)
@@ -301,8 +260,10 @@ def dynamics(traj, sim):
         # transform back to diabatic basis
         psi_db_branch = auxilliary.vec_adb_to_db(psi_adb_branch, evecs_branch)
         psi_db_delta_branch = auxilliary.vec_adb_to_db(psi_adb_delta_branch, evecs_branch)
-        #######################################################
 
+        ############################################################
+        #                         HOPPING PROCEDURE                #
+        ############################################################
         # draw a random number (same for all branches)
         rand = np.random.rand()
         # TODO -- talk to Roel about rand in CFSSH/FSSH, can we actually do CFSSH with stochastic branch sampling?
@@ -351,17 +312,6 @@ def dynamics(traj, sim):
                         act_surf_branch[i][act_surf_ind_branch[i]] = 1
                     break
     traj.add_to_dic('t', tdat)
-    traj.add_to_dic('eq', eq)
-    traj.add_to_dic('ec', ec)
-    for n in range(num_quantum_obs):
-        if sim.calc_mf_obs:
-            traj.add_to_dic(quantum_obs_names[n]+'_mf', output_quantum_mf_obs[n])
-        if sim.calc_fssh_obs:
-            traj.add_to_dic(quantum_obs_names[n]+'_fssh', output_quantum_fssh_obs[n])
-        if sim.calc_cfssh_obs:
-            traj.add_to_dic(quantum_obs_names[n]+'_cfssh', output_quantum_cfssh_obs[n])
-    for n in range(num_classical_obs):
-        traj.add_to_dic(classical_obs_names[n], output_classical_obs[n])
     end_time = time.time()
     msg = 'trial index: ' + str(traj.index) +  ' time: ' + str(end_time - start_time) + ' seed: ' + str(traj.seed)
     return traj, msg
