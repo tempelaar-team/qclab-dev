@@ -50,25 +50,7 @@ def initialize(sim):
         out = np.diag(sim.g * np.sqrt(sim.h) * (z + np.conj(z)))
         return out
 
-    """
-    Initialize the rotation matrices of quantum and classical subsystems
-    """
-    if sim.quantum_rotation == 'fourier':
-        def u_q():
-            out = np.fft.fft(np.identity(sim.num_states)) / np.sqrt(sim.num_states)
-            return out
-    else:
-        def u_q():
-            out = np.identity(sim.num_states)
-            return out
-    if sim.classical_rotation == 'fourier':
-        def u_c():
-            out = np.fft.fft(np.identity(sim.num_states)) / np.sqrt(sim.num_states)
-            return out
-    else:
-        def u_c():
-            out = np.identity(sim.num_states)
-            return out
+
 
 
     # initialize derivatives of h wrt z and zc
@@ -177,21 +159,13 @@ def initialize(sim):
         z = np.einsum('n,nj->j',contributions, z_branch)
         output_dictionary = {'rho_db':rho_db,'pops_db':pops_db,'ph_occ':np.abs(z)**2}
         return output_dictionary
-
-    rand_herm_mat = np.random.rand(sim.num_branches, sim.num_states, sim.num_states) + 0.0j
-    rand_herm_mat += np.transpose(rand_herm_mat, axes=(0,2,1))
-    rand_vec = np.random.rand(sim.num_branches, sim.num_states)
-    sim.branch_mat_branch_vec_path = np.einsum_path('nij,nj->ni', rand_herm_mat, rand_vec, optimize='greedy')
-    print(sim.branch_mat_branch_vec_path)
-
+    
     # equip simulation object with necessary functions
     sim.init_classical = harmonic_oscillator_boltzmann
     sim.hop = hop
     sim.h_q = h_q
     sim.h_qc = h_qc
     sim.h_c = harmonic_oscillator
-    sim.u_c = u_c
-    sim.u_q = u_q
     sim.dh_qc_dz = dh_qc_dz
     sim.dh_qc_dzc = dh_qc_dzc
     sim.dh_c_dz = harmonic_oscillator_dh_c_dz
