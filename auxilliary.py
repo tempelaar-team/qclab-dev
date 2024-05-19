@@ -1,4 +1,4 @@
-from numba import jit
+from numba import jit, njit
 import numpy as np
 
 
@@ -37,7 +37,7 @@ def rk4_q(h, psi, dt, path=None):
 #                   BASIS TRANSFORMATIONS                  #
 ############################################################
 
-def vec_adb_to_db(psi_adb, eigvec):
+def psi_adb_to_db(psi_adb, eigvec):
     """
     Transforms a vector in adiabatic basis to diabatic basis
     psi_{db} = V psi_{adb}
@@ -48,7 +48,7 @@ def vec_adb_to_db(psi_adb, eigvec):
     psi_db = np.matmul(eigvec, psi_adb)
     return psi_db
 
-def vec_db_to_adb(psi_db, eigvec):
+def psi_db_to_adb(psi_db, eigvec):
     """
     Transforms a vector in diabatic basis to adiabatic basis
     psi_{adb} = V^{dagger}psi_{db}
@@ -59,20 +59,47 @@ def vec_db_to_adb(psi_db, eigvec):
     psi_adb = np.matmul(np.conjugate(np.transpose(eigvec)), psi_db)
     return psi_adb
 
-def vec_adb_to_db_branch(psi_adb_branch, eigvec_branch):
+def psi_adb_to_db_branch_suboptimal(psi_adb_branch, eigvec_branch):
     psi_db_branch = np.einsum('nab,nb->na', eigvec_branch, psi_adb_branch, optimize='greedy')
     return psi_db_branch
 
-def vec_db_to_adb_branch(psi_adb_branch, eigvec_branch):
+def psi_db_to_adb_branch_suboptimal(psi_adb_branch, eigvec_branch):
     psi_db_branch = np.einsum('nba,nb->na', np.conj(eigvec_branch), psi_adb_branch, optimize='greedy')
     return psi_db_branch
 
-def rho_adb_to_db_branch(rho_adb_branch, eigvec_branch):
+def rho_adb_to_db_branch_suboptimal(rho_adb_branch, eigvec_branch):
     return np.einsum('nij,njk,nlk->nil', eigvec_branch, rho_adb_branch, np.conj(eigvec_branch), optimize='greedy')
 
-def rho_db_to_adb_branch(rho_db_branch, eigvec_branch):
+def rho_db_to_adb_branch_suboptimal(rho_db_branch, eigvec_branch):
     return np.einsum('nji,njk,nkl->nil', np.conj(eigvec_branch), rho_db_branch, eigvec_branch, optimize='greedy')
 
+@njit
+def psi_adb_to_db_branch(psi_adb_branch, eigvec_branch): # transforms branch adibatic to diabatic basis
+    psi_db_branch = np.ascontiguousarray(np.zeros(np.shape(psi_adb_branch))) + 0.0j
+    for i in range(len(eigvec_branch)):
+        psi_db_branch[i] = np.dot(np.dot(eigvec_branch[i], psi_adb_branch[i] + 0.0j), np.conj(eigvec_branch[i]).transpose())
+    return psi_db_branch
+
+@njit
+def psi_db_to_adb_branch(psi_db_branch, eigvec_branch): # transforms branch adibatic to diabatic basis
+    psi_adb_branch = np.ascontiguousarray(np.zeros(np.shape(psi_db_branch))) + 0.0j
+    for i in range(len(eigvec_branch)):
+        psi_adb_branch[i] = np.dot(np.dot(np.conj(eigvec_branch[i]).transpose(), psi_db_branch[i] + 0.0j), eigvec_branch[i])
+    return psi_adb_branch
+
+@njit
+def rho_adb_to_db_branch(rho_adb_branch, eigvec_branch): # transforms branch adibatic to diabatic basis
+    rho_db_branch = np.ascontiguousarray(np.zeros(np.shape(eigvec_branch))) + 0.0j
+    for i in range(len(eigvec_branch)):
+        rho_db_branch[i] = np.dot(np.dot(eigvec_branch[i], rho_adb_branch[i] + 0.0j), np.conj(eigvec_branch[i]).transpose())
+    return rho_db_branch
+
+@njit
+def rho_db_to_adb_branch(rho_db_branch, eigvec_branch): # transforms branch adibatic to diabatic basis
+    rho_adb_branch = np.ascontiguousarray(np.zeros(np.shape(eigvec_branch))) + 0.0j
+    for i in range(len(eigvec_branch)):
+        rho_adb_branch[i] = np.dot(np.dot(np.conj(eigvec_branch[i]).transpose(), rho_db_branch[i] + 0.0j), eigvec_branch[i])
+    return rho_adb_branch
 
 
 ############################################################

@@ -153,11 +153,14 @@ def initialize(sim):
         return sim.h * z
 
     def observables(sim, rho_db_branch, z_branch):
-        rho_db = np.sum(rho_db_branch,axis=0)
-        pops_db = np.diag(rho_db)
-        contributions = np.einsum('nii->n',rho_db_branch) # weights of each branch
-        z = np.einsum('n,nj->j',contributions, z_branch)
-        output_dictionary = {'rho_db':rho_db,'pops_db':pops_db,'ph_occ':np.abs(z)**2}
+        #rho_db = np.sum(rho_db_branch,axis=0)
+        #pops_db = np.diag(rho_db)
+        #contributions = np.einsum('nii->n',rho_db_branch) # weights of each branch
+        #z = np.einsum('n,nj->j',contributions, z_branch)
+        #output_dictionary = {'rho_db':rho_db,'pops_db':pops_db,'ph_occ':np.abs(z)**2}
+        # to test the core dynamics module we will not waste any time calculating observables, 
+        # efficient observable implementation is up to the user
+        output_dictionary = {}
         return output_dictionary
     
     # equip simulation object with necessary functions

@@ -34,9 +34,11 @@ def run_dynamics(sim):
     for run in range(0, int(sim.num_trajs / sim.num_procs)):
         index_list = [run * sim.num_procs + i + last_index for i in range(sim.num_procs)]
         seed_list = [seeds[run * sim.num_procs + i] for i in range(sim.num_procs)]
-        results = [dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim) for i in range(sim.num_procs)]
+        #results = [dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim) for i in range(sim.num_procs)]
+        results = [dynamics(simulation.Trajectory(seed_list[i], index_list[i]), sim) for i in range(sim.num_procs)]
         for r in results:
-            traj_obj, msg = ray.get(r)
+            #traj_obj, msg = ray.get(r)
+            traj_obj, msg = r
             print(msg)
             data_obj.add_data(traj_obj)
         del results
@@ -48,7 +50,7 @@ def run_dynamics(sim):
 
 
 
-@ray.remote
+#@ray.remote
 def dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
@@ -97,7 +99,7 @@ def dynamics(traj, sim):
             # and/or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
             print('Warning: phase init', np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
         # determine initial adiabatic wavefunction in fixed gauge
-        psi_adb = auxilliary.vec_db_to_adb(psi_db, evecs_0)
+        psi_adb = auxilliary.psi_db_to_adb(psi_db, evecs_0)
         # determine initial adiabatic density matrix
         rho_adb_0 = np.outer(psi_adb, np.conj(psi_adb))
         # initial wavefunction in branches
@@ -147,8 +149,8 @@ def dynamics(traj, sim):
         psi_adb_delta_branch = np.zeros((num_branches, num_states), dtype=complex)
         psi_adb_delta_branch[np.arange(num_branches, dtype=int), act_surf_ind_0] = 1.0 + 0.j
         # transform to diabatic basis
-        psi_db_branch = auxilliary.vec_adb_to_db_branch(psi_adb_branch, evecs_branch)
-        psi_db_delta_branch = auxilliary.vec_adb_to_db_branch(psi_adb_delta_branch, evecs_branch)
+        psi_db_branch = auxilliary.psi_adb_to_db_branch(psi_adb_branch, evecs_branch)
+        psi_db_delta_branch = auxilliary.psi_adb_to_db_branch(psi_adb_delta_branch, evecs_branch)
 
         ############################################################
         #         COHERENT SURFACE HOPPING SPECIFIC INITIALIZATION#
@@ -262,21 +264,21 @@ def dynamics(traj, sim):
     ############################################################
     #                     CLASSICAL PROPAGATION                #
     ############################################################
+    # calculate quantum force
     if sim.dynamics_method == 'MF':
         qfzc_branch = auxilliary.quantum_force_branch(psi_db_branch, None, z_branch, sim)
     if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
         qfzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim)
+    # evolve classical coordinates
     z_branch = auxilliary.rk4_c(z_branch, qfzc_branch, sim.dt_bath, sim)
-
+    # update Hamiltonian
     h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z, sim)
 
     if sim.dynamics_method == 'MF':
         ############################################################
         #               QUANTUM PROPAGATION IN DIABATIC BASIS      #
         ############################################################
-        print(np.shape(h_tot_branch), np.shape(psi_db_branch))
-        psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath)
-
+        psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath, path='greedy')
     if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
         ############################################################
         #              QUANTUM PROPAGATION IN ADIABATIC BASIS     #
@@ -293,14 +295,14 @@ def dynamics(traj, sim):
         # evolve wavefunction
         diag_matrix_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
         diag_matrix_branch[:,range(num_states),range(num_states)] = evals_exp_branch
-        psi_adb_branch = np.copy(auxilliary.vec_db_to_adb_branch(psi_db_branch, evecs_branch))
-        psi_adb_delta = np.copy(auxilliary.vec_db_to_adb_branch(psi_db_delta_branch, evecs_branch))
+        psi_adb_branch = np.copy(auxilliary.psi_db_to_adb_branch(psi_db_branch, evecs_branch))
+        psi_adb_delta = np.copy(auxilliary.psi_db_to_adb_branch(psi_db_delta_branch, evecs_branch))
         # multiply by propagator
         psi_adb_branch = np.copy(np.einsum('nab,nb->na', diag_matrix_branch, psi_adb_branch, optimize='greedy'))
         psi_adb_delta_branch = np.copy(np.einsum('nab,nb->na', diag_matrix_branch, psi_adb_delta_branch, optimize='greedy'))
         # transform back to diabatic basis
-        psi_db_branch = auxilliary.vec_adb_to_db_branch(psi_adb_branch, evecs_branch)
-        psi_db_delta_branch = auxilliary.vec_adb_to_db_branch(psi_adb_delta_branch, evecs_branch)
+        psi_db_branch = auxilliary.psi_adb_to_db_branch(psi_adb_branch, evecs_branch)
+        psi_db_delta_branch = auxilliary.psi_adb_to_db_branch(psi_adb_delta_branch, evecs_branch)
 
         ############################################################
         #                         HOPPING PROCEDURE                #
