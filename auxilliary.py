@@ -213,3 +213,21 @@ def h_qc_branch(z_branch, sim):
     for i in range(sim.num_branches):
         out[i] += sim.h_qc(z_branch[i], sim)
     return out
+
+@jit(nopython=True)
+def nan_num(num):
+    """
+    converts nan to a large or small number using numba acceleration
+    """
+    if np.isnan(num):
+        return 0.0
+    if num == np.inf:
+        return 100e100
+    if num == -np.inf:
+        return -100e100
+    else:
+        return num
+
+
+# vectorized form of nan_num
+nan_num_vec = np.vectorize(nan_num)
