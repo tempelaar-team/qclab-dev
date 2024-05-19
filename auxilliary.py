@@ -2,6 +2,12 @@ from numba import jit
 import numpy as np
 
 
+
+############################################################
+#                       RUNGE-KUTTA                       #
+############################################################
+
+
 def rk4_c(z, qfzc, dt, sim):
     k1 = -1.0j*(sim.dh_c_dzc(z,sim) + qfzc)
     k2 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k1, sim) + qfzc)
@@ -27,7 +33,11 @@ def rk4_q(h, psi, dt, path=None):
     return psi
 
 
-def vec_0_adb_to_db(psi_adb, eigvec):
+############################################################
+#                   BASIS TRANSFORMATIONS                  #
+############################################################
+
+def vec_adb_to_db(psi_adb, eigvec):
     """
     Transforms a vector in adiabatic basis to diabatic basis
     psi_{db} = V psi_{adb}
@@ -38,8 +48,7 @@ def vec_0_adb_to_db(psi_adb, eigvec):
     psi_db = np.matmul(eigvec, psi_adb)
     return psi_db
 
-
-def vec_0_db_to_adb(psi_db, eigvec):
+def vec_db_to_adb(psi_db, eigvec):
     """
     Transforms a vector in diabatic basis to adiabatic basis
     psi_{adb} = V^{dagger}psi_{db}
@@ -50,53 +59,62 @@ def vec_0_db_to_adb(psi_db, eigvec):
     psi_adb = np.matmul(np.conjugate(np.transpose(eigvec)), psi_db)
     return psi_adb
 
-def vec_db_to_adb(psi_db_branch, eigvec_branch):
-    """
-    Transforms a vector in diabatic basis to adiabatic basis
-    psi_{adb} = V^{dagger}psi_{db}
-    :param psi_db: diabatic vector psi_{db}
-    :param eigvec: eigenvectors V
-    :return: adiabatic vector psi_{adb}
-    """
-    #psi_adb = np.matmul(np.conjugate(np.transpose(eigvec)), psi_db)
-    psi_adb_branch = np.einsum('nba,nb->na',np.conjugate(eigvec_branch), psi_db_branch, optimize='greedy')
-    return psi_adb_branch
-
-def vec_adb_to_db(psi_adb_branch, eigvec_branch):
+def vec_adb_to_db_branch(psi_adb_branch, eigvec_branch):
     psi_db_branch = np.einsum('nab,nb->na', eigvec_branch, psi_adb_branch, optimize='greedy')
     return psi_db_branch
 
-def rho_adb_to_db(rho_0_adb, eigvec):
-    return np.einsum('nij,njk,nlk->nil', eigvec, rho_0_adb, np.conj(eigvec), optimize='greedy')
+def vec_db_to_adb_branch(psi_adb_branch, eigvec_branch):
+    psi_db_branch = np.einsum('nba,nb->na', np.conj(eigvec_branch), psi_adb_branch, optimize='greedy')
+    return psi_db_branch
 
-def rho_db_to_adb(rho_0_db, eigvec):
-    return np.einsum('nji,njk,nkl->nil', np.conj(eigvec), rho_0_db, eigvec, optimize='greedy')
+def rho_adb_to_db_branch(rho_adb_branch, eigvec_branch):
+    return np.einsum('nij,njk,nlk->nil', eigvec_branch, rho_adb_branch, np.conj(eigvec_branch), optimize='greedy')
 
-@jit(nopython=True)
-def rho_0_adb_to_db(rho_0_adb, eigvec):  # transforms density matrix from adb to db representation
+def rho_db_to_adb_branch(rho_db_branch, eigvec_branch):
+    return np.einsum('nji,njk,nkl->nil', np.conj(eigvec_branch), rho_db_branch, eigvec_branch, optimize='greedy')
+
+
+
+############################################################
+#                       QUANTUM FORCE                      #
+############################################################
+def quantum_force(psi, z, sim):  # computes <\psi|\nabla H|\psi> using sparse methods
     """
-    Transforms a density matrix rho_{adb} from adiabatic to diabatic basis:
-    rho_{db} = Vrho_{adb}V^{dagger}
-    :param rho_0_adb: adiabatic density matrix rho_{adb}
-    :param eigvec: eigenvectors V
-    :return: diabatic density matrix rho_{db}
+    Computes the Hellman-Feynmann force using the formula
+    f_{q(p)} = <psi| \nabla_{q(p)} H |psi>
+    :param psi: |psi>
+    :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
+    :return: f_{z} and f_{zc}
     """
-    rho_0_db = np.dot(np.dot(eigvec, rho_0_adb + 0.0j), np.conj(eigvec).transpose())
-    return rho_0_db
+    #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
+    #fz = sim.dh_qc_dz(psi, psi, z)#matprod_sparse(dz_shape, dz_ind, dz_mels, psi, psi)
+    fzc = sim.dh_qc_dzc(psi, psi, z, sim)#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
+    return fzc
 
+def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
+    fzc_branch = np.zeros(np.shape(z_branch), dtype=complex)
+    if act_surf_ind_branch is None:
+        for i in range(len(evecs_branch)):
+            fzc_branch[i] = quantum_force(evecs_branch[i], z_branch[i], sim)
+    else:
+        for i in range(len(evecs_branch)):
+            fzc_branch[i] = quantum_force(evecs_branch[i][:,act_surf_ind_branch[i]], z_branch[i], sim)
+    return fzc_branch
 
-@jit(nopython=True)
-def rho_0_db_to_adb(rho_0_db, eigvec):  # transforms density matrix from db to adb representation
+def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse methods
     """
-    Transforms a density matrix rho_{db} from diabatic to adiabatic basis:
-    rho_{adb} = V^{dagger}rho_{db}V
-    :param rho_0_db: diabatic density matrix rho_{db}
-    :param eigvec: eigenvectors V
-    :return:  adiabatic density matrix rho_{adb}
+    Computes the nonadiabatic coupling using the formula
+    d_{ab}^{z(zc)} = <a|\nabla_{z(zc)} H|b>/(e_{b} - e_{a})
+    :param evec_a: |a>
+    :param evec_b: |b>
+    :param ev_diff: e_{b} - e_{a}
+    :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
+    :return: d_{ab}^{z} and d_{ab}^{zc}
     """
-    rho_0_db = np.dot(np.dot(np.conj(eigvec).transpose(), rho_0_db + 0.0j), eigvec)
-    return rho_0_db
-
+    #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
+    dab_z = sim.dh_qc_dz(evec_a, evec_b, z, sim) / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
+    dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z, sim) / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
+    return dab_z, dab_zc
 
 def get_dab_phase(evals, evecs, z, sim):
     """
@@ -132,35 +150,6 @@ def get_dab_phase(evals, evecs, z, sim):
         dabp_phase[i + 1:] = np.exp(1.0j * dkkp_angle) * dabp_phase[i + 1:]
     return dabq_phase, dabp_phase
 
-def h_qc_branch(z_branch, sim):
-    """
-    evaluates h_qc over each branch
-    :param z_branch:
-    :param sim:
-    :return:
-    """
-    out = np.zeros((sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
-    for i in range(sim.num_branches):
-        out[i] += sim.h_qc(z_branch[i], sim)
-    return out
-
-
-
-def get_branch_pair_eigs(z_branch, u_ij_previous, h_q_mat, sim):
-    u_ij = np.zeros_like(u_ij_previous)
-    num_branches = np.shape(u_ij_previous)[0]
-    num_states = np.shape(u_ij_previous)[-1]
-    e_ij = np.zeros((num_branches, num_branches, num_states))
-    for i in range(num_branches):
-        for j in range(i, num_branches):
-            branch_mat = h_q_mat + sim.h_qc((z_branch[i] + z_branch[j]) / 2, sim)
-            e_ij[i, j], u_ij[i, j] = np.linalg.eigh(branch_mat)
-            e_ij[j, i] = e_ij[i, j]
-            u_ij[i, j], _ = sign_adjust(u_ij[i, j], u_ij_previous[i, j], e_ij[i, j], sim)
-            u_ij[j, i], _ = u_ij[i, j]
-    return e_ij, u_ij
-
-
 def get_classical_overlap(z_branch, sim):
     out_mat = np.zeros((len(z_branch), len(z_branch)))
     zc_branch = np.conjugate(z_branch)
@@ -170,7 +159,6 @@ def get_classical_overlap(z_branch, sim):
         for j in range(len(z_branch)):
             out_mat[i,j] = np.exp(-(1/2)*np.sum(np.abs((p_branch[i] - p_branch[j]) * (q_branch[i] - q_branch[j]))))
     return out_mat
-
 
 def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim):
     phase_out = np.ones((len(evecs_branch), len(evecs_branch[0])), dtype=complex)
@@ -194,6 +182,7 @@ def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_bran
         phase_out *= signs
     return evecs_branch, phase_out
 
+
 @jit(nopython=True)
 def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
     """
@@ -213,73 +202,14 @@ def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
         out_mat[i_ind[i]] += prod[i]
     return out_mat
 
-
-def quantum_force(psi, z, sim):  # computes <\psi|\nabla H|\psi> using sparse methods
+def h_qc_branch(z_branch, sim):
     """
-    Computes the Hellman-Feynmann force using the formula
-    f_{q(p)} = <psi| \nabla_{q(p)} H |psi>
-    :param psi: |psi>
-    :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
-    :return: f_{z} and f_{zc}
+    evaluates h_qc over each branch
+    :param z_branch:
+    :param sim:
+    :return:
     """
-    #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    #fz = sim.dh_qc_dz(psi, psi, z)#matprod_sparse(dz_shape, dz_ind, dz_mels, psi, psi)
-    fzc = sim.dh_qc_dzc(psi, psi, z, sim)#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
-    return fzc
-
-def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
-    fzc_branch = np.zeros(np.shape(z_branch), dtype=complex)
-    if act_surf_ind_branch is None:
-        for i in range(len(evecs_branch)):
-            fzc_branch[i] = quantum_force(evecs_branch[i], z_branch[i], sim)
-    else:
-        for i in range(len(evecs_branch)):
-            fzc_branch[i] = quantum_force(evecs_branch[i][:,act_surf_ind_branch[i]], z_branch[i], sim)
-    return fzc_branch
-
-
-def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse methods
-    """
-    Computes the nonadiabatic coupling using the formula
-    d_{ab}^{z(zc)} = <a|\nabla_{z(zc)} H|b>/(e_{b} - e_{a})
-    :param evec_a: |a>
-    :param evec_b: |b>
-    :param ev_diff: e_{b} - e_{a}
-    :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
-    :return: d_{ab}^{z} and d_{ab}^{zc}
-    """
-    #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    dab_z = sim.dh_qc_dz(evec_a, evec_b, z, sim) / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
-    dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z, sim) / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
-    return dab_z, dab_zc
-
-
-@jit(nopython=True)
-def nan_num(num):
-    """
-    converts nan to a large or small number using numba acceleration
-    """
-    if np.isnan(num):
-        return 0.0
-    if num == np.inf:
-        return 100e100
-    if num == -np.inf:
-        return -100e100
-    else:
-        return num
-
-
-# vectorized form of nan_num
-nan_num_vec = np.vectorize(nan_num)
-
-
-def add_dictionary(dict_1, dict_2):
-    # adds entries of dict_2 to dict_1
-    keys_1 = dict_1.keys()
-    keys_2 = dict_2.keys()
-    for nk in len(keys_2):
-        if keys_2[nk] in keys_1:
-            dict_1[keys_2[nk]] += dict_2[keys_2[nk]]
-        else:
-            dict_1[keys_2[nk]] = dict_2[keys_2[nk]]
-    return dict_1
+    out = np.zeros((sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
+    for i in range(sim.num_branches):
+        out[i] += sim.h_qc(z_branch[i], sim)
+    return out

@@ -1,0 +1,17 @@
+## Example input file for the Holstein lattice ##
+## dynamics inputs ##
+model_module_path='model.py'
+num_procs=1
+num_trajs=1
+dynamics_method='FSSH'
+num_branches=10
+sh_deterministic=False
+tmax=10
+dt=0.1
+dt_bath=0.01
+## model specific inputs ##
+num_states=20 # number of lattice sites
+g=1 # electron-phonon coupling
+w=0.2 # phonon frequency
+j=1 # hopping integral
+temp=1 # temperature
