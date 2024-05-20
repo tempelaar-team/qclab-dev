@@ -66,30 +66,25 @@ def dynamics(traj, sim):
     if sim.num_branches is None:
         sim.num_branches = num_states
     num_branches = sim.num_branches
-    # compute initial Hamiltonian
-    h_q = sim.h_q(sim)
-    h_tot = h_q + sim.h_qc(z, sim)
-    # initialize outputs
-    tdat = np.arange(0, sim.tmax + sim.dt, sim.dt)
-    tdat_bath = np.arange(0, sim.tmax + sim.dt_bath, sim.dt_bath)
-    ec = np.zeros((len(tdat)))
-    eq = np.zeros((len(tdat)))
     # initialize classical coordinates in each branch
     z_branch = np.zeros((num_branches, *np.shape(z)), dtype=complex)
     z_branch[:] = z
+    # compute initial Hamiltonian
+    h_q_branch = np.copy(sim.h_q_branch(sim))
+    h_tot_branch = h_q_branch + sim.h_qc_branch(z_branch, sim)
+    # initialize outputs
+    tdat = np.arange(0, sim.tmax + sim.dt, sim.dt)
+    tdat_bath = np.arange(0, sim.tmax + sim.dt_bath, sim.dt_bath)
     if sim.dynamics_method == 'MF':
         psi_db_branch = np.zeros((num_branches, num_states), dtype=complex)
         psi_db_branch[:] = psi_db
-        #assert sim.pab_cohere is None
-        #assert sim.dmat_const is None
-        #assert sim.branch_update is None
         assert num_branches == 1
     if sim.dynamics_method == 'CFSSH' or sim.dynamics_method == 'FSSH':
         ############################################################
         #              SURFACE HOPPING SPECIFIC INITIALIZATION     #
         ############################################################
         # compute initial eigenvalues and eigenvectors
-        evals_0, evecs_0 = np.linalg.eigh(h_tot)
+        evals_0, evecs_0 = np.linalg.eigh(h_tot_branch[0])
         # compute initial gauge shift for real-valued derivative couplings
         dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z, sim)
         # execute phase shift
@@ -273,7 +268,7 @@ def dynamics(traj, sim):
         # evolve classical coordinates
         z_branch = auxilliary.rk4_c(z_branch, qfzc_branch, sim.dt_bath, sim)
         # update Hamiltonian
-        h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z_branch, sim)
+        h_tot_branch = h_q_branch + sim.h_qc_branch(z_branch, sim)
         if sim.dynamics_method == 'MF':
             ############################################################
             #               QUANTUM PROPAGATION IN DIABATIC BASIS      #
@@ -332,10 +327,6 @@ def dynamics(traj, sim):
                         eval_j = evals_branch[i][k]
                         ev_diff = eval_j - eval_k
                         # dkj_q is wrt q dkj_p is wrt p.
-                        if np.abs(ev_diff) < 1e-10:
-                            print(act_surf_ind_branch[i],k)
-                            print(evals_branch[i])
-                            print(h_tot_branch[i])
                         dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, z_branch[i], sim)
                         # check that nonadiabatic couplings are real-valued
                         dkj_q = np.sqrt(sim.h * sim.m / 2) * (dkj_z + dkj_zc)

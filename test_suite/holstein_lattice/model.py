@@ -27,28 +27,30 @@ def initialize(sim):
     sim.calc_dir = defaults["calc_dir"]
 
 
-    def h_q(sim):
+    def h_q_branch(sim):
         """
         Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
         :return: h_q Hamiltonian
         """
-        out = np.zeros((sim.num_states, sim.num_states), dtype=complex)
+        out = np.zeros((sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
         for n in range(sim.num_states - 1):
-            out[n, n + 1] = -sim.j
-            out[n + 1, n] = -sim.j
-        out[0, -1] = -sim.j
-        out[-1, 0] = -sim.j
+            out[:, n, n + 1] = -sim.j
+            out[:, n + 1, n] = -sim.j
+        out[:, 0, -1] = -sim.j
+        out[:, -1, 0] = -sim.j
         return out
 
-    def h_qc(z, sim):
+    def h_qc_branch(z_branch, sim):
         """
         Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
         :param z: z coordinate
         :param zc: z^{*} conjugate z
         :return: h_qc(z,z^{*}) Hamiltonian
         """
-        out = np.diag(sim.g * np.sqrt(sim.h) * (z + np.conj(z)))
-        return out
+        h_qc_out = np.zeros((sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
+        h_qc_diag = sim.g * np.sqrt(sim.h) * (z_branch + np.conj(z_branch))
+        np.einsum('...jj->...j', h_qc_out)[...] = h_qc_diag
+        return h_qc_out
 
 
 
@@ -165,8 +167,8 @@ def initialize(sim):
     # equip simulation object with necessary functions
     sim.init_classical = harmonic_oscillator_boltzmann
     sim.hop = hop
-    sim.h_q = h_q
-    sim.h_qc = h_qc
+    sim.h_q_branch = h_q_branch
+    sim.h_qc_branch = h_qc_branch
     sim.h_c = harmonic_oscillator
     sim.dh_qc_dz = dh_qc_dz
     sim.dh_qc_dzc = dh_qc_dzc

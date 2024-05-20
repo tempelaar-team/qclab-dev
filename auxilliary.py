@@ -188,10 +188,13 @@ def get_classical_overlap(z_branch, sim):
     return out_mat
 
 def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim):
-    phase_out = np.ones((len(evecs_branch), len(evecs_branch[0])), dtype=complex)
+    # commented out einsum terms found to be slower
+    phase_out = np.ones((sim.num_branches, sim.num_states), dtype=complex)
     if sim.gauge_fix >= 1:
-        phases = np.exp(-1.0j*np.angle(np.einsum('ijk,ijk->ik',np.conjugate(evecs_branch_previous),evecs_branch)))
-        evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,phases)
+        #phases = np.exp(-1.0j*np.angle(np.einsum('ijk,ijk->ik',np.conjugate(evecs_branch_previous),evecs_branch)))
+        phases = np.exp(-1.0j*np.angle(np.sum(np.conjugate(evecs_branch_previous)*evecs_branch, axis=1)))
+        #evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,phases)
+        evecs_branch = evecs_branch*phases[:,np.newaxis,:]
         phase_out *= phases
     if sim.gauge_fix >= 2:
         dab_phase_mat = np.ones((len(evecs_branch),len(evecs_branch)),dtype=complex)
@@ -203,9 +206,10 @@ def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_bran
         #    evecs_branch[i] = np.einsum('jk,k->jk',evecs_branch[i],dab_phase_list)
         evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,dab_phase_mat)
     if sim.gauge_fix >= 0:
-        signs = np.sign(np.einsum('ijk,ijk->ik',np.conjugate(evecs_branch_previous),evecs_branch))
-
-        evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,signs)
+        #signs = np.sign(np.einsum('ijk,ijk->ik',np.conjugate(evecs_branch_previous),evecs_branch))
+        signs = np.sign(np.sum(np.conjugate(evecs_branch_previous)*evecs_branch, axis=1))
+        #evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,signs)
+        evecs_branch = evecs_branch*signs[:,np.newaxis,:]
         phase_out *= signs
     return evecs_branch, phase_out
 
@@ -229,7 +233,7 @@ def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
         out_mat[i_ind[i]] += prod[i]
     return out_mat
 
-def h_qc_branch(z_branch, sim):
+def h_qc_branch_DEPRECATED(z_branch, sim):
     """
     evaluates h_qc over each branch
     :param z_branch:
