@@ -130,16 +130,16 @@ def initialize(sim):
         z = np.sqrt(sim.h * sim.m / 2) * (q + 1.0j * (p / (sim.h * sim.m)))
         return z
 
-    def harmonic_oscillator(z, sim):
+    def harmonic_oscillator(z_branch, sim):
         """
         Harmonic oscillator Hamiltonian
         :param z: z(t)
         :param zc: conjugate z(t)
         :return: h_c(z,zc) Hamiltonian
         """
-        return np.real(np.sum(sim.h * np.conj(z) * z))
+        return np.real(np.sum(sim.h[np.newaxis,:] * np.conj(z_branch) * z_branch, axis=1))
 
-    def harmonic_oscillator_dh_c_dz(z, sim):
+    def harmonic_oscillator_dh_c_dz(z_branch, sim):
         """
         Gradient of harmonic oscillator hamiltonian w.r.t z
         :param z: z coordinate
@@ -147,9 +147,9 @@ def initialize(sim):
         :param sim: simulation object
         :return:
         """
-        return sim.h * np.conj(z)
+        return sim.h[np.newaxis, :] * np.conj(z_branch)
 
-    def harmonic_oscillator_dh_c_dzc(z, sim):
+    def harmonic_oscillator_dh_c_dzc(z_branch, sim):
         """
         Gradient of harmonic oscillator hamiltonian wrt z*
         :param z: z coordinate
@@ -157,7 +157,7 @@ def initialize(sim):
         :param sim: simulation object
         :return:
         """
-        return sim.h * z
+        return sim.h[np.newaxis, :] * z_branch
 
     def observables(sim, rho_db_branch, z_branch):
         #rho_db = np.sum(rho_db_branch,axis=0)

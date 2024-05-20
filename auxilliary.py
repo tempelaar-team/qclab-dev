@@ -8,13 +8,13 @@ import numpy as np
 ############################################################
 
 
-def rk4_c(z, qfzc, dt, sim):
-    k1 = -1.0j*(sim.dh_c_dzc(z,sim) + qfzc)
-    k2 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k1, sim) + qfzc)
-    k3 = -1.0j*(sim.dh_c_dzc(z + 0.5*dt*k2, sim) + qfzc)
-    k4 = -1.0j*(sim.dh_c_dzc(z + dt*k3, sim) + qfzc)
-    z = z + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
-    return z
+def rk4_c(z_branch, qfzc_branch, dt, sim):
+    k1 = -1.0j*(sim.dh_c_dzc(z_branch, sim) + qfzc_branch)
+    k2 = -1.0j*(sim.dh_c_dzc(z_branch + 0.5*dt*k1, sim) + qfzc_branch)
+    k3 = -1.0j*(sim.dh_c_dzc(z_branch + 0.5*dt*k2, sim) + qfzc_branch)
+    k4 = -1.0j*(sim.dh_c_dzc(z_branch + dt*k3, sim) + qfzc_branch)
+    z_branch = z_branch + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
+    return z_branch
 
 @jit(nopython=True)
 def rk4_q(h, psi, dt, path=None):

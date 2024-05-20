@@ -10,20 +10,20 @@ array.
 sim.h   The frequency parameter of the classical coordinates. Can be physically motivated or not. Like sim.m it should
 be a 1-D numpy array with the same length as the total number of classical coordinates.
 
-sim.h_q(sim)     The quantum Hamiltonian. A function that when called as sim.h_q(sim) returns a 2-D numpy array describing the
+sim.h_q_branch(sim)     The quantum Hamiltonian. A function that when called as sim.h_q(sim) returns a 2-D numpy array describing the
 matrix elements of the Hamiltonian of the quantum subsystem.
 
-sim.h_qc(z, sim) The quantum-classical Hamiltonian. A function that when called as sim.h_qc(z, sim) returns a 2-D numpy
+sim.h_qc_branch(z_branch, sim) The quantum-classical Hamiltonian. A function that when called as sim.h_qc(z, sim) returns a 2-D numpy
 array describing the matrix elements of the Hamiltonian of the quantum-classical interaction.
 
-sim.h_c(z, sim) The classical Hamiltonian. A function that when called as sim.h_c(z, sim) returns a float describing
+sim.h_c(z_branch, sim) The classical Hamiltonian. A function that when called as sim.h_c(z, sim) returns a float describing
 the energy of the classical coordiantes.
 
-sim.dh_c_dz(z, sim)     The gradient of the classical Hamiltonian with respect to z. When called as
-sim.dh_c_dz(z, sim) returns a 1-D numpy array where the length is the number of classical oscillators. Each element
+sim.dh_c_dz(z_branch, sim)     The gradient of the classical Hamiltonian with respect to z. When called as
+sim.dh_c_dz(z_branch, sim) returns a 1-D numpy array where the length is the number of classical oscillators. Each element
 gives the component of the gradient corresponding to that coordinate.
 
-sim.dh_c_dzc(z, sim)    The same as above but for the conjugate coordinate.
+sim.dh_c_dzc(z_branch, sim)    The same as above but for the conjugate coordinate.
 
 sim.dh_qc_dz(vec_a_branch, vec_b_branch, z_branch)    The matrix element between vec_a_branch and vec_b_branch of the gradient of the
 quantum-classical interaction with respect to z_branch <a|d_{z}H_qc |b>. Returns list of length num_branches. 
