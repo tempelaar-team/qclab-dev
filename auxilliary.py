@@ -105,7 +105,8 @@ def rho_db_to_adb_branch(rho_db_branch, eigvec_branch): # transforms branch adib
 ############################################################
 #                       QUANTUM FORCE                      #
 ############################################################
-def quantum_force(psi, z, sim):  # computes <\psi|\nabla H|\psi> using sparse methods
+@njit
+def quantum_force(psi, z):  # computes <\psi|\nabla H|\psi> using sparse methods
     """
     Computes the Hellman-Feynmann force using the formula
     f_{q(p)} = <psi| \nabla_{q(p)} H |psi>
@@ -118,14 +119,17 @@ def quantum_force(psi, z, sim):  # computes <\psi|\nabla H|\psi> using sparse me
     fzc = sim.dh_qc_dzc(psi, psi, z, sim)#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
     return fzc
 
+
 def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
     fzc_branch = np.zeros(np.shape(z_branch), dtype=complex)
     if act_surf_ind_branch is None:
-        for i in range(len(evecs_branch)):
-            fzc_branch[i] = quantum_force(evecs_branch[i], z_branch[i], sim)
+        fzc_branch = sim.dh_qc_dzc(evecs_branch, evecs_branch, z_branch)
+        #for i in range(len(evecs_branch)):
+        #    fzc_branch[i] = quantum_force(evecs_branch[i], z_branch[i], sim)
     else:
-        for i in range(len(evecs_branch)):
-            fzc_branch[i] = quantum_force(evecs_branch[i][:,act_surf_ind_branch[i]], z_branch[i], sim)
+        fzc_branch = sim.dh_qc_dzc(evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], z_branch)
+        #for i in range(len(evecs_branch)):
+        #    fzc_branch[i] = quantum_force(evecs_branch[i][:,act_surf_ind_branch[i]], z_branch[i], sim)
     return fzc_branch
 
 def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse methods
@@ -138,9 +142,8 @@ def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse me
     :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
     :return: d_{ab}^{z} and d_{ab}^{zc}
     """
-    #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    dab_z = sim.dh_qc_dz(evec_a, evec_b, z, sim) / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
-    dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z, sim) / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
+    dab_z = sim.dh_qc_dz(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
+    dab_zc = sim.dh_qc_dzc(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
     return dab_z, dab_zc
 
 def get_dab_phase(evals, evecs, z, sim):
@@ -224,7 +227,7 @@ def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_bran
     return evecs_branch, phase_out
 
 
-@jit(nopython=True)
+@njit
 def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
     """
     Computes the expectation value f_{i} = <1|H^{i}_{jk}|2>

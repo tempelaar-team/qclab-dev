@@ -1,5 +1,6 @@
 import numpy as np
 import auxilliary
+from numba import njit
 
 def initialize(sim):
     # model specific parameter default values
@@ -68,27 +69,32 @@ def initialize(sim):
     dz_ind = np.where(np.abs(dz_mat) > 1e-12)
     dzc_ind = np.where(np.abs(dzc_mat) > 1e-12)
     # nonzero matrix elements
-    dz_mels = dz_mat[dz_ind]
-    dzc_mels = dzc_mat[dzc_ind]
-    # necessary variables for computing expectation values
-    diff_vars = (dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels)
-
-    def dh_qc_dz(psi_a, psi_b, z, sim):
+    dz_mels = dz_mat[dz_ind] + 0.0j
+    dzc_mels = dzc_mat[dzc_ind] + 0.0j
+    @njit
+    def dh_qc_dz(psi_a_branch, psi_b_branch, z_branch):
         """
         Computes <\psi_a| dH_qc/dz  |\psi_b>
         :param psi_a:
         :param psi_b:
         :return:
         """
-        return auxilliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a, psi_b)
-    def dh_qc_dzc(psi_a, psi_b, z, sim):
+        out = np.ascontiguousarray(np.zeros((len(psi_a_branch), dz_shape[0])))+0.0j
+        for n in range(len(psi_a_branch)):
+            out[n] = auxilliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a_branch[n], psi_b_branch[n])
+        return out
+    @njit
+    def dh_qc_dzc(psi_a_branch, psi_b_branch, z_branch):
         """
         Computes <\psi_a| dH_qc/dz*  |\psi_b>
         :param psi_a:
         :param psi_b:
         :return:
         """
-        return auxilliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a, psi_b)
+        out = np.ascontiguousarray(np.zeros((len(psi_a_branch), dzc_shape[0])))+0.0j
+        for n in range(len(psi_a_branch)):
+            out[n] = auxilliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a_branch[n], psi_b_branch[n])
+        return out
 
     def hop(z, delta_z, ev_diff, sim):
         hopped = False

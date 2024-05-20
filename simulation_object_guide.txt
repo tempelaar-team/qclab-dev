@@ -25,11 +25,10 @@ gives the component of the gradient corresponding to that coordinate.
 
 sim.dh_c_dzc(z, sim)    The same as above but for the conjugate coordinate.
 
-sim.dh_qc_dz(vec_a, vec_b, z, sim)    The matrix element between vec_a and vec_b of the gradient of the
-quantum-classical interaction with respect to z <a|d_{z}H_qc |b>. When called as sim.dh_qc_dz(z, sim) returns a
-1-D numpy array where each entry corresponds to the term associated with that coordinate.
+sim.dh_qc_dz(vec_a_branch, vec_b_branch, z_branch)    The matrix element between vec_a_branch and vec_b_branch of the gradient of the
+quantum-classical interaction with respect to z_branch <a|d_{z}H_qc |b>. Returns list of length num_branches. 
 
-sim.dh_qc_dzc(vec_a, vec_b, z, sim)     The same as above but for the conjugate coordinate.
+sim.dh_qc_dzc(vec_a, vec_b, z_branch)     The same as above but for the conjugate coordinate.
 
 sim.init_classical(sim)     A function that returns the initial z and zc values as 1-D numpy arrays.
 
