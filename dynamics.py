@@ -288,13 +288,11 @@ def dynamics(traj, sim):
             # construct eigenvalue exponential
             evals_exp_branch = np.exp(-1.0j * evals_branch * sim.dt_bath)
             # evolve wavefunction
-            diag_matrix_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
-            diag_matrix_branch[:,range(num_states),range(num_states)] = evals_exp_branch
             psi_adb_branch = np.copy(auxilliary.psi_db_to_adb_branch(psi_db_branch, evecs_branch))
             psi_adb_delta_branch = np.copy(auxilliary.psi_db_to_adb_branch(psi_db_delta_branch, evecs_branch))
             # multiply by propagator
-            psi_adb_branch = np.copy(np.einsum('nab,nb->na', diag_matrix_branch, psi_adb_branch, optimize='greedy'))
-            psi_adb_delta_branch = np.copy(np.einsum('nab,nb->na', diag_matrix_branch, psi_adb_delta_branch, optimize='greedy'))
+            psi_adb_branch = np.copy(evals_exp_branch*psi_adb_branch)
+            psi_adb_delta_branch = np.copy(evals_exp_branch*psi_adb_delta_branch)
             # transform back to diabatic basis
             psi_db_branch = auxilliary.psi_adb_to_db_branch(psi_adb_branch, evecs_branch)
             psi_db_delta_branch = auxilliary.psi_adb_to_db_branch(psi_adb_delta_branch, evecs_branch)
@@ -328,19 +326,19 @@ def dynamics(traj, sim):
                         ev_diff = eval_j - eval_k
                         # dkj_q is wrt q dkj_p is wrt p.
                         dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, z_branch[i], sim)
-                        # check that nonadiabatic couplings are real-valued
-                        dkj_q = np.sqrt(sim.h * sim.m / 2) * (dkj_z + dkj_zc)
-                        dkj_p = np.sqrt(1 / (2 * sim.h * sim.m)) * 1.0j * (dkj_z - dkj_zc)
-                        if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
-                            print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
-                                np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
-                                '\n magnitude: ', np.abs(dkj_q[np.argmax(np.abs(dkj_q))]),
-                                '\n value: ', dkj_q[np.argmax(np.abs(dkj_q))])
-                        if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
-                            print('ERROR IMAGINARY DKKP: \n', 'angle: ',
-                                np.abs(np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))),
-                                '\n magnitude: ', np.abs(dkj_p[np.argmax(np.abs(dkj_p))]),
-                                '\n value: ', dkj_p[np.argmax(np.abs(dkj_p))])
+                        ## check that nonadiabatic couplings are real-valued
+                        #dkj_q = np.sqrt(sim.h * sim.m / 2) * (dkj_z + dkj_zc)
+                        #dkj_p = np.sqrt(1 / (2 * sim.h * sim.m)) * 1.0j * (dkj_z - dkj_zc)
+                        #if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
+                        #    print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
+                        #        np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
+                        #        '\n magnitude: ', np.abs(dkj_q[np.argmax(np.abs(dkj_q))]),
+                        #        '\n value: ', dkj_q[np.argmax(np.abs(dkj_q))])
+                        #if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
+                        #    print('ERROR IMAGINARY DKKP: \n', 'angle: ',
+                        #        np.abs(np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))),
+                        #        '\n magnitude: ', np.abs(dkj_p[np.argmax(np.abs(dkj_p))]),
+                        #        '\n value: ', dkj_p[np.argmax(np.abs(dkj_p))])
                         # compute rescalings
                         delta_z = dkj_zc
                         z_branch[i], hopped = sim.hop(z_branch[i], delta_z, ev_diff, sim)
