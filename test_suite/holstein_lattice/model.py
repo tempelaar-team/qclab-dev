@@ -117,8 +117,7 @@ def initialize(sim):
         :param sim: simulation object with temperature, harmonic oscillator mass and frequency
         :return: z = sqrt(w*h/2)*(q + i*(p/((w*h))), z* = sqrt(w*h/2)*(q - i*(p/((w*h)))
         """
-        q = np.random.normal(loc=0, scale=np.sqrt(sim.temp / (sim.m * (sim.h ** 2))),
-                             size=sim.num_states)
+        q = np.random.normal(loc=0, scale=np.sqrt(sim.temp / (sim.m * (sim.h ** 2))), size=sim.num_states)
         p = np.random.normal(loc=0, scale=np.sqrt(sim.temp), size=sim.num_states)
         z = np.sqrt(sim.h * sim.m / 2) * (q + 1.0j * (p / (sim.h * sim.m)))
         return z

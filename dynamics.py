@@ -273,7 +273,7 @@ def dynamics(traj, sim):
         # evolve classical coordinates
         z_branch = auxilliary.rk4_c(z_branch, qfzc_branch, sim.dt_bath, sim)
         # update Hamiltonian
-        h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z, sim)
+        h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z_branch, sim)
         if sim.dynamics_method == 'MF':
             ############################################################
             #               QUANTUM PROPAGATION IN DIABATIC BASIS      #
@@ -332,6 +332,10 @@ def dynamics(traj, sim):
                         eval_j = evals_branch[i][k]
                         ev_diff = eval_j - eval_k
                         # dkj_q is wrt q dkj_p is wrt p.
+                        if np.abs(ev_diff) < 1e-10:
+                            print(act_surf_ind_branch[i],k)
+                            print(evals_branch[i])
+                            print(h_tot_branch[i])
                         dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, z_branch[i], sim)
                         # check that nonadiabatic couplings are real-valued
                         dkj_q = np.sqrt(sim.h * sim.m / 2) * (dkj_z + dkj_zc)
