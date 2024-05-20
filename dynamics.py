@@ -6,6 +6,7 @@ import os
 import simulation
 import numpy as np
 import auxilliary
+from tqdm import tqdm
 
 
 def run_dynamics(sim):
@@ -31,6 +32,7 @@ def run_dynamics(sim):
         # initialize data object
         data_obj = simulation.Data(data_filename)
     seeds = np.array([n for n in np.arange(last_index, sim.num_trajs + last_index)])
+    print('Starting calculation...')
     for run in range(0, int(sim.num_trajs / sim.num_procs)):
         index_list = [run * sim.num_procs + i + last_index for i in range(sim.num_procs)]
         seed_list = [seeds[run * sim.num_procs + i] for i in range(sim.num_procs)]
@@ -162,7 +164,7 @@ def dynamics(traj, sim):
     #                        TIME EVOLUTION                   #
     ############################################################
     t_ind = 0
-    for t_bath_ind in np.arange(0, len(tdat_bath)):
+    for t_bath_ind in tqdm(np.arange(0, len(tdat_bath))):
         if t_ind == len(tdat):
             break
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
@@ -258,102 +260,100 @@ def dynamics(traj, sim):
             #for obs_n in range(num_classical_obs):
             #    output_classical_obs[obs_n][t_ind] = classical_obs_t[obs_n]
             
-
-            pass
-
-    ############################################################
-    #                     CLASSICAL PROPAGATION                #
-    ############################################################
-    # calculate quantum force
-    if sim.dynamics_method == 'MF':
-        qfzc_branch = auxilliary.quantum_force_branch(psi_db_branch, None, z_branch, sim)
-    if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
-        qfzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim)
-    # evolve classical coordinates
-    z_branch = auxilliary.rk4_c(z_branch, qfzc_branch, sim.dt_bath, sim)
-    # update Hamiltonian
-    h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z, sim)
-
-    if sim.dynamics_method == 'MF':
-        ############################################################
-        #               QUANTUM PROPAGATION IN DIABATIC BASIS      #
-        ############################################################
-        psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath, path='greedy')
-    if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
-        ############################################################
-        #              QUANTUM PROPAGATION IN ADIABATIC BASIS     #
-        ############################################################
-        evecs_branch_previous = np.copy(evecs_branch)
-        # obtain branch eigenvalues and eigenvectors
-        evals_branch, evecs_branch = np.linalg.eigh(h_tot_branch)
-        # adjust gauge of eigenvectors
-        evecs_branch,_ = auxilliary.sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim)
-        # propagate phases
-        phase_branch = phase_branch + sim.dt_bath * evals_branch[np.arange(num_branches,dtype=int),act_surf_ind_0]
-        # construct eigenvalue exponential
-        evals_exp_branch = np.exp(-1.0j * evals_branch * sim.dt_bath)
-        # evolve wavefunction
-        diag_matrix_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
-        diag_matrix_branch[:,range(num_states),range(num_states)] = evals_exp_branch
-        psi_adb_branch = np.copy(auxilliary.psi_db_to_adb_branch(psi_db_branch, evecs_branch))
-        psi_adb_delta = np.copy(auxilliary.psi_db_to_adb_branch(psi_db_delta_branch, evecs_branch))
-        # multiply by propagator
-        psi_adb_branch = np.copy(np.einsum('nab,nb->na', diag_matrix_branch, psi_adb_branch, optimize='greedy'))
-        psi_adb_delta_branch = np.copy(np.einsum('nab,nb->na', diag_matrix_branch, psi_adb_delta_branch, optimize='greedy'))
-        # transform back to diabatic basis
-        psi_db_branch = auxilliary.psi_adb_to_db_branch(psi_adb_branch, evecs_branch)
-        psi_db_delta_branch = auxilliary.psi_adb_to_db_branch(psi_adb_delta_branch, evecs_branch)
+            t_ind += 1
 
         ############################################################
-        #                         HOPPING PROCEDURE                #
+        #                     CLASSICAL PROPAGATION                #
         ############################################################
-        # draw a random number (same for all branches)
-        rand = np.random.rand()
-        # TODO -- talk to Roel about rand in CFSSH/FSSH, can we actually do CFSSH with stochastic branch sampling?
-        for i in range(num_branches):
-            # compute hopping probabilities
-            prod = np.matmul(np.conjugate(evecs_branch[i][:, act_surf_ind_branch[i]]), evecs_branch_previous[i])
-            if sim.pab_cohere:
-                hop_prob = -2 * np.real(prod * (psi_adb_branch[i] / psi_adb_branch[i][act_surf_ind_branch[i]]))
-            if not sim.pab_cohere:
-                hop_prob = -2 * np.real(
-                    prod * (psi_adb_delta_branch[i] / psi_adb_delta_branch[i][act_surf_ind_branch[i]]))
-            hop_prob[act_surf_ind_branch[i]] = 0
-            bin_edge = 0
-            # hop if possible
-            for k in range(len(hop_prob)):
-                hop_prob[k] = auxilliary.nan_num(hop_prob[k])
-                bin_edge = bin_edge + hop_prob[k]
-                if rand < bin_edge:
-                    # compute nonadiabatic coupling d_{kj}= <k|\nabla H|j>/(e_{j} - e_{k})
-                    evec_k = evecs_branch[i][:, act_surf_ind_branch[i]]
-                    evec_j = evecs_branch[i][:, k]
-                    eval_k = evals_branch[i][act_surf_ind_branch[i]]
-                    eval_j = evals_branch[i][k]
-                    ev_diff = eval_j - eval_k
-                    # dkj_q is wrt q dkj_p is wrt p.
-                    dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, z_branch[i], sim)
-                    # check that nonadiabatic couplings are real-valued
-                    dkj_q = np.sqrt(sim.h * sim.m / 2) * (dkj_z + dkj_zc)
-                    dkj_p = np.sqrt(1 / (2 * sim.h * sim.m)) * 1.0j * (dkj_z - dkj_zc)
-                    if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
-                        print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
-                              np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
-                              '\n magnitude: ', np.abs(dkj_q[np.argmax(np.abs(dkj_q))]),
-                              '\n value: ', dkj_q[np.argmax(np.abs(dkj_q))])
-                    if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
-                        print('ERROR IMAGINARY DKKP: \n', 'angle: ',
-                              np.abs(np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))),
-                              '\n magnitude: ', np.abs(dkj_p[np.argmax(np.abs(dkj_p))]),
-                              '\n value: ', dkj_p[np.argmax(np.abs(dkj_p))])
-                    # compute rescalings
-                    delta_z = dkj_zc
-                    z_branch[i], hopped = sim.hop(z_branch[i], delta_z, ev_diff, sim)
-                    if hopped:
-                        act_surf_ind_branch[i] = k
-                        act_surf_branch[i] = np.zeros_like(act_surf_branch[i])
-                        act_surf_branch[i][act_surf_ind_branch[i]] = 1
-                    break
+        # calculate quantum force
+        if sim.dynamics_method == 'MF':
+            qfzc_branch = auxilliary.quantum_force_branch(psi_db_branch, None, z_branch, sim)
+        if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
+            qfzc_branch = auxilliary.quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim)
+        # evolve classical coordinates
+        z_branch = auxilliary.rk4_c(z_branch, qfzc_branch, sim.dt_bath, sim)
+        # update Hamiltonian
+        h_tot_branch = h_q[np.newaxis, :, :] + auxilliary.h_qc_branch(z, sim)
+        if sim.dynamics_method == 'MF':
+            ############################################################
+            #               QUANTUM PROPAGATION IN DIABATIC BASIS      #
+            ############################################################
+            psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath, path='greedy')
+        if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
+            ############################################################
+            #              QUANTUM PROPAGATION IN ADIABATIC BASIS     #
+            ############################################################
+            evecs_branch_previous = np.copy(evecs_branch)
+            # obtain branch eigenvalues and eigenvectors
+            evals_branch, evecs_branch = np.linalg.eigh(h_tot_branch)
+            # adjust gauge of eigenvectors
+            evecs_branch,_ = auxilliary.sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim)
+            # propagate phases
+            phase_branch = phase_branch + sim.dt_bath * evals_branch[np.arange(num_branches,dtype=int),act_surf_ind_0]
+            # construct eigenvalue exponential
+            evals_exp_branch = np.exp(-1.0j * evals_branch * sim.dt_bath)
+            # evolve wavefunction
+            diag_matrix_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
+            diag_matrix_branch[:,range(num_states),range(num_states)] = evals_exp_branch
+            psi_adb_branch = np.copy(auxilliary.psi_db_to_adb_branch(psi_db_branch, evecs_branch))
+            psi_adb_delta_branch = np.copy(auxilliary.psi_db_to_adb_branch(psi_db_delta_branch, evecs_branch))
+            # multiply by propagator
+            psi_adb_branch = np.copy(np.einsum('nab,nb->na', diag_matrix_branch, psi_adb_branch, optimize='greedy'))
+            psi_adb_delta_branch = np.copy(np.einsum('nab,nb->na', diag_matrix_branch, psi_adb_delta_branch, optimize='greedy'))
+            # transform back to diabatic basis
+            psi_db_branch = auxilliary.psi_adb_to_db_branch(psi_adb_branch, evecs_branch)
+            psi_db_delta_branch = auxilliary.psi_adb_to_db_branch(psi_adb_delta_branch, evecs_branch)
+
+            ############################################################
+            #                         HOPPING PROCEDURE                #
+            ############################################################
+            # draw a random number (same for all branches)
+            rand = np.random.rand()
+            # TODO -- talk to Roel about rand in CFSSH/FSSH, can we actually do CFSSH with stochastic branch sampling?
+            for i in range(num_branches):
+                # compute hopping probabilities
+                prod = np.matmul(np.conjugate(evecs_branch[i][:, act_surf_ind_branch[i]]), evecs_branch_previous[i])
+                if sim.pab_cohere:
+                    hop_prob = -2 * np.real(prod * (psi_adb_branch[i] / psi_adb_branch[i][act_surf_ind_branch[i]]))
+                if not sim.pab_cohere:
+                    hop_prob = -2 * np.real(
+                        prod * (psi_adb_delta_branch[i] / psi_adb_delta_branch[i][act_surf_ind_branch[i]]))
+                hop_prob[act_surf_ind_branch[i]] = 0
+                bin_edge = 0
+                # hop if possible
+                for k in range(len(hop_prob)):
+                    hop_prob[k] = auxilliary.nan_num(hop_prob[k])
+                    bin_edge = bin_edge + hop_prob[k]
+                    if rand < bin_edge:
+                        # compute nonadiabatic coupling d_{kj}= <k|\nabla H|j>/(e_{j} - e_{k})
+                        evec_k = evecs_branch[i][:, act_surf_ind_branch[i]]
+                        evec_j = evecs_branch[i][:, k]
+                        eval_k = evals_branch[i][act_surf_ind_branch[i]]
+                        eval_j = evals_branch[i][k]
+                        ev_diff = eval_j - eval_k
+                        # dkj_q is wrt q dkj_p is wrt p.
+                        dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, z_branch[i], sim)
+                        # check that nonadiabatic couplings are real-valued
+                        dkj_q = np.sqrt(sim.h * sim.m / 2) * (dkj_z + dkj_zc)
+                        dkj_p = np.sqrt(1 / (2 * sim.h * sim.m)) * 1.0j * (dkj_z - dkj_zc)
+                        if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
+                            print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
+                                np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
+                                '\n magnitude: ', np.abs(dkj_q[np.argmax(np.abs(dkj_q))]),
+                                '\n value: ', dkj_q[np.argmax(np.abs(dkj_q))])
+                        if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
+                            print('ERROR IMAGINARY DKKP: \n', 'angle: ',
+                                np.abs(np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))),
+                                '\n magnitude: ', np.abs(dkj_p[np.argmax(np.abs(dkj_p))]),
+                                '\n value: ', dkj_p[np.argmax(np.abs(dkj_p))])
+                        # compute rescalings
+                        delta_z = dkj_zc
+                        z_branch[i], hopped = sim.hop(z_branch[i], delta_z, ev_diff, sim)
+                        if hopped:
+                            act_surf_ind_branch[i] = k
+                            act_surf_branch[i] = np.zeros_like(act_surf_branch[i])
+                            act_surf_branch[i][act_surf_ind_branch[i]] = 1
+                        break
     traj.add_to_dic('t', tdat)
     end_time = time.time()
     msg = 'trial index: ' + str(traj.index) +  ' time: ' + str(end_time - start_time) + ' seed: ' + str(traj.seed)

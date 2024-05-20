@@ -9,7 +9,7 @@ tmax=10
 dt=0.1
 dt_bath=0.01
 ## model specific inputs ##
-num_states=40 # number of lattice sites
+num_states=20 # number of lattice sites
 g=1 # electron-phonon coupling
 w=0.2 # phonon frequency
 j=1 # hopping integral
