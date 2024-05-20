@@ -59,20 +59,6 @@ def psi_db_to_adb(psi_db, eigvec):
     psi_adb = np.matmul(np.conjugate(np.transpose(eigvec)), psi_db)
     return psi_adb
 
-def psi_adb_to_db_branch_suboptimal(psi_adb_branch, eigvec_branch):
-    psi_db_branch = np.einsum('nab,nb->na', eigvec_branch, psi_adb_branch, optimize='greedy')
-    return psi_db_branch
-
-def psi_db_to_adb_branch_suboptimal(psi_adb_branch, eigvec_branch):
-    psi_db_branch = np.einsum('nba,nb->na', np.conj(eigvec_branch), psi_adb_branch, optimize='greedy')
-    return psi_db_branch
-
-def rho_adb_to_db_branch_suboptimal(rho_adb_branch, eigvec_branch):
-    return np.einsum('nij,njk,nlk->nil', eigvec_branch, rho_adb_branch, np.conj(eigvec_branch), optimize='greedy')
-
-def rho_db_to_adb_branch_suboptimal(rho_db_branch, eigvec_branch):
-    return np.einsum('nji,njk,nkl->nil', np.conj(eigvec_branch), rho_db_branch, eigvec_branch, optimize='greedy')
-
 @njit
 def psi_adb_to_db_branch(psi_adb_branch, eigvec_branch): # transforms branch adibatic to diabatic basis
     psi_db_branch = np.ascontiguousarray(np.zeros(np.shape(psi_adb_branch))) + 0.0j
@@ -105,31 +91,14 @@ def rho_db_to_adb_branch(rho_db_branch, eigvec_branch): # transforms branch adib
 ############################################################
 #                       QUANTUM FORCE                      #
 ############################################################
-@njit
-def quantum_force(psi, z):  # computes <\psi|\nabla H|\psi> using sparse methods
-    """
-    Computes the Hellman-Feynmann force using the formula
-    f_{q(p)} = <psi| \nabla_{q(p)} H |psi>
-    :param psi: |psi>
-    :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
-    :return: f_{z} and f_{zc}
-    """
-    #(dz_shape, dz_ind, dz_mels, dzc_shape, dzc_ind, dzc_mels) = diff_vars
-    #fz = sim.dh_qc_dz(psi, psi, z)#matprod_sparse(dz_shape, dz_ind, dz_mels, psi, psi)
-    fzc = sim.dh_qc_dzc(psi, psi, z, sim)#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi, psi)
-    return fzc
 
 
 def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
     fzc_branch = np.zeros(np.shape(z_branch), dtype=complex)
     if act_surf_ind_branch is None:
         fzc_branch = sim.dh_qc_dzc(evecs_branch, evecs_branch, z_branch)
-        #for i in range(len(evecs_branch)):
-        #    fzc_branch[i] = quantum_force(evecs_branch[i], z_branch[i], sim)
     else:
         fzc_branch = sim.dh_qc_dzc(evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], z_branch)
-        #for i in range(len(evecs_branch)):
-        #    fzc_branch[i] = quantum_force(evecs_branch[i][:,act_surf_ind_branch[i]], z_branch[i], sim)
     return fzc_branch
 
 def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse methods
@@ -246,17 +215,6 @@ def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
         out_mat[i_ind[i]] += prod[i]
     return out_mat
 
-def h_qc_branch_DEPRECATED(z_branch, sim):
-    """
-    evaluates h_qc over each branch
-    :param z_branch:
-    :param sim:
-    :return:
-    """
-    out = np.zeros((sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
-    for i in range(sim.num_branches):
-        out[i] += sim.h_qc(z_branch[i], sim)
-    return out
 
 @jit(nopython=True)
 def nan_num(num):
