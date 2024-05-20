@@ -2,14 +2,14 @@
 ## dynamics inputs ##
 model_module_path='model.py'
 num_procs=1
-num_trajs=1
+num_trajs=10
 dynamics_method='FSSH'
 sh_deterministic=True
 tmax=10
 dt=0.1
 dt_bath=0.01
 ## model specific inputs ##
-num_states=20 # number of lattice sites
+num_states=40 # number of lattice sites
 g=1 # electron-phonon coupling
 w=0.2 # phonon frequency
 j=1 # hopping integral
