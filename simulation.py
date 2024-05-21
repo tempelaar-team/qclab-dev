@@ -18,7 +18,7 @@ class Simulation:
             "sh_deterministic":True,
             "num_branches":None, # number of branches to use
             "pab_cohere": True,  # Uses full adiabatic wavefunction to compute hopping probabilities
-            "gauge_fix": 1,  # gauge fixing level 0, 1, 2
+            "gauge_fix": 0,  # gauge fixing level 0, 1, 2
             "dmat_const": 0, # density matrix construction type for CFSSH
             "branch_update":1, # frequency of updating branch eigenvectors for CFSSH # 2 update only when needed
             ## MF specific inputs
