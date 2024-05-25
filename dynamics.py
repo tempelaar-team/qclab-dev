@@ -167,7 +167,12 @@ def dynamics(traj, sim):
         ############################################################
         #                            OUTPUT TIMESTEP               #
         ############################################################
-
+            # Evaluate the state variables to be used for the calculations of observables
+            state_vars = {}
+            for i in range(len(sim.state_vars_list)):
+                if sim.state_vars_list[i] in locals():
+                    state_vars[sim.state_vars_list[i]] = eval(sim.state_vars_list[i])
+            #state_vars = {sim.state_vars_list[i]:eval(sim.state_vars_list[i]) for i in range(len(sim.state_vars_list))}
             ############################################################
             #                                 CFSSH                    #
             ############################################################
@@ -205,9 +210,8 @@ def dynamics(traj, sim):
                     rho_db_cfssh_branch = auxilliary.rho_adb_to_db_branch(rho_adb_cfssh_branch, evecs_branch)
                 # expensive CFSSH density matrix construction
                 if sim.dmat_const == 1:
-
                     pass
-                cfssh_observables_t = sim.cfssh_observables(sim, rho_db_cfssh_branch, z_branch)
+                cfssh_observables_t = sim.cfssh_observables(sim, state_vars)
                 if t_ind == 0 and t_bath_ind == 0:
                     for key in cfssh_observables_t.keys():
                         traj.new_observable(key + '_cfssh', (len(tdat), *np.shape(cfssh_observables_t[key])), cfssh_observables_t[key].dtype)
@@ -224,7 +228,7 @@ def dynamics(traj, sim):
                     rho_db_fssh_branch = np.diag(rho_adb_0)[:,np.newaxis,np.newaxis]*rho_db_fssh_branch
                 else:
                     rho_db_fssh_branch = rho_db_fssh_branch/num_branches
-                fssh_observables_t = sim.fssh_observables(sim, rho_db_fssh_branch, z_branch)
+                fssh_observables_t = sim.fssh_observables(sim, state_vars)
                 if t_ind == 0 and t_bath_ind == 0:
                     for key in fssh_observables_t.keys():
                         traj.new_observable(key + '_fssh', (len(tdat), *np.shape(fssh_observables_t[key])), fssh_observables_t[key].dtype)
@@ -235,25 +239,11 @@ def dynamics(traj, sim):
             ############################################################
             if sim.calc_mf_obs:
                 rho_db_mf_branch = np.einsum('ni,nk->nik', psi_db_branch, np.conj(psi_db_branch))
-                mf_observables_t = sim.mf_observables(sim, rho_db_mf_branch, z_branch)
+                mf_observables_t = sim.mf_observables(sim, state_vars)
                 if t_ind == 0 and t_bath_ind == 0:
                     for key in mf_observables_t.keys():
                         traj.new_observable(key + '_mf', (len(tdat), *np.shape(mf_observables_t[key])), mf_observables_t[key].dtype)
                 traj.add_observable_dic(t_ind, mf_observables_t)
-
-            ############################################################
-            #                         CLASSICAL OBSERVABLES            #
-            ############################################################
-            # We will not calculate any purely classical observables because
-            # the branch separation in principle implies a dependence of the 
-            # contribution of the classical trajectory on the statistics of the 
-            # branch sampling. Therefore purely classical terms are only present in MF/FSSH
-            # where a single branch is used and so using the ordinary FSSH/MF observables
-            # generation should be efficient. 
-            #classical_obs_t = sim.classical_observables(sim, z_branch)
-            #classical_obs_t, _ = sim.classical_observables(sim, z)
-            #for obs_n in range(num_classical_obs):
-            #    output_classical_obs[obs_n][t_ind] = classical_obs_t[obs_n]
             
             t_ind += 1
 

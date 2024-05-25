@@ -159,7 +159,7 @@ def initialize(sim):
         """
         return sim.h[np.newaxis, :] * z_branch
 
-    def observables(sim, rho_db_branch, z_branch):
+    def observables(sim, state_vars):
         #rho_db = np.sum(rho_db_branch,axis=0)
         #pops_db = np.diag(rho_db)
         #contributions = np.einsum('nii->n',rho_db_branch) # weights of each branch
@@ -184,6 +184,7 @@ def initialize(sim):
     sim.mf_observables = observables
     sim.fssh_observables = observables
     sim.cfssh_observables = observables
+    sim.state_vars_list = ['rho_db_fssh_branch','z_branch']
     #sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \
     #               '_temp_' + str(sim.temp) + '_nstates_' + str(sim.num_states)
     sim.psi_db_0 = 1 / np.sqrt(sim.num_states) * np.ones(sim.num_states, dtype=complex)
