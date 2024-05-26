@@ -168,6 +168,12 @@ def initialize(sim):
         # to test the core dynamics module we will not waste any time calculating observables, 
         # efficient observable implementation is up to the user
         output_dictionary = {}
+        if 'rho_db_fssh' in state_vars.keys():
+            output_dictionary['pops_db_fssh'] = np.real(np.diag(state_vars['rho_db_fssh']))
+        if 'rho_db_cfssh' in state_vars.keys():
+            output_dictionary['pops_db_cfssh'] = np.real(np.diag(state_vars['rho_db_cfssh']))
+        if 'rho_db_mf' in state_vars.keys():
+            output_dictionary['pops_db_mf'] = np.real(np.diag(state_vars['rho_db_mf']))
         return output_dictionary
     
     # equip simulation object with necessary functions
@@ -184,9 +190,9 @@ def initialize(sim):
     sim.mf_observables = observables
     sim.fssh_observables = observables
     sim.cfssh_observables = observables
-    sim.state_vars_list = ['rho_db_fssh_branch','z_branch']
-    #sim.calc_dir = 'holstein_lattice_g_' + str(sim.g) + '_j_' + str(sim.j) + '_w_' + str(sim.w) + \
-    #               '_temp_' + str(sim.temp) + '_nstates_' + str(sim.num_states)
+    sim.state_vars_list = ['rho_db_fssh','rho_db_mf','rho_db_cfssh','z_branch']
     sim.psi_db_0 = 1 / np.sqrt(sim.num_states) * np.ones(sim.num_states, dtype=complex)
+    sim.psi_db_0 *= 0
+    sim.psi_db_0[0] = 1
 
     return sim

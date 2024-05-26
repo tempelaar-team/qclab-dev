@@ -19,7 +19,7 @@ class Simulation:
             "num_branches":None, # number of branches to use
             "pab_cohere": True,  # Uses full adiabatic wavefunction to compute hopping probabilities
             "gauge_fix": 0,  # gauge fixing level 0, 1, 2
-            "dmat_const": 0, # density matrix construction type for CFSSH
+            "dmat_const": 0, # density matrix construction type 
             "branch_update":1, # frequency of updating branch eigenvectors for CFSSH # 2 update only when needed
             ## MF specific inputs
             "calc_mf_obs":True,
@@ -61,7 +61,7 @@ class Simulation:
             self.calc_fssh_obs = defaults['calc_fssh_obs']
         if self.dynamics_method == 'CFSSH':
             self.calc_cfssh_obs = defaults['calc_cfssh_obs']
-            self.calc_fssh_obs = defaults['calc_fssh_obs']
+            self.calc_fssh_obs = False#defaults['calc_fssh_obs']
             self.calc_mf_obs = False
 
 

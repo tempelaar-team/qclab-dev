@@ -51,6 +51,11 @@ sim.calc_fssh_obs: Boolean, if True evaluates sim.fssh_observables
 
 sim.calc_cfssh_obs: Boolean, if True evaluates sim.cfssh_observables
 
+sim.state_vars_list: list of strings of variable names that will be sent to sim.*_observables at each output timestep. 
+
+sim.dmat_const: 0, 1 or None. 0 does the least expensive construction for CFSSH, and default constructions for both MF and FSSH. 1 does the expensive 
+construction for CFSSH. 
+
 
 
 ### SH/CSH Components ###

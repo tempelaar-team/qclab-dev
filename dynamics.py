@@ -36,11 +36,11 @@ def run_dynamics(sim):
     for run in range(0, int(sim.num_trajs / sim.num_procs)):
         index_list = [run * sim.num_procs + i + last_index for i in range(sim.num_procs)]
         seed_list = [seeds[run * sim.num_procs + i] for i in range(sim.num_procs)]
-        #results = [dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim) for i in range(sim.num_procs)]
-        results = [dynamics(simulation.Trajectory(seed_list[i], index_list[i]), sim) for i in range(sim.num_procs)]
+        results = [dynamics.remote(simulation.Trajectory(seed_list[i], index_list[i]), ray_sim) for i in range(sim.num_procs)]
+        #results = [dynamics(simulation.Trajectory(seed_list[i], index_list[i]), sim) for i in range(sim.num_procs)]
         for r in results:
-            #traj_obj, msg = ray.get(r)
-            traj_obj, msg = r
+            traj_obj, msg = ray.get(r)
+            #traj_obj, msg = r
             print(msg)
             data_obj.add_data(traj_obj)
         del results
@@ -52,7 +52,7 @@ def run_dynamics(sim):
 
 
 
-#@ray.remote
+@ray.remote
 def dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
@@ -159,7 +159,7 @@ def dynamics(traj, sim):
     #                        TIME EVOLUTION                   #
     ############################################################
     t_ind = 0
-    for t_bath_ind in tqdm(np.arange(0, len(tdat_bath))):
+    for t_bath_ind in np.arange(0, len(tdat_bath)):
         if t_ind == len(tdat):
             break
         if tdat[t_ind] <= tdat_bath[t_bath_ind] + 0.5 * sim.dt_bath:
@@ -167,12 +167,8 @@ def dynamics(traj, sim):
         ############################################################
         #                            OUTPUT TIMESTEP               #
         ############################################################
-            # Evaluate the state variables to be used for the calculations of observables
-            state_vars = {}
-            for i in range(len(sim.state_vars_list)):
-                if sim.state_vars_list[i] in locals():
-                    state_vars[sim.state_vars_list[i]] = eval(sim.state_vars_list[i])
-            #state_vars = {sim.state_vars_list[i]:eval(sim.state_vars_list[i]) for i in range(len(sim.state_vars_list))}
+
+            # First calculate density matrices
             ############################################################
             #                                 CFSSH                    #
             ############################################################
@@ -189,14 +185,17 @@ def dynamics(traj, sim):
                             a_j = act_surf_ind_branch[j]
                             a_i_0 = act_surf_ind_0[i]
                             a_j_0 = act_surf_ind_0[j]
-                            if a_i != a_j and a_i != a_j and a_i == a_i_0 and a_j == a_j_0:
-                                if sim.sh_deterministic:
-                                    prob_fac = 1
-                                else:
-                                    prob_fac = 1/(rho_adb_0[a_i,a_i]*rho_adb_0[a_j,a_j]*(num_branches-1))
-                                rho_adb_cfssh_coh[a_i, a_j] += prob_fac * rho_adb_0[a_i,a_j] * overlap[i, j] * \
-                                    np.exp(-1.0j*(phase_branch[i] - phase_branch[j]))
-                                rho_adb_cfssh_coh[a_j, a_i] += np.conj(rho_adb_cfssh_coh[a_i, a_j])
+                            if a_i_0 != a_j_0 and a_i != a_j:
+                                if a_i == a_i_0 and a_j == a_j_0 and a_i != a_j:
+                            #if a_i != a_j and a_i != a_j and a_i == a_i_0 and a_j == a_j_0:
+                                    if sim.sh_deterministic:
+                                        prob_fac = 1
+                                    else:
+                                        prob_fac = 1/(rho_adb_0[a_i,a_i]*rho_adb_0[a_j,a_j]*(num_branches-1))
+                                    rho_ij = prob_fac * rho_adb_0[a_i,a_j] * overlap[i, j] * \
+                                        np.exp(-1.0j*(phase_branch[i] - phase_branch[j]))
+                                    rho_adb_cfssh_coh[a_i, a_j] += rho_ij
+                                    rho_adb_cfssh_coh[a_j, a_i] += np.conj(rho_ij)
                     if sim.sh_deterministic:
                         # construct diagonal of adiaabtic density matrix
                         rho_adb_cfssh_branch_diag = np.diag(rho_adb_0).reshape((-1, 1)) * act_surf_branch
@@ -208,42 +207,57 @@ def dynamics(traj, sim):
                         # add coherences averaged over branches
                         rho_adb_cfssh_branch = (rho_adb_cfssh_branch + rho_adb_cfssh_coh / num_branches) / num_branches
                     rho_db_cfssh_branch = auxilliary.rho_adb_to_db_branch(rho_adb_cfssh_branch, evecs_branch)
+                    rho_db_cfssh = np.sum(rho_db_cfssh_branch, axis=0)
                 # expensive CFSSH density matrix construction
                 if sim.dmat_const == 1:
                     pass
-                cfssh_observables_t = sim.cfssh_observables(sim, state_vars)
-                if t_ind == 0 and t_bath_ind == 0:
-                    for key in cfssh_observables_t.keys():
-                        traj.new_observable(key + '_cfssh', (len(tdat), *np.shape(cfssh_observables_t[key])), cfssh_observables_t[key].dtype)
-                traj.add_observable_dic(t_ind, cfssh_observables_t)
-
             ############################################################
             #                                 FSSH                    #
             ############################################################
             if sim.calc_fssh_obs:
-                rho_adb_fssh = np.einsum('ni,nj->nij', psi_adb_branch, np.conj(psi_adb_branch))
-                np.einsum('...jj->...j', rho_adb_fssh)[...] = act_surf_branch
-                rho_db_fssh_branch = auxilliary.rho_adb_to_db_branch(rho_adb_fssh, evecs_branch)
-                if sim.sh_deterministic:
-                    rho_db_fssh_branch = np.diag(rho_adb_0)[:,np.newaxis,np.newaxis]*rho_db_fssh_branch
-                else:
-                    rho_db_fssh_branch = rho_db_fssh_branch/num_branches
-                fssh_observables_t = sim.fssh_observables(sim, state_vars)
-                if t_ind == 0 and t_bath_ind == 0:
-                    for key in fssh_observables_t.keys():
-                        traj.new_observable(key + '_fssh', (len(tdat), *np.shape(fssh_observables_t[key])), fssh_observables_t[key].dtype)
-                traj.add_observable_dic(t_ind, fssh_observables_t)
-
+                if sim.dmat_const == 0:
+                    rho_adb_fssh = np.einsum('ni,nj->nij', psi_adb_branch, np.conj(psi_adb_branch))
+                    np.einsum('...jj->...j', rho_adb_fssh)[...] = act_surf_branch
+                    rho_db_fssh_branch = auxilliary.rho_adb_to_db_branch(rho_adb_fssh, evecs_branch)
+                    if sim.sh_deterministic:
+                        rho_db_fssh_branch = np.diag(rho_adb_0)[:,np.newaxis,np.newaxis]*rho_db_fssh_branch
+                    else:
+                        rho_db_fssh_branch = rho_db_fssh_branch/num_branches
+                    rho_db_fssh = np.sum(rho_db_fssh_branch, axis=0)
             ############################################################
             #                                  MF                     #
             ############################################################
             if sim.calc_mf_obs:
-                rho_db_mf_branch = np.einsum('ni,nk->nik', psi_db_branch, np.conj(psi_db_branch))
+                if sim.dmat_const == 0:
+                    rho_db_mf_branch = np.einsum('ni,nk->nik', psi_db_branch, np.conj(psi_db_branch))
+                    rho_db_mf = np.sum(rho_db_mf_branch, axis=0)
+            
+            # Evaluate the state variables to be used for the calculations of observables
+            state_vars = {}
+            for i in range(len(sim.state_vars_list)):
+                if sim.state_vars_list[i] in locals():
+                    state_vars[sim.state_vars_list[i]] = eval(sim.state_vars_list[i])
+            #state_vars = {sim.state_vars_list[i]:eval(sim.state_vars_list[i]) for i in range(len(sim.state_vars_list))}
+            # calculate observables
+            if sim.calc_cfssh_obs:
+                cfssh_observables_t = sim.cfssh_observables(sim, state_vars)
+                if t_ind == 0 and t_bath_ind == 0:
+                    for key in cfssh_observables_t.keys():
+                        traj.new_observable(key, (len(tdat), *np.shape(cfssh_observables_t[key])), cfssh_observables_t[key].dtype)
+                traj.add_observable_dic(t_ind, cfssh_observables_t)
+            if sim.calc_fssh_obs:
+                fssh_observables_t = sim.fssh_observables(sim, state_vars)
+                if t_ind == 0 and t_bath_ind == 0:
+                    for key in fssh_observables_t.keys():
+                        traj.new_observable(key, (len(tdat), *np.shape(fssh_observables_t[key])), fssh_observables_t[key].dtype)
+                traj.add_observable_dic(t_ind, fssh_observables_t)
+            if sim.calc_mf_obs:
                 mf_observables_t = sim.mf_observables(sim, state_vars)
                 if t_ind == 0 and t_bath_ind == 0:
                     for key in mf_observables_t.keys():
-                        traj.new_observable(key + '_mf', (len(tdat), *np.shape(mf_observables_t[key])), mf_observables_t[key].dtype)
+                        traj.new_observable(key, (len(tdat), *np.shape(mf_observables_t[key])), mf_observables_t[key].dtype)
                 traj.add_observable_dic(t_ind, mf_observables_t)
+
             
             t_ind += 1
 
@@ -263,7 +277,7 @@ def dynamics(traj, sim):
             ############################################################
             #               QUANTUM PROPAGATION IN DIABATIC BASIS      #
             ############################################################
-            psi_db_branch = auxilliary.rk4_q(h_tot_branch, psi_db_branch, sim.dt_bath, path='greedy')
+            psi_db_branch = np.array([auxilliary.rk4_q(h_tot_branch[0], psi_db_branch[0], sim.dt_bath, path='greedy')])
         if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
             ############################################################
             #              QUANTUM PROPAGATION IN ADIABATIC BASIS     #
