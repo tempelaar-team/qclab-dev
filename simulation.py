@@ -20,7 +20,7 @@ class Simulation:
             "pab_cohere": True,  # Uses full adiabatic wavefunction to compute hopping probabilities
             "gauge_fix": 0,  # gauge fixing level 0, 1, 2
             "dmat_const": 0, # density matrix construction type 
-            "branch_update":0, # frequency of updating branch pair eigenvectors for CFSSH # 2 update only when needed
+            "branch_pair_update":0, # frequency of updating branch pair eigenvectors for CFSSH # 2 update only when needed
             ## MF specific inputs
             "calc_mf_obs":True,
         }
@@ -44,7 +44,7 @@ class Simulation:
         self.pab_cohere = defaults['pab_cohere']
         self.gauge_fix = defaults['gauge_fix']
         self.dmat_const = defaults['dmat_const']
-        self.branch_update = defaults['branch_update']
+        self.branch_pair_update = defaults['branch_pair_update']
         self.input_file = input_file
         self.input_params = defaults
         self.num_branches = defaults['num_branches']

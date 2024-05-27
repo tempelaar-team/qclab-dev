@@ -174,7 +174,7 @@ def dynamics(traj, sim):
             ############################################################
             if sim.calc_cfssh_obs:
 
-                if sim.branch_update == 1 and sim.dmat_const == 1:  # update branch-pairs every output timestep
+                if sim.branch_pair_update == 1 and sim.dmat_const == 1:  # update branch-pairs every output timestep
                     evecs_branch_pair_previous = np.copy(evecs_branch_pair)
                     evals_branch_pair, evecs_branch_pair_previous = auxilliary.get_branch_eigs(z_branch, evecs_branch_pair_previous, sim)
                 # calculate overlap matrix
@@ -228,7 +228,7 @@ def dynamics(traj, sim):
                             a_j_0 = act_surf_ind_0[j]
                             if a_i_0 != a_j_0 and a_i != a_j:
                                 if a_i == a_i_0 and a_j == a_j_0 and a_i != a_j:
-                                    if sim.branch_update == 0:
+                                    if sim.branch_pair_update == 0:
                                         
                                         z_branch_ij = np.array([(z_branch[i] + z_branch[j])/2])
                                         h_tot_branch_ij = h_q_branch[0] + sim.h_qc_branch(z_branch_ij, sim)[0]
@@ -349,7 +349,7 @@ def dynamics(traj, sim):
             psi_db_branch = auxilliary.psi_adb_to_db_branch(psi_adb_branch, evecs_branch)
             psi_db_delta_branch = auxilliary.psi_adb_to_db_branch(psi_adb_delta_branch, evecs_branch)
             # update branch-pairs if needed
-            if sim.branch_update == 2 and sim.dmat_const == 1:  # update branch-pairs every bath timestep
+            if sim.branch_pair_update == 2 and sim.dmat_const == 1:  # update branch-pairs every bath timestep
                 evecs_branch_pair_previous = np.copy(evecs_branch_pair)
                 evals_branch_pair, evecs_branch_pair_previous = auxilliary.get_branch_eigs(z_branch, evecs_branch_pair_previous, sim)
             ############################################################

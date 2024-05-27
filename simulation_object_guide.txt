@@ -63,3 +63,5 @@ sim.hop(z, delta_z, ev_diff, sim)     The "hopping" function, when called it ret
 sim.hop -> z, hopped where z is the updated classical coordinates and hopped is a boolean telling if a
 hop has occurred. delta_z is the rescaling direction for z. ev_diff is the energy
 difference of the hop.
+sim.branch_pair_update: 0, 1, 2 -- 0 = update the branch pair only when needed, 1 = update all branch pairs every output timestep,
+ 2 = update all branch pairs every bath timestep. 
