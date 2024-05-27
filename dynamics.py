@@ -111,7 +111,7 @@ def dynamics(traj, sim):
         if sim.dmat_const > 0:
             evecs_branch_pair = np.zeros((num_branches, num_branches, num_states, num_states), dtype=complex)
             evals_branch_pair = np.zeros((num_branches, num_branches, num_states))
-            evals_branch_pair[:, :] = evecs_0
+            evecs_branch_pair[:, :] = evecs_0
             evals_branch_pair[:, :] = evals_0
 
         ############################################################
@@ -173,6 +173,10 @@ def dynamics(traj, sim):
             #                                 CFSSH                    #
             ############################################################
             if sim.calc_cfssh_obs:
+
+                if sim.branch_update == 1 and sim.dmat_const == 1:  # update branch-pairs every output timestep
+                    evecs_branch_pair_previous = np.copy(evecs_branch_pair)
+                    evals_branch_pair, evecs_branch_pair_previous = auxilliary.get_branch_eigs(z_branch, evecs_branch_pair_previous, sim)
                 # calculate overlap matrix
                 overlap = auxilliary.get_classical_overlap(z_branch, sim)
                 if sim.dmat_const == 0:
@@ -180,7 +184,7 @@ def dynamics(traj, sim):
                     rho_adb_cfssh_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
                     rho_adb_cfssh_coh = np.zeros((num_states, num_states), dtype=complex)
                     for i in range(num_branches):
-                        for j in range(i, num_branches):
+                        for j in range(i+1, num_branches):
                             a_i = act_surf_ind_branch[i]
                             a_j = act_surf_ind_branch[j]
                             a_i_0 = act_surf_ind_0[i]
@@ -210,7 +214,54 @@ def dynamics(traj, sim):
                     rho_db_cfssh = np.sum(rho_db_cfssh_branch, axis=0)
                 # expensive CFSSH density matrix construction
                 if sim.dmat_const == 1:
-                    pass
+                    evecs_branch_pair_previous = np.copy(evecs_branch_pair)
+                    #assert sim.sh_deterministic == True
+                    rho_adb_cfssh_branch = np.zeros((num_branches, num_states, num_states), dtype=complex)
+                    rho_adb_cfssh_coh_ij = np.zeros((num_states, num_states), dtype=complex)
+                    rho_adb_cfssh_coh = np.zeros((num_states, num_states), dtype=complex)
+                    rho_db_cfssh_coh = np.zeros((num_states, num_states), dtype=complex)
+                    for i in range(num_branches):
+                        for j in range(i + 1, num_branches):
+                            a_i = act_surf_ind_branch[i]
+                            a_j = act_surf_ind_branch[j]
+                            a_i_0 = act_surf_ind_0[i]
+                            a_j_0 = act_surf_ind_0[j]
+                            if a_i_0 != a_j_0 and a_i != a_j:
+                                if a_i == a_i_0 and a_j == a_j_0 and a_i != a_j:
+                                    if sim.branch_update == 0:
+                                        
+                                        z_branch_ij = np.array([(z_branch[i] + z_branch[j])/2])
+                                        h_tot_branch_ij = h_q_branch[0] + sim.h_qc_branch(z_branch_ij, sim)[0]
+                                        evals_branch_pair[i,j], evecs_branch_pair[i,j] = np.linalg.eigh(h_tot_branch_ij)
+                                        evecs_branch_pair_ij_tmp,_ = auxilliary.sign_adjust_branch(evecs_branch_pair[i,j].reshape(1,num_states,num_states),
+                                                                                        evecs_branch_pair_previous[i,j].reshape(1,num_states,num_states),
+                                                                                        evals_branch_pair[i,j].reshape(1,num_states), z_branch_ij, sim)
+                                        evecs_branch_pair[i,j] = np.copy(evecs_branch_pair_ij_tmp[0])
+                                    if sim.sh_deterministic:
+                                        prob_fac = 1
+                                    else:
+                                        prob_fac = 1/(rho_adb_0[a_i,a_i]*rho_adb_0[a_j,a_j]*(num_branches-1))
+                                    coh_ij_tmp = prob_fac*rho_adb_0[a_i,a_j]*overlap[i,j]*np.exp(-1.0j*(phase_branch[i]-phase_branch[j]))
+                                    rho_adb_cfssh_coh_ij[a_i,a_j] += coh_ij_tmp
+                                    rho_adb_cfssh_coh_ij[a_j,a_i] += np.conj(coh_ij_tmp)
+                                    # transform only the coherence to diabatic basis
+                                    rho_db_cfssh_coh_ij = auxilliary.rho_adb_to_db(rho_adb_cfssh_coh_ij, evecs_branch_pair[i,j])
+                                    # accumulate coherences for each basis
+                                    rho_db_cfssh_coh = rho_db_cfssh_coh + rho_db_cfssh_coh_ij
+                                    rho_adb_cfssh_coh = rho_adb_cfssh_coh + rho_adb_cfssh_coh_ij
+                                    # reset the matrix to store the individual adiabatic coherences
+                                    rho_adb_cfssh_coh_ij = np.zeros((num_states, num_states), dtype=complex)
+
+                    # place the active surface on the diagonal weighted by the initial populations
+                    if sim.sh_deterministic:
+                        rho_diag = np.diag(rho_adb_0).reshape((-1,1)) * act_surf_branch
+                        np.einsum('...jj->...j', rho_adb_cfssh_branch)[...] = rho_diag
+                    else:
+                        for n in range(num_branches):
+                            rho_adb_cfssh_branch[n, act_surf_ind_branch[n], act_surf_ind_branch[n]] += 1
+                    rho_db_cfssh_branch = auxilliary.rho_adb_to_db_branch(rho_adb_cfssh_branch, evecs_branch)
+                    rho_db_cfssh_branch = (rho_db_cfssh_branch + (rho_db_cfssh_coh/num_branches))/num_branches
+                    rho_db_cfssh = np.sum(rho_db_cfssh_branch, axis=0)
             ############################################################
             #                                 FSSH                    #
             ############################################################
@@ -237,7 +288,6 @@ def dynamics(traj, sim):
             for i in range(len(sim.state_vars_list)):
                 if sim.state_vars_list[i] in locals():
                     state_vars[sim.state_vars_list[i]] = eval(sim.state_vars_list[i])
-            #state_vars = {sim.state_vars_list[i]:eval(sim.state_vars_list[i]) for i in range(len(sim.state_vars_list))}
             # calculate observables
             if sim.calc_cfssh_obs:
                 cfssh_observables_t = sim.cfssh_observables(sim, state_vars)
@@ -257,8 +307,6 @@ def dynamics(traj, sim):
                     for key in mf_observables_t.keys():
                         traj.new_observable(key, (len(tdat), *np.shape(mf_observables_t[key])), mf_observables_t[key].dtype)
                 traj.add_observable_dic(t_ind, mf_observables_t)
-
-            
             t_ind += 1
 
         ############################################################
@@ -300,7 +348,10 @@ def dynamics(traj, sim):
             # transform back to diabatic basis
             psi_db_branch = auxilliary.psi_adb_to_db_branch(psi_adb_branch, evecs_branch)
             psi_db_delta_branch = auxilliary.psi_adb_to_db_branch(psi_adb_delta_branch, evecs_branch)
-
+            # update branch-pairs if needed
+            if sim.branch_update == 2 and sim.dmat_const == 1:  # update branch-pairs every bath timestep
+                evecs_branch_pair_previous = np.copy(evecs_branch_pair)
+                evals_branch_pair, evecs_branch_pair_previous = auxilliary.get_branch_eigs(z_branch, evecs_branch_pair_previous, sim)
             ############################################################
             #                         HOPPING PROCEDURE                #
             ############################################################

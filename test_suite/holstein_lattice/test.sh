@@ -13,11 +13,19 @@ echo 'Testing Holstein Fewest-Switches Surface Hopping Stochastic '
 ray start --head
 python $script_path/main.py holstein_lattice_input_FSSH_stochastic '{"address":"auto"}'
 ray stop
-echo 'Testing Holstein lattice Coherent Fewest-Switches Surface Hopping Deterministic '
+echo 'Testing Holstein lattice Coherent Fewest-Switches Surface Hopping Deterministic 0'
 ray start --head
-python $script_path/main.py holstein_lattice_input_CFSSH_deterministic '{"address":"auto"}'
+python $script_path/main.py holstein_lattice_input_CFSSH_deterministic_dmat_0 '{"address":"auto"}'
 ray stop
-echo 'Testing Holstein lattice Coherent Fewest-Switches Surface Hopping Stochastic '
+echo 'Testing Holstein lattice Coherent Fewest-Switches Surface Hopping Deterministic 1'
 ray start --head
-python $script_path/main.py holstein_lattice_input_CFSSH_stochastic '{"address":"auto"}'
+python $script_path/main.py holstein_lattice_input_CFSSH_deterministic_dmat_1 '{"address":"auto"}'
+ray stop
+echo 'Testing Holstein lattice Coherent Fewest-Switches Surface Hopping Stochastic 1'
+ray start --head
+python $script_path/main.py holstein_lattice_input_CFSSH_stochastic_dmat_1 '{"address":"auto"}'
+ray stop
+echo 'Testing Holstein lattice Coherent Fewest-Switches Surface Hopping Stochastic 0'
+ray start --head
+python $script_path/main.py holstein_lattice_input_CFSSH_stochastic_dmat_0 '{"address":"auto"}'
 ray stop
