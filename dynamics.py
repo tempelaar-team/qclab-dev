@@ -357,7 +357,6 @@ def dynamics(traj, sim):
             ############################################################
             # draw a random number (same for all branches)
             rand = np.random.rand()
-            # TODO -- talk to Roel about rand in CFSSH/FSSH, can we actually do CFSSH with stochastic branch sampling?
             for i in range(num_branches):
                 # compute hopping probabilities
                 prod = np.matmul(np.conjugate(evecs_branch[i][:, act_surf_ind_branch[i]]), evecs_branch_previous[i])
