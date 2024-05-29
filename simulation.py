@@ -9,17 +9,17 @@ class Simulation:
             "num_procs": 4,  # number of processors to use
             "num_trajs": 4,  # number of trajectories to run
             "tmax": 10,  # maximum simulation time
-            "dt": 0.1,  # timestep of output
-            "dt_bath": 0.01,  # bath timestep
+            "dt": 0.1,  # timestep of observable calculation 
+            "dt_bath": 0.01,  # timestep of dynamics propagation 
             "model_module_path": "./model.py",  # path to model module file
             ## SH and CSH specific inputs
-            "calc_fssh_obs":True,
-            "calc_cfssh_obs":True,
-            "sh_deterministic":True,
+            "calc_fssh_obs":True, # if True will calculate observables with sim.fssh_observables 
+            "calc_cfssh_obs":True, # if True will calculate observables with sim.cfssh_observables
+            "sh_deterministic":True, # if True will use deterministic sampling of branches in SH/CSH methods
             "num_branches":None, # number of branches to use
             "pab_cohere": True,  # Uses full adiabatic wavefunction to compute hopping probabilities
             "gauge_fix": 0,  # gauge fixing level 0, 1, 2
-            "dmat_const": 0, # density matrix construction type 
+            "dmat_const": 0, # density matrix construction type if -1 will not construct density matrix
             "branch_pair_update":0, # frequency of updating branch pair eigenvectors for CFSSH # 2 update only when needed
             ## MF specific inputs
             "calc_mf_obs":True,
@@ -61,7 +61,7 @@ class Simulation:
             self.calc_fssh_obs = defaults['calc_fssh_obs']
         if self.dynamics_method == 'CFSSH':
             self.calc_cfssh_obs = defaults['calc_cfssh_obs']
-            self.calc_fssh_obs = False#defaults['calc_fssh_obs']
+            self.calc_fssh_obs = defaults['calc_fssh_obs']
             self.calc_mf_obs = False
 
 

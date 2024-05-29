@@ -200,6 +200,18 @@ def initialize(sim):
         return output_dictionary
     
     # equip simulation object with necessary functions
+    if sim.dynamics_method == 'MF':
+        sim.calc_mf_obs = True
+        sim.calc_fssh_obs = False
+        sim.calc_cfssh_obs = False
+    if sim.dynamics_method == 'FSSH':
+        sim.calc_mf_obs = False
+        sim.calc_fssh_obs = True
+        sim.calc_cfssh_obs = False
+    if sim.dynamics_method == 'CFSSH':
+        sim.calc_mf_obs = False
+        sim.calc_fssh_obs = False
+        sim.calc_cfssh_obs = True
     sim.init_classical_branch = harmonic_oscillator_boltzmann_branch
     sim.hop = hop
     sim.h_q_branch = h_q_branch

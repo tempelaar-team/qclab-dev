@@ -169,7 +169,6 @@ def dynamics(traj, sim):
             #                                 CFSSH                    #
             ############################################################
             if sim.calc_cfssh_obs:
-
                 if sim.branch_pair_update == 1 and sim.dmat_const == 1:  # update branch-pairs every output timestep
                     evecs_branch_pair_previous = np.copy(evecs_branch_pair)
                     evals_branch_pair, evecs_branch_pair_previous = auxilliary.get_branch_eigs(z_branch, evecs_branch_pair_previous, sim)
@@ -323,9 +322,6 @@ def dynamics(traj, sim):
             ############################################################
             #               QUANTUM PROPAGATION IN DIABATIC BASIS      #
             ############################################################
-            #if num_branches == 1:
-            #    psi_db_branch = np.array([auxilliary.rk4_q(h_tot_branch[0], psi_db_branch[0], sim.dt_bath, path='greedy')])
-            #else:
             psi_db_branch = auxilliary.rk4_q_branch(h_tot_branch, psi_db_branch, sim.dt_bath)
         if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
             ############################################################
@@ -382,19 +378,11 @@ def dynamics(traj, sim):
                         # dkj_q is wrt q dkj_p is wrt p.
                         dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, z_branch[i], sim)
                         ## check that nonadiabatic couplings are real-valued
-                        #dkj_q = np.sqrt(sim.h * sim.m / 2) * (dkj_z + dkj_zc)
-                        #dkj_p = np.sqrt(1 / (2 * sim.h * sim.m)) * 1.0j * (dkj_z - dkj_zc)
-                        #if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
-                        #    print('ERROR IMAGINARY DKKQ: \n', 'angle: ',
-                        #        np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))),
-                        #        '\n magnitude: ', np.abs(dkj_q[np.argmax(np.abs(dkj_q))]),
-                        #        '\n value: ', dkj_q[np.argmax(np.abs(dkj_q))])
-                        #if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
-                        #    print('ERROR IMAGINARY DKKP: \n', 'angle: ',
-                        #        np.abs(np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))),
-                        #        '\n magnitude: ', np.abs(dkj_p[np.argmax(np.abs(dkj_p))]),
-                        #        '\n value: ', dkj_p[np.argmax(np.abs(dkj_p))])
-                        # compute rescalings
+                        dkj_q = np.sqrt(sim.h * sim.m / 2) * (dkj_z + dkj_zc)
+                        dkj_p = np.sqrt(1 / (2 * sim.h * sim.m)) * 1.0j * (dkj_z - dkj_zc)
+                        if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2 or \
+                            np.abs(np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))) > 1e-2:
+                            raise Exception('Nonadiabatic coupling is complex, needs gauge fixing!')
                         delta_z = dkj_zc
                         z_branch[i], hopped = sim.hop(z_branch[i], delta_z, ev_diff, sim)
                         if hopped:

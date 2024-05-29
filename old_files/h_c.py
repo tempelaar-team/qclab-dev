@@ -1,5 +1,5 @@
 import numpy as np
-import constants
+import old_files.constants as constants
 
 
 def harmonic_oscillator(z, zc, sim):
