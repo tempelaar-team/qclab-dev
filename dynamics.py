@@ -56,8 +56,6 @@ def run_dynamics(sim):
 def dynamics(traj, sim):
     start_time = time.time()
     np.random.seed(traj.seed)
-    # initialize classical coordinate
-    z = sim.init_classical(sim)
     # initial wavefunction in diabatic basis
     psi_db = sim.psi_db_0
     # store the number of states
@@ -66,9 +64,8 @@ def dynamics(traj, sim):
     if sim.num_branches is None:
         sim.num_branches = num_states
     num_branches = sim.num_branches
-    # initialize classical coordinates in each branch
-    z_branch = np.zeros((num_branches, *np.shape(z)), dtype=complex)
-    z_branch[:] = z
+    # initialize classical coordinate in each branch
+    z_branch = sim.init_classical_branch(sim)
     # compute initial Hamiltonian
     h_q_branch = np.copy(sim.h_q_branch(sim))
     h_tot_branch = h_q_branch + sim.h_qc_branch(z_branch, sim)
@@ -78,7 +75,6 @@ def dynamics(traj, sim):
     if sim.dynamics_method == 'MF':
         psi_db_branch = np.zeros((num_branches, num_states), dtype=complex)
         psi_db_branch[:] = psi_db
-        assert num_branches == 1
     if sim.dynamics_method == 'CFSSH' or sim.dynamics_method == 'FSSH':
         ############################################################
         #              SURFACE HOPPING SPECIFIC INITIALIZATION     #
@@ -86,11 +82,11 @@ def dynamics(traj, sim):
         # compute initial eigenvalues and eigenvectors
         evals_0, evecs_0 = np.linalg.eigh(h_tot_branch[0])
         # compute initial gauge shift for real-valued derivative couplings
-        dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z, sim)
+        dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z_branch[0], sim)
         # execute phase shift
         evecs_0 = np.matmul(evecs_0, np.diag(np.conjugate(dab_q_phase)))
         # recalculate phases and check that they are zero
-        dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z, sim)
+        dab_q_phase, dab_p_phase = auxilliary.get_dab_phase(evals_0, evecs_0, z_branch[0], sim)
         if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
             # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
             # and/or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
@@ -189,17 +185,17 @@ def dynamics(traj, sim):
                             a_j = act_surf_ind_branch[j]
                             a_i_0 = act_surf_ind_0[i]
                             a_j_0 = act_surf_ind_0[j]
-                            if a_i_0 != a_j_0 and a_i != a_j:
-                                if a_i == a_i_0 and a_j == a_j_0 and a_i != a_j:
-                            #if a_i != a_j and a_i != a_j and a_i == a_i_0 and a_j == a_j_0:
-                                    if sim.sh_deterministic:
-                                        prob_fac = 1
-                                    else:
-                                        prob_fac = 1/(rho_adb_0[a_i,a_i]*rho_adb_0[a_j,a_j]*(num_branches-1))
-                                    rho_ij = prob_fac * rho_adb_0[a_i,a_j] * overlap[i, j] * \
-                                        np.exp(-1.0j*(phase_branch[i] - phase_branch[j]))
-                                    rho_adb_cfssh_coh[a_i, a_j] += rho_ij
-                                    rho_adb_cfssh_coh[a_j, a_i] += np.conj(rho_ij)
+                            #if a_i_0 != a_j_0 and a_i != a_j:
+                            #    if a_i == a_i_0 and a_j == a_j_0 and a_i != a_j:
+                            if a_i != a_j and a_i != a_j and a_i == a_i_0 and a_j == a_j_0 and np.abs(rho_adb_0[a_i,a_j]) > 1e-12:
+                                if sim.sh_deterministic:
+                                    prob_fac = 1
+                                else:
+                                    prob_fac = 1/(rho_adb_0[a_i,a_i]*rho_adb_0[a_j,a_j]*(num_branches-1))
+                                rho_ij = prob_fac * rho_adb_0[a_i,a_j] * overlap[i, j] * \
+                                    np.exp(-1.0j*(phase_branch[i] - phase_branch[j]))
+                                rho_adb_cfssh_coh[a_i, a_j] += rho_ij
+                                rho_adb_cfssh_coh[a_j, a_i] += np.conj(rho_ij)
                     if sim.sh_deterministic:
                         # construct diagonal of adiaabtic density matrix
                         rho_adb_cfssh_branch_diag = np.diag(rho_adb_0).reshape((-1, 1)) * act_surf_branch
@@ -226,31 +222,34 @@ def dynamics(traj, sim):
                             a_j = act_surf_ind_branch[j]
                             a_i_0 = act_surf_ind_0[i]
                             a_j_0 = act_surf_ind_0[j]
-                            if a_i_0 != a_j_0 and a_i != a_j:
-                                if a_i == a_i_0 and a_j == a_j_0 and a_i != a_j:
-                                    if sim.branch_pair_update == 0:
-                                        
-                                        z_branch_ij = np.array([(z_branch[i] + z_branch[j])/2])
-                                        h_tot_branch_ij = h_q_branch[0] + sim.h_qc_branch(z_branch_ij, sim)[0]
-                                        evals_branch_pair[i,j], evecs_branch_pair[i,j] = np.linalg.eigh(h_tot_branch_ij)
-                                        evecs_branch_pair_ij_tmp,_ = auxilliary.sign_adjust_branch(evecs_branch_pair[i,j].reshape(1,num_states,num_states),
-                                                                                        evecs_branch_pair_previous[i,j].reshape(1,num_states,num_states),
-                                                                                        evals_branch_pair[i,j].reshape(1,num_states), z_branch_ij, sim)
-                                        evecs_branch_pair[i,j] = np.copy(evecs_branch_pair_ij_tmp[0])
-                                    if sim.sh_deterministic:
-                                        prob_fac = 1
-                                    else:
-                                        prob_fac = 1/(rho_adb_0[a_i,a_i]*rho_adb_0[a_j,a_j]*(num_branches-1))
-                                    coh_ij_tmp = prob_fac*rho_adb_0[a_i,a_j]*overlap[i,j]*np.exp(-1.0j*(phase_branch[i]-phase_branch[j]))
-                                    rho_adb_cfssh_coh_ij[a_i,a_j] += coh_ij_tmp
-                                    rho_adb_cfssh_coh_ij[a_j,a_i] += np.conj(coh_ij_tmp)
-                                    # transform only the coherence to diabatic basis
-                                    rho_db_cfssh_coh_ij = auxilliary.rho_adb_to_db(rho_adb_cfssh_coh_ij, evecs_branch_pair[i,j])
-                                    # accumulate coherences for each basis
-                                    rho_db_cfssh_coh = rho_db_cfssh_coh + rho_db_cfssh_coh_ij
-                                    rho_adb_cfssh_coh = rho_adb_cfssh_coh + rho_adb_cfssh_coh_ij
-                                    # reset the matrix to store the individual adiabatic coherences
-                                    rho_adb_cfssh_coh_ij = np.zeros((num_states, num_states), dtype=complex)
+                            #if a_i_0 != a_j_0 and a_i != a_j:
+                            #    if a_i == a_i_0 and a_j == a_j_0 and a_i != a_j:
+                            if a_i != a_j and a_i != a_j and a_i == a_i_0 and a_j == a_j_0 and np.abs(rho_adb_0[a_i,a_j]) > 1e-12:
+                                if sim.branch_pair_update == 0:
+                                    
+                                    z_branch_ij = np.array([(z_branch[i] + z_branch[j])/2])
+                                    h_tot_branch_ij = h_q_branch[0] + sim.h_qc_branch(z_branch_ij, sim)[0]
+                                    evals_branch_pair[i,j], evecs_branch_pair[i,j] = np.linalg.eigh(h_tot_branch_ij)
+                                    evecs_branch_pair_ij_tmp,_ = auxilliary.sign_adjust_branch(evecs_branch_pair[i,j].reshape(1,num_states,num_states),
+                                                                                    evecs_branch_pair_previous[i,j].reshape(1,num_states,num_states),
+                                                                                    evals_branch_pair[i,j].reshape(1,num_states), z_branch_ij, sim)
+                                    evecs_branch_pair[i,j] = np.copy(evecs_branch_pair_ij_tmp[0])
+                                if sim.sh_deterministic:
+                                    prob_fac = 1
+                                else:
+                                    prob_fac = 1/(rho_adb_0[a_i,a_i]*rho_adb_0[a_j,a_j]*(num_branches-1))
+                                coh_ij_tmp = prob_fac*rho_adb_0[a_i,a_j]*overlap[i,j]*np.exp(-1.0j*(phase_branch[i]-phase_branch[j]))
+                                rho_adb_cfssh_coh_ij[a_i,a_j] += coh_ij_tmp
+                                rho_adb_cfssh_coh_ij[a_j,a_i] += np.conj(coh_ij_tmp)
+                                # transform only the coherence to diabatic basis
+                                #rho_db_cfssh_coh_ij = auxilliary.rho_adb_to_db(rho_adb_cfssh_coh_ij, evecs_branch_pair[i,j])
+                                rho_db_cfssh_coh_ij = coh_ij_tmp*np.outer(evecs_branch_pair[i,j][:,a_i],np.conj(evecs_branch_pair[i,j][:,a_j])) + \
+                                    np.conj(coh_ij_tmp)*np.outer(evecs_branch_pair[i,j][:,a_j],np.conj(evecs_branch_pair[i,j][:,a_i]))
+                                # accumulate coherences for each basis
+                                rho_db_cfssh_coh = rho_db_cfssh_coh + rho_db_cfssh_coh_ij
+                                rho_adb_cfssh_coh = rho_adb_cfssh_coh + rho_adb_cfssh_coh_ij
+                                # reset the matrix to store the individual adiabatic coherences
+                                rho_adb_cfssh_coh_ij = np.zeros((num_states, num_states), dtype=complex)
 
                     # place the active surface on the diagonal weighted by the initial populations
                     if sim.sh_deterministic:
@@ -282,7 +281,6 @@ def dynamics(traj, sim):
                 if sim.dmat_const == 0:
                     rho_db_mf_branch = np.einsum('ni,nk->nik', psi_db_branch, np.conj(psi_db_branch))
                     rho_db_mf = np.sum(rho_db_mf_branch, axis=0)
-            
             # Evaluate the state variables to be used for the calculations of observables
             state_vars = {}
             for i in range(len(sim.state_vars_list)):
@@ -325,7 +323,10 @@ def dynamics(traj, sim):
             ############################################################
             #               QUANTUM PROPAGATION IN DIABATIC BASIS      #
             ############################################################
-            psi_db_branch = np.array([auxilliary.rk4_q(h_tot_branch[0], psi_db_branch[0], sim.dt_bath, path='greedy')])
+            #if num_branches == 1:
+            #    psi_db_branch = np.array([auxilliary.rk4_q(h_tot_branch[0], psi_db_branch[0], sim.dt_bath, path='greedy')])
+            #else:
+            psi_db_branch = auxilliary.rk4_q_branch(h_tot_branch, psi_db_branch, sim.dt_bath)
         if sim.dynamics_method == 'FSSH' or sim.dynamics_method == 'CFSSH':
             ############################################################
             #              QUANTUM PROPAGATION IN ADIABATIC BASIS     #

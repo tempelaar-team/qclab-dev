@@ -9,14 +9,22 @@ import numpy as np
 
 
 def rk4_c(z_branch, qfzc_branch, dt, sim):
-    k1 = -1.0j*(sim.dh_c_dzc(z_branch, sim) + qfzc_branch)
-    k2 = -1.0j*(sim.dh_c_dzc(z_branch + 0.5*dt*k1, sim) + qfzc_branch)
-    k3 = -1.0j*(sim.dh_c_dzc(z_branch + 0.5*dt*k2, sim) + qfzc_branch)
-    k4 = -1.0j*(sim.dh_c_dzc(z_branch + dt*k3, sim) + qfzc_branch)
+    k1 = -1.0j*(sim.dh_c_dzc_branch(z_branch, sim) + qfzc_branch)
+    k2 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k1, sim) + qfzc_branch)
+    k3 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k2, sim) + qfzc_branch)
+    k4 = -1.0j*(sim.dh_c_dzc_branch(z_branch + dt*k3, sim) + qfzc_branch)
     z_branch = z_branch + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return z_branch
 
-@jit(nopython=True)
+@njit
+def rk4_q_branch(h_branch, psi_branch, dt):
+    psi_branch_out = np.zeros(np.shape(psi_branch)) + 0.0j
+    for n in range(len(psi_branch)):
+        psi_branch_out[n] = rk4_q(h_branch[n], psi_branch[n], dt)
+    return psi_branch_out
+
+
+@njit
 def rk4_q(h, psi, dt, path=None):
     """
     4-th order Runge-Kutta for quantum wavefunction, works with branch wavefunctions
@@ -25,16 +33,13 @@ def rk4_q(h, psi, dt, path=None):
     :param dt: timestep dt
     :return: psi(t+dt)
     """
-    #k1 = (-1j * np.einsum('nij,nj->ni', h, psi, optimize=path))
-    #k2 = (-1j * np.einsum('nij,nj->ni', h, psi + 0.5 * dt * k1, optimize=path))
-    #k3 = (-1j * np.einsum('nij,nj->ni', h, psi + 0.5 * dt * k2, optimize=path))
-    #k4 = (-1j * np.einsum('nij,nj->ni', h, psi + dt * k3, optimize=path))
     k1 = (-1j * np.dot(h, psi))
     k2 = (-1j * np.dot(h, psi + 0.5 * dt * k1))
     k3 = (-1j * np.dot(h, psi + 0.5 * dt * k2))
     k4 = (-1j * np.dot(h, psi + dt * k3))
     psi = psi + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return psi
+
 
 
 ############################################################
@@ -107,9 +112,9 @@ def rho_db_to_adb_branch(rho_db_branch, eigvec_branch): # transforms branch adib
 def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
     fzc_branch = np.zeros(np.shape(z_branch), dtype=complex)
     if act_surf_ind_branch is None:
-        fzc_branch = sim.dh_qc_dzc(evecs_branch, evecs_branch, z_branch)
+        fzc_branch = sim.dh_qc_dzc_branch(evecs_branch, evecs_branch, z_branch)
     else:
-        fzc_branch = sim.dh_qc_dzc(evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], z_branch)
+        fzc_branch = sim.dh_qc_dzc_branch(evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], z_branch)
     return fzc_branch
 
 def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse methods
@@ -122,8 +127,8 @@ def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse me
     :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
     :return: d_{ab}^{z} and d_{ab}^{zc}
     """
-    dab_z = sim.dh_qc_dz(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
-    dab_zc = sim.dh_qc_dzc(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
+    dab_z = sim.dh_qc_dz_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
+    dab_zc = sim.dh_qc_dzc_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
     return dab_z, dab_zc
 
 def get_dab_phase(evals, evecs, z, sim):
@@ -227,7 +232,7 @@ def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
     return out_mat
 
 
-@jit(nopython=True)
+@njit
 def nan_num(num):
     """
     converts nan to a large or small number using numba acceleration

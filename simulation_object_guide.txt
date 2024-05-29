@@ -3,43 +3,35 @@ These include:
 
 
 ### Mandatory Components ###
-sim.m   The mass of the classical coordinates. Should be a 1-D numpy array with the same length as the total number of
-classical coordinates. Any "structure" to the coordinates should be encoded into their ordering and not the shape of the
-array.
+sim.m   The mass of the classical coordinates. Should be a 1-D numpy array with the same length as the total number of classical coordinates. Any "structure" to the coordinates should be encoded into their ordering and not the shape of the array.
 
-sim.h   The frequency parameter of the classical coordinates. Can be physically motivated or not. Like sim.m it should
-be a 1-D numpy array with the same length as the total number of classical coordinates.
+sim.h   The frequency parameter of the classical coordinates. Can be physically motivated or not. Like sim.m it should be a 1-D numpy array with the same length as the total number of classical coordinates.
 
-sim.h_q_branch(sim)     The quantum Hamiltonian. A function that when called as sim.h_q(sim) returns a 2-D numpy array describing the
-matrix elements of the Hamiltonian of the quantum subsystem.
+sim.num_states: integer giving the dimension of the quantum Hilbert space
 
-sim.h_qc_branch(z_branch, sim) The quantum-classical Hamiltonian. A function that when called as sim.h_qc(z, sim) returns a 2-D numpy
-array describing the matrix elements of the Hamiltonian of the quantum-classical interaction.
+sim.num_branches: integer giving the number of branches to evolve (must be num_states for deterministic surface hopping methods)
 
-sim.h_c(z_branch, sim) The classical Hamiltonian. A function that when called as sim.h_c(z, sim) returns a float describing
-the energy of the classical coordiantes.
+sim.h_q_branch(sim)     The quantum Hamiltonian. A function that when called as sim.h_q_branch(sim) returns a (num_branches, num_states, num_states) numpy array describing the matrix elements of the Hamiltonian of the quantum subsystem in each branch.
 
-sim.dh_c_dz(z_branch, sim)     The gradient of the classical Hamiltonian with respect to z. When called as
-sim.dh_c_dz(z_branch, sim) returns a 1-D numpy array where the length is the number of classical oscillators. Each element
-gives the component of the gradient corresponding to that coordinate.
+sim.h_qc_branch(z_branch, sim) The quantum-classical Hamiltonian. A function that when called as sim.h_qc_branch(z_branch, sim) returns a (num_branches, num_states, num_states) numpy array describing the matrix elements of the Hamiltonian of the quantum-classical interaction.
+
+sim.h_c_branch(z_branch, sim) The classical Hamiltonian. A function that when called as sim.h_c(z, sim) returns a (num_branches) numpy array describing the energy of the classical coordiantes in each branch. 
+
+sim.dh_c_dz(z_branch, sim)     The gradient of the classical Hamiltonian with respect to z. Returns a 1-D numpy array where the length is the number of classical oscillators. Each element gives the component of the gradient corresponding to that coordinate.
 
 sim.dh_c_dzc(z_branch, sim)    The same as above but for the conjugate coordinate.
 
-sim.dh_qc_dz(vec_a_branch, vec_b_branch, z_branch)    The matrix element between vec_a_branch and vec_b_branch of the gradient of the
-quantum-classical interaction with respect to z_branch <a|d_{z}H_qc |b>. Returns list of length num_branches. 
+sim.dh_qc_dz(vec_a_branch, vec_b_branch, z_branch)    The matrix element between vec_a_branch and vec_b_branch of the gradient of the quantum-classical interaction with respect to z_branch <a|d_{z}H_qc |b>. Returns list of length num_branches. 
 
 sim.dh_qc_dzc(vec_a, vec_b, z_branch)     The same as above but for the conjugate coordinate.
 
-sim.init_classical(sim)     A function that returns the initial z and zc values as 1-D numpy arrays.
+sim.init_classical_branch(sim)     A function that returns the initial z_branch as a (num_branches, M) array where M is the number of classical coordinates. For SH based methods the initial state in each branch must be the same, for MF methods the initial state in each branch can vary. 
 
-sim.psi_db_0 A 1-D numpy array of complex numbers describing the initial wavefunction of the quantum subsystem in
-the diabatic basis.
+sim.psi_db_0 A 1-D numpy array of complex numbers describing the initial wavefunction of the quantum subsystem in the diabatic basis.
 
 sim.calc_dir A string giving the calculation directory for the output of the simulation.
 
-sim.mf_observables(sim, rho_db_branch, z_branch)    A function that evaluates the desired observables in terms of the simulation
-object and the diabatic density matrix for mean-field dynamics (only when sim.calc_mf_obs==True). Returns 
-a dictionary of observables 
+sim.mf_observables(sim, rho_db_branch, z_branch)    A function that evaluates the desired observables in terms of the simulation object and the diabatic density matrix for mean-field dynamics (only when sim.calc_mf_obs==True). Returns a dictionary of observables 
 
 sim.fssh_observables(sim, rho_db_branch, z_branch)      Same as sim.mf_observables but onle evaluated when sim.calc_fssh_obs==True.
 
@@ -55,6 +47,8 @@ sim.state_vars_list: list of strings of variable names that will be sent to sim.
 
 sim.dmat_const: 0, 1 or None. 0 does the least expensive construction for CFSSH, and default constructions for both MF and FSSH. 1 does the expensive 
 construction for CFSSH. 
+
+
 
 
 
