@@ -158,16 +158,22 @@ def initialize(sim):
         :return:
         """
         return sim.h[np.newaxis, :] * z_branch
-
+    state_vars_list = ['rho_db_fssh','rho_db_mf','rho_db_cfssh','z_branch','psi_db_branch', 'h_tot_branch', 'evals_branch','act_surf_ind_branch']
     def observables(sim, state_vars):
-        #rho_db = np.sum(rho_db_branch,axis=0)
-        #pops_db = np.diag(rho_db)
-        #contributions = np.einsum('nii->n',rho_db_branch) # weights of each branch
-        #z = np.einsum('n,nj->j',contributions, z_branch)
-        #output_dictionary = {'rho_db':rho_db,'pops_db':pops_db,'ph_occ':np.abs(z)**2}
-        # to test the core dynamics module we will not waste any time calculating observables, 
-        # efficient observable implementation is up to the user
         output_dictionary = {}
+        z_branch = state_vars['z_branch']
+        output_dictionary['E_c'] = np.sum(harmonic_oscillator(z_branch,sim))
+        if sim.dynamics_method=='MF':
+            psi_db_branch = state_vars['psi_db_branch']
+            h_tot_branch = state_vars['h_tot_branch']
+            output_dictionary['E_q'] = np.real(np.einsum('ni,nij,nj', np.conjugate(psi_db_branch),h_tot_branch, psi_db_branch))
+        if sim.dynamics_method=='FSSH' or sim.dynamics_method=='CFSSH':
+            evals_branch = state_vars['evals_branch']
+            act_surf_ind_branch = state_vars['act_surf_ind_branch']
+            eq = 0
+            for n in range(len(act_surf_ind_branch)):
+                eq += evals_branch[n][act_surf_ind_branch[n]]
+            output_dictionary['E_q'] = eq
         if 'rho_db_fssh' in state_vars.keys():
             output_dictionary['pops_db_fssh'] = np.real(np.diag(state_vars['rho_db_fssh']))
         if 'rho_db_cfssh' in state_vars.keys():
@@ -190,7 +196,7 @@ def initialize(sim):
     sim.mf_observables = observables
     sim.fssh_observables = observables
     sim.cfssh_observables = observables
-    sim.state_vars_list = ['rho_db_fssh','rho_db_mf','rho_db_cfssh','z_branch']
+    sim.state_vars_list = state_vars_list
     sim.psi_db_0 = 1 / np.sqrt(sim.num_states) * np.ones(sim.num_states, dtype=complex)
     sim.psi_db_0 *= 0
     sim.psi_db_0[0] = 1
