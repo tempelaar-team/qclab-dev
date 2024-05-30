@@ -1,7 +1,5 @@
-# pyMQC
-Python code for mixed quantum-classical dynamics. This code is formulated in terms of 
-complex-valued classical coordinates enabling the dynamics to be carried out in 
-arbitrary representations for both the quantum and classical subsystems. 
+# qc-lab
+qc-lab is a flexible dynamics code for carrying out popular mixed quantum-classical algorithms on custom defined physical systems. 
 ## Running pyMQC on a personal (non cluster/HPC) machine
 To start a ray cluster install ray and in terminal run 
 ray start --head

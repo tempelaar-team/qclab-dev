@@ -385,7 +385,7 @@ def dynamics(traj, sim):
                             raise Exception('Nonadiabatic coupling is complex, needs gauge fixing!')
                         delta_z = dkj_zc
                         z_branch[i], hopped = sim.hop(z_branch[i], delta_z, ev_diff, sim)
-                        if hopped:
+                        if hopped: # adjust active surfaces if a hop has occured
                             act_surf_ind_branch[i] = k
                             act_surf_branch[i] = np.zeros_like(act_surf_branch[i])
                             act_surf_branch[i][act_surf_ind_branch[i]] = 1
