@@ -3,6 +3,19 @@ These include:
 
 
 ### Mandatory Components ###
+
+## simulation details ##
+sim.dynamics_method: string, 'MF', 'FSSH', 'CFSSH' -- dynamics method
+sim.tmax: maximum time
+sim.dt: observable output timestep
+sim.dt_bath: propagation timestep (must be less than sim.dt)
+sim.calc_mf_obs: boolean, determines if sim.mf_observables (and density matrix) is evaluated 
+sim.calc_fssh_obs: boolean, determines if sim.fssh_observables (and density matrix) is evaluated
+sim.calc_cfssh_obs: boolean, determines if sim.cfssh_observables (and density matrix) is evaluated
+
+
+
+### Mandatory Components ###
 sim.m   The mass of the classical coordinates. Should be a 1-D numpy array with the same length as the total number of classical coordinates. Any "structure" to the coordinates should be encoded into their ordering and not the shape of the array.
 
 sim.h   The frequency parameter of the classical coordinates. Can be physically motivated or not. Like sim.m it should be a 1-D numpy array with the same length as the total number of classical coordinates.
@@ -17,13 +30,13 @@ sim.h_qc_branch(z_branch, sim) The quantum-classical Hamiltonian. A function tha
 
 sim.h_c_branch(z_branch, sim) The classical Hamiltonian. A function that when called as sim.h_c(z, sim) returns a (num_branches) numpy array describing the energy of the classical coordiantes in each branch. 
 
-sim.dh_c_dz(z_branch, sim)     The gradient of the classical Hamiltonian with respect to z. Returns a 1-D numpy array where the length is the number of classical oscillators. Each element gives the component of the gradient corresponding to that coordinate.
+sim.dh_c_dz_branch(z_branch, sim)     The gradient of the classical Hamiltonian with respect to z. Returns a 1-D numpy array where the length is the number of classical oscillators. Each element gives the component of the gradient corresponding to that coordinate.
 
 sim.dh_c_dzc(z_branch, sim)    The same as above but for the conjugate coordinate.
 
-sim.dh_qc_dz(vec_a_branch, vec_b_branch, z_branch)    The matrix element between vec_a_branch and vec_b_branch of the gradient of the quantum-classical interaction with respect to z_branch <a|d_{z}H_qc |b>. Returns list of length num_branches. 
+sim.dh_qc_dz_branch(vec_a_branch, vec_b_branch, z_branch)    The matrix element between vec_a_branch and vec_b_branch of the gradient of the quantum-classical interaction with respect to z_branch <a|d_{z}H_qc |b>. Returns list of length num_branches. 
 
-sim.dh_qc_dzc(vec_a, vec_b, z_branch)     The same as above but for the conjugate coordinate.
+sim.dh_qc_dzc_branch(vec_a, vec_b, z_branch)     The same as above but for the conjugate coordinate.
 
 sim.init_classical_branch(sim)     A function that returns the initial z_branch as a (num_branches, M) array where M is the number of classical coordinates. For SH based methods the initial state in each branch must be the same, for MF methods the initial state in each branch can vary. 
 
@@ -31,11 +44,11 @@ sim.psi_db_0 A 1-D numpy array of complex numbers describing the initial wavefun
 
 sim.calc_dir A string giving the calculation directory for the output of the simulation.
 
-sim.mf_observables(sim, rho_db_branch, z_branch)    A function that evaluates the desired observables in terms of the simulation object and the diabatic density matrix for mean-field dynamics (only when sim.calc_mf_obs==True). Returns a dictionary of observables 
+sim.mf_observables(sim, state_vars)    A function that evaluates the desired observables in terms of the simulation object and the diabatic density matrix for mean-field dynamics (only when sim.calc_mf_obs==True). Returns a dictionary of observables 
 
-sim.fssh_observables(sim, rho_db_branch, z_branch)      Same as sim.mf_observables but onle evaluated when sim.calc_fssh_obs==True.
+sim.fssh_observables(sim, state_vars)      Same as sim.mf_observables but onle evaluated when sim.calc_fssh_obs==True.
 
-sim.cfssh_observables(sim, rho_db_branch, z_branch)      Same as sim.mf_observables but only evaluated when sim.calc_fssh_obs==True.
+sim.cfssh_observables(sim, state_vars)      Same as sim.mf_observables but only evaluated when sim.calc_fssh_obs==True.
 
 sim.calc_mf_obs: Boolean, if True evaluates sim.mf_observables
 

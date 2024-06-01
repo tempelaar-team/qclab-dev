@@ -1,115 +1,64 @@
 import numpy as np
+from argparse import Namespace
 
 
 class Simulation:
-    def __init__(self, input_file):
-        # Define default values
-        defaults = {
-            "dynamics_method": "FSSH",  # which dynamics method, "MF", "FSSH", "CFSSH"
-            "num_procs": 4,  # number of processors to use
-            "num_trajs": 4,  # number of trajectories to run
-            "tmax": 10,  # maximum simulation time
-            "dt": 0.1,  # timestep of observable calculation 
-            "dt_bath": 0.01,  # timestep of dynamics propagation 
-            "model_module_path": "./model.py",  # path to model module file
-            ## SH and CSH specific inputs
-            "calc_fssh_obs":True, # if True will calculate observables with sim.fssh_observables 
-            "calc_cfssh_obs":True, # if True will calculate observables with sim.cfssh_observables
-            "sh_deterministic":True, # if True will use deterministic sampling of branches in SH/CSH methods
-            "num_branches":None, # number of branches to use
-            "pab_cohere": True,  # Uses full adiabatic wavefunction to compute hopping probabilities
-            "gauge_fix": 0,  # gauge fixing level 0, 1, 2
-            "dmat_const": 0, # density matrix construction type if -1 will not construct density matrix
-            "branch_pair_update":0, # frequency of updating branch pair eigenvectors for CFSSH # 2 update only when needed
-            ## MF specific inputs
-            "calc_mf_obs":True,
-        }
-        # Read input values from input_file
-        input_params = {}  # store them in input_params
-        with open(input_file) as file:
-            for line in file:
-                exec(str(line), input_params)
-        inputs = list(input_params)  # inputs is list of keys in input_params
-        for key in inputs:  # copy input values into defaults
-            defaults[key] = input_params[key]
-        # read modified defaults into object
-        self.dynamics_method = defaults['dynamics_method']
-        self.num_procs = defaults['num_procs']
-        self.num_trajs = defaults['num_trajs']
-        self.tmax = defaults['tmax']
-        self.dt = defaults['dt']
-        self.dt_bath = defaults['dt_bath']
-        self.model_module_path = defaults['model_module_path']
-        self.model_module_name = self.model_module_path.split('/')[-1].split('.')[0]
-        self.pab_cohere = defaults['pab_cohere']
-        self.gauge_fix = defaults['gauge_fix']
-        self.dmat_const = defaults['dmat_const']
-        self.branch_pair_update = defaults['branch_pair_update']
-        self.input_file = input_file
-        self.input_params = defaults
-        self.num_branches = defaults['num_branches']
-        self.sh_deterministic = defaults['sh_deterministic']
-        if self.sh_deterministic:
-            self.num_branches == None
-        if self.dynamics_method == 'MF':
-            self.calc_cfssh_obs = False
-            self.calc_fssh_obs = False
-            self.calc_mf_obs = defaults['calc_mf_obs']
-        if self.dynamics_method == 'FSSH':
-            self.calc_cfssh_obs = False
-            self.calc_mf_obs = False
-            self.calc_fssh_obs = defaults['calc_fssh_obs']
-        if self.dynamics_method == 'CFSSH':
-            self.calc_cfssh_obs = defaults['calc_cfssh_obs']
-            self.calc_fssh_obs = defaults['calc_fssh_obs']
-            self.calc_mf_obs = False
+    def __init__(self):
 
+        self.params = dict(\
+            dynamics_method = None,
+            tmax = None,
+            dt = None,
+            dt_bath = None,
+            calc_mf_obs = None,
+            calc_fssh_obs = None,
+            calc_cfssh_obs = None,
+            state_vars_list = None,
+            num_branches = None,
+            dmat_const = None,
+            pab_cohere = None,
+            gauge_fix = None,
+            cfssh_branch_pair_update = None,
+            sh_deterministic = None,
+            # z coordinate
+            m = None,
+            h = None,
+            init_classical_branch = None,
+            # Hamiltonian
+            h_q_branch = None,
+            h_qc_branch = None,
+            h_c_branch = None,
+            # Gradients
+            dh_qc_dz_branch = None,
+            dh_qc_dzc_branch = None,
+            dh_c_dz_branch = None,
+            dh_c_dzc_branch = None,
+            # Observables
+            mf_observables = None,
+            fssh_observables = None,
+            cfssh_observables = None,
+            # initial wavefunction
+            psi_db_0 = None,
+            )
+        
+        self.ns = Namespace(**self.params)
 
+    def load_params(self,input_params:dict):
+        for key in input_params.keys():
+            self.params[key] = input_params[key]
+        self.ns = Namespace(**self.params)
+    
 
 
 class Trajectory:
-    def __init__(self, seed, index):
+    def __init__(self, seed):
         self.seed = seed  # seed used to initialize random variables
-        self.index = index  # index of trajectory
         self.data_dic = {}  # dictionary to store data
-
-    def add_to_dic(self, name, data):
-        self.data_dic.__setitem__(name, data)
-        return
     def new_observable(self, name, shape, type):
         self.data_dic[name] = np.zeros(shape, dtype=type)
         return
-    def add_observable_dic(self, ind, dic):
+    def add_observable_dict(self, ind, dic):
         for key in dic.keys():
             if key in self.data_dic.keys():
                 self.data_dic[key][ind] += dic[key]
-        return
-
-
-
-class Data:
-    def __init__(self, filename):
-        self.filename = filename
-        self.data_dic = {}
-        self.index_list = np.array([], dtype=int)
-        self.seed_list = np.array([], dtype=int)
-
-    def add_data(self, traj_obj):  # adds data from a traj_obj
-        for key, val in traj_obj.data_dic.items():
-            if key in self.data_dic:
-                self.data_dic[key] = self.data_dic[key] + val
-            else:
-                self.data_dic[key] = val
-        self.seed_list = np.append(self.seed_list, traj_obj.seed)
-        self.index_list = np.append(self.index_list, traj_obj.index)
-        return
-
-    def sum_data(self, data_obj):  # adds data from a data_obj
-        for key, val in data_obj.data_dic.items():
-            if key in self.data_dic:
-                self.data_dic[key] = self.data_dic[key] + val
-            else:
-                self.data_dic[key] = val
-        self.seed_list = np.concatenate((self.seed_list, data_obj.seed_list))
-        self.index_list = np.concatenate((self.index_list, data_obj.index_list))
         return
