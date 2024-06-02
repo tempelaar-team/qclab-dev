@@ -9,11 +9,18 @@ import numpy as np
 
 
 def rk4_c(z_branch, qfzc_branch, dt, sim):
-    k1 = -1.0j*(sim.ns.dh_c_dzc_branch(z_branch, sim) + qfzc_branch)
-    k2 = -1.0j*(sim.ns.dh_c_dzc_branch(z_branch + 0.5*dt*k1, sim) + qfzc_branch)
-    k3 = -1.0j*(sim.ns.dh_c_dzc_branch(z_branch + 0.5*dt*k2, sim) + qfzc_branch)
-    k4 = -1.0j*(sim.ns.dh_c_dzc_branch(z_branch + dt*k3, sim) + qfzc_branch)
+    #k1 = -1.0j*(sim.dh_c_dzc_branch(z_branch, sim) + qfzc_branch)
+    #k2 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k1, sim) + qfzc_branch)
+    #k3 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k2, sim) + qfzc_branch)
+    #k4 = -1.0j*(sim.dh_c_dzc_branch(z_branch + dt*k3, sim) + qfzc_branch)
+    #z_branch = z_branch + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
+    k1 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch) + qfzc_branch)
+    k2 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch + 0.5*dt*k1) + qfzc_branch)
+    k3 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch + 0.5*dt*k2) + qfzc_branch)
+    k4 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch + dt*k3) + qfzc_branch)
     z_branch = z_branch + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
+
+
     return z_branch
 
 @njit
@@ -112,9 +119,12 @@ def rho_db_to_adb_branch(rho_db_branch, eigvec_branch): # transforms branch adib
 def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
     fzc_branch = np.zeros(np.shape(z_branch), dtype=complex)
     if act_surf_ind_branch is None:
-        fzc_branch = sim.ns.dh_qc_dzc_branch(evecs_branch, evecs_branch, z_branch)
+        for n in range(sim.num_branches):
+            fzc_branch[n] = sim.dh_qc_dzc(evecs_branch[n], evecs_branch[n], z_branch[n])
     else:
-        fzc_branch = sim.ns.dh_qc_dzc_branch(evecs_branch[range(sim.ns.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.ns.num_branches),:,act_surf_ind_branch], z_branch)
+        for n in range(sim.num_branches):
+            fzc_branch[n] = sim.dh_qc_dzc(evecs_branch[n,:,act_surf_ind_branch[n]], evecs_branch[n,:,act_surf_ind_branch[n]], z_branch[n])
+        #fzc_branch = sim.dh_qc_dzc_branch(evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], z_branch)
     return fzc_branch
 
 def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse methods
@@ -124,18 +134,20 @@ def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse me
     :param evec_a: |a>
     :param evec_b: |b>
     :param ev_diff: e_{b} - e_{a}
-    :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.ns.diff_vars)
+    :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
     :return: d_{ab}^{z} and d_{ab}^{zc}
     """
-    dab_z = sim.ns.dh_qc_dz_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
-    dab_zc = sim.ns.dh_qc_dzc_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
+    #dab_z = sim.dh_qc_dz_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
+    #dab_zc = sim.dh_qc_dzc_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
+    dab_z = sim.dh_qc_dz(evec_a, evec_b, z)/ev_diff
+    dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z)/ev_diff
     return dab_z, dab_zc
 
 def get_dab_phase(evals, evecs, z, sim):
     """
     Computes the diagonal gauge transformation G such that (VG)^{dagger}\nabla(VG) is real-valued. :param evals:
     eigenvalues :param evecs: eigenvectors (V) :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{
-    zc} H (stored in sim.ns.dq_vars) :return: dabq_phase (diag(G^{dagger}) calculated using d_{ab}^{q}), dabp_phase (
+    zc} H (stored in sim.dq_vars) :return: dabq_phase (diag(G^{dagger}) calculated using d_{ab}^{q}), dabp_phase (
     diag(G^{dagger}) calculated using d_{ab}^{p})
     """
     dabq_phase = np.ones(len(evals), dtype=complex)
@@ -153,8 +165,8 @@ def get_dab_phase(evals, evecs, z, sim):
             print('Warning: Degenerate eigenvalues')
         dkk_z, dkk_zc = get_dab(evec_i, evec_j, ev_diff + plus, z, sim)
         # convert to q/p nonadiabatic couplings
-        dkkq = np.sqrt(sim.ns.h * sim.ns.m / 2) * (dkk_z + dkk_zc)
-        dkkp = np.sqrt(1 / (2*sim.ns.h*sim.ns.m)) * 1.0j * (dkk_z - dkk_zc)
+        dkkq = np.sqrt(sim.h * sim.m / 2) * (dkk_z + dkk_zc)
+        dkkp = np.sqrt(1 / (2*sim.h*sim.m)) * 1.0j * (dkk_z - dkk_zc)
         dkkq_angle = np.angle(dkkq[np.argmax(np.abs(dkkq))])
         dkkp_angle = np.angle(dkkp[np.argmax(np.abs(dkkp))])
         if np.max(np.abs(dkkq)) < 1e-14:
@@ -168,8 +180,8 @@ def get_dab_phase(evals, evecs, z, sim):
 def get_classical_overlap(z_branch, sim):
     out_mat = np.zeros((len(z_branch), len(z_branch)))
     zc_branch = np.conjugate(z_branch)
-    q_branch = (1/np.sqrt(2*sim.ns.m*sim.ns.h))*(z_branch + zc_branch)
-    p_branch = -1.0j*np.sqrt(sim.ns.h*sim.ns.m/2)*(z_branch - zc_branch)
+    q_branch = (1/np.sqrt(2*sim.m*sim.h))*(z_branch + zc_branch)
+    p_branch = -1.0j*np.sqrt(sim.h*sim.m/2)*(z_branch - zc_branch)
     for i in range(len(z_branch)):
         for j in range(len(z_branch)):
             out_mat[i,j] = np.exp(-(1/2)*np.sum(np.abs((p_branch[i] - p_branch[j]) * (q_branch[i] - q_branch[j]))))
@@ -195,10 +207,10 @@ def sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out):
 
 def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_branch, sim):
     # commented out einsum terms found to be slower
-    phase_out = np.ones((sim.ns.num_branches, sim.ns.num_states), dtype=complex)
-    if sim.ns.gauge_fix >= 1:
+    phase_out = np.ones((sim.num_branches, sim.num_states), dtype=complex)
+    if sim.gauge_fix >= 1:
         evecs_branch, phase_out = sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out)
-    if sim.ns.gauge_fix >= 2:
+    if sim.gauge_fix >= 2:
         dab_phase_mat = np.ones((len(evecs_branch),len(evecs_branch)),dtype=complex)
         for i in range(len(evecs_branch)):
             dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs_branch[i], evals_branch[i], z_branch[i], sim)
@@ -206,8 +218,8 @@ def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_bran
             dab_phase_mat[i] = dab_phase_list
             phase_out[i] *= dab_phase_list
         #    evecs_branch[i] = np.einsum('jk,k->jk',evecs_branch[i],dab_phase_list)
-        evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,dab_phase_mat)
-    if sim.ns.gauge_fix >= 0:
+        evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,dab_phase_mat,optimize='greedy')
+    if sim.gauge_fix >= 0:
         evecs_branch, phase_out = sign_adjust_branch_0(evecs_branch, evecs_branch_previous, phase_out)
     return evecs_branch, phase_out
 
