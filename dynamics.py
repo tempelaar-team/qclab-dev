@@ -30,7 +30,7 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
             else:
                 z_branch = np.vstack((z_branch,sim.init_classical(np.random.randint(1,10000000))))
         z_branch = z_branch.reshape((num_branches, sim.num_states))
-        h_tot_branch = h_q_branch + np.transpose(np.apply_along_axis(sim.h_qc, 1, z_branch), axes=(0,1,2))
+        h_tot_branch = h_q_branch + sim.h_qc_branch(z_branch)#np.transpose(np.apply_along_axis(sim.h_qc, 1, z_branch), axes=(0,1,2))
         psi_db_branch = np.zeros((num_branches, num_states), dtype=complex)
         psi_db_branch[:] = psi_db
     ############################################################
@@ -135,7 +135,7 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
             if sim.calc_cfssh_obs:
                 if sim.cfssh_branch_pair_update == 1 and sim.dmat_const == 1:  # update branch-pairs every output timestep
                     evecs_branch_pair_previous = np.copy(evecs_branch_pair)
-                    evals_branch_pair, evecs_branch_pair_previous = auxilliary.get_branch_eigs(z_branch, evecs_branch_pair_previous, sim)
+                    evals_branch_pair, evecs_branch_pair = auxilliary.get_branch_pair_eigs(z_branch, evecs_branch_pair_previous, sim)
                 # calculate overlap matrix
                 overlap = auxilliary.get_classical_overlap(z_branch, sim)
                 if sim.dmat_const == 0:
@@ -309,7 +309,7 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
             # update branch-pairs if needed
             if sim.cfssh_branch_pair_update == 2 and sim.dmat_const == 1:  # update branch-pairs every bath timestep
                 evecs_branch_pair_previous = np.copy(evecs_branch_pair)
-                evals_branch_pair, evecs_branch_pair_previous = auxilliary.get_branch_eigs(z_branch, evecs_branch_pair_previous, sim)
+                evals_branch_pair, evecs_branch_pair_previous = auxilliary.get_branch_pair_eigs(z_branch, evecs_branch_pair_previous, sim)
             ############################################################
             #                         HOPPING PROCEDURE                #
             ############################################################

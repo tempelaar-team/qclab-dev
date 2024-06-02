@@ -1,8 +1,13 @@
 The simulation object is a class that contains the minimum set of variables and functions needed to carry out a dynamics calculation.
 It's attributes can be split into two broad categories: those describing the physical system and those describing the dynamics simulation
 
+state variables:
+z_branch: complex numpy array with dimension (num_branches, num_classical_oscillators) 
+
+
 Physical system:
 sim.h_q_branch(): returns an (num_branches, num_states, num_states) numpy array with dtype=complex. 
+sim.h_qc_branch(z_branch): returns an (num_branches, num_states, num_states) numpy array with dtype=complex.
 
 
 

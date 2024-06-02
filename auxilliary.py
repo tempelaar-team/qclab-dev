@@ -1,4 +1,4 @@
-from numba import jit, njit
+from numba import njit
 import numpy as np
 
 
@@ -9,6 +9,7 @@ import numpy as np
 
 
 def rk4_c(z_branch, qfzc_branch, dt, sim):
+    """ 4-th order Runge-Kutta integrator for the z_branch coordinate with force qfzc_branch"""
     k1 = -1.0j*(sim.dh_c_dzc_branch(z_branch) + qfzc_branch)
     k2 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k1) + qfzc_branch)
     k3 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k2) + qfzc_branch)
@@ -262,3 +263,18 @@ def nan_num(num):
 
 # vectorized form of nan_num
 nan_num_vec = np.vectorize(nan_num)
+
+
+def get_branch_pair_eigs(z_branch, evecs_branch_pair_previous, sim):
+    evals_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states))
+    evecs_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
+    h_q = sim.h_q()
+    for i in range(sim.num_branches):
+        for j in range(i + 1, sim.num_branches):
+            z_branch_ij = np.array([(z_branch[i] + z_branch[j])/2])
+            evals_branch_pair[i,j], evecs_branch_pair[i,j] = np.linalg.eigh(h_q + sim.h_qc_branch(z_branch_ij)[0])
+            evecs_branch_pair[i,j], _ = sign_adjust_branch(evecs_branch_pair[i,j][np.newaxis,:,:], evecs_branch_pair_previous[i,j][np.newaxis,:,:], 
+                                                           evals_branch_pair[i,j][np.newaxis,:], z_branch_ij[np.newaxis,:], sim)
+            evals_branch_pair[j,i] = evals_branch_pair[i,j]
+            evecs_branch_pair[j,i] = evecs_branch_pair[j,i]
+    return evals_branch_pair, evecs_branch_pair

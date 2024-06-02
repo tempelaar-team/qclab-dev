@@ -1,5 +1,6 @@
 # qc-lab
-qc-lab is a flexible dynamics code for carrying out popular mixed quantum-classical algorithms on custom defined physical systems. 
+qc-lab is a package for carrying out mixed quantum-classical dynamics simulations. It implements mean-field (Ehrenfest), fewest-switches surface hopping, and coherent fewest-switches surface hopping algorithms in a complex-valued classical coordinate in a manner that is totally generic. 
+
 ## Running pyMQC on a personal (non cluster/HPC) machine
 To start a ray cluster install ray and in terminal run 
 ray start --head
