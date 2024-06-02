@@ -45,7 +45,7 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
             else:
                 z_branch = np.vstack((z_branch,z_0))
         z_branch = z_branch.reshape((num_branches, sim.num_states))
-        h_tot_branch = h_q_branch + sim.h_qc(z_branch[0])[np.newaxis, :, :]
+        h_tot_branch = h_q_branch + sim.h_qc_branch(z_branch)#sim.h_qc(z_branch[0])[np.newaxis, :, :]
         # compute initial eigenvalues and eigenvectors
         evals_0, evecs_0 = np.linalg.eigh(h_tot_branch[0])
         # compute initial gauge shift for real-valued derivative couplings
@@ -187,7 +187,7 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
                                 if sim.cfssh_branch_pair_update == 0:
                                     
                                     z_branch_ij = np.array([(z_branch[i] + z_branch[j])/2])
-                                    h_tot_branch_ij = h_q + sim.h_qc(z_branch_ij[0])
+                                    h_tot_branch_ij = h_q + sim.h_qc_branch(z_branch_ij)[0]#sim.h_qc(z_branch_ij[0])#
                                     evals_branch_pair[i,j], evecs_branch_pair[i,j] = np.linalg.eigh(h_tot_branch_ij)
                                     evecs_branch_pair_ij_tmp,_ = auxilliary.sign_adjust_branch(evecs_branch_pair[i,j].reshape(1,num_states,num_states),
                                                                                     evecs_branch_pair_previous[i,j].reshape(1,num_states,num_states),
@@ -277,8 +277,8 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
         # evolve classical coordinates
         z_branch = auxilliary.rk4_c(z_branch, qfzc_branch, sim.dt_bath, sim)
         # update Hamiltonian
-        #h_tot_branch = h_q_branch + sim.h_qc_branch(z_branch, sim)
-        h_tot_branch = h_q_branch + np.transpose(np.apply_along_axis(sim.h_qc, 1, z_branch), axes=(0,1,2))
+        h_tot_branch = h_q_branch + sim.h_qc_branch(z_branch)
+        #h_tot_branch = h_q_branch + np.transpose(np.apply_along_axis(sim.h_qc, 1, z_branch), axes=(0,1,2))
         ############################################################
         #                  MEAN-FIELD QUANTUM PROPAGATION         #
         ############################################################

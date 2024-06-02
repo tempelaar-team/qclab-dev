@@ -9,16 +9,16 @@ import numpy as np
 
 
 def rk4_c(z_branch, qfzc_branch, dt, sim):
-    #k1 = -1.0j*(sim.dh_c_dzc_branch(z_branch, sim) + qfzc_branch)
-    #k2 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k1, sim) + qfzc_branch)
-    #k3 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k2, sim) + qfzc_branch)
-    #k4 = -1.0j*(sim.dh_c_dzc_branch(z_branch + dt*k3, sim) + qfzc_branch)
-    #z_branch = z_branch + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
-    k1 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch) + qfzc_branch)
-    k2 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch + 0.5*dt*k1) + qfzc_branch)
-    k3 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch + 0.5*dt*k2) + qfzc_branch)
-    k4 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch + dt*k3) + qfzc_branch)
+    k1 = -1.0j*(sim.dh_c_dzc_branch(z_branch) + qfzc_branch)
+    k2 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k1) + qfzc_branch)
+    k3 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k2) + qfzc_branch)
+    k4 = -1.0j*(sim.dh_c_dzc_branch(z_branch + dt*k3) + qfzc_branch)
     z_branch = z_branch + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
+    #k1 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch) + qfzc_branch)
+    #k2 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch + 0.5*dt*k1) + qfzc_branch)
+    #k3 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch + 0.5*dt*k2) + qfzc_branch)
+    #k4 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch + dt*k3) + qfzc_branch)
+    #z_branch = z_branch + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
 
 
     return z_branch
@@ -117,14 +117,15 @@ def rho_db_to_adb_branch(rho_db_branch, eigvec_branch): # transforms branch adib
 
 
 def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
-    fzc_branch = np.zeros(np.shape(z_branch), dtype=complex)
+    #fzc_branch = np.zeros(np.shape(z_branch), dtype=complex)
     if act_surf_ind_branch is None:
-        for n in range(sim.num_branches):
-            fzc_branch[n] = sim.dh_qc_dzc(evecs_branch[n], evecs_branch[n], z_branch[n])
+        #for n in range(sim.num_branches):
+        #    fzc_branch[n] = sim.dh_qc_dzc(evecs_branch[n], evecs_branch[n], z_branch[n])
+        fzc_branch = sim.dh_qc_dzc_branch(evecs_branch, evecs_branch, z_branch)
     else:
-        for n in range(sim.num_branches):
-            fzc_branch[n] = sim.dh_qc_dzc(evecs_branch[n,:,act_surf_ind_branch[n]], evecs_branch[n,:,act_surf_ind_branch[n]], z_branch[n])
-        #fzc_branch = sim.dh_qc_dzc_branch(evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], z_branch)
+        #for n in range(sim.num_branches):
+        #    fzc_branch[n] = sim.dh_qc_dzc(evecs_branch[n,:,act_surf_ind_branch[n]], evecs_branch[n,:,act_surf_ind_branch[n]], z_branch[n])
+        fzc_branch = sim.dh_qc_dzc_branch(evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], z_branch)
     return fzc_branch
 
 def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse methods
@@ -137,10 +138,10 @@ def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse me
     :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
     :return: d_{ab}^{z} and d_{ab}^{zc}
     """
-    #dab_z = sim.dh_qc_dz_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
-    #dab_zc = sim.dh_qc_dzc_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
-    dab_z = sim.dh_qc_dz(evec_a, evec_b, z)/ev_diff
-    dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z)/ev_diff
+    dab_z = sim.dh_qc_dz_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
+    dab_zc = sim.dh_qc_dzc_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
+    #dab_z = sim.dh_qc_dz(evec_a, evec_b, z)/ev_diff
+    #dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z)/ev_diff
     return dab_z, dab_zc
 
 def get_dab_phase(evals, evecs, z, sim):

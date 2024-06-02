@@ -43,7 +43,7 @@ class HolsteinLatticeModel:
         dz_mels = dz_mat[dz_ind] + 0.0j
         dzc_mels = dzc_mat[dzc_ind] + 0.0j
         @njit
-        def dh_qc_dz(psi_a, psi_b, z):
+        def _dh_qc_dz(psi_a, psi_b, z):
             """
             Computes <\psi_a| dH_qc/dz  |\psi_b> in each branch
             :param psi_a_branch: left vector in each branch
@@ -53,7 +53,7 @@ class HolsteinLatticeModel:
             """
             return auxilliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a, psi_b)
         @njit
-        def dh_qc_dzc(psi_a, psi_b, z):
+        def _dh_qc_dzc(psi_a, psi_b, z):
             """
             Computes <\psi_a| dH_qc/dzc  |\psi_b> in each branch
             :param psi_a_branch: left vector in each branch
@@ -62,8 +62,34 @@ class HolsteinLatticeModel:
             :return:
             """
             return auxilliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a, psi_b) # conjugation is done by matprod_sparse
-        self.dh_qc_dz = dh_qc_dz
-        self.dh_qc_dzc = dh_qc_dzc
+        @njit
+        def dh_qc_dz_branch(psi_a_branch, psi_b_branch, z_branch):
+            """
+            Computes <\psi_a| dH_qc/dz  |\psi_b> in each branch
+            :param psi_a_branch: left vector in each branch
+            :param psi_b_branch: right vector in each branch
+            :param z_branch: z coordinate in each branch
+            :return:
+            """
+            out = np.ascontiguousarray(np.zeros((len(psi_a_branch), dz_shape[0])))+0.0j
+            for n in range(len(psi_a_branch)):
+                out[n] = auxilliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a_branch[n], psi_b_branch[n])
+            return out
+        @njit
+        def dh_qc_dzc_branch(psi_a_branch, psi_b_branch, z_branch):
+            """
+            Computes <\psi_a| dH_qc/dzc  |\psi_b> in each branch
+            :param psi_a_branch: left vector in each branch
+            :param psi_b_branch: right vector in each branch
+            :param z_branch: z coordinate in each branch
+            :return:
+            """
+            out = np.ascontiguousarray(np.zeros((len(psi_a_branch), dzc_shape[0])))+0.0j
+            for n in range(len(psi_a_branch)):
+                out[n] = auxilliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a_branch[n], psi_b_branch[n]) # conjugation is done by matprod_sparse
+            return out
+        self.dh_qc_dz_branch = dh_qc_dz_branch
+        self.dh_qc_dzc_branch = dh_qc_dzc_branch
 
         
 
@@ -82,13 +108,24 @@ class HolsteinLatticeModel:
             out[-1, 0] = -self.j
             return out
 
-    def h_qc(self, z):
+    def _h_qc(self, z):
             """
             Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
             :param z: z coordinate
             :return: h_qc(z) Hamiltonian
             """
             return np.diag(self.g * np.sqrt(self.h) * (z + np.conj(z)))
+    def h_qc_branch(self,z_branch):
+        """
+        Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
+        :param z: z coordinate
+        :param zc: z^{*} conjugate z
+        :return: h_qc(z,z^{*}) Hamiltonian
+        """
+        h_qc_out = np.zeros((self.num_branches, self.num_states, self.num_states), dtype=complex)
+        h_qc_diag = self.g * np.sqrt(self.h) * (z_branch + np.conj(z_branch))
+        np.einsum('...jj->...j', h_qc_out)[...] = h_qc_diag
+        return h_qc_out
     def h_c(self, z):
         """
         Harmonic oscillator Hamiltonian
@@ -97,7 +134,7 @@ class HolsteinLatticeModel:
         :return: h_c(z,zc) Hamiltonian
         """
         return np.real(np.sum(self.h* np.conj(z) * z))
-    def dh_c_dz(self, z):
+    def _dh_c_dz(self, z):
         """
         Gradient of harmonic oscillator hamiltonian wrt z_branch
         :param z_branch: z coordinate in each branch
@@ -106,7 +143,7 @@ class HolsteinLatticeModel:
         """
         return self.h*np.conj(z)
 
-    def dh_c_dzc(self, z):
+    def _dh_c_dzc(self, z):
         """
         Gradient of harmonic oscillator hamiltonian wrt zc_branch
         :param z_branch: z coordinate in each branch
@@ -114,6 +151,23 @@ class HolsteinLatticeModel:
         :return:
         """
         return self.h * z
+    def dh_c_dz_branch(self, z_branch):
+        """
+        Gradient of harmonic oscillator hamiltonian wrt z_branch
+        :param z_branch: z coordinate in each branch
+        :param sim: simulation object
+        :return:
+        """
+        return self.h[np.newaxis, :] * np.conj(z_branch)
+
+    def dh_c_dzc_branch(self, z_branch):
+        """
+        Gradient of harmonic oscillator hamiltonian wrt zc_branch
+        :param z_branch: z coordinate in each branch
+        :param sim: simulation object
+        :return:
+        """
+        return self.h[np.newaxis, :] * z_branch
     def init_classical(self, seed=None):
         """
         Initialize classical coordiantes according to Boltzmann statistics
