@@ -5,6 +5,8 @@ from numba import njit
 
 class HolsteinLatticeModel:
     def __init__(self, input_params):
+
+        # Here we can define some input parameters that the model accepts and use them to construct the relevant aspects of the physical system 
         self.num_states=input_params['num_states']  # number of states
         self.temp=input_params['temp']  # temperature
         self.j=input_params['j']  # hopping integral
@@ -62,6 +64,12 @@ class HolsteinLatticeModel:
             :return:
             """
             return auxilliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a, psi_b) # conjugation is done by matprod_sparse
+        def _dh_qc_dz_branch(psi_a_branch, psi_b_branch, z_branch):
+            """ A simple (but ineficcient) way to construct the branch function from a non branch function is to use a loop over branches."""
+            out = np.zeros(np.shape(z_branch)):
+            for n in range(len(z_branch)):
+                out[n] = _dh_qc_dz(psi_a_branch[n], psi_b_branch[n], z_branch[n]) 
+            return  out 
         @njit
         def dh_qc_dz_branch(psi_a_branch, psi_b_branch, z_branch):
             """
