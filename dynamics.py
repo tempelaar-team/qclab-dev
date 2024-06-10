@@ -76,7 +76,6 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
             evals_branch_pair = np.zeros((num_branches, num_branches, num_states))
             evecs_branch_pair[:, :] = evecs_0
             evals_branch_pair[:, :] = evals_0
-
         ############################################################
         #                   ACTIVE SURFACE INITIALIZATION          #
         ############################################################
