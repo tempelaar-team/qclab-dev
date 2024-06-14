@@ -13,6 +13,7 @@ rho_db_cfssh (CFSSH) diabatic density matrix constructed acording to theory spec
 Physical system:
 sim.init_classical(seed): np.array((num_classical_oscillators), dtype=complex) A function that generates the initial classical coordinates in a single branch when provided with a random seed (integer value). When provided with seed=None it should generate a random initial classical coordinate using the global seed. 
 sim.h_q(): np.array((num_states, num_states), dtype=complex) Hermitian matrix describing the quantum subsystem
+sim.h_c_branch(z_branch): np.array(num_branches) Evaluates the classical Hamiltonian over the branches. 
 sim.h_qc_branch(z_branch): np.array((num_branches, num_states, num_states), dtype=complex) Hermitian matrix describing the quantum-classical interaction
 sim.dh_c_dz_branch(z_branch): np.array((num_branches, num_classical_oscillators), dtype=complex) gradient of the classical Hamiltonian with respect to z in each branch
 sim.dh_c_dzc_branch(z_branch): np.array((num_branches, num_classical_oscillators), dtype=complex) gradient of the classical Hamiltonian with respect to z* in each branch

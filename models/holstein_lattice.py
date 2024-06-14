@@ -29,6 +29,11 @@ class HolsteinLatticeModel:
         self.dmat_const = None
         self.cfssh_branch_pair_update = None
 
+        self.state_vars_list = []
+        self.mf_observables = auxilliary.no_observables
+        self.fssh_observables = auxilliary.no_observables
+        self.cfssh_observables = auxilliary.no_observables
+
         # initialize derivatives of h wrt z and zc
         # tensors have dimension # classical osc \times # quantum states \times # quantum states
         dz_mat = np.zeros((self.num_states, self.num_states, self.num_states), dtype=complex)
@@ -142,6 +147,9 @@ class HolsteinLatticeModel:
         :return: h_c(z,zc) Hamiltonian
         """
         return np.real(np.sum(self.h* np.conj(z) * z))
+
+    def h_c_branch(self, z_branch):
+        return np.real(np.sum(self.h*np.conj(z_branch)*z_branch, axis=1))
     def _dh_c_dz(self, z):
         """
         Gradient of harmonic oscillator hamiltonian wrt z_branch
