@@ -27,9 +27,10 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
         for n in range(num_branches):
             if n == 0:
                 z_branch = sim.init_classical(np.random.randint(1,10000000))
+                z_0 = np.copy(z_branch)
             else:
                 z_branch = np.vstack((z_branch,sim.init_classical(np.random.randint(1,10000000))))
-        z_branch = z_branch.reshape((num_branches, sim.num_states))
+        z_branch = z_branch.reshape((num_branches, len(z_0)))
         h_tot_branch = h_q_branch + sim.h_qc_branch(z_branch)#np.transpose(np.apply_along_axis(sim.h_qc, 1, z_branch), axes=(0,1,2))
         psi_db_branch = np.zeros((num_branches, num_states), dtype=complex)
         psi_db_branch[:] = psi_db
