@@ -45,7 +45,7 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
                 z_0 = np.copy(z_branch)
             else:
                 z_branch = np.vstack((z_branch,z_0))
-        z_branch = z_branch.reshape((num_branches, sim.num_states))
+        z_branch = z_branch.reshape((num_branches, len(z_0)))
         h_tot_branch = h_q_branch + sim.h_qc_branch(z_branch)#sim.h_qc(z_branch[0])[np.newaxis, :, :]
         # compute initial eigenvalues and eigenvectors
         evals_0, evecs_0 = np.linalg.eigh(h_tot_branch[0])
