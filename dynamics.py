@@ -33,6 +33,7 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
         h_tot_branch = h_q_branch + sim.h_qc_branch(z_branch)#np.transpose(np.apply_along_axis(sim.h_qc, 1, z_branch), axes=(0,1,2))
         psi_db_branch = np.zeros((num_branches, num_states), dtype=complex)
         psi_db_branch[:] = psi_db
+        rho_db_mf_out = np.zeros((len(tdat), num_states, num_states), dtype=complex)
     ############################################################
     #              SURFACE HOPPING SPECIFIC INITIALIZATION     #
     ############################################################
@@ -116,6 +117,8 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
         ############################################################
         # store the phase of each branch
         phase_branch = np.zeros(num_branches)
+        rho_db_fssh_out = np.zeros((len(tdat), num_states, num_states), dtype=complex)
+        rho_db_cfssh_out = np.zeros((len(tdat), num_states, num_states), dtype=complex)
     ############################################################
     #                        TIME EVOLUTION                   #
     ############################################################
@@ -220,7 +223,7 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
                     rho_db_cfssh_branch = (rho_db_cfssh_branch + (rho_db_cfssh_coh/num_branches))/num_branches
                     rho_db_cfssh = np.sum(rho_db_cfssh_branch, axis=0)
             ############################################################
-            #                                 FSSH                    #
+            #                                 FSSH                     #
             ############################################################
             if sim.calc_fssh_obs:
                 if sim.dmat_const == 0:
@@ -233,7 +236,7 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
                         rho_db_fssh_branch = rho_db_fssh_branch/num_branches
                     rho_db_fssh = np.sum(rho_db_fssh_branch, axis=0)
             ############################################################
-            #                                  MF                     #
+            #                                  MF                      #
             ############################################################
             if sim.calc_mf_obs:
                 if sim.dmat_const == 0:
@@ -248,18 +251,33 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
             # calculate observables
             if sim.calc_cfssh_obs:
                 cfssh_observables_t = sim.cfssh_observables(sim, state_vars)
+                cfssh_observables_t['rho_db_cfssh'] = rho_db_cfssh
+                eq = 0
+                for n in range(len(act_surf_ind_branch)):
+                    eq += evals_branch[n][act_surf_ind_branch[n]]
+                cfssh_observables_t['e_q'] = eq/num_branches
+                cfssh_observables_t['e_c'] = np.sum(sim.h_c_branch(z_branch))/num_branches
                 if t_ind == 0 and t_bath_ind == 0:
                     for key in cfssh_observables_t.keys():
                         traj.new_observable(key, (len(tdat), *np.shape(cfssh_observables_t[key])), cfssh_observables_t[key].dtype)
                 traj.add_observable_dict(t_ind, cfssh_observables_t)
             if sim.calc_fssh_obs:
                 fssh_observables_t = sim.fssh_observables(sim, state_vars)
+                fssh_observables_t['rho_db_fssh'] = rho_db_fssh
+                eq = 0
+                for n in range(len(act_surf_ind_branch)):
+                    eq += evals_branch[n][act_surf_ind_branch[n]]
+                fssh_observables_t['e_q'] = eq/num_branches
+                fssh_observables_t['e_c'] = np.sum(sim.h_c_branch(z_branch))/num_branches
                 if t_ind == 0 and t_bath_ind == 0:
                     for key in fssh_observables_t.keys():
                         traj.new_observable(key, (len(tdat), *np.shape(fssh_observables_t[key])), fssh_observables_t[key].dtype)
                 traj.add_observable_dict(t_ind, fssh_observables_t)
             if sim.calc_mf_obs:
                 mf_observables_t = sim.mf_observables(sim, state_vars)
+                mf_observables_t['rho_db_mf'] = rho_db_mf
+                mf_observables_t['e_q'] = np.real(np.einsum('ni,nij,nj', np.conjugate(psi_db_branch), h_tot_branch, psi_db_branch))/num_branches
+                mf_observables_t['e_c'] = np.sum(sim.h_c_branch(z_branch))/num_branches
                 if t_ind == 0 and t_bath_ind == 0:
                     for key in mf_observables_t.keys():
                         traj.new_observable(key, (len(tdat), *np.shape(mf_observables_t[key])), mf_observables_t[key].dtype)

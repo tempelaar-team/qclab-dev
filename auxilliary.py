@@ -277,3 +277,6 @@ def get_branch_pair_eigs(z_branch, evecs_branch_pair_previous, sim):
             evals_branch_pair[j,i] = evals_branch_pair[i,j]
             evecs_branch_pair[j,i] = evecs_branch_pair[j,i]
     return evals_branch_pair, evecs_branch_pair
+
+def no_observables(sim, state_vars):
+    return {}
