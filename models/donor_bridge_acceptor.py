@@ -3,17 +3,21 @@ import auxilliary
 from numba import njit
 
 
-class SpinBosonModel:
+class DonorBridgeAcceptorModel:
     def __init__(self, input_params):
         # Here we can define some input parameters that the model accepts and use them to construct the relevant aspects of the physical system 
         self.temp=input_params['temp']  # temperature
-        self.V=input_params['V']  # offdiagonal coupling
-        self.E=input_params['E']  # diagonal energy
+        self.V=input_params['V']  # donor-bridge bridge-acceptor coupling
+        self.E_D=input_params['E_D']  # donor energy
+        self.E_B=input_params['E_B']  # bridge energy
+        self.E_A=input_params['E_A']  # acceptor energy
         self.A = input_params['A'] # total number of classical oscillators
         self.W = input_params['W'] # characteristic frequency
         self.l=input_params['l'] # reorganization energy
         self.w=self.W*np.tan(((np.arange(self.A)+1) - (1/2))*np.pi/(2*self.A))  # classical oscillator frequency
         self.g=self.w*np.sqrt(2*self.l/self.A)  # electron-phonon coupling
+        self.g = np.concatenate((self.g, self.g, self.g))
+        self.w = np.concatenate((self.w, self.w, self.w))
         self.h=self.w
         self.m=np.ones_like(self.w)
 
@@ -35,16 +39,18 @@ class SpinBosonModel:
         self.mf_observables = auxilliary.no_observables
         self.fssh_observables = auxilliary.no_observables
         self.cfssh_observables = auxilliary.no_observables
-        self.num_states=2  # number of states
+        self.num_states=3  # number of states
 
         # initialize derivatives of h wrt z and zc
         # tensors have dimension # classical osc \times # quantum states \times # quantum states
-        dz_mat = np.zeros((self.A, self.num_states, self.num_states), dtype=complex)
-        dzc_mat = np.zeros((self.A, self.num_states, self.num_states), dtype=complex)
-        dz_mat[:, 0, 0] = self.g*np.sqrt(1/(2*self.m*self.h))
-        dz_mat[:, 1, 1] = -self.g*np.sqrt(1/(2*self.m*self.h))
-        dzc_mat[:, 0, 0] = self.g*np.sqrt(1/(2*self.m*self.h))
-        dzc_mat[:, 1, 1] = -self.g*np.sqrt(1/(2*self.m*self.h))
+        dz_mat = np.zeros((self.num_states*self.A, self.num_states, self.num_states), dtype=complex)
+        dzc_mat = np.zeros((self.num_states*self.A, self.num_states, self.num_states), dtype=complex)
+        dz_mat[0:self.A, 0, 0] = (self.g*np.sqrt(1/(2*self.m*self.h)))[0:self.A]
+        dz_mat[self.A:2*self.A, 1, 1] = (self.g*np.sqrt(1/(2*self.m*self.h)))[self.A:2*self.A]
+        dz_mat[2*self.A:3*self.A, 2, 2] = (self.g*np.sqrt(1/(2*self.m*self.h)))[2*self.A:3*self.A]
+        dzc_mat[0:self.A, 0, 0] = (self.g*np.sqrt(1/(2*self.m*self.h)))[0:self.A]
+        dzc_mat[self.A:2*self.A, 1, 1] = (self.g*np.sqrt(1/(2*self.m*self.h)))[self.A:2*self.A]
+        dzc_mat[2*self.A:3*self.A, 2, 2] = (self.g*np.sqrt(1/(2*self.m*self.h)))[2*self.A:3*self.A]
         dz_shape = np.shape(dz_mat)
         dzc_shape = np.shape(dzc_mat)
         # position of nonzero matrix elements
@@ -92,10 +98,13 @@ class SpinBosonModel:
             :return: h_q Hamiltonian
             """
             out = np.zeros((self.num_states, self.num_states), dtype=complex)
-            out[0,0] = self.E
-            out[1,1] = -self.E
+            out[0,0] = self.E_D
+            out[1,1] = self.E_B
+            out[2,2] = self.E_A
             out[0,1] = self.V
             out[1,0] = self.V
+            out[1,2] = self.V
+            out[2,1] = self.V
             return out
     def h_qc_branch(self,z_branch):
         """
@@ -105,8 +114,10 @@ class SpinBosonModel:
         :return: h_qc(z,z^{*}) Hamiltonian
         """
         h_qc_out = np.zeros((self.num_branches, self.num_states, self.num_states), dtype=complex)
-        h_qc_out[:,0,0] = np.sum(self.g[np.newaxis,:] * np.sqrt(1/(2*self.m*self.h))[np.newaxis,:] * (z_branch + np.conj(z_branch)),axis=1)
-        h_qc_out[:,1,1] = np.sum(-self.g[np.newaxis,:] * np.sqrt(1/(2*self.m*self.h))[np.newaxis,:] * (z_branch + np.conj(z_branch)),axis=1)
+        mel = self.g[np.newaxis,:] * np.sqrt(1/(2*self.m*self.h))[np.newaxis,:] * (z_branch + np.conj(z_branch))
+        h_qc_out[:,0,0] = np.sum(mel[:,0:self.A],axis=1)
+        h_qc_out[:,1,1] = np.sum(mel[:,self.A:2*self.A],axis=1)
+        h_qc_out[:,2,2] = np.sum(mel[:,2*self.A:3*self.A],axis=1)
         return h_qc_out
     def h_c(self, z):
         """
@@ -143,8 +154,8 @@ class SpinBosonModel:
         :return: z = sqrt(w*h/2)*(q + i*(p/((w*h))), z* = sqrt(w*h/2)*(q - i*(p/((w*h)))
         """
         np.random.seed(seed)
-        q = np.random.normal(loc=0, scale=np.sqrt(self.temp / (self.m * (self.h ** 2))), size=self.A)
-        p = np.random.normal(loc=0, scale=np.sqrt(self.temp), size=self.A)
+        q = np.random.normal(loc=0, scale=np.sqrt(self.temp / (self.m * (self.h ** 2))), size=self.num_states*self.A)
+        p = np.random.normal(loc=0, scale=np.sqrt(self.temp), size=self.num_states*self.A)
         z = np.sqrt(self.h * self.m / 2) * (q + 1.0j * (p / (self.h * self.m)))
         return z
     
