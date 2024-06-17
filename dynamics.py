@@ -217,11 +217,13 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
                     if sim.sh_deterministic:
                         rho_diag = np.diag(rho_adb_0).reshape((-1,1)) * act_surf_branch
                         np.einsum('...jj->...j', rho_adb_cfssh_branch)[...] = rho_diag
+                        rho_db_cfssh_branch = auxilliary.rho_adb_to_db_branch(rho_adb_cfssh_branch, evecs_branch)
+                        rho_db_cfssh_branch = (rho_db_cfssh_branch + (rho_db_cfssh_coh/num_branches))
                     else:
                         for n in range(num_branches):
                             rho_adb_cfssh_branch[n, act_surf_ind_branch[n], act_surf_ind_branch[n]] += 1
-                    rho_db_cfssh_branch = auxilliary.rho_adb_to_db_branch(rho_adb_cfssh_branch, evecs_branch)
-                    rho_db_cfssh_branch = (rho_db_cfssh_branch + (rho_db_cfssh_coh/num_branches))/num_branches
+                        rho_db_cfssh_branch = auxilliary.rho_adb_to_db_branch(rho_adb_cfssh_branch, evecs_branch)
+                        rho_db_cfssh_branch = (rho_db_cfssh_branch + (rho_db_cfssh_coh/num_branches))/num_branches
                     rho_db_cfssh = np.sum(rho_db_cfssh_branch, axis=0)
             ############################################################
             #                                 FSSH                     #
