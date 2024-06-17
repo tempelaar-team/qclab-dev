@@ -243,7 +243,7 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
             ############################################################
             if sim.calc_mf_obs:
                 if sim.dmat_const == 0:
-                    rho_db_mf_branch = np.einsum('ni,nk->nik', psi_db_branch, np.conj(psi_db_branch))
+                    rho_db_mf_branch = np.einsum('ni,nk->nik', psi_db_branch, np.conj(psi_db_branch))/num_branches
                     rho_db_mf = np.sum(rho_db_mf_branch, axis=0)
             if sim.calc_fssh_obs or sim.calc_cfssh_obs or sim.calc_mf_obs:
             # Evaluate the state variables to be used for the calculations of observables
