@@ -79,14 +79,14 @@ def psi_db_to_adb(psi_db, eigvec):
 def psi_adb_to_db_branch(psi_adb_branch, eigvec_branch): # transforms branch adibatic to diabatic basis
     psi_db_branch = np.ascontiguousarray(np.zeros(np.shape(psi_adb_branch))) + 0.0j
     for i in range(len(eigvec_branch)):
-        psi_db_branch[i] = np.dot(np.dot(eigvec_branch[i], psi_adb_branch[i] + 0.0j), np.conj(eigvec_branch[i]).transpose())
+        psi_db_branch[i] = np.dot(eigvec_branch[i], psi_adb_branch[i] + 0.0j)
     return psi_db_branch
 
 @njit
 def psi_db_to_adb_branch(psi_db_branch, eigvec_branch): # transforms branch adibatic to diabatic basis
     psi_adb_branch = np.ascontiguousarray(np.zeros(np.shape(psi_db_branch))) + 0.0j
     for i in range(len(eigvec_branch)):
-        psi_adb_branch[i] = np.dot(np.dot(np.conj(eigvec_branch[i]).transpose(), psi_db_branch[i] + 0.0j), eigvec_branch[i])
+        psi_adb_branch[i] = np.dot(np.conj(eigvec_branch[i]).transpose(), psi_db_branch[i] + 0.0j)
     return psi_adb_branch
 @njit
 def rho_adb_to_db(rho_adb, eigvec):

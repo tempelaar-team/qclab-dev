@@ -2,10 +2,18 @@ import ray
 import simulation
 import dynamics
 from tqdm import tqdm
+import logging
+import json
 
 def dynamics_parallel_ray(sim, seeds, nprocs, data = simulation.Data()):
     ray.shutdown()
-    ray.init(ignore_reinit_error=True)
+    ray.init(ignore_reinit_error=True,_system_config={
+        "object_spilling_config": json.dumps(
+            {"type": "filesystem", "params": {"directory_path": "./"}},
+        )
+    },
+    
+    logging_level=logging.FATAL)
 
     @ray.remote
     def dynamics_ray(sim, seed):
@@ -17,4 +25,5 @@ def dynamics_parallel_ray(sim, seeds, nprocs, data = simulation.Data()):
         for r in results:
             traj = ray.get(r)
             data.add_data(traj)
+    ray.shutdown()
     return data

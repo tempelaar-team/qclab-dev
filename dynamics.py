@@ -317,7 +317,7 @@ def dynamics(sim,traj=simulation.Trajectory(None)):
             phase_branch = phase_branch + sim.dt_bath * evals_branch[np.arange(num_branches,dtype=int),act_surf_ind_0]
             # construct eigenvalue exponential
             evals_exp_branch = np.exp(-1.0j * evals_branch * sim.dt_bath)
-            # evolve wavefunction
+            # transform wavefunctions to adiabatic basis
             psi_adb_branch = np.copy(auxilliary.psi_db_to_adb_branch(psi_db_branch, evecs_branch))
             psi_adb_delta_branch = np.copy(auxilliary.psi_db_to_adb_branch(psi_db_delta_branch, evecs_branch))
             # multiply by propagator
