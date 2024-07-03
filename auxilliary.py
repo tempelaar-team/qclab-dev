@@ -214,7 +214,7 @@ def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_bran
     if sim.gauge_fix >= 2:
         dab_phase_mat = np.ones((len(evecs_branch),len(evecs_branch)),dtype=complex)
         for i in range(len(evecs_branch)):
-            dabQ_phase_list, dabP_phase_list = get_dab_phase(evecs_branch[i], evals_branch[i], z_branch[i], sim)
+            dabQ_phase_list, dabP_phase_list = get_dab_phase(evals_branch[i], evecs_branch[i], z_branch[i], sim)
             dab_phase_list = np.conjugate(dabQ_phase_list)
             dab_phase_mat[i] = dab_phase_list
             phase_out[i] *= dab_phase_list
@@ -280,3 +280,108 @@ def get_branch_pair_eigs(z_branch, evecs_branch_pair_previous, sim):
 
 def no_observables(sim, state_vars):
     return {}
+
+
+def harmonic_oscillator_hop(self, z, delta_z, ev_diff):
+    """
+    Carries out the hopping procedure for a harmonic oscillator Hamiltonian, defined on a single branch only. 
+    :param z: z coordinate
+    :param delta_z: rescaling direction
+    :param ev_diff: change in quantum energy following a hop: e_{final} - e_{initial}
+    :param sim: simulation object
+    :return z, hopped: updated z coordinate and boolean indicating if a hop has or has not occured
+    """
+    hopped = False
+    delta_zc = np.conj(delta_z)
+    zc = np.conj(z)
+    akj_z = np.real(np.sum(self.h * delta_zc * delta_z))
+    bkj_z = np.real(np.sum(1j * self.h * (zc * delta_z - z * delta_zc)))
+    ckj_z = ev_diff
+    disc = bkj_z ** 2 - 4 * akj_z * ckj_z
+    if disc >= 0:
+        if bkj_z < 0:
+            gamma = bkj_z + np.sqrt(disc)
+        else:
+            gamma = bkj_z - np.sqrt(disc)
+        if akj_z == 0:
+            gamma = 0
+        else:
+            gamma = gamma / (2 * akj_z)
+        # adjust classical coordinate
+        z = z - 1.0j * np.real(gamma) * delta_z
+        hopped = True
+    return z, hopped
+
+def harmonic_oscillator_bolztmann_init_classical(self, seed=None):
+    """
+    Initialize classical coordiantes according to Boltzmann statistics
+    :param sim: simulation object with temperature, harmonic oscillator mass and frequency
+    :return: z = sqrt(w*h/2)*(q + i*(p/((w*h))), z* = sqrt(w*h/2)*(q - i*(p/((w*h)))
+    """
+    np.random.seed(seed)
+    q = np.random.normal(loc=0, scale=np.sqrt(self.temp / (self.m * (self.h ** 2))), size=self.A)
+    p = np.random.normal(loc=0, scale=np.sqrt(self.temp), size=self.A)
+    z = np.sqrt(self.h * self.m / 2) * (q + 1.0j * (p / (self.h * self.m)))
+    return z
+
+def harmonic_oscillator_h_c(self, z):
+    """
+    Harmonic oscillator Hamiltonian
+    :param z: z(t)
+    :param zc: conjugate z(t)
+    :return: h_c(z,zc) Hamiltonian
+    """
+    return np.real(np.sum(self.h* np.conj(z) * z))
+
+def harmonic_oscillator_h_c_branch(self, z_branch):
+    return np.real(np.sum(self.h*np.conj(z_branch)*z_branch, axis=1))
+def harmonic_oscillator_dh_c_dz_branch(self, z_branch):
+    """
+    Gradient of harmonic oscillator hamiltonian wrt z_branch
+    :param z_branch: z coordinate in each branch
+    :param sim: simulation object
+    :return:
+    """
+    return self.h[np.newaxis, :] * np.conj(z_branch)
+
+def harmonic_oscillator_dh_c_dzc_branch(self, z_branch):
+    """
+    Gradient of harmonic oscillator hamiltonian wrt zc_branch
+    :param z_branch: z coordinate in each branch
+    :param sim: simulation object
+    :return:
+    """
+    return self.h[np.newaxis, :] * z_branch
+
+def load_defaults(sim):
+    var_names = dir(sim)
+    print(var_names)
+    defaults = {'hop': harmonic_oscillator_hop,
+                'init_classical': harmonic_oscillator_bolztmann_init_classical,
+                'h_c': harmonic_oscillator_h_c,
+                'dh_c_dz_branch': harmonic_oscillator_dh_c_dz_branch,
+                'dh_c_dzc_branch': harmonic_oscillator_dh_c_dz_branch,
+                'dynamics_method': None,
+                'tmax': None,
+                'dt': None,
+                'dt_bath': None,
+                'calc_mf_obs':None,
+                'calc_fssh_obs':None,
+                'calc_cfssh_obs':None,
+                'mf_observables':None,
+                'fssh_observables':None,
+                'cfssh_observables':None,
+                'gauge_fix':None,
+                'dmat_const':None,
+                'cfssh_branch_pair_update':None,
+                'state_vars_list':[],
+                'mf_observables':no_observables,
+                'fssh_observables':no_observables,
+                'cfssh_observables':no_observables}
+    for name in var_names:
+        if name in defaults.keys:
+            print('found ',name)
+        else:
+            #sim.
+            pass
+    return sim
