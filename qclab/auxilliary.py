@@ -9,10 +9,10 @@ import numpy as np
 
 def rk4_c(z_branch, qfzc_branch, dt, sim):
     """ 4-th order Runge-Kutta integrator for the z_branch coordinate with force qfzc_branch"""
-    k1 = -1.0j*(sim.dh_c_dzc_branch(z_branch) + qfzc_branch)
-    k2 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k1) + qfzc_branch)
-    k3 = -1.0j*(sim.dh_c_dzc_branch(z_branch + 0.5*dt*k2) + qfzc_branch)
-    k4 = -1.0j*(sim.dh_c_dzc_branch(z_branch + dt*k3) + qfzc_branch)
+    k1 = -1.0j*(sim.dh_c_dzc_branch(sim.h_c_params, z_branch) + qfzc_branch)
+    k2 = -1.0j*(sim.dh_c_dzc_branch(sim.h_c_params, z_branch + 0.5*dt*k1) + qfzc_branch)
+    k3 = -1.0j*(sim.dh_c_dzc_branch(sim.h_c_params, z_branch + 0.5*dt*k2) + qfzc_branch)
+    k4 = -1.0j*(sim.dh_c_dzc_branch(sim.h_c_params, z_branch + dt*k3) + qfzc_branch)
     z_branch = z_branch + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     #k1 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch) + qfzc_branch)
     #k2 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch + 0.5*dt*k1) + qfzc_branch)
@@ -117,15 +117,10 @@ def rho_db_to_adb_branch(rho_db_branch, eigvec_branch): # transforms branch adib
 
 
 def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
-    #fzc_branch = np.zeros(np.shape(z_branch), dtype=complex)
     if act_surf_ind_branch is None:
-        #for n in range(sim.num_branches):
-        #    fzc_branch[n] = sim.dh_qc_dzc(evecs_branch[n], evecs_branch[n], z_branch[n])
-        fzc_branch = sim.dh_qc_dzc_branch(evecs_branch, evecs_branch, z_branch)
+        fzc_branch = sim.dh_qc_dzc_branch(sim.h_qc_params, evecs_branch, evecs_branch, z_branch)
     else:
-        #for n in range(sim.num_branches):
-        #    fzc_branch[n] = sim.dh_qc_dzc(evecs_branch[n,:,act_surf_ind_branch[n]], evecs_branch[n,:,act_surf_ind_branch[n]], z_branch[n])
-        fzc_branch = sim.dh_qc_dzc_branch(evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_branches),:,act_surf_ind_branch], z_branch)
+        fzc_branch = sim.dh_qc_dzc_branch(sim.h_qc_params, evecs_branch[range(sim.num_trajs*sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_trajs*sim.num_branches),:,act_surf_ind_branch], z_branch)
     return fzc_branch
 
 def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse methods
@@ -138,10 +133,8 @@ def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse me
     :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
     :return: d_{ab}^{z} and d_{ab}^{zc}
     """
-    dab_z = sim.dh_qc_dz_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dz_shape, dz_ind, dz_mels, evec_a, evec_b) / ev_diff
-    dab_zc = sim.dh_qc_dzc_branch(evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff#matprod_sparse(dzc_shape, dzc_ind, dzc_mels, evec_a, evec_b) / ev_diff
-    #dab_z = sim.dh_qc_dz(evec_a, evec_b, z)/ev_diff
-    #dab_zc = sim.dh_qc_dzc(evec_a, evec_b, z)/ev_diff
+    dab_z = sim.dh_qc_dz_branch(sim.h_qc_params, evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff
+    dab_zc = sim.dh_qc_dzc_branch(sim.h_qc_params, evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff
     return dab_z, dab_zc
 
 def get_dab_phase(evals, evecs, z, sim):
@@ -271,7 +264,7 @@ def get_branch_pair_eigs(z_branch, evecs_branch_pair_previous, sim):
     for i in range(sim.num_branches):
         for j in range(i + 1, sim.num_branches):
             z_branch_ij = np.array([(z_branch[i] + z_branch[j])/2])
-            evals_branch_pair[i,j], evecs_branch_pair[i,j] = np.linalg.eigh(h_q + sim.h_qc_branch(z_branch_ij)[0])
+            evals_branch_pair[i,j], evecs_branch_pair[i,j] = np.linalg.eigh(h_q + sim.h_qc_branch(sim.h_qc_params, z_branch_ij)[0])
             evecs_branch_pair[i,j], _ = sign_adjust_branch(evecs_branch_pair[i,j][np.newaxis,:,:], evecs_branch_pair_previous[i,j][np.newaxis,:,:], 
                                                            evals_branch_pair[i,j][np.newaxis,:], z_branch_ij[np.newaxis,:], sim)
             evals_branch_pair[j,i] = evals_branch_pair[i,j]
@@ -282,7 +275,7 @@ def no_observables(sim, state_vars):
     return {}
 
 
-def harmonic_oscillator_hop(self, z, delta_z, ev_diff):
+def harmonic_oscillator_hop(sim, z, delta_z, ev_diff):
     """
     Carries out the hopping procedure for a harmonic oscillator Hamiltonian, defined on a single branch only. 
     :param z: z coordinate
@@ -294,8 +287,8 @@ def harmonic_oscillator_hop(self, z, delta_z, ev_diff):
     hopped = False
     delta_zc = np.conj(delta_z)
     zc = np.conj(z)
-    akj_z = np.real(np.sum(self.h * delta_zc * delta_z))
-    bkj_z = np.real(np.sum(1j * self.h * (zc * delta_z - z * delta_zc)))
+    akj_z = np.real(np.sum(sim.h * delta_zc * delta_z))
+    bkj_z = np.real(np.sum(1j * sim.h * (zc * delta_z - z * delta_zc)))
     ckj_z = ev_diff
     disc = bkj_z ** 2 - 4 * akj_z * ckj_z
     if disc >= 0:
@@ -312,76 +305,74 @@ def harmonic_oscillator_hop(self, z, delta_z, ev_diff):
         hopped = True
     return z, hopped
 
-def harmonic_oscillator_bolztmann_init_classical(self, seed=None):
+def harmonic_oscillator_bolztmann_init_classical(sim, seed=None):
     """
     Initialize classical coordiantes according to Boltzmann statistics
     :param sim: simulation object with temperature, harmonic oscillator mass and frequency
     :return: z = sqrt(w*h/2)*(q + i*(p/((w*h))), z* = sqrt(w*h/2)*(q - i*(p/((w*h)))
     """
     np.random.seed(seed)
-    q = np.random.normal(loc=0, scale=np.sqrt(self.temp / (self.m * (self.h ** 2))), size=self.A)
-    p = np.random.normal(loc=0, scale=np.sqrt(self.temp), size=self.A)
-    z = np.sqrt(self.h * self.m / 2) * (q + 1.0j * (p / (self.h * self.m)))
+    q = np.random.normal(loc=0, scale=np.sqrt(sim.temp / (sim.m * (sim.h ** 2))), size=sim.num_class_coords)
+    p = np.random.normal(loc=0, scale=np.sqrt(sim.temp), size=sim.num_class_coords)
+    z = np.sqrt(sim.h * sim.m / 2) * (q + 1.0j * (p / (sim.h * sim.m)))
     return z
 
-def harmonic_oscillator_h_c(self, z):
-    """
-    Harmonic oscillator Hamiltonian
-    :param z: z(t)
-    :param zc: conjugate z(t)
-    :return: h_c(z,zc) Hamiltonian
-    """
-    return np.real(np.sum(self.h* np.conj(z) * z))
 
-def harmonic_oscillator_h_c_branch(self, z_branch):
-    return np.real(np.sum(self.h*np.conj(z_branch)*z_branch, axis=1))
-def harmonic_oscillator_dh_c_dz_branch(self, z_branch):
+def harmonic_oscillator_h_c_branch(h_c_params, z_branch):
+        h = h_c_params
+        return np.real(np.sum(h[np.newaxis,:]*np.conj(z_branch)*z_branch, axis=1))
+def harmonic_oscillator_dh_c_dz_branch(h_c_params, z_branch):
     """
     Gradient of harmonic oscillator hamiltonian wrt z_branch
     :param z_branch: z coordinate in each branch
     :param sim: simulation object
     :return:
     """
-    return self.h[np.newaxis, :] * np.conj(z_branch)
+    h = h_c_params
+    return h[np.newaxis, :] * np.conj(z_branch)
 
-def harmonic_oscillator_dh_c_dzc_branch(self, z_branch):
+def harmonic_oscillator_dh_c_dzc_branch(h_c_params, z_branch):
     """
     Gradient of harmonic oscillator hamiltonian wrt zc_branch
     :param z_branch: z coordinate in each branch
     :param sim: simulation object
     :return:
     """
-    return self.h[np.newaxis, :] * z_branch
+    h = h_c_params
+    return h[np.newaxis, :] * z_branch
 
 def load_defaults(sim):
-    var_names = dir(sim)
-    print(var_names)
-    defaults = {'hop': harmonic_oscillator_hop,
-                'init_classical': harmonic_oscillator_bolztmann_init_classical,
-                'h_c': harmonic_oscillator_h_c,
-                'dh_c_dz_branch': harmonic_oscillator_dh_c_dz_branch,
-                'dh_c_dzc_branch': harmonic_oscillator_dh_c_dz_branch,
-                'dynamics_method': None,
-                'tmax': None,
-                'dt': None,
-                'dt_bath': None,
-                'calc_mf_obs':None,
-                'calc_fssh_obs':None,
-                'calc_cfssh_obs':None,
-                'mf_observables':None,
-                'fssh_observables':None,
-                'cfssh_observables':None,
-                'gauge_fix':None,
-                'dmat_const':None,
-                'cfssh_branch_pair_update':None,
-                'state_vars_list':[],
-                'mf_observables':no_observables,
-                'fssh_observables':no_observables,
-                'cfssh_observables':no_observables}
-    for name in var_names:
-        if name in defaults.keys:
-            print('found ',name)
-        else:
-            #sim.
-            pass
+    var_names = list(sim.__dict__.keys())
+    defaults = {
+        'hop': harmonic_oscillator_hop,
+        'init_classical': harmonic_oscillator_bolztmann_init_classical,
+        'h_c_branch': harmonic_oscillator_h_c_branch,
+        'dh_c_dz_branch': harmonic_oscillator_dh_c_dz_branch,
+        'dh_c_dzc_branch': harmonic_oscillator_dh_c_dzc_branch,
+        'h_c_params' : (sim.h),
+        'h_qc_params' : None,
+        'h_q_params' : None,
+        'dynamics_method': None,
+        'tmax': None,
+        'dt': None,
+        'dt_bath': None,
+        'calc_mf_obs':None,
+        'calc_fssh_obs':None,
+        'calc_cfssh_obs':None,
+        'mf_observables':None,
+        'fssh_observables':None,
+        'cfssh_observables':None,
+        'gauge_fix':None,
+        'dmat_const':None,
+        'cfssh_branch_pair_update':None,
+        'num_class_coords':None,
+        'state_vars_list':[],
+        'mf_observables':no_observables,
+        'fssh_observables':no_observables,
+        'cfssh_observables':no_observables,
+        'temp':None
+        }
+    for name in defaults.keys():
+        if not(name in list(var_names)):
+            sim.__dict__[name] = defaults[name]
     return sim

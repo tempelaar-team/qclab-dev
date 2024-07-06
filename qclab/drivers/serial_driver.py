@@ -1,5 +1,5 @@
-import simulation
-import dynamics
+import qclab.simulation as simulation
+import qclab.dynamics as dynamics
 from tqdm import tqdm
 
 def dynamics_serial(sim, seeds, data = simulation.Data()):
