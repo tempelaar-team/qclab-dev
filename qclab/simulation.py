@@ -3,8 +3,7 @@ from argparse import Namespace
 
 
 class Trajectory:
-    def __init__(self, seed):
-        self.seed = seed  # seed used to initialize random variables
+    def __init__(self):
         self.data_dic = {}  # dictionary to store data
     def add_to_dic(self, name, data):
         self.data_dic.__setitem__(name, data)

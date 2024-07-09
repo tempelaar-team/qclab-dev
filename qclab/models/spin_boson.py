@@ -19,7 +19,7 @@ class SpinBosonModel:
         self.num_states=2  # number of states
         self.h_q_params = (self.E, self.V)
         self.h_qc_params = None
-        self.num_class_coords = self.A
+        self.num_classical_coordinates = self.A
 
         # initialize derivatives of h wrt z and zc
         # tensors have dimension # classical osc \times # quantum states \times # quantum states

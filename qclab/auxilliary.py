@@ -312,8 +312,8 @@ def harmonic_oscillator_bolztmann_init_classical(sim, seed=None):
     :return: z = sqrt(w*h/2)*(q + i*(p/((w*h))), z* = sqrt(w*h/2)*(q - i*(p/((w*h)))
     """
     np.random.seed(seed)
-    q = np.random.normal(loc=0, scale=np.sqrt(sim.temp / (sim.m * (sim.h ** 2))), size=sim.num_class_coords)
-    p = np.random.normal(loc=0, scale=np.sqrt(sim.temp), size=sim.num_class_coords)
+    q = np.random.normal(loc=0, scale=np.sqrt(sim.temp / (sim.m * (sim.h ** 2))), size=sim.num_classical_coordinates)
+    p = np.random.normal(loc=0, scale=np.sqrt(sim.temp), size=sim.num_classical_coordinates)
     z = np.sqrt(sim.h * sim.m / 2) * (q + 1.0j * (p / (sim.h * sim.m)))
     return z
 
@@ -370,6 +370,7 @@ def load_defaults(sim):
         'mf_observables':no_observables,
         'fssh_observables':no_observables,
         'cfssh_observables':no_observables,
+        'observables':no_observables,
         'temp':None
         }
     for name in defaults.keys():

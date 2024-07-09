@@ -1,0 +1,45 @@
+import numpy as np
+import qclab.auxilliary as auxilliary
+
+class MeanFieldDynamics:
+    def __init__(self, sim):
+        assert sim.num_branches == 1        
+        return
+    
+    def initialize_dynamics(self, sim):
+        # initialize time axes 
+        self.tdat_output = np.arange(0, sim.tmax + sim.dt_output, sim.dt_output)
+        self.tdat = np.arange(0, sim.tmax + sim.dt, sim.dt)
+        # initialize variables describing the state of the system
+        self.z_coord = np.zeros((sim.num_trajs, sim.num_branches, sim.num_classical_coordinates), dtype=complex)
+        # load initial values of the z coordinate 
+        for traj_n in range(sim.num_trajs):
+            self.z_coord[traj_n, :, :] = sim.init_classical(sim, sim.seeds[traj_n]) # init_classical could arguablty be in init_state
+        self.z_coord = self.z_coord.reshape(sim.num_trajs*sim.num_branches, sim.num_classical_coordinates)
+        # load initial values of the wavefunction
+        self.wf_db = np.zeros((sim.num_trajs*sim.num_branches, sim.num_states), dtype=complex) + sim.wf_db[np.newaxis, :]
+        # initialize gradients (Hamiltonian and quantum forces)
+        self.h_tot = sim.h_q(sim.h_q_params)[np.newaxis, :, :] + sim.h_qc_branch(sim.h_qc_params, self.z_coord)
+        self.qfzc = auxilliary.quantum_force_branch(self.wf_db, None, self.z_coord, sim)
+        return
+    
+    def propagate_classical_subsystem(self, sim):
+        self.z_coord = auxilliary.rk4_c(self.z_coord, self.qfzc, sim.dt, sim)
+        return
+    
+    def propagate_quantum_subsystem(self, sim):
+        self.wf_db = auxilliary.rk4_q_branch(self.h_tot, self.wf_db, sim.dt)
+        return
+    
+    def update_state(self, sim):
+        self.qfzc = auxilliary.quantum_force_branch(self.wf_db, None, self.z_coord, sim)
+        self.h_tot = sim.h_q(sim.h_q_params)[np.newaxis, :, :] + sim.h_qc_branch(sim.h_qc_params, self.z_coord)
+        return
+    
+    def calculate_observables(self, sim):
+        self.dm_db = np.einsum('ni,nk->ik', self.wf_db, np.conj(self.wf_db))/(sim.num_branches)
+        self.observables_t = sim.observables(sim, self)
+        self.observables_t['e_q'] = np.real(np.einsum('ni,nij,nj', np.conjugate(self.wf_db), self.h_tot, self.wf_db))/(sim.num_branches)
+        self.observables_t['e_c'] = np.sum(sim.h_c_branch(sim.h_c_params, self.z_coord))/(sim.num_branches)
+        self.observables_t['dm_db'] = self.dm_db
+        return 
