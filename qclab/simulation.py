@@ -27,7 +27,7 @@ class Data:
                 self.data_dic[key] = self.data_dic[key] + val
             else:
                 self.data_dic[key] = val
-        self.seed_list = np.append(self.seed_list, traj_obj.seed)
+        self.seed_list = np.append(self.seed_list, traj_obj.seeds)
         return
     def sum_data(self, data_obj):  # adds data from a data_obj
         for key, val in data_obj.data_dic.items():
