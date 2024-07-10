@@ -238,11 +238,7 @@ class FewestSwitchesSurfaceHoppingDynamics:
                 self.dm_db_branch = self.dm_db_branch / num_branches
             self.dm_db_branch = self.dm_db_branch.reshape(num_trajs * num_branches, num_states, num_states)
             self.dm_db = np.sum(self.dm_db_branch, axis=0)
-        self.state_vars = {}
-        for i in range(len(sim.state_vars_list)):
-            if sim.state_vars_list[i] in locals():
-                self.state_vars[sim.state_vars_list[i]] = eval(sim.state_vars_list[i])
-        self.observables_t = sim.observables(sim, self.state_vars)
+        self.observables_t = sim.observables(sim, self)
         eq = 0
         for n in range(len(self.act_surf_ind_branch)):
             eq += self.evals_branch[n][self.act_surf_ind_branch[n]]
