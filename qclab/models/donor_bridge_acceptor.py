@@ -21,7 +21,7 @@ class DonorBridgeAcceptorModel:
         self.h=self.w
         self.m=np.ones_like(self.w)
         self.num_states=3  # number of states
-        self.num_class_coords = int(self.A*3)
+        self.num_classical_coordinates = int(self.A*3)
         self.h_q_params = (self.E_D, self.E_B, self.E_A, self.V)
 
         # initialize derivatives of h wrt z and zc

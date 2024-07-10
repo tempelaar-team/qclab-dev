@@ -1,5 +1,5 @@
 import numpy as np
-import auxilliary
+import qclab.auxilliary as auxilliary
 from numba import njit
 
 
@@ -12,11 +12,12 @@ class HolsteinLatticeModel:
         self.j=input_params['j']  # hopping integral
         self.w=input_params['w']  # classical oscillator frequency
         self.g=input_params['g']  # electron-phonon coupling
+        self.open = input_params['open'] # open or closed boundary conditions
         self.m=input_params['m']*np.ones(self.num_states) # mass of the classical oscillators
         self.h=np.ones(self.num_states)*self.w
         self.h_qc_params = (self.h, self.g)
-        self.h_q_params = (self.j)
-        self.num_class_coords = self.num_states
+        self.h_q_params = (self.j, self.open)
+        self.num_classical_coordinates = self.num_states
         # initialize derivatives of h wrt z and zc
         # tensors have dimension # classical osc \times # quantum states \times # quantum states
         dz_mat = np.zeros((self.num_states, self.num_states, self.num_states), dtype=complex)
@@ -66,13 +67,14 @@ class HolsteinLatticeModel:
                 Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
                 :return: h_q Hamiltonian
                 """
-                j = h_q_params
+                j, open = h_q_params
                 out = np.zeros((self.num_states, self.num_states), dtype=complex)
                 for n in range(self.num_states - 1):
                     out[n, n + 1] = -j
                     out[n + 1, n] = -j
-                out[0, -1] = -j
-                out[-1, 0] = -j
+                if not(open):
+                    out[0, -1] = -j
+                    out[-1, 0] = -j
                 return out
 
         def h_qc_branch(h_qc_params,z_branch):

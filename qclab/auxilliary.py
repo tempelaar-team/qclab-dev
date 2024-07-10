@@ -25,7 +25,7 @@ def rk4_c(z_branch, qfzc_branch, dt, sim):
 
 @njit
 def rk4_q_branch(h_branch, psi_branch, dt):
-    psi_branch_out = np.zeros(np.shape(psi_branch)) + 0.0j
+    psi_branch_out = np.ascontiguousarray(np.zeros(np.shape(psi_branch))) + 0.0j
     for n in range(len(psi_branch)):
         psi_branch_out[n] = rk4_q(h_branch[n], psi_branch[n], dt)
     return psi_branch_out
@@ -40,10 +40,10 @@ def rk4_q(h, psi, dt, path=None):
     :param dt: timestep dt
     :return: psi(t+dt)
     """
-    k1 = (-1j * np.dot(h, psi))
-    k2 = (-1j * np.dot(h, psi + 0.5 * dt * k1))
-    k3 = (-1j * np.dot(h, psi + 0.5 * dt * k2))
-    k4 = (-1j * np.dot(h, psi + dt * k3))
+    k1 = (-1j * np.dot(h, np.ascontiguousarray(psi)))
+    k2 = (-1j * np.dot(h, np.ascontiguousarray(psi) + 0.5 * dt * k1))
+    k3 = (-1j * np.dot(h, np.ascontiguousarray(psi) + 0.5 * dt * k2))
+    k4 = (-1j * np.dot(h, np.ascontiguousarray(psi) + dt * k3))
     psi = psi + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return psi
 
