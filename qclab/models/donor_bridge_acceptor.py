@@ -1,5 +1,5 @@
 import numpy as np
-import auxilliary
+import qclab.auxilliary as auxilliary
 from numba import njit
 
 
