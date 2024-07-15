@@ -3,13 +3,14 @@ qclab (pronounced "qc" "lab") is a package for carrying out mixed quantum-classi
 
 ## Capabilities
 ### Dynamics Algorithms
-* Mean-field (Ehrenfest) dynamics [1]
-* Fewest-switches surface hopping (FSSH) dynamics [2]
-* Coherent fewest-switches surface hopping (FSSH) dynamics [3]
+The following algorithms are implemented making use of the complex-classical coordinate formalism established in [1] and are formally identical to their original real-space formulation while being invariant to global unitary transformations of the classical and quantum bases. 
+* Mean-field (Ehrenfest) dynamics [2]
+* Fewest-switches surface hopping (FSSH) dynamics [3]
+* Coherent fewest-switches surface hopping (FSSH) dynamics [4]
 ### Model Systems
-* Spin-boson model
-* Donor-bridge-acceptor model
-* Holstein lattice model 
+* Spin-boson model [4]
+* Donor-bridge-acceptor model [5]
+* Holstein lattice model [6]
     - 1-D lattice model with a single electronic state and Einstein phonon per site. Electronic sites have nearest-neighbor interactions. 
 ## installing qc-lab
 qclab can be installed with pip 
@@ -18,6 +19,9 @@ pip install qclab
 ```
 
 ## Bibliography
-1. Tully, J. C. Mixed Quantum–Classical Dynamics. Faraday Discuss. 1998, 110 (0), 407–419. https://doi.org/10.1039/A801824C.
-2. Hammes‐Schiffer, S.; Tully, J. C. Proton Transfer in Solution: Molecular Dynamics with Quantum Transitions. J. Chem. Phys. 1994, 101 (6), 4657–4667. https://doi.org/10.1063/1.467455.
-3. Tempelaar, R.; Reichman, D. R. Generalization of Fewest-Switches Surface Hopping for Coherences. The Journal of Chemical Physics 2018, 148 (10), 102309. https://doi.org/10.1063/1.5000843.
+1. Miyazaki, K.; Krotz, A.; Tempelaar, R. Unitary Basis Transformations in Mixed Quantum-Classical Dynamics. arXiv April 23, 2024. http://arxiv.org/abs/2404.15614 (accessed 2024-06-04).
+2. Tully, J. C. Mixed Quantum–Classical Dynamics. Faraday Discuss. 1998, 110 (0), 407–419. https://doi.org/10.1039/A801824C.
+3. Hammes‐Schiffer, S.; Tully, J. C. Proton Transfer in Solution: Molecular Dynamics with Quantum Transitions. J. Chem. Phys. 1994, 101 (6), 4657–4667. https://doi.org/10.1063/1.467455.
+4. Tempelaar, R.; Reichman, D. R. Generalization of Fewest-Switches Surface Hopping for Coherences. The Journal of Chemical Physics 2018, 148 (10), 102309. https://doi.org/10.1063/1.5000843.
+5. Tully, J. C. Mixed Quantum–Classical Dynamics. Faraday Discuss. 1998, 110 (0), 407–419. https://doi.org/10.1039/A801824C.
+6. Krotz, A.; Provazza, J.; Tempelaar, R. A Reciprocal-Space Formulation of Mixed Quantum–Classical Dynamics. J. Chem. Phys. 2021, 154 (22), 224101. https://doi.org/10.1063/5.0053177.
