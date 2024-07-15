@@ -17,6 +17,11 @@ qclab can be installed with pip
 ```
 pip install qclab
 ```
+or from source by downloading this repository and executing 
+```
+pip install -e ./
+```
+from inside its topmost directory. 
 
 ## Bibliography
 1. Miyazaki, K.; Krotz, A.; Tempelaar, R. Unitary Basis Transformations in Mixed Quantum-Classical Dynamics. arXiv April 23, 2024. http://arxiv.org/abs/2404.15614 (accessed 2024-06-04).
