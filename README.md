@@ -3,9 +3,9 @@ qclab (pronounced "qc" "lab") is a package for carrying out mixed quantum-classi
 
 ## Capabilities
 ### Dynamics Algorithms
-* Mean-field (Ehrenfest) dynamics
-* Fewest-switches surface hopping (FSSH) dynamics
-* Coherent fewest-switches surface hopping (FSSH) dynamics
+* Mean-field (Ehrenfest) dynamics [1]
+* Fewest-switches surface hopping (FSSH) dynamics [2]
+* Coherent fewest-switches surface hopping (FSSH) dynamics [3]
 ### Model Systems
 * Spin-boson model
 * Donor-bridge-acceptor model
@@ -16,3 +16,8 @@ qclab can be installed with pip
 ```
 pip install qclab
 ```
+
+## Bibliography
+[1] Tully, J. C. Mixed Quantum–Classical Dynamics. Faraday Discuss. 110, 1998, 407–419.
+(2) Hammes‐Schiffer, S.; Tully, J. C. Proton Transfer in Solution: Molecular Dynamics with Quantum Transitions. J. Chem. Phys. 1994, 101 (6), 4657–4667. https://doi.org/10.1063/1.467455.
+(3) Tempelaar, R.; Reichman, D. R. Generalization of Fewest-Switches Surface Hopping for Coherences. The Journal of Chemical Physics 2018, 148 (10), 102309. https://doi.org/10.1063/1.5000843.
