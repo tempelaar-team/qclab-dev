@@ -5,6 +5,7 @@ class CoherentFewestSwitchesSurfaceHoppingDynamics:
     def __init__(self, sim):
         var_names = list(sim.__dict__.keys())
         defaults = {
+            'hop': auxilliary.harmonic_oscillator_hop,
             'init_classical': auxilliary.harmonic_oscillator_bolztmann_init_classical,
             'h_c_branch': auxilliary.harmonic_oscillator_h_c_branch,
             'dh_c_dz_branch': auxilliary.harmonic_oscillator_dh_c_dz_branch,
@@ -16,15 +17,14 @@ class CoherentFewestSwitchesSurfaceHoppingDynamics:
             'dt_output': 0.1,
             'dt': 0.01,
             'temp':1,
-            'state_vars_list':[],
-            'observables':auxilliary.no_observables,
-            'num_class_coords':None,
             'num_states':2,
             'num_branches':2,
             'sh_deterministic':True,
             'gauge_fix':0,
-            'pab_cohere':True,
-            'dmat_const':0
+            'pab_cohere':False,
+            'dmat_const':0,
+            'observables':auxilliary.no_observables,
+            'num_classical_coordinates':None
             }
         for name in defaults.keys():
             if not(name in list(var_names)):

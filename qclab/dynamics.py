@@ -1,9 +1,9 @@
 import numpy as np
-import qclab.auxilliary as auxilliary
+#import qclab.auxilliary as auxilliary
 import qclab.simulation as simulation
 
 def dynamics(dyn, sim, traj=simulation.Trajectory()):
-    sim = auxilliary.load_defaults(sim)
+    #sim = auxilliary.load_defaults(sim)
     dyn = dyn(sim)
     # initialize dynamics
     dyn.initialize_dynamics(sim)

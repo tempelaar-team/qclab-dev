@@ -16,10 +16,12 @@ class MeanFieldDynamics:
             'dt_output': 0.1,
             'dt': 0.01,
             'temp':1,
-            'state_vars_list':[],
+            'num_states':2,
+            'num_branches':1,
+            'gauge_fix':0,
+            'dmat_const':0,
             'observables':auxilliary.no_observables,
-            'num_class_coords':None,
-            'num_branches':1
+            'num_classical_coordinates':None
             }
         for name in defaults.keys():
             if not(name in list(var_names)):
