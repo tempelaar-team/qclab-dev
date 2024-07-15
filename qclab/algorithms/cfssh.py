@@ -18,13 +18,14 @@ class CoherentFewestSwitchesSurfaceHoppingDynamics:
             'dt': 0.01,
             'temp':1,
             'num_states':2,
-            'num_branches':2,
+            'num_branches':sim.num_states,
             'sh_deterministic':True,
             'gauge_fix':0,
             'pab_cohere':False,
             'dmat_const':0,
             'observables':auxilliary.no_observables,
-            'num_classical_coordinates':None
+            'num_classical_coordinates':None,
+            'cfssh_branch_pair_update':0
             }
         for name in defaults.keys():
             if not(name in list(var_names)):

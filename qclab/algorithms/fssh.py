@@ -18,7 +18,7 @@ class FewestSwitchesSurfaceHoppingDynamics:
             'dt': 0.01,
             'temp':1,
             'num_states':2,
-            'num_branches':2,
+            'num_branches':sim.num_states,
             'sh_deterministic':True,
             'gauge_fix':0,
             'pab_cohere':True,
