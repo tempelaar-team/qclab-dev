@@ -16,10 +16,10 @@ def dynamics(dyn, sim, traj=simulation.Trajectory()):
     for dyn.t_ind in np.arange(0, len(dyn.tdat)):
         if t_output_ind == len(dyn.tdat_output):
             break
-        ############################################################
-        #                            OUTPUT TIMESTEP               #
-        ############################################################
         if dyn.tdat_output[t_output_ind] <= dyn.tdat[dyn.t_ind] + 0.5 * sim.dt:
+            ############################################################
+            #                            OUTPUT TIMESTEP               #
+            ############################################################
             dyn.calculate_observables(sim)
             traj.add_observable_dict(t_output_ind, dyn.observables_t)
             t_output_ind += 1
