@@ -14,7 +14,7 @@ class FewestSwitchesSurfaceHoppingDynamics:
             'h_qc_params' : None,
             'h_q_params' : None,
             'tmax': 10,
-            'dt_output': 0.1,
+            'dt_output':0.1,
             'dt': 0.01,
             'temp':1,
             'num_states':2,
