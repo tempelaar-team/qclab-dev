@@ -18,6 +18,8 @@
 <text transform="matrix(1 0 0 1 29.8821 24.8096)" class="st1 st2">simulation class</text>
 <rect x="43.42" y="49.08" class="st0" width="44" height="23"/>
 <text transform="matrix(1 0 0 1 50.7494 63.728)" class="st1 st2">inputs</text>
+<rect x="43.42" y="86.57" class="st0" width="44" height="23"/>
+<text transform="matrix(1 0 0 1 50.7494 101.2192)" class="st1 st2">seeds</text>
 <rect x="221.88" y="4.16" class="st0" width="81" height="35"/>
 <text transform="matrix(1 0 0 1 225.8862 24.8096)" class="st1 st2">algorithm class</text>
 <rect x="240.82" y="104.53" class="st0" width="81" height="35"/>
@@ -35,4 +37,5 @@
 <text transform="matrix(1 0 0 1 87.4187 125.2522)" class="st1 st5">(c)</text>
 <text transform="matrix(1 0 0 1 326.8383 125.6975)" class="st1 st5">(d)</text>
 <line class="st3" x1="240.82" y1="122.03" x2="225.42" y2="122.03"/>
+<line class="st3" x1="87.42" y1="98.07" x2="113.42" y2="98.07"/>
 </svg>

@@ -1,15 +1,15 @@
-.. qclab documentation master file, created by
+.. QClab documentation master file, created by
    sphinx-quickstart on Mon Jul 15 16:14:45 2024.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 
-Welcome to the qclab documentation!
+Welcome to the QClab documentation!
 ===================================
 
-**qclab** qclab (pronounced "qc" "lab") is a package for carrying out mixed quantum-classical (MQC) dynamics simulations. 
+**QClab** QClab (pronounced "QC" "lab") is a package for carrying out mixed quantum-classical (MQC) dynamics simulations. 
 It implements popular MQC algorithms in a manner that is agnostic to the underlying physical system and flexible to the mixed quantum-classical algorithm. 
-Along with several built-in dynamics algorithms, qclab comes with a variety of physical models that can be used as starting points for exploring MQC dynamics 
+Along with several built-in dynamics algorithms, QClab comes with a variety of physical models that can be used as starting points for exploring MQC dynamics 
 or to implement more elaborate models. 
 
 Capabilities
@@ -33,12 +33,12 @@ Model Systems
 * Holstein lattice model [6]
 
 
-Installing qclab
+Installing QClab
 -----------------
 
-qclab can be installed with pip::
+QClab can be installed with pip::
 
-   pip install qclab
+   pip install QClab
 
 or from source by downloading the github repository and executing::
 
@@ -46,7 +46,7 @@ or from source by downloading the github repository and executing::
 
 from inside its topmost directory. 
 
-Using qclab
+Using QClab
 -----------
 
 .. toctree::
