@@ -3,6 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+
 Welcome to the qclab documentation!
 ===================================
 
@@ -45,6 +46,14 @@ or from source by downloading the github repository and executing::
 
 from inside its topmost directory. 
 
+Using qclab
+-----------
+
+.. toctree::
+   :maxdepth: 3
+   
+   introduction
+   making_models
 
 Bibliography
 
@@ -61,7 +70,7 @@ Add your content using ``reStructuredText`` syntax. See the
 documentation for details.
 
 
-.. toctree::
-   :maxdepth: 3
-   :caption: Contents:
+
+
+
 
