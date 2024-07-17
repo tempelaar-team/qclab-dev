@@ -42,6 +42,7 @@ or from source by downloading the github repository and executing::
 from inside its topmost directory. 
 
 Bibliography
+------------
 
 1. Miyazaki, K.; Krotz, A.; Tempelaar, R. Unitary Basis Transformations in Mixed Quantum-Classical Dynamics. arXiv April 23, 2024. http://arxiv.org/abs/2404.15614.
 2. Tully, J. C. Mixed Quantum–Classical Dynamics. Faraday Discuss. 1998, 110 (0), 407–419. https://doi.org/10.1039/A801824C.
