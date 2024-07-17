@@ -179,8 +179,7 @@ class FewestSwitchesSurfaceHoppingDynamics:
                 if not sim.pab_cohere:
                     hop_prob = -2 * np.real(
                         prod * (self.wf_adb_delta[nt * num_branches:(nt + 1) * num_branches][i] \
-                                / self.wf_adb_delta[nt * num_branches:(nt + 1) * num_branches][i][
-                                    self.act_surf_ind_branch[nt * num_branches:(nt + 1) * num_branches][i]]))
+                                / self.wf_adb_delta[nt * num_branches:(nt + 1) * num_branches][i][self.act_surf_ind_branch[nt * num_branches:(nt + 1) * num_branches][i]]))
                 hop_prob[self.act_surf_ind_branch[nt * num_branches:(nt + 1) * num_branches][i]] = 0
                 bin_edge = 0
                 # hop if possible
@@ -203,9 +202,12 @@ class FewestSwitchesSurfaceHoppingDynamics:
                         ## check that nonadiabatic couplings are real-valued
                         dkj_q = np.sqrt(sim.h * sim.m / 2) * (dkj_z + dkj_zc)
                         dkj_p = np.sqrt(1 / (2 * sim.h * sim.m)) * 1.0j * (dkj_z - dkj_zc)
-                        if np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2 or \
-                                np.abs(np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))) > 1e-2:
-                            raise Exception('Nonadiabatic coupling is complex, needs gauge fixing!')
+                        max_pos_q = np.argmax(np.abs(dkj_q))
+                        max_pos_p = np.argmax(np.abs(dkj_p))
+                        if np.abs(dkj_q[max_pos_q]) > 1e-8 and np.abs(np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
+                            raise Exception('dkj_q Nonadiabatic coupling is complex, needs gauge fixing!')
+                        if np.abs(dkj_p[max_pos_p]) > 1e-8 and np.abs(np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))) > 1e-2:
+                            raise Exception('dkj_p Nonadiabatic coupling is complex, needs gauge fixing!')
                         delta_z = dkj_zc
                         self.z_coord[nt * num_branches:(nt + 1) * num_branches][i], hopped = \
                             sim.hop(sim, self.z_coord[nt * num_branches:(nt + 1) * num_branches][i], delta_z, ev_diff)
