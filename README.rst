@@ -1,3 +1,7 @@
+QClab
+=====
+
+
 **QClab** QClab (pronounced "QC" "lab") is a package for carrying out mixed quantum-classical (MQC) dynamics simulations. 
 It implements popular MQC algorithms in a manner that is agnostic to the underlying physical system and flexible to the mixed quantum-classical algorithm. 
 Along with several built-in dynamics algorithms, QClab comes with a variety of physical models that can be used as starting points for exploring MQC dynamics 
