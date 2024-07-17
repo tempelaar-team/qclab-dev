@@ -17,7 +17,7 @@ Capabilities
 Dynamics Algorithms
 ```````````````````
 
-The following algorithms are implemented making use of the complex-classical coordinate formalism established in [1]. and are formally identical to their original real-space formulation while being invariant to global unitary transformations of the classical and quantum bases. 
+The following algorithms are implemented making use of the complex-classical coordinate formalism established in [1] and are formally identical to their original real-space formulation while being invariant to global unitary transformations of the classical and quantum bases. 
 
 
 * Mean-field (Ehrenfest) dynamics [2]
