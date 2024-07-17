@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'qclab'
+project = 'QClab'
 copyright = '2024, Alex Krotz, Ken Miyazaki, Anna Bondarenko, Roel Tempelaar'
 author = 'Alex Krotz, Ken Miyazaki, Anna Bondarenko, Roel Tempelaar'
 
