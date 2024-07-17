@@ -1,30 +1,29 @@
 Introduction to QClab
 =====================
 
-QClab contains a central dynamics core which is responsible for the low-level execution of dynamics algorithms. 
-Rather than directly modifying the dynamics core the user interfaces with it through two primary objects:
+QClab's Dynamics Core
+---------------------
 
-* simulation class 
-* algorithm class 
+QClab utilizes a central dynamics core for the low-level execution of dynamics algorithms. Users interact with this core primarily through two key objects:
 
-The simulation class contains a full description of the phyical system as well as parameters governing the mixed quantum-classical
-simulation and any observables to calculate. In order to use QClab to study new physical models, a user has to make their own simulation
-class or modify an existing one. The simulation class must posess a minimal set of attributes with prescribed inputs and outputs, by modifying these
-standardized attributes the underlying physics or simulation properties can be changed. 
+* **Simulation Class:**  Provides a comprehensive description of the physical system, simulation parameters, and observables to be calculated. Users typically create or modify existing simulation classes to model new physical systems.
+* **Algorithm Class:** Defines a specific mixed quantum-classical algorithm. While most users won't modify these classes, advanced users can tailor or create algorithms by following the prescribed structure.
 
-The algorithm class contains a fully specified mixed quantum-classical algorithm and in practice is something not to be modified by typical users. Advanced
-or expert users may make modifications to existing algorithms or even implement their own algorithms by following the prescribed structure
-of the algorithm class. Like the simulation class, each algorithm class contains a minimal set of attributes that are required for execution by the dynamics
-core. By modifying these attributes appropriately, virtually any mixed quantum-classical algorithm can be implemented. 
+Both simulation and algorithm classes posess a set of required and standardized attributes used by the dynamics core. By manipulating these attributes, users can control the underlying physics and simulation properties, or implement diverse mixed quantum-classical algorithms.
 
-
+To facillitate the execution of the dynamics, QClab comes with a variety of dynamics drivers which are optional (but recommended) functions that control the execution of the
+dynamics core. In addition to the simulation and algorithm classes, the dynamics driver must be provided with a list of seeds that uniquely specify each mixed quantum-classical 
+trajectory to be executed. 
 
 
 .. figure:: images/code_structure.svg
-    :alt: A diagram of the code structure
-    :width: 100%
-    :align: center
-    
-    *Figure 1.* Diagrammatic representation of how QClab is used. The simulation class (a) is equipped with inputs specifying the simulation parameters. 
-    The simulation class and algorithm class (b) are then provided to a dynamics driver (c) with a list of seeds uniquely characterizing each trajectory. 
-    After running the simulation for each trajectory the dynamics driver returns a data class (d) containing the requested obervables. 
+   :alt: QClab Code Structure Diagram
+   :width: 100%
+   :align: center
+
+   **Figure 1.** QClab Usage Diagram. The simulation class (a) is configured with input parameters. The simulation and algorithm classes (b) are passed to a dynamics driver (c), along with a list of seeds that uniquely identify each trajectory. The dynamics driver executes the simulation and returns a data class (d) containing the calculated observables.
+
+
+
+
+

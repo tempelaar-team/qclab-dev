@@ -4,13 +4,12 @@
    contain the root `toctree` directive.
 
 
-Welcome to the QClab documentation!
+Welcome to the QClab!
 ===================================
 
-**QClab** QClab (pronounced "QC" "lab") is a package for carrying out mixed quantum-classical (MQC) dynamics simulations. 
-It implements popular MQC algorithms in a manner that is agnostic to the underlying physical system and flexible to the mixed quantum-classical algorithm. 
-Along with several built-in dynamics algorithms, QClab comes with a variety of physical models that can be used as starting points for exploring MQC dynamics 
-or to implement more elaborate models. 
+**QClab** (pronounced "QC" "lab") is a Python package designed for performing mixed quantum-classical (MQC) dynamics simulations. 
+It offers a flexible framework that supports various popular MQC algorithms in a way that is independent of the physical system being studied. 
+QClab also provides several built-in physical models, serving as starting points for exploring MQC dynamics or creating more elaborate models.
 
 Capabilities
 ------------
@@ -51,9 +50,9 @@ Using QClab
 
 .. toctree::
    :maxdepth: 3
-   
+
    introduction
-   making_models
+   model_class
 
 Bibliography
 ------------
