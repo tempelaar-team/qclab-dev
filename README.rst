@@ -6,7 +6,7 @@ qclab (pronounced "qc" "lab") is a package for carrying out mixed quantum-classi
 The following algorithms are implemented making use of the complex-classical coordinate formalism established in [1] and are formally identical to their original real-space formulation while being invariant to global unitary transformations of the classical and quantum bases. 
 * Mean-field (Ehrenfest) dynamics [2]
 * Fewest-switches surface hopping (FSSH) dynamics [3]
-* Coherent fewest-switches surface hopping (FSSH) dynamics [4]
+* Coherent fewest-switches surface hopping (CFSSH) dynamics [4]
 ### Model Systems
 * Spin-boson model [4]
 * Donor-bridge-acceptor model [5]
