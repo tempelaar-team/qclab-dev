@@ -53,6 +53,7 @@ Using QClab
 
    introduction
    simulation_class
+   algorithm_class
 
 Bibliography
 ------------
