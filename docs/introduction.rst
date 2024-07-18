@@ -18,7 +18,7 @@ trajectory to be executed.
 
 .. figure:: images/code_structure.svg
    :alt: QClab Code Structure Diagram
-   :width: 100%
+   :width: 50%
    :align: center
 
    **Figure 1.** QClab Usage Diagram. The simulation class (a) is configured with input parameters. The simulation and algorithm classes (b) are passed to a dynamics driver (c), along with a list of seeds that uniquely identify each trajectory. The dynamics driver executes the simulation and returns a data class (d) containing the calculated observables.

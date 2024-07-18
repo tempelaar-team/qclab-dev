@@ -52,7 +52,7 @@ Using QClab
    :maxdepth: 3
 
    introduction
-   model_class
+   simulation_class
 
 Bibliography
 ------------
@@ -63,11 +63,6 @@ Bibliography
 4. Tempelaar, R.; Reichman, D. R. Generalization of Fewest-Switches Surface Hopping for Coherences. The Journal of Chemical Physics 2018, 148 (10), 102309. https://doi.org/10.1063/1.5000843.
 5. Bondarenko, A. S.; Tempelaar, R. Overcoming Positivity Violations for Density Matrices in Surface Hopping. J. Chem. Phys. 2023, 158 (5), 054117. https://doi.org/10.1063/5.0135456.
 6. Krotz, A.; Provazza, J.; Tempelaar, R. A Reciprocal-Space Formulation of Mixed Quantum–Classical Dynamics. J. Chem. Phys. 2021, 154 (22), 224101. https://doi.org/10.1063/5.0053177.
-
-
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
 
 
 

@@ -22,7 +22,7 @@ class CoherentFewestSwitchesSurfaceHoppingDynamics:
             'sh_deterministic':True,
             'gauge_fix':0,
             'pab_cohere':False,
-            'dmat_const':0,
+            'dmat_const':1,
             'observables':auxilliary.no_observables,
             'num_classical_coordinates':None,
             'cfssh_branch_pair_update':0
@@ -225,9 +225,7 @@ class CoherentFewestSwitchesSurfaceHoppingDynamics:
                         eval_j = self.evals_branch[nt * num_branches:(nt + 1) * num_branches][i][k]
                         ev_diff = eval_j - eval_k
                         # dkj_q is wrt q dkj_p is wrt p.
-                        dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff,
-                                                            self.z_coord[nt * num_branches:(nt + 1) * num_branches][i],
-                                                            sim)
+                        dkj_z, dkj_zc = auxilliary.get_dab(evec_k, evec_j, ev_diff, self.z_coord[nt * num_branches:(nt + 1) * num_branches][i], sim)
                         ## check that nonadiabatic couplings are real-valued
                         dkj_q = np.sqrt(sim.h * sim.m / 2) * (dkj_z + dkj_zc)
                         dkj_p = np.sqrt(1 / (2 * sim.h * sim.m)) * 1.0j * (dkj_z - dkj_zc)
