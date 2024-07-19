@@ -214,7 +214,7 @@ are needed unless you want to explore other formulations of the FSSH algorithm.:
       import matplotlib.pyplot as plt   
       # import the Spin-Boson Model Simulation Class
       from qclab.models.spin_boson import SpinBosonModel
-      # import the mean-field dynamics Algorithm Class
+      # import the FSSH dynamics Algorithm Class
       from qclab.algorithms.fssh import FewestSwitchesSurfaceHoppingDynamics
       # import the parallel driver 
       from qclab.drivers.ray_driver import dynamics_parallel_ray
