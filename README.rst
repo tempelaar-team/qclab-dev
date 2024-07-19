@@ -1,10 +1,10 @@
-QClab
+qc_lab
 =====
 
 
-**QClab** QClab (pronounced "QC" "lab") is a package for carrying out mixed quantum-classical (MQC) dynamics simulations. 
+**qc_lab** qc_lab (pronounced "QC" "lab") is a package for carrying out mixed quantum-classical (MQC) dynamics simulations. 
 It implements popular MQC algorithms in a manner that is agnostic to the underlying physical system and flexible to the mixed quantum-classical algorithm. 
-Along with several built-in dynamics algorithms, QClab comes with a variety of physical models that can be used as starting points for exploring MQC dynamics 
+Along with several built-in dynamics algorithms, qc_lab comes with a variety of physical models that can be used as starting points for exploring MQC dynamics 
 or to implement more elaborate models. 
 
 Capabilities
@@ -28,12 +28,12 @@ Model Systems
 * Holstein lattice model [6]
 
 
-Installing QClab
+Installing qc_lab
 -----------------
 
-QClab can be installed with pip::
+qc_lab can be installed with pip::
 
-   pip install QClab
+   pip install qc_lab
 
 or from source by downloading the github repository and executing::
 

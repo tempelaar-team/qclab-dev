@@ -236,6 +236,10 @@ Physical System Attributes
         :See Also:
                 z_coord
 
+* .. function:: wf_db (ndarray, ``shape=(num_states), dtype=complex``)
+
+        Initial diabatic wavefunction. 
+
 
 Surface Hopping Specific Attributes
 -----------------------------------
@@ -319,11 +323,8 @@ are to be used the following example instantiates a Spin-Boson model
         H_{c} = \sum_{i}^{A}h_{i}z_{i}^{*}z_{i}
 
 In the above expressions, :math:`h_{i}=w_{i}` is the oscillation frequency of the i-th oscillator sampled from a Debye spectal density, :math:`A` is the total number of classical oscillators,
- :math:`g_{i}` is the coupling, :math:`E` and :math:`V` are diagonal energies and off-diagonal couplings, respectively. The term :math:`(2 m_{i}h_{i})^{1/2}(z_{i}+z^{*}_{i})` is equivalent to the position 
- coordinate for real-valued classical coordinates. 
-
-
-by reading parameters from an input dictionary (``input_params``) this model can be implemented as follows::
+:math:`g_{i}` is the coupling, and :math:`E` and :math:`V` are diagonal energies and off-diagonal couplings, respectively. The term :math:`(2 m_{i}h_{i})^{1/2}(z_{i}+z^{*}_{i})` is equivalent to the position 
+coordinate for real-valued classical coordinates. By reading parameters from an input dictionary (``input_params``) this model can be implemented as follows::
         
         from numba import njit
         import numpy as np

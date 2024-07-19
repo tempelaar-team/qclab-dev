@@ -162,6 +162,7 @@ class FewestSwitchesSurfaceHoppingDynamics:
 
     def propagate_classical_subsystem(self, sim):
         self.z_coord = auxilliary.rk4_c(self.z_coord, self.quantum_force_zc, sim.dt, sim)
+        
         return
 
     def propagate_quantum_subsystem(self, sim):

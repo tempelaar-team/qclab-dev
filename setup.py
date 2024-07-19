@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 VERSION = '0.0.1' 
-DESCRIPTION = 'qclab python package'
-LONG_DESCRIPTION = 'qclab python package'
+DESCRIPTION = 'qc_lab python package'
+LONG_DESCRIPTION = 'qc_lab python package'
 
 # Setting up
 setup(

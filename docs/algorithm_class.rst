@@ -37,7 +37,7 @@ the total state of the system is updated with ``update_state``. This final step 
 as the system Hamiltonian and in surface hopping methods also updates the active surfaces and rescales classicla coordinates. 
 
 This structure is intentionally general and as such relies on the Algorithm Class to implemented in an efficient manner. 
-In practice, the Algorithm Classes that come with QClab are designed to be totally generic and are therefore missing some
+In practice, the Algorithm Classes that come with qc_lab are designed to be totally generic and are therefore missing some
 optimizations that could be made for specific systems. 
 
 Algorithm Class Attributes
