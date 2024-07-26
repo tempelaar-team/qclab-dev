@@ -49,7 +49,7 @@ Mean-Field Spin-Boson Model
 
 Here we will go through an example of using qc_lab to simulate a spin-boson model.
 
-The first step is to import the Simulation and Algorithm Classes we wish to use as well as some useful libraries::
+The first step is to import the Simulation Class we wish to use as well as some useful libraries::
 
       import numpy as np
       import matplotlib.pyplot as plt   
@@ -97,7 +97,7 @@ And a dynamics driver, let's use the serial driver first::
 
 Now we can run the dynamics::
 
-      data_spin_boson_mf = dynamics_serial(dyn = MeanFieldDynamics, sim = sim, seeds = seeds)
+      data_spin_boson_mf = dynamics_serial(algorithm = MeanFieldDynamics, sim = sim, seeds = seeds)
 
 Observables are stored in a dictionary inside the Data Class returned by the dynamics driver, ``data_spin_boson_mf.data_dic``, and so we can plot the energies and populations as::
 
@@ -128,15 +128,16 @@ Observables are stored in a dictionary inside the Data Class returned by the dyn
 
 The resulting plots are 
 
-.. figure:: images/pops_sb_mf.svg
+.. image:: images/pops_sb_mf.svg
    :alt: diabatic populations of mean-field spin-boson simulation
    :width: 75%
    :align: center
 
-.. figure:: images/de_sb_mf.svg
+.. image:: images/de_sb_mf.svg
    :alt: change in energy of mean-field spin-boson simulation
    :width: 75%
    :align: center
+
 
 The complete code is::
 
@@ -164,7 +165,7 @@ The complete code is::
       num_seeds = 20*sim.num_trajs # the total number of seeds we need 
       seeds = np.arange(num_seeds) # generate the seeds
 
-      data_spin_boson_mf = dynamics_serial(dyn = MeanFieldDynamics, sim = sim, seeds = seeds)
+      data_spin_boson_mf = dynamics_serial(algorithm = MeanFieldDynamics, sim = sim, seeds = seeds)
 
       pops_mf = np.real(np.einsum('nii->ni',data_spin_boson_mf.data_dic['dm_db'])) / num_seeds # obtain diagonal of density matrix
       t_ps = data_spin_boson_mf.data_dic['t'] * 0.0260677 / num_seeds # convert time units to picoseconds

@@ -123,6 +123,15 @@ def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
         fzc_branch = sim.dh_qc_dzc_branch(sim.h_qc_params, evecs_branch[range(sim.num_trajs*sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_trajs*sim.num_branches),:,act_surf_ind_branch], z_branch)
     return fzc_branch
 
+def quantum_force_branch_zpe(wf_db_q, z_branch_zpe, pops_mat, evecs_q, sim):
+    dh_qc_dzc_branch_mat = sim.dh_qc_dzc_branch_mat(sim.h_qc_params, z_branch_zpe)
+    dh_qc_dzc_branch_mat = pops_mat[:,np.newaxis,:,:]*np.einsum('ki,lj,nmkl->nmij',np.conj(evecs_q),evecs_q,dh_qc_dzc_branch_mat)
+    out = np.einsum('ni,nj,nmij->m',np.conj(wf_db_q),wf_db_q,dh_qc_dzc_branch_mat)
+    return out
+    
+
+
+
 def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse methods
     """
     Computes the nonadiabatic coupling using the formula
@@ -238,6 +247,7 @@ def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
     return out_mat
 
 
+
 @njit
 def nan_num(num):
     """
@@ -314,6 +324,18 @@ def harmonic_oscillator_bolztmann_init_classical(sim, seed=None):
     np.random.seed(seed)
     q = np.random.normal(loc=0, scale=np.sqrt(sim.temp / (sim.m * (sim.h ** 2))), size=sim.num_classical_coordinates)
     p = np.random.normal(loc=0, scale=np.sqrt(sim.temp), size=sim.num_classical_coordinates)
+    z = np.sqrt(sim.h * sim.m / 2) * (q + 1.0j * (p / (sim.h * sim.m)))
+    return z
+
+def harmonic_oscillator_wigner_init_classical(sim, seed=None):
+    """
+    Initialize classical coordiantes according to Boltzmann statistics
+    :param sim: simulation object with temperature, harmonic oscillator mass and frequency
+    :return: z = sqrt(w*h/2)*(q + i*(p/((w*h))), z* = sqrt(w*h/2)*(q - i*(p/((w*h)))
+    """
+    np.random.seed(seed)
+    q = np.random.normal(loc=0, scale=np.sqrt(1 / (2*sim.h)), size=sim.num_classical_coordinates)
+    p = np.random.normal(loc=0, scale=np.sqrt(sim.h/2), size=sim.num_classical_coordinates)
     z = np.sqrt(sim.h * sim.m / 2) * (q + 1.0j * (p / (sim.h * sim.m)))
     return z
 
