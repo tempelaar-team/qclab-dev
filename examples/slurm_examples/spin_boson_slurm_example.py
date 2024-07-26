@@ -2,6 +2,7 @@ from qclab.drivers.slurm_driver import dynamics_parallel_slurm
 from qclab.drivers.ray_driver import dynamics_parallel_ray
 from qclab.models.spin_boson import SpinBosonModel
 from qclab.algorithms.fssh import FewestSwitchesSurfaceHoppingDynamics
+import qclab.auxilliary as auxilliary
 import sys
 import dill as pickle
 import numpy as np
@@ -31,7 +32,5 @@ seeds = np.arange(0, num_seeds)
 data, index = dynamics_parallel_slurm(algorithm=FewestSwitchesSurfaceHoppingDynamics,sim=sim,seeds=seeds,ntasks=ntasks,ncpus_per_task=ncpus_per_task,sub_driver=dynamics_parallel_ray)
 
 filename = 'data_' + str(index) + '.out'
-file = open(filename, 'wb')
-pickle.dump(data, file)
-file.close()
+auxilliary.save_pickle(data, filename)
 print('Finished ', index)

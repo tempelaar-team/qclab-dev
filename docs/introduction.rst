@@ -236,3 +236,6 @@ are needed unless you want to explore other formulations of the FSSH algorithm.:
 
       nprocs = 8 # for a machine with 8 processors 
       data_spin_boson_mf = dynamics_parallel_ray(algorithm = FewestSwitchesSurfaceHoppingDynamics, sim = sim, seeds = seeds, nprocs=nprocs)
+
+Using the SLURM parallel driver 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

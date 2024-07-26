@@ -1,5 +1,6 @@
 from numba import njit
 import numpy as np
+import dill as pickle
 
 
 ############################################################
@@ -362,3 +363,17 @@ def harmonic_oscillator_dh_c_dzc_branch(h_c_params, z_branch):
     """
     h = h_c_params
     return h[np.newaxis, :] * z_branch
+
+
+def save_pickle(obj, filename):
+    file = open(filename, 'wb')
+    pickle.dump(obj, file)
+    file.close()
+    return
+
+
+def load_pickle(filename):
+    file = open(filename, 'rb')
+    obj = pickle.load(file)
+    file.close()
+    return obj
