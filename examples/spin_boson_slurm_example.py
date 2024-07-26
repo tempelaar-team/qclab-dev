@@ -8,8 +8,8 @@ import numpy as np
 
 args = sys.argv[1:]
 
-ntasks = args[0]
-ncpus_per_task = args[1]
+ntasks = int(args[0])
+ncpus_per_task = int(args[1])
 
 
 input_params = dict(temp = 1, V=0.5, E=0.5, A=100, W=0.1, l=0.02/4)
@@ -28,7 +28,7 @@ seeds = np.arange(0, num_seeds)
 
 
 
-data, index = dynamics_parallel_slurm(algorithm=FewestSwitchesSurfaceHoppingDynamics,sim=sim,ntasks=ntasks,ncpus_per_task=ncpus_per_task,sub_driver=dynamics_parallel_ray)
+data, index = dynamics_parallel_slurm(algorithm=FewestSwitchesSurfaceHoppingDynamics,sim=sim,seeds=seeds,ntasks=ntasks,ncpus_per_task=ncpus_per_task,sub_driver=dynamics_parallel_ray)
 
 filename = 'data_' + str(index) + '.out'
 file = open(filename, 'wb')
