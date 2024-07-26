@@ -12,5 +12,5 @@ def dynamics_parallel_slurm(algorithm, sim, seeds, ntasks, ncpus_per_task, sub_d
     seeds = seeds.reshape((sim.num_trajs,num_sims)) # get seeds for each simulation
     task_seeds = seeds[:,idx*ntasks:(idx + 1)*ntasks]
     data = sub_driver(algorithm, sim, task_seeds.flatten(), ncpus = ncpus_per_task, data = data) 
-    return data
+    return data, idx
 

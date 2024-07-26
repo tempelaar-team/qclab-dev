@@ -14,7 +14,7 @@ setup(
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,
         packages=find_packages(),
-        install_requires=['numpy','numba','ray','tqdm', 'scipy>=0.16'], # add any additional packages that 
+        install_requires=['numpy','numba','ray','tqdm', 'scipy>=0.16', 'dill'], # add any additional packages that 
         # needs to be installed along with your package. Eg: 'caer'
         
         keywords=['python', 'first package'],
