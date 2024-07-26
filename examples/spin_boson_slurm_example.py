@@ -4,6 +4,7 @@ from qclab.models.spin_boson import SpinBosonModel
 from qclab.algorithms.fssh import FewestSwitchesSurfaceHoppingDynamics
 import sys
 import dill as pickle
+import numpy as np
 
 args = sys.argv[1:]
 
