@@ -14,7 +14,7 @@ class Trajectory:
     def add_observable_dict(self, ind, dic):
         for key in dic.keys():
             if key in self.data_dic.keys():
-                self.data_dic[key][ind] += dic[key]
+                self.data_dic[key][ind] = self.data_dic[key][ind] + dic[key]
         return
     
 class Data:
