@@ -55,6 +55,8 @@ The first step is to import the Simulation Class we wish to use as well as some 
       import matplotlib.pyplot as plt   
       # import the Spin-Boson Model Simulation Class
       from qclab.models.spin_boson import SpinBosonModel
+      # import the simulation module 
+      import qclab.simulation as simulation
 
 Next we will initialize the Simulation Class by creating a dictionary with appropriate input parameters (these inputs are determined in the construction
 of the Simulation class and are by no means universal) that can be found in the documentation for each of the Simulation Classes that come with qc_lab::
@@ -97,7 +99,7 @@ And a dynamics driver, let's use the serial driver first::
 
 Now we can run the dynamics::
 
-      data_spin_boson_mf = dynamics_serial(algorithm = MeanFieldDynamics, sim = sim, seeds = seeds)
+      data_spin_boson_mf = dynamics_serial(algorithm = MeanFieldDynamics, sim = sim, seeds = seeds, data = simulation.Data())
 
 Observables are stored in a dictionary inside the Data Class returned by the dynamics driver, ``data_spin_boson_mf.data_dic``, and so we can plot the energies and populations as::
 
@@ -149,6 +151,8 @@ The complete code is::
       from qclab.algorithms.mf import MeanFieldDynamics
       # import the serial driver 
       from qclab.drivers.serial_driver import dynamics_serial 
+      # import the simulation module 
+      import qclab.simulation as simulation
 
       input_params = dict(temp = 1, V=0.5, E=0.5, A=100, W=0.1, l=0.02/4)
       sim = SpinBosonModel(input_params = input_params)
@@ -165,7 +169,7 @@ The complete code is::
       num_seeds = 20*sim.num_trajs # the total number of seeds we need 
       seeds = np.arange(num_seeds) # generate the seeds
 
-      data_spin_boson_mf = dynamics_serial(algorithm = MeanFieldDynamics, sim = sim, seeds = seeds)
+      data_spin_boson_mf = dynamics_serial(algorithm = MeanFieldDynamics, sim = sim, seeds = seeds, data=simulation.Data())
 
       pops_mf = np.real(np.einsum('nii->ni',data_spin_boson_mf.data_dic['dm_db'])) / num_seeds # obtain diagonal of density matrix
       t_ps = data_spin_boson_mf.data_dic['t'] * 0.0260677 / num_seeds # convert time units to picoseconds
@@ -193,16 +197,16 @@ The complete code is::
 Using the Ray Parallel Driver 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Ray parallel driver is suitable for cases where your machine has multiple cores. It is not suitable in its current form for parallelization across nodes on a 
+The Ray parallel driver is suitable for cases where your machine has multiple cpus. It is not suitable in its current form for parallelization across nodes on a 
 cluster, however it is in principle possible to implement such paralellization with Ray. We encourage users to implement their own drivers customized towards their 
 particular computing setup. The Ray parallel driver that comes with qc_lab should be suitable for a personal machine or individual nodes on a cluster. 
 
-Only one additional argument is needed, which specifies the number of processors over which to parallelize::
+Only one additional argument is needed, which specifies the number of cpus over which to parallelize::
 
       from qclab.drivers.ray_driver import dynamics_parallel_ray
 
-      nprocs = 8 # for a machine with 8 processors 
-      data_spin_boson_mf = dynamics_parallel_ray(algorithm = MeanFieldDynamics, sim = sim, seeds = seeds, nprocs=nprocs)
+      ncpus = 8 # for a machine with 8 processors 
+      data_spin_boson_mf = dynamics_parallel_ray(algorithm = MeanFieldDynamics, sim = sim, seeds = seeds, ncpus = ncpus, data = simulation.Data())
 
 
 FSSH Spin-Boson Model 
