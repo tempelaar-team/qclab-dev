@@ -6,7 +6,7 @@ import logging
 import json
 import numpy as np
 
-def dynamics_parallel_ray(algorithm, sim, seeds, nprocs, data = simulation.Data()):
+def dynamics_parallel_ray(algorithm, sim, seeds, ncpus, data = simulation.Data()):
     ray.shutdown()
     ray.init(ignore_reinit_error=True)
     @ray.remote
@@ -18,8 +18,8 @@ def dynamics_parallel_ray(algorithm, sim, seeds, nprocs, data = simulation.Data(
     assert np.mod(len(seeds), sim.num_trajs) == 0
     num_sims = int(len(seeds)/sim.num_trajs)
     seeds = seeds.reshape((sim.num_trajs,num_sims))
-    for run in tqdm(range(0, int(num_sims/nprocs)+1)):
-        seed_list = seeds[:,run*nprocs:(run+1)*nprocs]
+    for run in tqdm(range(0, int(num_sims/ncpus)+1)):
+        seed_list = seeds[:,run*ncpus:(run+1)*ncpus]
         results = [dynamics_ray.remote(algorithm, sim, seed_list[:,n].flatten()) for n in range(np.shape(seed_list)[-1])]
         for r in results:
             traj = ray.get(r)
