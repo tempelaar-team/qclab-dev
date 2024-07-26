@@ -1,0 +1,20 @@
+#!/bin/bash
+#SBATCH -A p31489               # allocation
+#SBATCH -p short                # partition
+#SBATCH -N 1                    # number of nodes to use
+#SBATCH --ntasks-per-node 10    # number of tasks on each node
+#SBATCH --cpus-per-task 5       # number of cpus for each task
+#SBATCH -t 04:00:00             # maximum simulation time
+#SBATCH --job-name="spin-boson" # job name
+#SBATCH --mem-per-cpu=1G        # memory per cpu
+#SBATCH --array=0-9             # array over which to partition seeds, should have length equal to ntasks-per-node
+
+# some of this file was taken from the examples here: https://github.com/PrincetonUniversity/hpc_beginning_workshop/tree/main/job_array/python
+
+ulimit -s unlimited
+
+echo "My SLURM_ARRAY_JOB_ID is $SLURM_ARRAY_JOB_ID."
+echo "My SLURM_ARRAY_TASK_ID is $SLURM_ARRAY_TASK_ID"
+echo "Executing on the machine:" $(hostname)
+
+python -u spin_boson_slurm_example.py 10 5
