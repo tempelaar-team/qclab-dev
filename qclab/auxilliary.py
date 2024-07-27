@@ -126,8 +126,8 @@ def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
 
 def quantum_force_branch_zpe(wf_db_q, z_branch_zpe, pops_mat, evecs_q, sim):
     dh_qc_dzc_branch_mat = sim.dh_qc_dzc_branch_mat(sim.h_qc_params, z_branch_zpe)
-    dh_qc_dzc_branch_mat = pops_mat[:,np.newaxis,:,:]*np.einsum('ki,lj,nmkl->nmij',np.conj(evecs_q),evecs_q,dh_qc_dzc_branch_mat)
-    out = np.einsum('ni,nj,nmij->m',np.conj(wf_db_q),wf_db_q,dh_qc_dzc_branch_mat)
+    dh_qc_dzc_branch_mat = pops_mat[:,np.newaxis,:,:]*np.einsum('ki,lj,nmkl->nmij',np.conj(evecs_q),evecs_q,dh_qc_dzc_branch_mat, optimize='greedy')
+    out = np.einsum('ni,nj,nmij->m',np.conj(wf_db_q),wf_db_q,dh_qc_dzc_branch_mat, optimize='greedy')
     return out
     
 

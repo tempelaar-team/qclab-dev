@@ -2,7 +2,7 @@
 #SBATCH -A p31489               # allocation
 #SBATCH -p short                # partition
 #SBATCH -N 1                    # number of nodes to use
-#SBATCH --ntasks-per-node 10    # number of tasks on each node
+#SBATCH --ntasks-per-node 1    # number of tasks on each node
 #SBATCH --cpus-per-task 5       # number of cpus for each task
 #SBATCH -t 04:00:00             # maximum simulation time
 #SBATCH --job-name="spin-boson" # job name

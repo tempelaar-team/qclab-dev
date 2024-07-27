@@ -9,7 +9,7 @@ import numpy as np
 
 args = sys.argv[1:]
 
-ntasks = int(args[0])
+ntasks = int(args[0]) # number of instances in slurm array
 ncpus_per_task = int(args[1])
 
 
@@ -24,7 +24,8 @@ sim.dt=1/(10*sim.w[-1])
 sim.wf_db = np.zeros((sim.num_states),dtype=complex)
 sim.wf_db[0] = 1
 
-num_seeds = 100*sim.num_trajs
+num_sims_per_task = 10
+num_seeds = ntasks*num_sims_per_task*sim.num_trajs
 seeds = np.arange(0, num_seeds)
 
 
