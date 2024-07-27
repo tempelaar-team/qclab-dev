@@ -47,13 +47,6 @@ class HolsteinLatticeModel:
             for n in range(len(psi_a_branch)):
                 out[n] = auxilliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a_branch[n], psi_b_branch[n])
             return out
-        
-        #@njit
-        def dh_qc_dz_branch_mat(h_qc_params, z_branch):
-            out = np.ascontiguousarray(np.zeros((self.num_branches*self.num_trajs, self.num_classical_coordinates, self.num_states, self.num_states))) + 0.0j
-            for n in range(len(z_branch)):
-                out[n] = dz_mat
-            return out
 
         @njit
         def dh_qc_dzc_branch(h_qc_params, psi_a_branch, psi_b_branch, z_branch):
@@ -67,13 +60,6 @@ class HolsteinLatticeModel:
             out = np.ascontiguousarray(np.zeros((len(psi_a_branch), dzc_shape[0])))+0.0j
             for n in range(len(psi_a_branch)):
                 out[n] = auxilliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a_branch[n], psi_b_branch[n]) # conjugation is done by matprod_sparse
-            return out
-        
-        #@njit
-        def dh_qc_dzc_branch_mat(h_qc_params, z_branch):
-            out = np.ascontiguousarray(np.zeros((self.num_branches*self.num_trajs, self.num_classical_coordinates, self.num_states, self.num_states))) + 0.0j
-            for n in range(len(z_branch)):
-                out[n] = dzc_mat
             return out
     
 
@@ -107,7 +93,5 @@ class HolsteinLatticeModel:
         
         self.dh_qc_dz_branch = dh_qc_dz_branch
         self.dh_qc_dzc_branch = dh_qc_dzc_branch
-        self.dh_qc_dz_branch_mat = dh_qc_dz_branch_mat
-        self.dh_qc_dzc_branch_mat = dh_qc_dzc_branch_mat
         self.h_qc_branch = h_qc_branch
         self.h_q = h_q
