@@ -330,7 +330,7 @@ def harmonic_oscillator_bolztmann_init_classical(sim, seed=None):
 
 def harmonic_oscillator_wigner_init_classical(sim, seed=None):
     """
-    Initialize classical coordiantes according to Boltzmann statistics
+    Initialize classical coordiantes according to Wigner distribution of the ground state of a harmonic oscillator
     :param sim: simulation object with temperature, harmonic oscillator mass and frequency
     :return: z = sqrt(m*h/2)*(q + i*(p/((m*h))), z* = sqrt(m*h/2)*(q - i*(p/((m*h)))
     """
@@ -339,6 +339,21 @@ def harmonic_oscillator_wigner_init_classical(sim, seed=None):
     p = np.random.normal(loc=0, scale=np.sqrt((sim.m*sim.h)/2), size=sim.num_classical_coordinates)
     z = np.sqrt(sim.h * sim.m / 2) * (q + 1.0j * (p / (sim.h * sim.m)))
     return z
+
+def harmonic_oscillator_focused_init_classical(sim, seed=None):
+    """
+    Initialize classical coordiantes according to focused sampling of the 
+    Wigner distribution of the ground state of a harmonic oscillator
+    :param sim: simulation object with temperature, harmonic oscillator mass and frequency
+    :return: z = sqrt(m*h/2)*(q + i*(p/((m*h))), z* = sqrt(m*h/2)*(q - i*(p/((m*h)))
+    """
+    np.random.seed()
+    phase = np.random.rand(sim.num_classical_coordinates) * 2 * np.pi 
+    q = np.sqrt(1 / (2*sim.h*sim.m)) * np.cos(phase)
+    p = np.sqrt((sim.m*sim.h)/2) * np.sin(phase)
+    z = np.sqrt(sim.h * sim.m / 2) * (q + 1.0j * (p / (sim.h * sim.m)))
+    return z
+
 
 
 def harmonic_oscillator_h_c_branch(h_c_params, z_branch):
