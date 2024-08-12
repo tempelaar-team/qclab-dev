@@ -19,7 +19,7 @@ class MeanFieldDynamics:
         self.tdat_output = None
         var_names = list(sim.__dict__.keys())
         defaults = {
-            'init_classical': auxilliary.harmonic_oscillator_bolztmann_init_classical,
+            'init_classical': auxilliary.harmonic_oscillator_boltzmann_init_classical,
             'h_c_branch': auxilliary.harmonic_oscillator_h_c_branch,
             'dh_c_dz_branch': auxilliary.harmonic_oscillator_dh_c_dz_branch,
             'dh_c_dzc_branch': auxilliary.harmonic_oscillator_dh_c_dzc_branch,

@@ -316,7 +316,7 @@ def harmonic_oscillator_hop(sim, z, delta_z, ev_diff):
         hopped = True
     return z, hopped
 
-def harmonic_oscillator_bolztmann_init_classical(sim, seed=None):
+def harmonic_oscillator_boltzmann_init_classical(sim, seed=None):
     """
     Initialize classical coordiantes according to Boltzmann statistics
     :param sim: simulation object with temperature, harmonic oscillator mass and frequency
