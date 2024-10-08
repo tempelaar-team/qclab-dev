@@ -2,8 +2,6 @@ import ray
 import qclab.simulation as simulation
 import qclab.dynamics as dynamics
 from tqdm import tqdm
-import logging
-import json
 import numpy as np
 
 def dynamics_parallel_ray(algorithm, sim, seeds, ncpus, data = simulation.Data()):
@@ -14,7 +12,7 @@ def dynamics_parallel_ray(algorithm, sim, seeds, ncpus, data = simulation.Data()
         sim.seeds = seeds
         traj = simulation.Trajectory()
         traj.seeds = seeds
-        return dynamics.dynamics(algorithm, sim, traj)
+        return dynamics.dynamics_(algorithm, sim, traj)
     assert np.mod(len(seeds), sim.num_trajs) == 0
     num_sims = int(len(seeds)/sim.num_trajs)
     seeds = seeds.reshape((sim.num_trajs,num_sims))

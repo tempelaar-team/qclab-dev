@@ -3,7 +3,7 @@ import qclab.dynamics as dynamics
 from tqdm import tqdm
 import numpy as np
 
-def dynamics_serial(algorithm, sim, seeds, ncpus = 1, data = simulation.Data()):
+def dynamics_serial(recipe, sim, seeds, ncpus = 1, data = simulation.Data()):
 
     assert np.mod(len(seeds), sim.num_trajs) == 0
     num_sims = int(len(seeds)/sim.num_trajs)
@@ -12,6 +12,6 @@ def dynamics_serial(algorithm, sim, seeds, ncpus = 1, data = simulation.Data()):
         sim.seeds = seeds[:,n].flatten()
         traj = simulation.Trajectory()
         traj.seeds = seeds[:,n].flatten()
-        traj = dynamics.dynamics(algorithm, sim, traj)
+        traj = dynamics.dynamics(sim, recipe, traj)
         data.add_data(traj)
     return data
