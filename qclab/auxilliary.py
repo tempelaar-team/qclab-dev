@@ -10,10 +10,10 @@ import dill as pickle
 
 def rk4_c(z_branch, qfzc_branch, dt, sim):
     """ 4-th order Runge-Kutta integrator for the z_branch coordinate with force qfzc_branch"""
-    k1 = -1.0j*(sim.dh_c_dzc_branch(sim.h_c_params, z_branch) + qfzc_branch)
-    k2 = -1.0j*(sim.dh_c_dzc_branch(sim.h_c_params, z_branch + 0.5*dt*k1) + qfzc_branch)
-    k3 = -1.0j*(sim.dh_c_dzc_branch(sim.h_c_params, z_branch + 0.5*dt*k2) + qfzc_branch)
-    k4 = -1.0j*(sim.dh_c_dzc_branch(sim.h_c_params, z_branch + dt*k3) + qfzc_branch)
+    k1 = -1.0j*(sim.dh_c_dzc(sim.h_c_params, z_branch) + qfzc_branch)
+    k2 = -1.0j*(sim.dh_c_dzc(sim.h_c_params, z_branch + 0.5*dt*k1) + qfzc_branch)
+    k3 = -1.0j*(sim.dh_c_dzc(sim.h_c_params, z_branch + 0.5*dt*k2) + qfzc_branch)
+    k4 = -1.0j*(sim.dh_c_dzc(sim.h_c_params, z_branch + dt*k3) + qfzc_branch)
     z_branch = z_branch + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     #k1 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch) + qfzc_branch)
     #k2 = -1.0j*(np.apply_along_axis(sim.dh_c_dzc, 1, z_branch + 0.5*dt*k1) + qfzc_branch)
@@ -33,7 +33,7 @@ def rk4_q_branch(h_branch, psi_branch, dt):
 
 
 @njit
-def rk4_q(h, psi, dt, path=None):
+def rk4_q(h, psi, dt):
     """
     4-th order Runge-Kutta for quantum wavefunction, works with branch wavefunctions
     :param h: Hamiltonian h(t)
@@ -119,17 +119,34 @@ def rho_db_to_adb_branch(rho_db_branch, eigvec_branch): # transforms branch adib
 
 def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_branch, sim):
     if act_surf_ind_branch is None:
-        fzc_branch = sim.dh_qc_dzc_branch(sim.h_qc_params, evecs_branch, evecs_branch, z_branch)
+        fzc_branch = sim.dh_qc_dzc(sim.h_qc_params, evecs_branch, evecs_branch, z_branch)
     else:
-        fzc_branch = sim.dh_qc_dzc_branch(sim.h_qc_params, evecs_branch[range(sim.num_trajs*sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_trajs*sim.num_branches),:,act_surf_ind_branch], z_branch)
+        fzc_branch = sim.dh_qc_dzc(sim.h_qc_params, evecs_branch[range(sim.num_trajs*sim.num_branches),:,act_surf_ind_branch], evecs_branch[range(sim.num_trajs*sim.num_branches),:,act_surf_ind_branch], z_branch)
     return fzc_branch
 
 def quantum_force_branch_zpe(wf_db_q, z_branch_zpe, pops_mat, evecs_q, sim):
-    dh_qc_dzc_branch_mat = sim.dh_qc_dzc_branch_mat(sim.h_qc_params, z_branch_zpe)
-    dh_qc_dzc_branch_mat = pops_mat[:,np.newaxis,:,:]*np.einsum('ki,lj,nmkl->nmij',np.conj(evecs_q),evecs_q,dh_qc_dzc_branch_mat, optimize='greedy')
-    out = np.einsum('ni,nj,nmij->m',np.conj(wf_db_q),wf_db_q,dh_qc_dzc_branch_mat, optimize='greedy')
+    dh_qc_dzc_mat = sim.dh_qc_dzc_mat(sim.h_qc_params, z_branch_zpe)
+    dh_qc_dzc_mat = pops_mat[:,np.newaxis,:,:]*np.einsum('ki,lj,nmkl->nmij',np.conj(evecs_q),evecs_q,dh_qc_dzc_mat, optimize='greedy')
+    out = np.einsum('ni,nj,nmij->m',np.conj(wf_db_q),wf_db_q,dh_qc_dzc_mat, optimize='greedy')
     return out
     
+
+
+############################################################
+#                     QUANTUM EVOLUTION                    #
+############################################################
+
+
+def evolve_wf_eigs(wf_db, eigvals, eigvecs, dt):
+    # construct eigenvalue exponential
+    evals_exp_branch = np.exp(-1.0j * eigvals * dt)
+    # transform wavefunctions to adiabatic basis
+    wf_adb = np.copy(psi_db_to_adb_branch(wf_db, eigvecs))
+    # multiply by propagator
+    wf_adb = np.copy(evals_exp_branch * wf_adb)
+    # transform back to diabatic basis
+    wf_db = np.copy(psi_adb_to_db_branch(wf_adb, eigvecs))
+    return wf_db, wf_adb
 
 
 
@@ -143,8 +160,8 @@ def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse me
     :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{zc} H (stored in sim.diff_vars)
     :return: d_{ab}^{z} and d_{ab}^{zc}
     """
-    dab_z = sim.dh_qc_dz_branch(sim.h_qc_params, evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff
-    dab_zc = sim.dh_qc_dzc_branch(sim.h_qc_params, evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff
+    dab_z = sim.dh_qc_dz(sim.h_qc_params, evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff
+    dab_zc = sim.dh_qc_dzc(sim.h_qc_params, evec_a[np.newaxis,:], evec_b[np.newaxis,:], z[np.newaxis,:])[0] / ev_diff
     return dab_z, dab_zc
 
 def get_dab_phase(evals, evecs, z, sim):
@@ -268,22 +285,45 @@ def nan_num(num):
 nan_num_vec = np.vectorize(nan_num)
 
 
-def get_branch_pair_eigs(z_branch, evecs_branch_pair_previous, sim):
+def get_branch_pair_eigs_(z_branch, evecs_branch_pair_previous, sim):
     evals_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states))
     evecs_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
     h_q = sim.h_q()
     for i in range(sim.num_branches):
         for j in range(i + 1, sim.num_branches):
             z_branch_ij = np.array([(z_branch[i] + z_branch[j])/2])
-            evals_branch_pair[i,j], evecs_branch_pair[i,j] = np.linalg.eigh(h_q + sim.h_qc_branch(sim.h_qc_params, z_branch_ij)[0])
+            evals_branch_pair[i,j], evecs_branch_pair[i,j] = np.linalg.eigh(h_q + sim.h_qc(sim.h_qc_params, z_branch_ij)[0])
             evecs_branch_pair[i,j], _ = sign_adjust_branch(evecs_branch_pair[i,j][np.newaxis,:,:], evecs_branch_pair_previous[i,j][np.newaxis,:,:], 
                                                            evals_branch_pair[i,j][np.newaxis,:], z_branch_ij[np.newaxis,:], sim)
             evals_branch_pair[j,i] = evals_branch_pair[i,j]
-            evecs_branch_pair[j,i] = evecs_branch_pair[j,i]
+            evecs_branch_pair[j,i] = evecs_branch_pair[i,j]
     return evals_branch_pair, evecs_branch_pair
 
+def get_branch_pair_eigs(z_coord, sim):
+    eigvals_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states))
+    eigvecs_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
+    h_q = sim.h_q(sim.h_q_params)
+    for i in range(sim.num_branches):
+        for j in range(i + 1, sim.num_branches):
+            z_branch_ij = np.array([(z_coord[i] + z_coord[j]) / 2])
+            eigvals_branch_pair[i, j], eigvecs_branch_pair[i, j] = np.linalg.eigh(h_q + sim.h_qc(sim.h_qc_params, z_branch_ij)[0])
+            eigvals_branch_pair[j, i] = eigvals_branch_pair[i, j]
+            eigvecs_branch_pair[j, i] = eigvecs_branch_pair[i, j]
+    return eigvals_branch_pair, eigvecs_branch_pair
+
+def sign_adjust_branch_pair_eigs(z_coord, eigvecs_branch_pair, eigvals_branch_pair, eigvecs_branch_pair_previous, sim):
+    for i in range(sim.num_branches):
+        for j in range(i + 1, sim.num_branches):
+            z_branch_ij = np.array([(z_coord[i] + z_coord[j]) / 2])
+            eigvecs_branch_pair[i,j], _ = sign_adjust_branch(eigvecs_branch_pair[i,j][np.newaxis,:,:], eigvecs_branch_pair_previous[i,j][np.newaxis,:,:],
+                                                           eigvals_branch_pair[i,j][np.newaxis,:], z_branch_ij[np.newaxis,:], sim)
+            eigvecs_branch_pair[j, i] = eigvecs_branch_pair[i, j]
+    return eigvals_branch_pair, eigvecs_branch_pair
 def no_observables(sim, dyn):
     return {}
+
+def initialize_wf_db(sim):
+    return np.zeros((sim.num_trajs*sim.num_branches, sim.num_states), dtype=complex) + sim.wf_db[np.newaxis, :]
 
 
 def harmonic_oscillator_hop(sim, z, delta_z, ev_diff):
@@ -356,10 +396,11 @@ def harmonic_oscillator_focused_init_classical(sim, seed=None):
 
 
 
-def harmonic_oscillator_h_c_branch(h_c_params, z_branch):
-        h = h_c_params
-        return np.real(np.sum(h[np.newaxis,:]*np.conj(z_branch)*z_branch, axis=1))
-def harmonic_oscillator_dh_c_dz_branch(h_c_params, z_branch):
+def harmonic_oscillator_h_c(h_c_params, z_branch):
+    h = h_c_params
+    return np.real(np.sum(h[np.newaxis,:]*np.conj(z_branch)*z_branch, axis=1))
+
+def harmonic_oscillator_dh_c_dz(h_c_params, z_branch):
     """
     Gradient of harmonic oscillator hamiltonian wrt z_branch
     :param z_branch: z coordinate in each branch
@@ -369,7 +410,7 @@ def harmonic_oscillator_dh_c_dz_branch(h_c_params, z_branch):
     h = h_c_params
     return h[np.newaxis, :] * np.conj(z_branch)
 
-def harmonic_oscillator_dh_c_dzc_branch(h_c_params, z_branch):
+def harmonic_oscillator_dh_c_dzc(h_c_params, z_branch):
     """
     Gradient of harmonic oscillator hamiltonian wrt zc_branch
     :param z_branch: z coordinate in each branch
@@ -392,3 +433,39 @@ def load_pickle(filename):
     obj = pickle.load(file)
     file.close()
     return obj
+
+def get_tmax(tmax_in, dt):
+    # tmax_in is the requested maximum time
+    # dt is the requested propagation timestep
+    # returns tmax_out which is the integer multiple of dt that is closest to tmax_in
+    ran = np.arange(int(tmax_in/dt)-5,int(tmax_in/dt)+5,1).astype(int)
+    int_val = ran[np.argmin(np.abs(ran*dt - tmax_in))]
+    tmax_out = int_val * dt
+    print('number of timesteps: ', int_val,' maximum time: ', tmax_out)
+    return tmax_out , int_val
+
+def get_dt_output(sim, dt_output_in):
+    # calculates the dt_output that an integer multiple of sim.dt 
+    if dt_output_in < sim.dt:
+        dt_output_out = sim.dt
+        return dt_output_out 
+    int_1 = np.round(dt_output_in / sim.dt,0).astype(int)
+    dt_output_out = int_1 * sim.dt
+    return dt_output_out, int_1
+
+def initialize_timesteps(sim, dt=0.1, dt_output=1, tmax = 10):
+    sim.dt = dt
+    sim.tmax, sim.tmax_n = get_tmax(tmax, sim.dt)
+    sim.dt_output, sim.dt_output_n = get_dt_output(sim, dt_output)
+    sim.tdat = np.arange(0,sim.tmax_n + 1, 1) * sim.dt
+    sim.tdat_n = np.arange(0,sim.tmax_n + 1, 1)
+    sim.tdat_output = np.arange(0, sim.tmax_n + 1, sim.dt_output_n) * sim.dt
+    sim.tdat_ouput_n = np.arange(0, sim.tmax_n + 1, sim.dt_output_n)
+    return sim
+
+def evaluate_observables_t(recipe):
+    observables_dic = dict()
+    state_dic = vars(recipe.state)
+    for key in recipe.output_names:
+        observables_dic[key] = state_dic[key]
+    return observables_dic
