@@ -41,7 +41,8 @@ Using qc_lab
 
    introduction
    simulation_class
-   algorithm_class
+   dynamics_core
+   algorithm_recipes
 
 Bibliography
 ------------

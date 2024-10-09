@@ -30,7 +30,7 @@ dynamics core. In addition to the simulation and algorithm classes, the dynamics
 trajectory to be executed. 
 
 
-.. figure:: images/code_structure.svg
+.. figure:: images/code_structure.pdf
    :alt: qc_lab Code Structure Diagram
    :width: 50%
    :align: center
@@ -130,12 +130,12 @@ Observables are stored in a dictionary inside the Data Class returned by the dyn
 
 The resulting plots are 
 
-.. image:: images/pops_sb_mf.svg
+.. image:: images/pops_sb_mf.pdf
    :alt: diabatic populations of mean-field spin-boson simulation
    :width: 75%
    :align: center
 
-.. image:: images/de_sb_mf.svg
+.. image:: images/de_sb_mf.pdf
    :alt: change in energy of mean-field spin-boson simulation
    :width: 75%
    :align: center
