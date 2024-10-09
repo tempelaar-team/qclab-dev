@@ -457,31 +457,9 @@ def load_pickle(filename):
     return obj
 
 
-def get_tmax(tmax_in, dt):
-    # tmax_in is the requested maximum time
-    # dt is the requested propagation timestep
-    # returns tmax_out which is the integer multiple of dt that is closest to tmax_in
-    ran = np.arange(int(tmax_in / dt) - 5, int(tmax_in / dt) + 5, 1).astype(int)
-    int_val = ran[np.argmin(np.abs(ran * dt - tmax_in))]
-    tmax_out = int_val * dt
-    print('number of timesteps: ', int_val, ' maximum time: ', tmax_out)
-    return tmax_out, int_val
-
-
-def get_dt_output(sim, dt_output_in):
-    # calculates the dt_output that an integer multiple of sim.dt 
-    if dt_output_in < sim.dt:
-        dt_output_out = sim.dt
-        return dt_output_out
-    int_1 = np.round(dt_output_in / sim.dt, 0).astype(int)
-    dt_output_out = int_1 * sim.dt
-    return dt_output_out, int_1
-
-
-def initialize_timesteps(sim, dt=0.1, dt_output=1, tmax=10):
-    sim.dt = dt
-    sim.tmax, sim.tmax_n = get_tmax(tmax, sim.dt)
-    sim.dt_output, sim.dt_output_n = get_dt_output(sim, dt_output)
+def initialize_timesteps(sim):
+    sim.tmax_n = np.round(sim.tmax/sim.dt,1).astype(int)
+    sim.dt_output_n = np.round(sim.dt_output / sim.dt, 1).astype(int)
     sim.tdat = np.arange(0, sim.tmax_n + 1, 1) * sim.dt
     sim.tdat_n = np.arange(0, sim.tmax_n + 1, 1)
     sim.tdat_output = np.arange(0, sim.tmax_n + 1, sim.dt_output_n) * sim.dt

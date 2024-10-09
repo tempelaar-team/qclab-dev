@@ -4,6 +4,8 @@ import qclab.auxiliary as auxiliary
 
 
 def dynamics(sim, recipe, traj=simulation.Trajectory()):
+    # initialize the timestep axes
+    sim = auxiliary.initialize_timesteps(sim)
     # load defaults of recipe class
     sim = recipe.defaults(sim)
     # first initialize state variable
