@@ -1,3 +1,3 @@
 #from dynamics import dynamics
-#from auxilliary import *
+#from auxiliary import *
 #from simulation import Trajectory, Data
