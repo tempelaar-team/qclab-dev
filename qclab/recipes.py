@@ -217,20 +217,20 @@ class ManyBodyMeanFieldDynamicsRecipe:
     def __init__(self, sim):
         self.sim = sim 
         self.initialize = [
-                           ingredients.initialize_wf_db_MB,
-                           ingredients.initialize_wf_db_MB_coeffs,
+                           ingredients.initialize_wf_db_mb,
+                           ingredients.initialize_wf_db_mb_coeffs,
                            ingredients.initialize_z_coord,
                            ingredients.update_h_quantum,
-                           ingredients.update_quantum_force_wf_db_MBMF,
+                           ingredients.update_quantum_force_wf_db_mbmf,
                            ]
         self.update = [ingredients.update_z_coord_rk4, 
-                       ingredients.update_wf_db_MB_RK4,
+                       ingredients.update_wf_db_mb_rk4,
                        ingredients.update_h_quantum,
-                       ingredients.update_quantum_force_wf_db_MBMF,
+                       ingredients.update_quantum_force_wf_db_mbmf,
                        ]
         self.output = [
                        ingredients.update_e_c, 
-                       ingredients.update_e_q_MBMF,
+                       ingredients.update_e_q_mbmf,
                        ]
         self.output_names = [
                              'e_c', 
@@ -272,20 +272,20 @@ class ManyBodyMeanFieldDynamicsARPESRecipe:
     def __init__(self, sim):
         self.sim = sim 
         self.initialize = [
-                           ingredients.initialize_wf_db_MB,
-                           ingredients.initialize_wf_db_MB_coeffs,
+                           ingredients.initialize_wf_db_mb,
+                           ingredients.initialize_wf_db_mb_coeffs,
                            ingredients.initialize_z_coord,
                            ingredients.update_h_quantum,
-                           ingredients.update_quantum_force_wf_db_MBMF_ARPES,
+                           ingredients.update_quantum_force_wf_db_mbmf_arpes,
                            ]
         self.update = [ingredients.update_z_coord_rk4, 
-                       ingredients.update_wf_db_MB_RK4,
+                       ingredients.update_wf_db_mb_rk4,
                        ingredients.update_h_quantum,
-                       ingredients.update_quantum_force_wf_db_MBMF_ARPES,
+                       ingredients.update_quantum_force_wf_db_mbmf_arpes,
                        ]
         self.output = [
                        ingredients.update_e_c, 
-                       ingredients.update_e_q_MBMF_ARPES,
+                       ingredients.update_e_q_mbmf_arpes,
                        ]
         self.output_names = [
                              'e_c', 
