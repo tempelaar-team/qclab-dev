@@ -1,5 +1,5 @@
 import numpy as np
-import qclab.auxiliary as auxilliary
+import qclab.auxiliary as auxiliary
 from numba import njit
 
 
@@ -50,7 +50,7 @@ class SpinBosonModel:
             """
             out = np.ascontiguousarray(np.zeros((len(psi_a), dz_shape[0]))) + 0.0j
             for n in range(len(psi_a)):
-                out[n] = auxilliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a[n], psi_b[n])
+                out[n] = auxiliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a[n], psi_b[n])
             return out
 
         @njit
@@ -64,8 +64,8 @@ class SpinBosonModel:
             """
             out = np.ascontiguousarray(np.zeros((len(psi_a), dzc_shape[0]))) + 0.0j
             for n in range(len(psi_a)):
-                out[n] = auxilliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a[n],
-                                                   psi_b[n])  # conjugation is done by matprod_sparse
+                out[n] = auxiliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a[n],
+                                                  psi_b[n])  # conjugation is done by matprod_sparse
             return out
 
         def h_q(h_q_params):

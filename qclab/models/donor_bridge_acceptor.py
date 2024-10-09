@@ -78,15 +78,15 @@ class DonorBridgeAcceptorModel:
                 Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
                 :return: h_q Hamiltonian
                 """
-            E_D, E_B, E_A, V = h_q_params
+            e_d, e_b, e_a, v = h_q_params
             out = np.zeros((self.num_states, self.num_states), dtype=complex)
-            out[0, 0] = E_D
-            out[1, 1] = E_B
-            out[2, 2] = E_A
-            out[0, 1] = V
-            out[1, 0] = V
-            out[1, 2] = V
-            out[2, 1] = V
+            out[0, 0] = e_d
+            out[1, 1] = e_b
+            out[2, 2] = e_a
+            out[0, 1] = v
+            out[1, 0] = v
+            out[1, 2] = v
+            out[2, 1] = v
             return out
 
         def h_qc(h_qc_params, z_coord):
