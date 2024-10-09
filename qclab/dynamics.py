@@ -1,8 +1,9 @@
 import numpy as np
 import qclab.simulation as simulation
-import qclab.auxilliary as auxilliary
+import qclab.auxiliary as auxiliary
 
-def dynamics(sim, recipe, traj = simulation.Trajectory()):
+
+def dynamics(sim, recipe, traj=simulation.Trajectory()):
     # load defaults of recipe 
     sim = recipe.defaults(sim)
     # first initialize state
@@ -16,15 +17,17 @@ def dynamics(sim, recipe, traj = simulation.Trajectory()):
             for func in recipe.output:
                 state = func(sim, state)
             # calculate observables at output timestep
-            observables_t = auxilliary.evaluate_observables_t(recipe)
+            observables_t = auxiliary.evaluate_observables_t(recipe)
             if t_ind == 0:
                 for key in observables_t.keys():
-                    traj.new_observable(key, (len(sim.tdat_output), *np.shape(observables_t[key])), observables_t[key].dtype)
-            
-            traj.add_observable_dict(int(t_ind / sim.dt_output_n), observables_t) # add observables to the trajectory object
+                    traj.new_observable(key, (len(sim.tdat_output), *np.shape(observables_t[key])),
+                                        observables_t[key].dtype)
+
+            traj.add_observable_dict(int(t_ind / sim.dt_output_n),
+                                     observables_t)  # add observables to the trajectory object
             state.traj = traj
         for func in recipe.update:
             state = func(sim, state)
         state.t_ind = t_ind + 1
-    traj.add_to_dic('t', sim.tdat_output * sim.num_trajs) # add time axis to trajectory object 
-    return traj 
+    traj.add_to_dic('t', sim.tdat_output * sim.num_trajs)  # add time axis to trajectory object
+    return traj

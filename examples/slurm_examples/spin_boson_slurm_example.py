@@ -2,7 +2,7 @@ from qclab.drivers.slurm_driver import dynamics_parallel_slurm
 from qclab.drivers.ray_driver import dynamics_parallel_ray
 from qclab.models.spin_boson import SpinBosonModel
 from qclab.algorithms.fssh import FewestSwitchesSurfaceHoppingDynamics
-import qclab.auxilliary as auxilliary
+import qclab.auxiliary as auxilliary
 import sys
 import dill as pickle
 import numpy as np
