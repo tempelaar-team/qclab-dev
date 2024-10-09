@@ -43,9 +43,9 @@ class SpinBosonModel:
         def dh_qc_dz(h_qc_params, psi_a, psi_b, z_coord):
             """
             Computes <\psi_a| dH_qc/dz  |\psi_b> in each branch
-            :param psi_a: left vector in each branch
-            :param psi_b: right vector in each branch
-            :param z_coord: z coordinate in each branch
+            :param psi_a: left vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
+            :param psi_b: right vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
+            :param z_coord: z coordinate in each branch with shape (sim.num_trajs*sim.num_branches, sim.num_classical_coordinates)
             :return:
             """
             out = np.ascontiguousarray(np.zeros((len(psi_a), dz_shape[0]))) + 0.0j
@@ -57,9 +57,9 @@ class SpinBosonModel:
         def dh_qc_dzc(h_qc_params, psi_a, psi_b, z_coord):
             """
             Computes <\psi_a| dH_qc/dzc  |\psi_b> in each branch
-            :param psi_a: left vector in each branch
-            :param psi_b: right vector in each branch
-            :param z_coord: z coordinate in each branch
+            :param psi_a: left vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
+            :param psi_b: right vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
+            :param z_coord: z coordinate in each branch with shape (sim.num_trajs*sim.num_branches, sim.num_classical_coordinates)
             :return:
             """
             out = np.ascontiguousarray(np.zeros((len(psi_a), dzc_shape[0]))) + 0.0j
@@ -70,9 +70,10 @@ class SpinBosonModel:
 
         def h_q(h_q_params):
             """
-                Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
-                :return: h_q Hamiltonian
-                """
+            Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
+            :param h_q_params: tuple of parameters for h_q
+            :return: h_q Hamiltonian
+            """
             e, v = h_q_params
             out = np.zeros((self.num_states, self.num_states), dtype=complex)
             out[0, 0] = e
@@ -84,6 +85,7 @@ class SpinBosonModel:
         def h_qc(h_qc_params, z_coord):
             """
             Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
+            :param h_qc_params: tuple of parameters for h_qc
             :param z_coord: z coordinate
             :return: h_qc(z,z^{*}) Hamiltonian
             """
