@@ -418,3 +418,80 @@ def analytic_gauge_fix_branch_pair_eigs(sim, state):
             print('Warning: phase init',
                   np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
     return state
+
+
+
+############################################################
+#              MANYBODY MEAN FIELD INGREDIENTS             #
+############################################################
+
+
+def initialize_wf_db_MB(sim, state):
+    state.wf_db_MB = np.zeros((sim.num_branches * sim.num_trajs, sim.num_states, sim.num_particles), dtype=complex) + sim.wf_db_MB[np.newaxis, :, :] 
+    return state 
+
+
+def initialize_wf_db_MB_coeffs(sim, state):
+    state.wf_db_MB_coeffs = np.zeros((sim.num_branches * sim.num_trajs, sim.num_SD), dtype=complex) + sim.wf_db_MB_coeffs[np.newaxis, :]
+    return state
+
+
+def update_quantum_force_wf_db_MBMF(sim, state):
+    state.quantum_force = np.zeros((sim.num_branches * sim.num_trajs, sim.num_classical_coordinates), dtype=complex)
+    for n in range(sim.num_particles):
+        state.quantum_force += sim.dh_qc_dzc(sim.h_qc_params, state.wf_db_MB[:, :, n], state.wf_db_MB[:, :, n],state.z_coord)
+    return state
+
+
+def update_wf_db_MB_RK4(sim, state):
+    # evolve wf_db using an RK4 solver
+    state.wf_db_MB = auxiliary.rk4_q_branch(state.h_quantum, state.wf_db_MB, sim.dt)
+    return state
+
+def update_e_q_MBMF(sim, state):
+    state.e_q_branch = np.sum(np.einsum('tin,tij,tjn->t', np.conj(state.wf_db_MB), state.h_quantum, state.wf_db_MB).reshape((sim.num_trajs, sim.num_branches)),axis=0)
+    state.e_q = np.sum(state.e_q_branch, axis=0)
+    return state
+
+
+############################################################
+#           MANYBODY MEAN FIELD ARPES INGREDIENTS          #
+############################################################
+
+
+def update_quantum_force_wf_db_MBMF_ARPES(sim, state):
+    if state.t_ind >= sim.delay_ind:
+        qf_mat_1 = np.zeros((sim.num_branches*sim.num_trajs, sim.num_classical_coordinates, sim.num_particles, sim.num_particles), dtype=complex)
+        for i in range(sim.num_particles):
+            for j in range(sim.num_particles):
+                qf_mat_1[:, :, i, j] = sim.dh_qc_dzc(sim.h_qc_params, state.wf_db_MB[:, :, i], state.wf_db_MB[:, :, j], state.z_coord)
+                if i != j:
+                    qf_mat_1[:, :, i, j] *= -1
+        qf_mat = np.copy(qf_mat_1)
+        for n in range(sim.num_SD):
+            qf_mat_1_tmp = np.copy(qf_mat_1)
+            qf_mat_1_tmp[:,:,n,n] *= 0
+            qf_mat[:,:,n,n] = np.einsum('tann->ta',qf_mat_1, optimize='greedy')
+        state.quantum_force = np.einsum('tn,tamn,tm->ta',np.conj(state.wf_db_MB_coeffs), qf_mat, state.wf_db_MB_coeffs, optimize='greedy')
+    else:
+        state.quantum_force = np.zeros((sim.num_branches * sim.num_trajs, sim.num_classical_coordinates), dtype=complex)
+        for n in range(sim.num_particles):
+            state.quantum_force += sim.dh_qc_dzc(sim.h_qc_params, state.wf_db_MB[:,:,n], state.wf_db_MB[:,:,n], state.z_coord)
+    return state
+
+
+def update_e_q_MBMF_ARPES(sim, state):
+    if state.t_ind >= sim.delay_ind:
+        mat = 1 + 2*np.identity(sim.num_SD) - np.ones((sim.num_SD, sim.num_SD))*2
+        h_mat_1 = np.einsum('tin,tij,tjm->tmn', np.conj(state.wf_db_MB), state.h_quantum, state.wf_db_MB, optimize='greedy')*mat
+        h_mat = np.copy(h_mat_1)
+        for n in range(sim.num_SD):
+            h_mat_1_tmp = np.copy(h_mat_1)
+            h_mat_1_tmp[:,n,n] *= 0
+            h_mat[:,n,n] = np.einsum('tnn->t',h_mat_1, optimize='greedy')
+        state.e_q_branch = np.sum(np.einsum('tn,tnm,tm->t',np.conj(state.wf_db_MB_coeffs), h_mat, state.wf_db_MB_coeffs, optimize='greedy').reshape((sim.num_trajs, sim.num_branches)),axis=0)
+        state.e_q = np.sum(state.e_q_branch, axis=0)
+    else:
+        state.e_q_branch = np.sum(np.einsum('tin,tij,tjn->t', np.conj(state.wf_db_MB), state.h_quantum, state.wf_db_MB).reshape((sim.num_trajs, sim.num_branches)),axis=0)
+        state.e_q = np.sum(state.e_q_branch, axis=0)
+    return state 
