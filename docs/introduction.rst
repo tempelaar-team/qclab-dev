@@ -56,8 +56,6 @@ The first step is to import the Simulation Class we wish to use as well as some 
       import matplotlib.pyplot as plt   
       # import the Spin-Boson Model Simulation Class
       from qclab.models.spin_boson import SpinBosonModel
-      # import the simulation module 
-      import qclab.simulation as simulation
 
 Next we will initialize the Simulation Class by creating a dictionary with appropriate input parameters (these inputs are determined in the construction
 of the Simulation class and are by no means universal) that can be found in the documentation for each of the Simulation Classes that come with qc_lab::
@@ -67,10 +65,10 @@ of the Simulation class and are by no means universal) that can be found in the 
 
 Next we will attach attributes needed to run the dynamics like the timesteps::
 
-      sim.num_trajs = 100 # we will run 100 trajectories at a time
-      sim.tmax=int(1/0.0260677)+1 # calculate for the equivalent of 1 picosecond
-      sim.dt=1/(10*sim.w[-1]) # determine the propagation timestep in terms of the largest bath frequency
-      sim.dt_output= 5 * sim.dt # output data ever five timesteps
+      sim.num_trajs = 400 # number of trajectories to run at a single call of the dynamics core 
+      sim.tmax=40 # maximum simulation time (must be an integer multiple of sim.dt and sim.dt_output)
+      sim.dt_output=0.1 # output timestep (must be an integer multiple of sim.dt)
+      sim.dt=0.01 # propagation timestep
 
 The initial quantum state in the diabatic basis can then be created with the prescribed name ``wf_db``::
 
@@ -78,38 +76,39 @@ The initial quantum state in the diabatic basis can then be created with the pre
       # initialize a quantum state in the upper state
       sim.wf_db[0] = 1.0 + 0.0j
 
-Finally we can think about what observables we would like to calculate. By default qc_lab calculates the classical energy, quantum energy, and diabatic density matrix. 
-For now we will stick with these default observables but you can look at the section "Custom Observables" to learn how to add particular observables later. 
-
 Before running the dynamics calculation we have to generate a list of seeds that will be used in the initialization and execution of each trajectory. Each seed
-uniquely characterizes all random aspects of its associated trajectory and can be used to exactly reproduce the tajectory at a later time. Because we are running 100 trajectories
-(as indicated by ``sim.num_trajs=100``) at a time in this example, the number of seeds we need must be an integer multiple of 100::
+uniquely characterizes all random aspects of its associated trajectory and can be used to exactly reproduce the tajectory at a later time. Because we are running 400 trajectories
+(as indicated by ``sim.num_trajs=400``) at a time in this example, the number of seeds we need must be an integer multiple of 400. If we wish to run 8000 trajectories, then we will need
+that many seeds. ::
 
       num_seeds = 20*sim.num_trajs # the total number of seeds we need 
       seeds = np.arange(num_seeds) # generate the seeds
 
-Now we can import the desired algorithm::
+Now we can import and initialize the algorithm recipe::
 
       # import the mean-field dynamics Algorithm Class
-      from qclab.algorithms.mf import MeanFieldDynamics
+      from qclab.recipes import MeanFieldDynamicsRecipe
+      recipe_mf = MeanFieldDynamicsRecipe(sim)
 
-And a dynamics driver, let's use the serial driver first::
+Then we import a driver, in this case the serial driver, as well as the simulation data class which will be used to store the output data::
       
       # import the serial driver 
-      from qclab.drivers.serial_driver import dynamics_serial 
+      from qclab.drivers.serial_driver import dynamics_serial
+      # import the simulation data class
+      import qclab.simulation as simulation
 
 Now we can run the dynamics::
 
-      data_spin_boson_mf = dynamics_serial(algorithm = MeanFieldDynamics, sim = sim, seeds = seeds, data = simulation.Data())
+      data_mf = dynamics_serial(recipe=recipe_mf, sim = sim, seeds = seeds, ncpus=1, data = simulation.Data())
 
-Observables are stored in a dictionary inside the Data Class returned by the dynamics driver, ``data_spin_boson_mf.data_dic``, and so we can plot the energies and populations as::
+Observables are stored in a dictionary inside the Data Class returned by the dynamics driver, ``data_mf.data_dic``, and so we can plot the energies and populations as::
 
 
       ntraj =  num_seeds # obtain number of trajectories to normalize
-      pops_mf = np.real(np.einsum('nii->ni',data_spin_boson_mf.data_dic['dm_db']))/ntraj # obtain diagonal of density matrix
-      t_ps = data_spin_boson_mf.data_dic['t'] * 0.0260677 /ntraj # convert time units to picoseconds
-      e_q = data_spin_boson_mf.data_dic['e_q']/ntraj # quantum energy
-      e_c = data_spin_boson_mf.data_dic['e_c']/ntraj # classical energy
+      pops_mf = np.real(np.einsum('nii->ni',data_mf.data_dic['dm_db']))/ntraj # obtain diagonal of density matrix
+      t_ps = data_mf.data_dic['t'] * 0.0260677 /ntraj # convert time units to picoseconds
+      e_q = data_mf.data_dic['e_q']/ntraj # quantum energy
+      e_c = data_mf.data_dic['e_c']/ntraj # classical energy
 
       # plot diabatic populations
       plt.plot(t_ps, pops_mf[:,0], label='upper')
@@ -121,9 +120,9 @@ Observables are stored in a dictionary inside the Data Class returned by the dyn
       plt.show()
 
       # plot change in energy
-      plt.plot(t_ps, e_q - e_q[0], label='quantum')
-      plt.plot(t_ps, e_c - e_c[0], label='classical')
-      plt.plot(t_ps, e_c - e_c[0] + e_q - e_q[0], label='total')
+      plt.plot(t_ps, np.real(e_q - e_q[0]), label='quantum')
+      plt.plot(t_ps, np.real(e_c - e_c[0]), label='classical')
+      plt.plot(t_ps, np.real(e_c - e_c[0] + e_q - e_q[0]), label='total')
       plt.ylabel('change in energy')
       plt.xlabel('t(ps)')
       plt.legend()
@@ -148,36 +147,42 @@ The complete code is::
       import matplotlib.pyplot as plt   
       # import the Spin-Boson Model Simulation Class
       from qclab.models.spin_boson import SpinBosonModel
-      # import the mean-field dynamics Algorithm Class
-      from qclab.algorithms.mf import MeanFieldDynamics
-      # import the serial driver 
-      from qclab.drivers.serial_driver import dynamics_serial 
-      # import the simulation module 
-      import qclab.simulation as simulation
 
       input_params = dict(temp = 1, V=0.5, E=0.5, A=100, W=0.1, l=0.02/4)
       sim = SpinBosonModel(input_params = input_params)
 
-      sim.num_trajs = 100 # we will run 100 trajectories at a time
-      sim.tmax=int(1/0.0260677)+1 # calculate for the equivalent of 1 picosecond
-      sim.dt=1/(10*sim.w[-1]) # determine the propagation timestep in terms of the largest bath frequency
-      sim.dt_output= 5 * sim.dt # output data ever five timesteps
+      sim.num_trajs = 400
+      sim.tmax=40
+      sim.dt_output=0.1
+      sim.dt=0.01
 
-      sim.wf_db = np.zeros((sim.num_states), dtype=complex)
+      sim.wf_db = np.zeros((sim.num_states),dtype=complex)
       # initialize a quantum state in the upper state
-      sim.wf_db[0] = 1.0 + 0.0j
+      sim.wf_db[0] = 1
 
-      num_seeds = 20*sim.num_trajs # the total number of seeds we need 
-      seeds = np.arange(num_seeds) # generate the seeds
+      num_seeds = 20*sim.num_trajs
+      seeds = np.arange(0, num_seeds)
 
-      data_spin_boson_mf = dynamics_serial(algorithm = MeanFieldDynamics, sim = sim, seeds = seeds, data=simulation.Data())
+      # import the mean-field dynamics Algorithm Class
+      from qclab.recipes import MeanFieldDynamicsRecipe
+      recipe_mf = MeanFieldDynamicsRecipe(sim)
 
-      pops_mf = np.real(np.einsum('nii->ni',data_spin_boson_mf.data_dic['dm_db'])) / num_seeds # obtain diagonal of density matrix
-      t_ps = data_spin_boson_mf.data_dic['t'] * 0.0260677 / num_seeds # convert time units to picoseconds
-      e_q = data_spin_boson_mf.data_dic['e_q'] / num_seeds # quantum energy
-      e_c = data_spin_boson_mf.data_dic['e_c'] / num_seeds # classical energy
 
-      # plot diabatic populations
+
+      # import the serial driver 
+      from qclab.drivers.serial_driver import dynamics_serial
+      # import the simulation data class
+      import qclab.simulation as simulation
+
+
+      data_mf = dynamics_serial(recipe=recipe_mf, sim = sim, seeds = seeds, ncpus=1, data = simulation.Data())
+
+      ntraj =  num_seeds
+      pops_mf = np.real(np.einsum('nii->ni',data_mf.data_dic['dm_db']))/ntraj
+      t_ps = data_mf.data_dic['t'] * 0.0260677 /ntraj
+      e_q = data_mf.data_dic['e_q']/ntraj
+      e_c = data_mf.data_dic['e_c']/ntraj
+
       plt.plot(t_ps, pops_mf[:,0], label='upper')
       plt.plot(t_ps, pops_mf[:,1], label='lower')
       plt.ylabel('diabatic populations')
@@ -186,10 +191,9 @@ The complete code is::
       plt.ylim([0,1])
       plt.show()
 
-      # plot change in energy
-      plt.plot(t_ps, e_q - e_q[0], label='quantum')
-      plt.plot(t_ps, e_c - e_c[0], label='classical')
-      plt.plot(t_ps, e_c - e_c[0] + e_q - e_q[0], label='total')
+      plt.plot(t_ps, np.real(e_q - e_q[0]), label='quantum')
+      plt.plot(t_ps, np.real(e_c - e_c[0]), label='classical')
+      plt.plot(t_ps, np.real(e_c - e_c[0] + e_q - e_q[0]), label='total')
       plt.ylabel('change in energy')
       plt.xlabel('t(ps)')
       plt.legend()
