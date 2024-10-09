@@ -2,6 +2,12 @@ import numpy as np
 import qclab.auxiliary as auxiliary
 
 
+
+############################################################
+#                  MEAN-FIELD INGREDIENTS                  #
+############################################################
+
+
 def initialize_wf_db(sim, state):
     state.wf_db = np.zeros((sim.num_branches * sim.num_trajs, sim.num_states), dtype=complex) + sim.wf_db[np.newaxis, :]
     return state
@@ -29,12 +35,6 @@ def update_quantum_force_wf_db(sim, state):
     return state
 
 
-def update_quantum_force_act_surf(sim, state):
-    state.quantum_force = np.zeros((sim.num_branches * sim.num_trajs, sim.num_classical_coordinates), dtype=complex) + \
-                          auxiliary.quantum_force_branch(state.eigvecs, state.act_surf_ind, state.z_coord, sim)
-    return state
-
-
 def update_z_coord_rk4(sim, state):
     state.z_coord = auxiliary.rk4_c(state.z_coord, state.quantum_force, sim.dt, sim)
     return state
@@ -46,59 +46,28 @@ def update_wf_db_rk4(sim, state):
     return state
 
 
-def initialize_branch_phase(sim, state):
-    state.branch_phase = np.zeros((sim.num_trajs * sim.num_branches))
+def update_dm_db_mf(sim, state):
+    state.dm_db_branch = np.einsum('ni,nj->nij', state.wf_db, np.conj(state.wf_db))
+    state.dm_db = np.sum(state.dm_db_branch, axis=0)
     return state
 
 
-def update_branch_phase(sim, state):
-    state.branch_phase = state.branch_phase + sim.dt * state.eigvals[
-        np.arange(sim.num_branches * sim.num_trajs, dtype=int), state.act_surf_ind_0]
+def update_e_c(sim, state):
+    state.e_c_branch = np.sum(sim.h_c(sim.h_c_params, state.z_coord).reshape((sim.num_trajs, sim.num_branches)), axis=0)
+    state.e_c = np.sum(state.e_c_branch)
     return state
 
 
-def initialize_wf_adb_delta(sim, state):
-    # initialize wavefunction as a delta function in each branch
-    wf_adb_delta = np.zeros((sim.num_trajs, sim.num_branches, sim.num_states), dtype=complex)
-    for nt in range(sim.num_trajs):
-        wf_adb_delta[nt][np.arange(sim.num_branches, dtype=int), state.act_surf_ind_0[nt * sim.num_branches:(
-                                                                                                                    nt + 1) * sim.num_branches]] = 1.0 + 0.j
-    state.wf_adb_delta = wf_adb_delta.reshape((sim.num_trajs * sim.num_branches, sim.num_states))
-    # transform to diabatic basis
-    state.wf_db_delta = auxiliary.psi_adb_to_db_branch(state.wf_adb_delta, state.eigvecs)
+def update_e_q_mf(sim, state):
+    state.e_q_branch = np.sum(np.einsum('nj,nji,ni->n', np.conj(state.wf_db), state.h_quantum, state.wf_db).reshape(
+        (sim.num_trajs, sim.num_branches)), axis=0)
+    state.e_q = np.sum(state.e_q_branch, axis=0)
     return state
 
 
-def update_wf_db_eigs(sim, state):
-    state.wf_db, state.wf_adb = auxiliary.evolve_wf_eigs(state.wf_db, state.eigvals, state.eigvecs, sim.dt)
-    return state
-
-
-def update_wf_db_delta_eigs(sim, state):
-    state.wf_db_delta, state.wf_adb_delta = auxiliary.evolve_wf_eigs(state.wf_db_delta, state.eigvals, state.eigvecs,
-                                                                     sim.dt)
-    return state
-
-
-def update_eigs(sim, state):
-    state.eigvals, state.eigvecs = np.linalg.eigh(state.h_quantum)
-    return state
-
-
-def update_eigs_previous(sim, state):
-    state.eigvecs_previous = np.copy(state.eigvecs)
-    return state
-
-
-def initialize_wf_adb(sim, state):
-    state.wf_adb = auxiliary.psi_db_to_adb_branch(state.wf_db, state.eigvecs)
-    return state
-
-
-def initialize_wf_delta(sim, state):
-    state.wf_adb_delta = np.zeros((sim.num_trajs * sim.num_branches, sim.num_states), dtype=complex)
-    state.wf_db_delta = auxiliary.psi_adb_to_db_branch(state.wf_adb_delta, state.eigvecs)
-    return state
+############################################################
+#                     FSSH INGREDIENTS                    #
+############################################################
 
 
 def initialize_random_values(sim, state):
@@ -109,6 +78,38 @@ def initialize_random_values(sim, state):
         np.random.seed(sim.seeds[nt])
         state.hopping_probs_rand_vals[nt, :] = np.random.rand(len(sim.tdat))
         state.stochastic_sh_rand_vals[nt, :] = np.random.rand(sim.num_branches)
+    return state
+
+
+def update_eigs(sim, state):
+    state.eigvals, state.eigvecs = np.linalg.eigh(state.h_quantum)
+    return state
+
+
+def analytic_gauge_fix_eigs(sim, state):
+    # compute initial eigenvalues and eigenvectors in each branch
+    for n in range(sim.num_trajs * sim.num_branches):
+        # compute initial gauge shift for real-valued derivative couplings
+        dab_q_phase, dab_p_phase = auxiliary.get_dab_phase(state.eigvals[n], state.eigvecs[n], state.z_coord[n], sim)
+        # execute phase shift
+        state.eigvecs[n] = np.copy(np.matmul(state.eigvecs[n], np.diag(np.conjugate(dab_q_phase))))
+        # recalculate phases and check that they are zero
+        dab_q_phase, dab_p_phase = auxiliary.get_dab_phase(state.eigvals[n], state.eigvecs[n], state.z_coord[n], sim)
+        if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
+            # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
+            # and/or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
+            print('Warning: phase init',
+                  np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
+    return state
+
+
+def update_eigs_previous(sim, state):
+    state.eigvecs_previous = np.copy(state.eigvecs)
+    return state
+
+
+def initialize_wf_adb(sim, state):
+    state.wf_adb = auxiliary.psi_db_to_adb_branch(state.wf_db, state.eigvecs)
     return state
 
 
@@ -142,21 +143,21 @@ def initialize_active_surface(sim, state):
     return state
 
 
-def analytic_gauge_fix_eigs(sim, state):
-    # compute initial eigenvalues and eigenvectors in each branch
-    for n in range(sim.num_trajs * sim.num_branches):
-        # compute initial gauge shift for real-valued derivative couplings
-        dab_q_phase, dab_p_phase = auxiliary.get_dab_phase(state.eigvals[n], state.eigvecs[n], state.z_coord[n], sim)
-        # execute phase shift
-        state.eigvecs[n] = np.copy(np.matmul(state.eigvecs[n], np.diag(np.conjugate(dab_q_phase))))
-        # recalculate phases and check that they are zero
-        dab_q_phase, dab_p_phase = auxiliary.get_dab_phase(state.eigvals[n], state.eigvecs[n], state.z_coord[n], sim)
-        if np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2) > 1e-10:
-            # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
-            # and/or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
-            print('Warning: phase init',
-                  np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
+def update_quantum_force_act_surf(sim, state):
+    state.quantum_force = np.zeros((sim.num_branches * sim.num_trajs, sim.num_classical_coordinates), dtype=complex) + \
+                          auxiliary.quantum_force_branch(state.eigvecs, state.act_surf_ind, state.z_coord, sim)
+    return state
 
+
+def initialize_dm_adb_0_fssh(sim, state):
+    state.dm_adb_0 = np.zeros((sim.num_trajs, sim.num_states, sim.num_states), dtype=complex)
+    for n in range(sim.num_trajs):
+        state.dm_adb_0[n] = np.outer(np.conj(state.wf_adb[n * sim.num_branches]), state.wf_adb[n * sim.num_branches])
+    return state
+
+
+def update_wf_db_eigs(sim, state):
+    state.wf_db, state.wf_adb = auxiliary.evolve_wf_eigs(state.wf_db, state.eigvals, state.eigvecs, sim.dt)
     return state
 
 
@@ -232,6 +233,71 @@ def update_active_surface_fssh(sim, state):
     return state
 
 
+def update_dm_adb_fssh(sim, state):
+    state.dm_adb_branch = np.einsum('ni,nj->nij', state.wf_adb, np.conj(state.wf_adb))
+    for nt in range(sim.num_trajs):
+        np.einsum('...jj->...j', state.dm_adb_branch[nt * sim.num_branches:(nt + 1) * sim.num_branches])[
+            ...] = state.act_surf[nt * sim.num_branches:(nt + 1) * sim.num_branches]
+    return state
+
+
+def update_dm_db_fssh(sim, state):
+    state.dm_db_branch = auxiliary.rho_adb_to_db_branch(state.dm_adb_branch, state.eigvecs)
+    if sim.sh_deterministic:
+        state.dm_db_branch = ((np.einsum('njj->nj', state.dm_adb_0).reshape((sim.num_trajs, sim.num_states)))[:, :,
+                              np.newaxis, np.newaxis] * state.dm_db_branch.reshape(sim.num_trajs, sim.num_branches,
+                                                                                   sim.num_states, sim.num_states))
+    else:
+        state.dm_db_branch = state.dm_db_branch / sim.num_branches
+
+    state.dm_db_branch = state.dm_db_branch.reshape(sim.num_trajs * sim.num_branches, sim.num_states, sim.num_states)
+    state.dm_db = np.sum(state.dm_db_branch, axis=0)
+    return state
+
+
+def update_e_q_fssh(sim, state):
+    e_q_branch = np.zeros((sim.num_branches * sim.num_trajs))
+    for n in range(len(state.act_surf_ind)):
+        e_q_branch[n] += state.eigvals[n][state.act_surf_ind[n]]
+    state.e_q_branch = np.sum(e_q_branch.reshape((sim.num_trajs, sim.num_branches)), axis=0)
+    state.e_q = np.sum(state.e_q_branch)
+    return state
+
+
+############################################################
+#                     CFSSH INGREDIENTS                    #
+############################################################
+
+
+def update_wf_db_delta_eigs(sim, state):
+    state.wf_db_delta, state.wf_adb_delta = auxiliary.evolve_wf_eigs(state.wf_db_delta, state.eigvals, state.eigvecs,
+                                                                     sim.dt)
+    return state
+
+
+def initialize_branch_phase(sim, state):
+    state.branch_phase = np.zeros((sim.num_trajs * sim.num_branches))
+    return state
+
+
+def update_branch_phase(sim, state):
+    state.branch_phase = state.branch_phase + sim.dt * state.eigvals[
+        np.arange(sim.num_branches * sim.num_trajs, dtype=int), state.act_surf_ind_0]
+    return state
+
+
+def initialize_wf_adb_delta(sim, state):
+    # initialize wavefunction as a delta function in each branch
+    wf_adb_delta = np.zeros((sim.num_trajs, sim.num_branches, sim.num_states), dtype=complex)
+    for nt in range(sim.num_trajs):
+        wf_adb_delta[nt][np.arange(sim.num_branches, dtype=int), state.act_surf_ind_0[nt * sim.num_branches:(
+                                                                                                                    nt + 1) * sim.num_branches]] = 1.0 + 0.j
+    state.wf_adb_delta = wf_adb_delta.reshape((sim.num_trajs * sim.num_branches, sim.num_states))
+    # transform to diabatic basis
+    state.wf_db_delta = auxiliary.psi_adb_to_db_branch(state.wf_adb_delta, state.eigvecs)
+    return state
+
+
 def update_active_surface_cfssh(sim, state):
     ############################################################
     #                         HOPPING PROCEDURE                #
@@ -292,41 +358,6 @@ def update_active_surface_cfssh(sim, state):
     return state
 
 
-def initialize_dm_adb_0_fssh(sim, state):
-    state.dm_adb_0 = np.zeros((sim.num_trajs, sim.num_states, sim.num_states), dtype=complex)
-    for n in range(sim.num_trajs):
-        state.dm_adb_0[n] = np.outer(np.conj(state.wf_adb[n * sim.num_branches]), state.wf_adb[n * sim.num_branches])
-    return state
-
-
-def update_dm_adb_fssh(sim, state):
-    state.dm_adb_branch = np.einsum('ni,nj->nij', state.wf_adb, np.conj(state.wf_adb))
-    for nt in range(sim.num_trajs):
-        np.einsum('...jj->...j', state.dm_adb_branch[nt * sim.num_branches:(nt + 1) * sim.num_branches])[
-            ...] = state.act_surf[nt * sim.num_branches:(nt + 1) * sim.num_branches]
-    return state
-
-
-def update_dm_db_fssh(sim, state):
-    state.dm_db_branch = auxiliary.rho_adb_to_db_branch(state.dm_adb_branch, state.eigvecs)
-    if sim.sh_deterministic:
-        state.dm_db_branch = ((np.einsum('njj->nj', state.dm_adb_0).reshape((sim.num_trajs, sim.num_states)))[:, :,
-                              np.newaxis, np.newaxis] * state.dm_db_branch.reshape(sim.num_trajs, sim.num_branches,
-                                                                                   sim.num_states, sim.num_states))
-    else:
-        state.dm_db_branch = state.dm_db_branch / sim.num_branches
-
-    state.dm_db_branch = state.dm_db_branch.reshape(sim.num_trajs * sim.num_branches, sim.num_states, sim.num_states)
-    state.dm_db = np.sum(state.dm_db_branch, axis=0)
-    return state
-
-
-def update_dm_db_mf(sim, state):
-    state.dm_db_branch = np.einsum('ni,nj->nij', state.wf_db, np.conj(state.wf_db))
-    state.dm_db = np.sum(state.dm_db_branch, axis=0)
-    return state
-
-
 def update_dm_adb_cfssh(sim, state):
     # state.dm_adb_branch = np.einsum('ni,nj->nij', state.wf_adb, np.conj(state.wf_adb))
     # for nt in range(sim.num_trajs):
@@ -345,28 +376,6 @@ def update_dm_db_cfssh(sim, state):
     for nt in range(sim.num_trajs):
         np.einsum('...jj->...j', state.dm_adb_branch[nt * sim.num_branches:(nt + 1) * sim.num_branches])[
             ...] = state.act_surf[nt * sim.num_branches:(nt + 1) * sim.num_branches]
-    return state
-
-
-def update_e_c(sim, state):
-    state.e_c_branch = np.sum(sim.h_c(sim.h_c_params, state.z_coord).reshape((sim.num_trajs, sim.num_branches)), axis=0)
-    state.e_c = np.sum(state.e_c_branch)
-    return state
-
-
-def update_e_q_mf(sim, state):
-    state.e_q_branch = np.sum(np.einsum('nj,nji,ni->n', np.conj(state.wf_db), state.h_quantum, state.wf_db).reshape(
-        (sim.num_trajs, sim.num_branches)), axis=0)
-    state.e_q = np.sum(state.e_q_branch, axis=0)
-    return state
-
-
-def update_e_q_fssh(sim, state):
-    e_q_branch = np.zeros((sim.num_branches * sim.num_trajs))
-    for n in range(len(state.act_surf_ind)):
-        e_q_branch[n] += state.eigvals[n][state.act_surf_ind[n]]
-    state.e_q_branch = np.sum(e_q_branch.reshape((sim.num_trajs, sim.num_branches)), axis=0)
-    state.e_q = np.sum(state.e_q_branch)
     return state
 
 
@@ -408,5 +417,4 @@ def analytic_gauge_fix_branch_pair_eigs(sim, state):
             # and/or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
             print('Warning: phase init',
                   np.sum(np.abs(np.imag(dab_q_phase)) ** 2 + np.abs(np.imag(dab_p_phase)) ** 2))
-
     return state
