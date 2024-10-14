@@ -510,3 +510,35 @@ def update_e_q_mbmf_arpes(sim, state):
                 (sim.num_trajs, sim.num_branches)), axis=0)
         state.e_q = np.sum(state.e_q_branch, axis=0)
     return state
+
+
+
+############################################################
+#             DECOUPLED MEAN FIELD INGREDIENTS            #
+############################################################
+
+def initialize_z_coord_zpe(sim, state):
+    z_coord = np.zeros((sim.num_trajs, sim.num_branches, sim.num_classical_coordinates), dtype=complex)
+    # load initial values of the z coordinate 
+    for traj_n in range(sim.num_trajs):
+        z_coord[traj_n, :, :] = sim.init_classical(sim, sim.seeds[traj_n])
+    state.z_coord = z_coord.reshape((sim.num_trajs * sim.num_branches, sim.num_classical_coordinates))
+    return state
+
+
+def update_h_quantum_dcmf(sim, state):
+    state.h_quantum = np.zeros((sim.num_branches * sim.num_trajs, sim.num_states, sim.num_states),
+                               dtype=complex) + sim.h_q(sim.h_q_params)[np.newaxis, :, :] + \
+                      sim.h_qc(sim.h_qc_params, state.z_coord)
+    return state
+
+
+def update_quantum_force_wf_db_zpe(sim, state):
+    state.quantum_force_zpe = np.zeros((sim.num_branches * sim.num_trajs, sim.num_classical_coordinates), dtype=complex) + \
+                          auxiliary.quantum_force_branch(state.wf_db, None, state.z_coord_zpe, sim)
+    return state
+
+
+def update_z_coord_zpe_rk4(sim, state):
+    state.z_coord_zpe = auxiliary.rk4_c(state.z_coord_zpe, state.quantum_force, sim.dt, sim)
+    return state
