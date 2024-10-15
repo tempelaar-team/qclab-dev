@@ -133,7 +133,7 @@ class CoherentFewestSwitchesSurfaceHoppingDynamicsRecipe:
             ingredients.initialize_wf_db,
             ingredients.initialize_z_coord,
             ingredients.update_h_quantum,
-            ingredients.update_eigs,  # update_eigs
+            ingredients.update_eigs,
             ingredients.analytic_gauge_fix_eigs,
             ingredients.update_branch_pair_eigs,
             ingredients.analytic_gauge_fix_branch_pair_eigs,
@@ -162,25 +162,19 @@ class CoherentFewestSwitchesSurfaceHoppingDynamicsRecipe:
         self.output = [ingredients.update_branch_pair_eigs_previous,
                        ingredients.update_branch_pair_eigs,
                        ingredients.gauge_fix_branch_pair_eigs,
-                       # ingredients.update_dm_adb_cfssh,
-                       # ingredients.update_dm_db_cfssh,
-                       # ingredients.update_e_c,
-                       # ingredients.update_e_q,
+                       ingredients.update_classical_overlap,
+                       ingredients.update_dm_db_cfssh,
+                       ingredients.update_e_c,
+                       ingredients.update_e_q_fssh,
                        ]
-        self.output_names = [  # 'dm_db',
-            # 'e_q',
-            # 'e_c',
+        self.output_names = [ 
+            'dm_db',
+            'e_q',
+            'e_c',
         ]
 
         self.state = argparse.Namespace()
         return
-
-    def observables_t(self):
-        observables_dic = dict()
-        state_dic = vars(self.state)
-        for key in self.output_names:
-            observables_dic[key] = state_dic[key]
-        return observables_dic
 
     @staticmethod
     def defaults(sim):
@@ -202,7 +196,6 @@ class CoherentFewestSwitchesSurfaceHoppingDynamicsRecipe:
             'num_branches': sim.num_states,
             'sh_deterministic': True,
             'gauge_fix': 0,
-            'observables': auxiliary.no_observables,
             'num_classical_coordinates': None
         }
         for name in defaults.keys():

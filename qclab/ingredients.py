@@ -358,24 +358,62 @@ def update_active_surface_cfssh(sim, state):
     return state
 
 
-def update_dm_adb_cfssh(sim, state):
+def update_classical_overlap(sim, state):
+    # calculate overlap matrix
+    state.overlap = np.zeros((sim.num_trajs, sim.num_branches, sim.num_branches))
+    for nt in range(sim.num_trajs):
+        state.overlap[nt] = auxiliary.get_classical_overlap(state.z_coord[nt * sim.num_branches:(nt + 1) * sim.num_branches], sim)
+    return state
+
+def update_dm_db_cfssh(sim, state):
     # state.dm_adb_branch = np.einsum('ni,nj->nij', state.wf_adb, np.conj(state.wf_adb))
     # for nt in range(sim.num_trajs):
     #    np.einsum('...jj->...j', state.dm_adb_branch[nt * sim.num_branches:(nt + 1) * sim.num_branches])[
     #        ...] = state.act_surf[nt * sim.num_branches:(nt + 1) * sim.num_branches]
+    state.dm_adb = np.zeros((sim.num_trajs, sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
     dm_adb_coh = np.zeros((sim.num_trajs, sim.num_states, sim.num_states), dtype=complex)
     dm_db_coh = np.zeros((sim.num_trajs, sim.num_states, sim.num_states), dtype=complex)
     for nt in range(sim.num_trajs):
         dm_adb_coh_ij = np.zeros((sim.num_states, sim.num_states), dtype=complex)
-        phase_branch_nt = state.branch_phase
-    return state
+        branch_phase_nt = state.branch_phase[nt * sim.num_branches:(nt + 1) * sim.num_branches]
+        act_surf_ind_nt = state.act_surf_ind[nt * sim.num_branches:(nt + 1) * sim.num_branches]
+        act_surf_nt = state.act_surf[nt * sim.num_branches:(nt + 1) * sim.num_branches]
+        act_surf_ind_0_nt = state.act_surf_ind_0[nt * sim.num_branches:(nt + 1) * sim.num_branches]
+        z_coord_nt = state.z_coord[nt * sim.num_branches:(nt + 1) * sim.num_branches]
+        for i in range(sim.num_branches):
+            for j in range(i + 1, sim.num_branches):
+                a_i = act_surf_ind_nt[i]
+                a_j = act_surf_ind_nt[j]
+                a_i_0 = act_surf_ind_0_nt[i]
+                a_j_0 = act_surf_ind_0_nt[j]
+                if a_i != a_j and a_i == a_i_0 and a_j == a_j_0 and np.abs(state.dm_adb_0[nt][a_i, a_j]) > 1e-12:
+                    if sim.sh_deterministic:
+                        prob_fac = 1
+                    else:
+                        prob_fac = 1 / (state.dm_adb_0[nt][a_i, a_i] * state.dm_adb_0[nt][a_j, a_j] * (sim.num_branches - 1))
+                    coh_ij_tmp = prob_fac * state.dm_adb_0[nt][a_i, a_j] * state.overlap[nt][i, j] * np.exp(-1.0j*(branch_phase_nt[i] - branch_phase_nt[j]))
+                    dm_adb_coh_ij[a_i, a_j] += coh_ij_tmp
+                    dm_adb_coh_ij[a_j, a_i] += np.conj(coh_ij_tmp)
+                    dm_db_coh_ij  = coh_ij_tmp * np.outer(state.eigvecs_branch_pair[nt][i, j][:, a_i], np.conj(state.eigvecs_branch_pair[nt][i, j][:,a_j])) + \
+                    np.conj(coh_ij_tmp) * np.outer(state.eigvecs_branch_pair[nt][i,j][:, a_j], np.conj(state.eigvecs_branch_pair[nt][i, j][:, a_i]))
 
-
-def update_dm_db_cfssh(sim, state):
-    state.dm_adb_branch = np.einsum('ni,nj->nij', state.wf_adb, np.conj(state.wf_adb))
-    for nt in range(sim.num_trajs):
-        np.einsum('...jj->...j', state.dm_adb_branch[nt * sim.num_branches:(nt + 1) * sim.num_branches])[
-            ...] = state.act_surf[nt * sim.num_branches:(nt + 1) * sim.num_branches]
+                    dm_db_coh[nt] = dm_db_coh[nt] + dm_db_coh_ij
+                    dm_adb_coh[nt] = dm_adb_coh[nt] + dm_adb_coh_ij
+                    dm_adb_coh_ij = np.zeros((sim.num_states, sim.num_states), dtype=complex)
+                
+        if sim.sh_deterministic:
+            rho_diag = np.diag(state.dm_adb_0[nt]).reshape((-1, 1)) * act_surf_nt 
+            np.einsum('...jj->...j', state.dm_adb[nt])[...] = rho_diag
+        else:
+            for n in range(sim.num_branches):
+                state.dm_adb[n, state.act_surf_ind[n], state.act_surf_ind[n]] += 1
+    state.dm_adb = state.dm_adb.reshape((sim.num_trajs * sim.num_branches, sim.num_states, sim.num_states))
+    state.dm_db = auxiliary.rho_adb_to_db_branch(state.dm_adb, state.eigvecs).reshape((sim.num_trajs, sim.num_branches, sim.num_states, sim.num_states))
+    if sim.sh_deterministic:
+        state.dm_db = (state.dm_db + (dm_db_coh[:, np.newaxis, :, :] / sim.num_branches))
+    else:
+        state.dm_db = (state.dm_db + (dm_db_coh[:, np.newaxis, :, :] / sim.num_branches)) / sim.num_branches 
+    state.dm_db = np.sum(state.dm_db, axis=(0,1))
     return state
 
 
