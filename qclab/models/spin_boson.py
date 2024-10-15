@@ -25,24 +25,19 @@ class SpinBosonModel:
         # initialize derivatives of h wrt z and zc
         # tensors have dimension # classical osc \times # quantum states \times # quantum states
         dz_mat = np.zeros((self.A, self.num_states, self.num_states), dtype=complex)
-        dzc_mat = np.zeros((self.A, self.num_states, self.num_states), dtype=complex)
         dz_mat[:, 0, 0] = self.g * np.sqrt(1 / (2 * self.m * self.h))
         dz_mat[:, 1, 1] = -self.g * np.sqrt(1 / (2 * self.m * self.h))
-        dzc_mat[:, 0, 0] = self.g * np.sqrt(1 / (2 * self.m * self.h))
-        dzc_mat[:, 1, 1] = -self.g * np.sqrt(1 / (2 * self.m * self.h))
         dz_shape = np.shape(dz_mat)
-        dzc_shape = np.shape(dzc_mat)
         # position of nonzero matrix elements
         dz_ind = np.where(np.abs(dz_mat) > 1e-12)
-        dzc_ind = np.where(np.abs(dzc_mat) > 1e-12)
         # nonzero matrix elements
         dz_mels = dz_mat[dz_ind] + 0.0j
-        dzc_mels = dzc_mat[dzc_ind] + 0.0j
 
         @njit
         def dh_qc_dz(h_qc_params, psi_a, psi_b, z_coord):
             """
             Computes <\psi_a| dH_qc/dz  |\psi_b> in each branch
+            :param h_qc_params: a tuple of parameters needed to evaluate dH_qc/dz
             :param psi_a: left vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
             :param psi_b: right vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
             :param z_coord: z coordinate in each branch with shape (sim.num_trajs*sim.num_branches, sim.num_classical_coordinates)
@@ -57,16 +52,13 @@ class SpinBosonModel:
         def dh_qc_dzc(h_qc_params, psi_a, psi_b, z_coord):
             """
             Computes <\psi_a| dH_qc/dzc  |\psi_b> in each branch
+            :param h_qc_params: a tuple of parameters needed to evaluate dH_qc/dz
             :param psi_a: left vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
             :param psi_b: right vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
             :param z_coord: z coordinate in each branch with shape (sim.num_trajs*sim.num_branches, sim.num_classical_coordinates)
-            :return:
+            :return: 
             """
-            out = np.ascontiguousarray(np.zeros((len(psi_a), dzc_shape[0]))) + 0.0j
-            for n in range(len(psi_a)):
-                out[n] = auxiliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a[n],
-                                                  psi_b[n])  # conjugation is done by matprod_sparse
-            return out
+            return np.conj(dh_qc_dz(h_qc_params, psi_a, psi_b, z_coord))
 
         def h_q(h_q_params):
             """
@@ -84,10 +76,10 @@ class SpinBosonModel:
 
         def h_qc(h_qc_params, z_coord):
             """
-            Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
+            Holstein Hamiltonian on a lattice in real-space using frequency-weighted coordinates
             :param h_qc_params: tuple of parameters for h_qc
             :param z_coord: z coordinate
-            :return: h_qc(z,z^{*}) Hamiltonian
+            :return:
             """
             h_qc_out = np.zeros((len(z_coord), self.num_states, self.num_states), dtype=complex)
             h_qc_out[:, 0, 0] = np.sum(self.g[np.newaxis, :] * np.sqrt(1 / (2 * self.m * self.h))[np.newaxis, :] * (

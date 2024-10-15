@@ -156,7 +156,12 @@ def evolve_wf_eigs(wf_db, eigvals, eigvecs, dt):
     return wf_db, wf_adb
 
 
-def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse methods
+############################################################
+#                  NONADIABATIC COUPLINGS                 #
+############################################################
+
+
+def get_dab(evec_a, evec_b, ev_diff, z, sim): 
     """
     Computes the nonadiabatic coupling using the formula
     d_{ab}^{z(zc)} = <a|\nabla_{z(zc)} H|b>/(e_{b} - e_{a})
@@ -168,6 +173,13 @@ def get_dab(evec_a, evec_b, ev_diff, z, sim):  # computes d_{ab} using sparse me
     dab_z = sim.dh_qc_dz(sim.h_qc_params, evec_a[np.newaxis, :], evec_b[np.newaxis, :], z[np.newaxis, :])[0] / ev_diff
     dab_zc = sim.dh_qc_dzc(sim.h_qc_params, evec_a[np.newaxis, :], evec_b[np.newaxis, :], z[np.newaxis, :])[0] / ev_diff
     return dab_z, dab_zc
+
+
+
+############################################################
+#                       GAUGE FIXING                      #
+############################################################
+
 
 
 def get_dab_phase(evals, evecs, z, sim):
@@ -204,16 +216,6 @@ def get_dab_phase(evals, evecs, z, sim):
         dabp_phase[i + 1:] = np.exp(1.0j * dkkp_angle) * dabp_phase[i + 1:]
     return dabq_phase, dabp_phase
 
-
-def get_classical_overlap(z_coord, sim):
-    out_mat = np.zeros((len(z_coord), len(z_coord)))
-    zc_branch = np.conjugate(z_coord)
-    q_branch = (1 / np.sqrt(2 * sim.m * sim.h)) * (z_coord + zc_branch)
-    p_branch = -1.0j * np.sqrt(sim.h * sim.m / 2) * (z_coord - zc_branch)
-    for i in range(len(z_coord)):
-        for j in range(len(z_coord)):
-            out_mat[i, j] = np.exp(-(1 / 2) * np.sum(np.abs((p_branch[i] - p_branch[j]) * (q_branch[i] - q_branch[j]))))
-    return out_mat
 
 
 @njit
@@ -255,6 +257,50 @@ def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_coor
     return evecs_branch, phase_out
 
 
+def sign_adjust_branch_pair_eigs(z_coord, eigvecs_branch_pair, eigvals_branch_pair, eigvecs_branch_pair_previous, sim):
+    for i in range(sim.num_branches):
+        for j in range(i + 1, sim.num_branches):
+            z_coord_ij = np.array([(z_coord[i] + z_coord[j]) / 2])
+            eigvecs_branch_pair[i, j], _ = sign_adjust_branch(eigvecs_branch_pair[i, j][np.newaxis, :, :],
+                                                              eigvecs_branch_pair_previous[i, j][np.newaxis, :, :],
+                                                              eigvals_branch_pair[i, j][np.newaxis, :],
+                                                              z_coord_ij[np.newaxis, :], sim)
+            eigvecs_branch_pair[j, i] = eigvecs_branch_pair[i, j]
+    return eigvals_branch_pair, eigvecs_branch_pair
+
+
+
+############################################################
+#                       MISCELLANEOUS                      #
+############################################################
+
+
+
+def get_branch_pair_eigs(z_coord, sim):
+    eigvals_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states))
+    eigvecs_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
+    h_q = sim.h_q(sim.h_q_params)
+    for i in range(sim.num_branches):
+        for j in range(i + 1, sim.num_branches):
+            z_coord_ij = np.array([(z_coord[i] + z_coord[j]) / 2])
+            eigvals_branch_pair[i, j], eigvecs_branch_pair[i, j] = np.linalg.eigh(
+                h_q + sim.h_qc(sim.h_qc_params, z_coord_ij)[0])
+            eigvals_branch_pair[j, i] = eigvals_branch_pair[i, j]
+            eigvecs_branch_pair[j, i] = eigvecs_branch_pair[i, j]
+    return eigvals_branch_pair, eigvecs_branch_pair
+
+
+def get_classical_overlap(z_coord, sim):
+    out_mat = np.zeros((len(z_coord), len(z_coord)))
+    zc_branch = np.conjugate(z_coord)
+    q_branch = (1 / np.sqrt(2 * sim.m * sim.h)) * (z_coord + zc_branch)
+    p_branch = -1.0j * np.sqrt(sim.h * sim.m / 2) * (z_coord - zc_branch)
+    for i in range(len(z_coord)):
+        for j in range(len(z_coord)):
+            out_mat[i, j] = np.exp(-(1 / 2) * np.sum(np.abs((p_branch[i] - p_branch[j]) * (q_branch[i] - q_branch[j]))))
+    return out_mat
+
+
 @njit
 def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
     """
@@ -294,56 +340,9 @@ def nan_num(num):
 nan_num_vec = np.vectorize(nan_num)
 
 
-def get_branch_pair_eigs_(z_coord, evecs_branch_pair_previous, sim):
-    evals_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states))
-    evecs_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
-    h_q = sim.h_q()
-    for i in range(sim.num_branches):
-        for j in range(i + 1, sim.num_branches):
-            z_coord_ij = np.array([(z_coord[i] + z_coord[j]) / 2])
-            evals_branch_pair[i, j], evecs_branch_pair[i, j] = np.linalg.eigh(
-                h_q + sim.h_qc(sim.h_qc_params, z_coord_ij)[0])
-            evecs_branch_pair[i, j], _ = sign_adjust_branch(evecs_branch_pair[i, j][np.newaxis, :, :],
-                                                            evecs_branch_pair_previous[i, j][np.newaxis, :, :],
-                                                            evals_branch_pair[i, j][np.newaxis, :],
-                                                            z_coord_ij[np.newaxis, :], sim)
-            evals_branch_pair[j, i] = evals_branch_pair[i, j]
-            evecs_branch_pair[j, i] = evecs_branch_pair[i, j]
-    return evals_branch_pair, evecs_branch_pair
-
-
-def get_branch_pair_eigs(z_coord, sim):
-    eigvals_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states))
-    eigvecs_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
-    h_q = sim.h_q(sim.h_q_params)
-    for i in range(sim.num_branches):
-        for j in range(i + 1, sim.num_branches):
-            z_coord_ij = np.array([(z_coord[i] + z_coord[j]) / 2])
-            eigvals_branch_pair[i, j], eigvecs_branch_pair[i, j] = np.linalg.eigh(
-                h_q + sim.h_qc(sim.h_qc_params, z_coord_ij)[0])
-            eigvals_branch_pair[j, i] = eigvals_branch_pair[i, j]
-            eigvecs_branch_pair[j, i] = eigvecs_branch_pair[i, j]
-    return eigvals_branch_pair, eigvecs_branch_pair
-
-
-def sign_adjust_branch_pair_eigs(z_coord, eigvecs_branch_pair, eigvals_branch_pair, eigvecs_branch_pair_previous, sim):
-    for i in range(sim.num_branches):
-        for j in range(i + 1, sim.num_branches):
-            z_coord_ij = np.array([(z_coord[i] + z_coord[j]) / 2])
-            eigvecs_branch_pair[i, j], _ = sign_adjust_branch(eigvecs_branch_pair[i, j][np.newaxis, :, :],
-                                                              eigvecs_branch_pair_previous[i, j][np.newaxis, :, :],
-                                                              eigvals_branch_pair[i, j][np.newaxis, :],
-                                                              z_coord_ij[np.newaxis, :], sim)
-            eigvecs_branch_pair[j, i] = eigvecs_branch_pair[i, j]
-    return eigvals_branch_pair, eigvecs_branch_pair
-
-
-def no_observables(sim, dyn):
-    return {}
-
-
-def initialize_wf_db(sim):
-    return np.zeros((sim.num_trajs * sim.num_branches, sim.num_states), dtype=complex) + sim.wf_db[np.newaxis, :]
+############################################################
+#        DEFAULT FUNCTIONS FOR HARMONIC OSCILLATOR        #
+############################################################
 
 
 def harmonic_oscillator_hop(sim, z, delta_z, ev_diff):
@@ -443,6 +442,13 @@ def harmonic_oscillator_dh_c_dzc(h_c_params, z_coord):
     return h[np.newaxis, :] * z_coord
 
 
+
+############################################################
+#                      FILE MANAGEMENT                     #
+############################################################
+
+
+
 def save_pickle(obj, filename):
     file = open(filename, 'wb')
     pickle.dump(obj, file)
@@ -455,6 +461,11 @@ def load_pickle(filename):
     obj = pickle.load(file)
     file.close()
     return obj
+
+
+############################################################
+#                    DYNAMICS FUNCTIONS                   #
+############################################################
 
 
 def initialize_timesteps(sim):

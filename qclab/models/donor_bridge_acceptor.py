@@ -25,32 +25,26 @@ class DonorBridgeAcceptorModel:
         self.num_classical_coordinates = int(self.A * 3)
         self.h_q_params = (self.E_D, self.E_B, self.E_A, self.V)
 
-        # initialize derivatives of h wrt z and zc
+        # initialize derivatives of the hamiltonian with respect to z
         # tensors have dimension # classical osc \times # quantum states \times # quantum states
         dz_mat = np.zeros((self.num_states * self.A, self.num_states, self.num_states), dtype=complex)
-        dzc_mat = np.zeros((self.num_states * self.A, self.num_states, self.num_states), dtype=complex)
         dz_mat[0:self.A, 0, 0] = (self.g * np.sqrt(1 / (2 * self.m * self.h)))[0:self.A]
         dz_mat[self.A:2 * self.A, 1, 1] = (self.g * np.sqrt(1 / (2 * self.m * self.h)))[self.A:2 * self.A]
         dz_mat[2 * self.A:3 * self.A, 2, 2] = (self.g * np.sqrt(1 / (2 * self.m * self.h)))[2 * self.A:3 * self.A]
-        dzc_mat[0:self.A, 0, 0] = (self.g * np.sqrt(1 / (2 * self.m * self.h)))[0:self.A]
-        dzc_mat[self.A:2 * self.A, 1, 1] = (self.g * np.sqrt(1 / (2 * self.m * self.h)))[self.A:2 * self.A]
-        dzc_mat[2 * self.A:3 * self.A, 2, 2] = (self.g * np.sqrt(1 / (2 * self.m * self.h)))[2 * self.A:3 * self.A]
         dz_shape = np.shape(dz_mat)
-        dzc_shape = np.shape(dzc_mat)
         # position of nonzero matrix elements
         dz_ind = np.where(np.abs(dz_mat) > 1e-12)
-        dzc_ind = np.where(np.abs(dzc_mat) > 1e-12)
         # nonzero matrix elements
         dz_mels = dz_mat[dz_ind] + 0.0j
-        dzc_mels = dzc_mat[dzc_ind] + 0.0j
 
         @njit
         def dh_qc_dz(h_qc_params, psi_a, psi_b, z_coord):
             """
-            Computes <\psi_a| dH_qc/dz  |\psi_b> in each branch
-            :param psi_a: left vector in each branch
-            :param psi_b: right vector in each branch
-            :param z_coord: z coordinate in each branch
+            Computes <\psi_a| dH_qc/dz  |\psi_b> in each branch/traj
+            :param h_qc_params: a tuple of parameters needed to evaluate dH_qc/dz
+            :param psi_a: left vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
+            :param psi_b: right vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
+            :param z_coord: z coordinate in each branch with shape (sim.num_trajs*sim.num_branches, sim.num_classical_coordinates)
             :return:
             """
             out = np.ascontiguousarray(np.zeros((len(psi_a), dz_shape[0]))) + 0.0j
@@ -67,17 +61,14 @@ class DonorBridgeAcceptorModel:
             :param z_coord: z coordinate in each branch
             :return:
             """
-            out = np.ascontiguousarray(np.zeros((len(psi_a), dzc_shape[0]))) + 0.0j
-            for n in range(len(psi_a)):
-                out[n] = auxiliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a[n],
-                                                  psi_b[n])  # conjugation is done by matprod_sparse
-            return out
+            # here we take advantage of the fact that this is the conjugate of <\psi_a| dH_qc/dz  |\psi_b>
+            return np.conj(dh_qc_dz(h_qc_params, psi_a, psi_b, z_coord))
 
         def h_q(h_q_params):
             """
-                Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
-                :return: h_q Hamiltonian
-                """
+            Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
+            :return: h_q Hamiltonian
+            """
             e_d, e_b, e_a, v = h_q_params
             out = np.zeros((self.num_states, self.num_states), dtype=complex)
             out[0, 0] = e_d
@@ -91,12 +82,11 @@ class DonorBridgeAcceptorModel:
 
         def h_qc(h_qc_params, z_coord):
             """
-            Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
-            :param z: z coordinate
-            :param zc: z^{*} conjugate z
-            :return: h_qc(z,z^{*}) Hamiltonian
+            Holstein Hamiltonian on a lattice in real-space with frequency-weighted coordinates
+            :param h_qc_params: parameters for generating h_qc
+            :param z_coord: z coordinate
+            :return:
             """
-
             h_qc_out = np.zeros((len(z_coord), self.num_states, self.num_states), dtype=complex)
             mel = self.g[np.newaxis, :] * np.sqrt(1 / (2 * self.m * self.h))[np.newaxis, :] * (
                         z_coord + np.conj(z_coord))

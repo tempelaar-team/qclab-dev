@@ -24,18 +24,13 @@ class HolsteinLatticeModel:
         # initialize derivatives of h wrt z and zc
         # tensors have dimension # classical osc \times # quantum states \times # quantum states
         dz_mat = np.zeros((self.num_states, self.num_states, self.num_states), dtype=complex)
-        dzc_mat = np.zeros((self.num_states, self.num_states, self.num_states), dtype=complex)
         for i in range(self.num_states):
             dz_mat[i, i, i] = self.g * self.w
-            dzc_mat[i, i, i] = self.g * self.w
         dz_shape = np.shape(dz_mat)
-        dzc_shape = np.shape(dzc_mat)
         # position of nonzero matrix elements
         dz_ind = np.where(np.abs(dz_mat) > 1e-12)
-        dzc_ind = np.where(np.abs(dzc_mat) > 1e-12)
         # nonzero matrix elements
         dz_mels = dz_mat[dz_ind] + 0.0j
-        dzc_mels = dzc_mat[dzc_ind] + 0.0j
 
         @njit
         def dh_qc_dz(h_qc_params, psi_a, psi_b, z_coord):
@@ -60,17 +55,13 @@ class HolsteinLatticeModel:
             :param z_coord: z coordinate in each branch
             :return:
             """
-            out = np.ascontiguousarray(np.zeros((len(psi_a), dzc_shape[0]))) + 0.0j
-            for n in range(len(psi_a)):
-                out[n] = auxiliary.matprod_sparse(dzc_shape, dzc_ind, dzc_mels, psi_a[n],
-                                                  psi_b[n])  # conjugation is done by matprod_sparse
-            return out
+            return np.conj(dh_qc_dz(h_qc_params, psi_a, psi_b, z_coord))
 
         def h_q(h_q_params):
             """
-                Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
-                :return: h_q Hamiltonian
-                """
+            Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
+            :return: h_q Hamiltonian
+            """
             j, open = h_q_params
             out = np.zeros((self.num_states, self.num_states), dtype=complex)
             for n in range(self.num_states - 1):
@@ -79,7 +70,7 @@ class HolsteinLatticeModel:
             if not open:
                 out[0, -1] = -j
                 out[-1, 0] = -j
-            return out  # + np.identity(self.num_states)*2*self.j + np.identity(self.num_states)*(0.5/0.0252488)
+            return out  
 
         def h_qc(h_qc_params, z_coord):
             """
