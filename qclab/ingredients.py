@@ -238,18 +238,18 @@ def update_dm_adb_fssh(sim, state): # REVIEW THIS
     for nt in range(sim.num_trajs):
         np.einsum('...jj->...j', state.dm_adb_branch[nt * sim.num_branches:(nt + 1) * sim.num_branches])[
             ...] = state.act_surf[nt * sim.num_branches:(nt + 1) * sim.num_branches]
+    if sim.sh_deterministic:
+        state.dm_adb_branch = ((np.einsum('njj->nj', state.dm_adb_0).reshape((sim.num_trajs, sim.num_states)))[:, :,
+                              np.newaxis, np.newaxis] * state.dm_adb_branch.reshape(sim.num_trajs, sim.num_branches,
+                                                                                   sim.num_states, sim.num_states))
+    else:
+        state.dm_adb_branch = state.dm_adb_branch / sim.num_branches 
+    
     return state
 
 
 def update_dm_db_fssh(sim, state):
     state.dm_db_branch = auxiliary.rho_adb_to_db_branch(state.dm_adb_branch, state.eigvecs)
-    if sim.sh_deterministic:
-        state.dm_db_branch = ((np.einsum('njj->nj', state.dm_adb_0).reshape((sim.num_trajs, sim.num_states)))[:, :,
-                              np.newaxis, np.newaxis] * state.dm_db_branch.reshape(sim.num_trajs, sim.num_branches,
-                                                                                   sim.num_states, sim.num_states))
-    else:
-        state.dm_db_branch = state.dm_db_branch / sim.num_branches
-
     state.dm_db_branch = state.dm_db_branch.reshape(sim.num_trajs * sim.num_branches, sim.num_states, sim.num_states)
     state.dm_db = np.sum(state.dm_db_branch, axis=0)
     return state
