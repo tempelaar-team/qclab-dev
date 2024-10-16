@@ -1,0 +1,24 @@
+Variables List
+
+Simulation Object
+
+sim.num_states # number of quantum states 
+sim.temp # temperature 
+
+sim.mass # classical oscillator mass 
+sim.pq_weight # classical oscillator auxiliary parameter # formerly sim.h
+sim.h_c_params # parameters for classical Hamiltonian 
+h_c_vars # variables for classical Hamiltonian 
+sim.h_qc_params # parameters for quantum-classical Hamiltonian 
+sim.h_q_params # parameters for quantum Hamiltonian 
+sim.h_c # classical Hamiltonian
+sim.h_qc # quantum-classical Hamiltonian
+sim.h_q # quantum Hamiltonain
+sim.dh_qc_dzc # dH_qc/dz*
+sim.dh_qc_dz # dH_qc/dz -- should be made optional
+sim.dh_c_dzc # dH_c/dz*
+
+state.
+
+
+make nonadiabatic couplings: nacv, der_coupl_

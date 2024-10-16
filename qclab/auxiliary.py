@@ -229,7 +229,7 @@ def sign_adjust_branch_0(evecs_branch, evecs_branch_previous, phase_out):
 
 
 @njit
-def sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out):
+def sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out): # make name more descriptive
     # phases = np.exp(-1.0j*np.angle(np.einsum('ijk,ijk->ik',np.conjugate(evecs_branch_previous),evecs_branch)))
     phases = np.exp(-1.0j * np.angle(np.sum(np.conjugate(evecs_branch_previous) * evecs_branch, axis=1)))
     # evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,phases)

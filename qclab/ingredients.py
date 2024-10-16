@@ -47,20 +47,20 @@ def update_wf_db_rk4(sim, state):
 
 
 def update_dm_db_mf(sim, state):
-    state.dm_db_branch = np.einsum('ni,nj->nij', state.wf_db, np.conj(state.wf_db))
+    state.dm_db_branch = np.einsum('ni,nj->nij', state.wf_db, np.conj(state.wf_db)) # change name to specify only trajectory dependence
     state.dm_db = np.sum(state.dm_db_branch, axis=0)
     return state
 
 
 def update_e_c(sim, state):
-    state.e_c_branch = np.sum(sim.h_c(sim.h_c_params, state.z_coord).reshape((sim.num_trajs, sim.num_branches)), axis=0)
+    state.e_c_branch = np.sum(sim.h_c(sim.h_c_params, state.z_coord).reshape((sim.num_trajs, sim.num_branches)), axis=0) # change name to specify only trajectory dependence
     state.e_c = np.sum(state.e_c_branch)
     return state
 
 
 def update_e_q_mf(sim, state):
     state.e_q_branch = np.sum(np.einsum('nj,nji,ni->n', np.conj(state.wf_db), state.h_quantum, state.wf_db).reshape(
-        (sim.num_trajs, sim.num_branches)), axis=0)
+        (sim.num_trajs, sim.num_branches)), axis=0) # change name to specify only trajectory dependence
     state.e_q = np.sum(state.e_q_branch, axis=0)
     return state
 
@@ -233,8 +233,8 @@ def update_active_surface_fssh(sim, state):
     return state
 
 
-def update_dm_adb_fssh(sim, state):
-    state.dm_adb_branch = np.einsum('ni,nj->nij', state.wf_adb, np.conj(state.wf_adb))
+def update_dm_adb_fssh(sim, state): # REVIEW THIS
+    state.dm_adb_branch = np.einsum('ni,nj->nij', state.wf_adb, np.conj(state.wf_adb)) # needs to be named as trajectory dependent 
     for nt in range(sim.num_trajs):
         np.einsum('...jj->...j', state.dm_adb_branch[nt * sim.num_branches:(nt + 1) * sim.num_branches])[
             ...] = state.act_surf[nt * sim.num_branches:(nt + 1) * sim.num_branches]
@@ -259,7 +259,7 @@ def update_e_q_fssh(sim, state):
     e_q_branch = np.zeros((sim.num_branches * sim.num_trajs))
     for n in range(len(state.act_surf_ind)):
         e_q_branch[n] += state.eigvals[n][state.act_surf_ind[n]]
-    state.e_q_branch = np.sum(e_q_branch.reshape((sim.num_trajs, sim.num_branches)), axis=0)
+    state.e_q_branch = np.sum(e_q_branch.reshape((sim.num_trajs, sim.num_branches)), axis=0) # get rid of branch dependent stuff
     state.e_q = np.sum(state.e_q_branch)
     return state
 
