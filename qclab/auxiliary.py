@@ -8,37 +8,22 @@ import dill as pickle
 ############################################################
 
 
-def rk4_c(z_coord, qfzc, dt, sim):
+def rk4_c(state, z_coord, qfzc, dt):
     """ 4-th order Runge-Kutta integrator for the z_coord coordinate with force qfzc"""
-    k1 = -1.0j * (sim.dh_c_dzc(sim.h_c_params, z_coord) + qfzc)
-    k2 = -1.0j * (sim.dh_c_dzc(sim.h_c_params, z_coord + 0.5 * dt * k1) + qfzc)
-    k3 = -1.0j * (sim.dh_c_dzc(sim.h_c_params, z_coord + 0.5 * dt * k2) + qfzc)
-    k4 = -1.0j * (sim.dh_c_dzc(sim.h_c_params, z_coord + dt * k3) + qfzc)
+    k1 = -1.0j * (state.model.dh_c_dzc(state, z_coord) + qfzc)
+    k2 = -1.0j * (state.model.dh_c_dzc(state, z_coord + 0.5 * dt * k1) + qfzc)
+    k3 = -1.0j * (state.model.dh_c_dzc(state, z_coord + 0.5 * dt * k2) + qfzc)
+    k4 = -1.0j * (state.model.dh_c_dzc(state, z_coord + dt * k3) + qfzc)
     z_coord = z_coord + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return z_coord
 
 
-@njit
-def rk4_q_branch(h_branch, psi_branch, dt):
-    psi_branch_out = np.ascontiguousarray(np.zeros(np.shape(psi_branch))) + 0.0j
-    for n in range(len(psi_branch)):
-        psi_branch_out[n] = rk4_q(h_branch[n], psi_branch[n], dt)
-    return psi_branch_out
-
-
-@njit
 def rk4_q(h, psi, dt):
-    """
-    4-th order Runge-Kutta for quantum wavefunction, works with branch wavefunctions
-    :param h: Hamiltonian h(t)
-    :param psi: wavefunction psi(t)
-    :param dt: timestep dt
-    :return: psi(t+dt)
-    """
-    k1 = (-1j * np.dot(h, np.ascontiguousarray(psi)))
-    k2 = (-1j * np.dot(h, np.ascontiguousarray(psi) + 0.5 * dt * k1))
-    k3 = (-1j * np.dot(h, np.ascontiguousarray(psi) + 0.5 * dt * k2))
-    k4 = (-1j * np.dot(h, np.ascontiguousarray(psi) + dt * k3))
+    # h and psi have to have shapes ...ij,...j
+    k1 = (-1j * np.einsum('...ij,...j->...i', h, np.ascontiguousarray(psi), optimize='greedy'))
+    k2 = (-1j * np.einsum('...ij,...j->...i', h, np.ascontiguousarray(psi) + 0.5 * dt * k1, optimize='greedy'))
+    k3 = (-1j * np.einsum('...ij,...j->...i', h, np.ascontiguousarray(psi) + 0.5 * dt * k2, optimize='greedy'))
+    k4 = (-1j * np.einsum('...ij,...j->...i', h, np.ascontiguousarray(psi) + dt * k3, optimize='greedy'))
     psi = psi + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return psi
 
@@ -47,96 +32,20 @@ def rk4_q(h, psi, dt):
 #                   BASIS TRANSFORMATIONS                  #
 ############################################################
 
-def psi_adb_to_db(psi_adb, eigvec):
-    """
-    Transforms a vector in adiabatic basis to diabatic basis
-    psi_{db} = V psi_{adb}
-    :param psi_adb: adiabatic vector psi_{adb}
-    :param eigvec: eigenvectors V
-    :return: diabatic vector psi_{db}
-    """
-    psi_db = np.matmul(eigvec, psi_adb)
-    return psi_db
+def vec_adb_to_db(vec_adb, eigvecs):
+    return np.einsum('...ij,...j->...i', eigvecs, vec_adb, optimize='greedy')
 
 
-def psi_db_to_adb(psi_db, eigvec):
-    """
-    Transforms a vector in diabatic basis to adiabatic basis
-    psi_{adb} = V^{dagger}psi_{db}
-    :param psi_db: diabatic vector psi_{db}
-    :param eigvec: eigenvectors V
-    :return: adiabatic vector psi_{adb}
-    """
-    psi_adb = np.matmul(np.conjugate(np.transpose(eigvec)), psi_db)
-    return psi_adb
+def vec_db_to_adb(vec_db, eigvecs):
+    return np.einsum('...ji,...j->...i', np.conj(eigvecs), vec_db, optimize='greedy')
 
 
-@njit
-def psi_adb_to_db_branch(psi_adb_branch, eigvec_branch):  # transforms branch adibatic to diabatic basis
-    psi_db_branch = np.ascontiguousarray(np.zeros(np.shape(psi_adb_branch))) + 0.0j
-    for i in range(len(eigvec_branch)):
-        psi_db_branch[i] = np.dot(eigvec_branch[i], psi_adb_branch[i] + 0.0j)
-    return psi_db_branch
+def mat_adb_to_db(mat_adb, eigvecs):
+    return np.einsum('...ni,...ij,...mj->...nm', eigvecs, mat_adb, np.conj(eigvecs), optimize='greedy')
 
 
-@njit
-def psi_db_to_adb_branch(psi_db_branch, eigvec_branch):  # transforms branch adibatic to diabatic basis
-    psi_adb_branch = np.ascontiguousarray(np.zeros(np.shape(psi_db_branch))) + 0.0j
-    for i in range(len(eigvec_branch)):
-        psi_adb_branch[i] = np.dot(np.conj(eigvec_branch[i]).transpose(), psi_db_branch[i] + 0.0j)
-    return psi_adb_branch
-
-
-@njit
-def rho_adb_to_db(rho_adb, eigvec):
-    return np.dot(np.dot(eigvec, rho_adb + 0.0j), np.conj(eigvec).transpose())
-
-
-@njit
-def rho_db_to_adb(rho_db, eigvec):
-    return np.dot(np.dot(np.conj(eigvec).transpose(), rho_db + 0.0j), eigvec)
-
-
-@njit
-def rho_adb_to_db_branch(rho_adb_branch, eigvec_branch):  # transforms branch adibatic to diabatic basis
-    rho_db_branch = np.ascontiguousarray(np.zeros(np.shape(eigvec_branch))) + 0.0j
-    for i in range(len(eigvec_branch)):
-        rho_db_branch[i] = np.dot(np.dot(eigvec_branch[i], rho_adb_branch[i] + 0.0j),
-                                  np.conj(eigvec_branch[i]).transpose())
-    return rho_db_branch
-
-
-@njit
-def rho_db_to_adb_branch(rho_db_branch, eigvec_branch):  # transforms branch adibatic to diabatic basis
-    rho_adb_branch = np.ascontiguousarray(np.zeros(np.shape(eigvec_branch))) + 0.0j
-    for i in range(len(eigvec_branch)):
-        rho_adb_branch[i] = np.dot(np.dot(np.conj(eigvec_branch[i]).transpose(), rho_db_branch[i] + 0.0j),
-                                   eigvec_branch[i])
-    return rho_adb_branch
-
-
-############################################################
-#                       QUANTUM FORCE                      #
-############################################################
-
-
-def quantum_force_branch(evecs_branch, act_surf_ind_branch, z_coord, sim):
-    if act_surf_ind_branch is None:
-        fzc_branch = sim.dh_qc_dzc(sim.h_qc_params, evecs_branch, evecs_branch, z_coord)
-    else:
-        fzc_branch = sim.dh_qc_dzc(sim.h_qc_params,
-                                   evecs_branch[range(sim.num_trajs * sim.num_branches), :, act_surf_ind_branch],
-                                   evecs_branch[range(sim.num_trajs * sim.num_branches), :, act_surf_ind_branch],
-                                   z_coord)
-    return fzc_branch
-
-
-def quantum_force_branch_zpe(wf_db_q, z_coord_zpe, pops_mat, evecs_q, sim):
-    dh_qc_dzc_mat = sim.dh_qc_dzc_mat(sim.h_qc_params, z_coord_zpe)
-    dh_qc_dzc_mat = pops_mat[:, np.newaxis, :, :] * np.einsum('ki,lj,nmkl->nmij', np.conj(evecs_q), evecs_q,
-                                                              dh_qc_dzc_mat, optimize='greedy')
-    out = np.einsum('ni,nj,nmij->m', np.conj(wf_db_q), wf_db_q, dh_qc_dzc_mat, optimize='greedy')
-    return out
+def mat_db_to_adb(mat_db, eigvecs):
+    return np.einsum('...ni,...nm,...mj->...ij', np.conj(eigvecs), mat_db, eigvecs, optimize='greedy')
 
 
 ############################################################
@@ -148,11 +57,13 @@ def evolve_wf_eigs(wf_db, eigvals, eigvecs, dt):
     # construct eigenvalue exponential
     evals_exp_branch = np.exp(-1.0j * eigvals * dt)
     # transform wavefunctions to adiabatic basis
-    wf_adb = np.copy(psi_db_to_adb_branch(wf_db, eigvecs))
+    # wf_adb = np.copy(psi_db_to_adb_branch(wf_db, eigvecs)) # TODO remove this comment
+    wf_adb = np.copy(vec_db_to_adb(wf_db, eigvecs))
     # multiply by propagator
     wf_adb = np.copy(evals_exp_branch * wf_adb)
     # transform back to diabatic basis
-    wf_db = np.copy(psi_adb_to_db_branch(wf_adb, eigvecs))
+    # wf_db = np.copy(psi_adb_to_db_branch(wf_adb, eigvecs)) # TODO remove this comment
+    wf_db = np.copy(vec_adb_to_db(wf_adb, eigvecs))
     return wf_db, wf_adb
 
 
@@ -161,7 +72,7 @@ def evolve_wf_eigs(wf_db, eigvals, eigvecs, dt):
 ############################################################
 
 
-def get_dab(evec_a, evec_b, ev_diff, z, sim): 
+def get_der_couple(model, state, evec_a, evec_b, ev_diff):
     """
     Computes the nonadiabatic coupling using the formula
     d_{ab}^{z(zc)} = <a|\nabla_{z(zc)} H|b>/(e_{b} - e_{a})
@@ -170,10 +81,9 @@ def get_dab(evec_a, evec_b, ev_diff, z, sim):
     :param ev_diff: e_{b} - e_{a}
     :return: d_{ab}^{z} and d_{ab}^{zc}
     """
-    dab_z = sim.dh_qc_dz(sim.h_qc_params, evec_a[np.newaxis, :], evec_b[np.newaxis, :], z[np.newaxis, :])[0] / ev_diff
-    dab_zc = sim.dh_qc_dzc(sim.h_qc_params, evec_a[np.newaxis, :], evec_b[np.newaxis, :], z[np.newaxis, :])[0] / ev_diff
-    return dab_z, dab_zc
-
+    der_couple_z = model.dh_qc_dz(model, state, evec_a, evec_b) / ev_diff
+    der_couple_zc = model.dh_qc_dzc(model, state, evec_a, evec_b) / ev_diff
+    return der_couple_z, der_couple_zc
 
 
 ############################################################
@@ -181,16 +91,15 @@ def get_dab(evec_a, evec_b, ev_diff, z, sim):
 ############################################################
 
 
-
-def get_dab_phase(evals, evecs, z, sim):
+def get_der_couple_phase(model, state, evals, evecs):
     """
     Computes the diagonal gauge transformation G such that (VG)^{dagger}\nabla(VG) is real-valued. :param evals:
     eigenvalues :param evecs: eigenvectors (V) :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{
-    zc} H (stored in sim.dq_vars) :return: dabq_phase (diag(G^{dagger}) calculated using d_{ab}^{q}), dabp_phase (
-    diag(G^{dagger}) calculated using d_{ab}^{p})
+    zc} H (stored in model.dq_vars) :return: der_couple_q_phase (diag(G^{dagger}) calculated using d_{ab}^{q}),
+    der_couple_p_phase ( diag(G^{dagger}) calculated using d_{ab}^{p})
     """
-    dabq_phase = np.ones(len(evals), dtype=complex)
-    dabp_phase = np.ones(len(evals), dtype=complex)
+    der_couple_q_phase = np.ones(len(evals), dtype=complex)
+    der_couple_p_phase = np.ones(len(evals), dtype=complex)
     for i in range(len(evals) - 1):
         j = i + 1
         evec_i = evecs[:, i]
@@ -202,20 +111,20 @@ def get_dab_phase(evals, evecs, z, sim):
         if np.abs(ev_diff) < 1e-14:
             plus = 1
             print('Warning: Degenerate eigenvalues')
-        dkk_z, dkk_zc = get_dab(evec_i, evec_j, ev_diff + plus, z, sim)
+        der_couple_z, der_couple_zc = get_der_couple(model, state, evec_i, evec_j,
+                                       ev_diff + plus)  # (evec_i, evec_j, ev_diff + plus, z, model)
         # convert to q/p nonadiabatic couplings
-        dkkq = np.sqrt(sim.h * sim.m / 2) * (dkk_z + dkk_zc)
-        dkkp = np.sqrt(1 / (2 * sim.h * sim.m)) * 1.0j * (dkk_z - dkk_zc)
-        dkkq_angle = np.angle(dkkq[np.argmax(np.abs(dkkq))])
-        dkkp_angle = np.angle(dkkp[np.argmax(np.abs(dkkp))])
-        if np.max(np.abs(dkkq)) < 1e-14:
-            dkkq_angle = 0
-        if np.max(np.abs(dkkp)) < 1e-14:
-            dkkp_angle = 0
-        dabq_phase[i + 1:] = np.exp(1.0j * dkkq_angle) * dabq_phase[i + 1:]
-        dabp_phase[i + 1:] = np.exp(1.0j * dkkp_angle) * dabp_phase[i + 1:]
-    return dabq_phase, dabp_phase
-
+        der_couple_q = np.sqrt(model.pq_weight * model.mass / 2) * (der_couple_z + der_couple_zc)
+        der_couple_p = np.sqrt(1 / (2 * model.pq_weight * model.mass)) * 1.0j * (der_couple_z - der_couple_zc)
+        der_couple_q_angle = np.angle(der_couple_q[np.argmax(np.abs(der_couple_q))])
+        der_couple_p_angle = np.angle(der_couple_p[np.argmax(np.abs(der_couple_p))])
+        if np.max(np.abs(der_couple_q)) < 1e-14:
+            der_couple_q_angle = 0
+        if np.max(np.abs(der_couple_p)) < 1e-14:
+            der_couple_p_angle = 0
+        der_couple_q_phase[i + 1:] = np.exp(1.0j * der_couple_q_angle) * der_couple_q_phase[i + 1:]
+        der_couple_p_phase[i + 1:] = np.exp(1.0j * der_couple_p_angle) * der_couple_p_phase[i + 1:]
+    return der_couple_q_phase, der_couple_p_phase
 
 
 @njit
@@ -229,7 +138,7 @@ def sign_adjust_branch_0(evecs_branch, evecs_branch_previous, phase_out):
 
 
 @njit
-def sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out): # make name more descriptive
+def sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out):  # make name more descriptive
     # phases = np.exp(-1.0j*np.angle(np.einsum('ijk,ijk->ik',np.conjugate(evecs_branch_previous),evecs_branch)))
     phases = np.exp(-1.0j * np.angle(np.sum(np.conjugate(evecs_branch_previous) * evecs_branch, axis=1)))
     # evecs_branch = np.einsum('ijk,ik->ijk',evecs_branch,phases)
@@ -238,36 +147,37 @@ def sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out): # make
     return evecs_branch, phase_out
 
 
-def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_coord, sim):
+def sign_adjust_branch(evecs_branch, evecs_branch_previous, evals_branch, z_coord, model):
     # commented out einsum terms found to be slower
-    phase_out = np.ones((sim.num_branches, sim.num_states), dtype=complex)
-    if sim.gauge_fix >= 1:
+    phase_out = np.ones((model.num_branches, model.num_states), dtype=complex)
+    if model.gauge_fix >= 1:
         evecs_branch, phase_out = sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out)
-    if sim.gauge_fix >= 2:
-        dab_phase_mat = np.ones((len(evecs_branch), len(evecs_branch)), dtype=complex)
+    if model.gauge_fix >= 2:
+        der_couple_phase_mat = np.ones((len(evecs_branch), len(evecs_branch)), dtype=complex)
         for i in range(len(evecs_branch)):
-            dab_q_phase_list, dab_p_phase_list = get_dab_phase(evals_branch[i], evecs_branch[i], z_coord[i], sim)
-            dab_phase_list = np.conjugate(dab_q_phase_list)
-            dab_phase_mat[i] = dab_phase_list
-            phase_out[i] *= dab_phase_list
-        #    evecs_branch[i] = np.einsum('jk,k->jk',evecs_branch[i],dab_phase_list)
-        evecs_branch = np.einsum('ijk,ik->ijk', evecs_branch, dab_phase_mat, optimize='greedy')
-    if sim.gauge_fix >= 0:
+            der_couple_q_phase_list, der_couple_p_phase_list = get_der_couple_phase(evals_branch[i], evecs_branch[i],
+                                                                                    z_coord[i], model)
+            der_couple_phase_list = np.conjugate(der_couple_q_phase_list)
+            der_couple_phase_mat[i] = der_couple_phase_list
+            phase_out[i] *= der_couple_phase_list
+        #    evecs_branch[i] = np.einsum('jk,k->jk',evecs_branch[i],der_couple_phase_list)
+        evecs_branch = np.einsum('ijk,ik->ijk', evecs_branch, der_couple_phase_mat, optimize='greedy')
+    if model.gauge_fix >= 0:
         evecs_branch, phase_out = sign_adjust_branch_0(evecs_branch, evecs_branch_previous, phase_out)
     return evecs_branch, phase_out
 
 
-def sign_adjust_branch_pair_eigs(z_coord, eigvecs_branch_pair, eigvals_branch_pair, eigvecs_branch_pair_previous, sim):
-    for i in range(sim.num_branches):
-        for j in range(i + 1, sim.num_branches):
+def sign_adjust_branch_pair_eigs(z_coord, eigvecs_branch_pair, eigvals_branch_pair, eigvecs_branch_pair_previous,
+                                 model):
+    for i in range(model.num_branches):
+        for j in range(i + 1, model.num_branches):
             z_coord_ij = np.array([(z_coord[i] + z_coord[j]) / 2])
             eigvecs_branch_pair[i, j], _ = sign_adjust_branch(eigvecs_branch_pair[i, j][np.newaxis, :, :],
                                                               eigvecs_branch_pair_previous[i, j][np.newaxis, :, :],
                                                               eigvals_branch_pair[i, j][np.newaxis, :],
-                                                              z_coord_ij[np.newaxis, :], sim)
+                                                              z_coord_ij[np.newaxis, :], model)
             eigvecs_branch_pair[j, i] = eigvecs_branch_pair[i, j]
     return eigvals_branch_pair, eigvecs_branch_pair
-
 
 
 ############################################################
@@ -275,34 +185,34 @@ def sign_adjust_branch_pair_eigs(z_coord, eigvecs_branch_pair, eigvals_branch_pa
 ############################################################
 
 
-
-def get_branch_pair_eigs(z_coord, sim):
-    eigvals_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states))
-    eigvecs_branch_pair = np.zeros((sim.num_branches, sim.num_branches, sim.num_states, sim.num_states), dtype=complex)
-    h_q = sim.h_q(sim.h_q_params)
-    for i in range(sim.num_branches):
-        for j in range(i + 1, sim.num_branches):
+def get_branch_pair_eigs(z_coord, model):
+    eigvals_branch_pair = np.zeros((model.num_branches, model.num_branches, model.num_states))
+    eigvecs_branch_pair = np.zeros((model.num_branches, model.num_branches, model.num_states, model.num_states),
+                                   dtype=complex)
+    h_q = model.h_q(model.h_q_params)
+    for i in range(model.num_branches):
+        for j in range(i + 1, model.num_branches):
             z_coord_ij = np.array([(z_coord[i] + z_coord[j]) / 2])
             eigvals_branch_pair[i, j], eigvecs_branch_pair[i, j] = np.linalg.eigh(
-                h_q + sim.h_qc(sim.h_qc_params, z_coord_ij)[0])
+                h_q + model.h_qc(model.h_qc_params, z_coord_ij)[0])
             eigvals_branch_pair[j, i] = eigvals_branch_pair[i, j]
             eigvecs_branch_pair[j, i] = eigvecs_branch_pair[i, j]
     return eigvals_branch_pair, eigvecs_branch_pair
 
 
-def get_classical_overlap(z_coord, sim):
+def get_classical_overlap(z_coord, model):
     out_mat = np.zeros((len(z_coord), len(z_coord)))
     zc_branch = np.conjugate(z_coord)
-    q_branch = (1 / np.sqrt(2 * sim.m * sim.h)) * (z_coord + zc_branch)
-    p_branch = -1.0j * np.sqrt(sim.h * sim.m / 2) * (z_coord - zc_branch)
+    q_branch = (1 / np.sqrt(2 * model.mass * model.pq_weight)) * (z_coord + zc_branch)
+    p_branch = -1.0j * np.sqrt(model.pq_weight * model.mass / 2) * (z_coord - zc_branch)
     for i in range(len(z_coord)):
         for j in range(len(z_coord)):
             out_mat[i, j] = np.exp(-(1 / 2) * np.sum(np.abs((p_branch[i] - p_branch[j]) * (q_branch[i] - q_branch[j]))))
     return out_mat
 
 
-@njit
-def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
+# @njit
+def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2> TODO make this jit compatible?
     """
     Computes the expectation value f_{i} = <1|H^{i}_{jk}|2>
     where H^{i}_{jk} is a tensor (like \nabla_{i} H_{jk} )
@@ -314,10 +224,10 @@ def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2>
     :return: f_{i}
     """
     i_ind, j_ind, k_ind = ind
-    prod = np.conj(vec1)[j_ind] * mels * vec2[k_ind]
-    out_mat = np.zeros((shape[0])) + 0.0j
+    prod = np.conj(vec1)[..., j_ind] * mels[...] * vec2[..., k_ind]
+    out_mat = np.zeros((*np.shape(vec1)[:-1], shape[0])) + 0.0j
     for i in range(len(i_ind)):
-        out_mat[i_ind[i]] += prod[i]
+        out_mat[..., i_ind[i]] += prod[..., i]
     return out_mat
 
 
@@ -345,20 +255,20 @@ nan_num_vec = np.vectorize(nan_num)
 ############################################################
 
 
-def harmonic_oscillator_hop(sim, z, delta_z, ev_diff):
+def harmonic_oscillator_hop(model, z, delta_z, ev_diff):
     """
     Carries out the hopping procedure for a harmonic oscillator Hamiltonian, defined on a single branch only. 
     :param z: z coordinate
     :param delta_z: rescaling direction
     :param ev_diff: change in quantum energy following a hop: e_{final} - e_{initial}
-    :param sim: simulation object
+    :param model: model object
     :return z, hopped: updated z coordinate and boolean indicating if a hop has or has not occured
     """
     hopped = False
     delta_zc = np.conj(delta_z)
     zc = np.conj(z)
-    akj_z = np.real(np.sum(sim.h * delta_zc * delta_z))
-    bkj_z = np.real(np.sum(1j * sim.h * (zc * delta_z - z * delta_zc)))
+    akj_z = np.real(np.sum(model.pq_weight * delta_zc * delta_z))
+    bkj_z = np.real(np.sum(1j * model.pq_weight * (zc * delta_z - z * delta_zc)))
     ckj_z = ev_diff
     disc = bkj_z ** 2 - 4 * akj_z * ckj_z
     if disc >= 0:
@@ -376,77 +286,74 @@ def harmonic_oscillator_hop(sim, z, delta_z, ev_diff):
     return z, hopped
 
 
-def harmonic_oscillator_boltzmann_init_classical(sim, seed=None):
+def harmonic_oscillator_boltzmann_init_classical(model, seed=None):
     """
     Initialize classical coordiantes according to Boltzmann statistics
-    :param sim: simulation object with temperature, harmonic oscillator mass and frequency
-    :return: z = sqrt(m*h/2)*(q + i*(p/((m*h))), z* = sqrt(m*h/2)*(q - i*(p/((m*h)))
+    :param model: model object with temperature, harmonic oscillator mass and frequency
+    :return: z = sqrt(m*pq_weight/2)*(q + i*(p/((m*pq_weight))), z* = sqrt(m*pq_weight/2)*(q - i*(p/((m*pq_weight)))
     """
     np.random.seed(seed)
-    q = np.random.normal(loc=0, scale=np.sqrt(sim.temp / (sim.m * (sim.h ** 2))), size=sim.num_classical_coordinates)
-    p = np.random.normal(loc=0, scale=np.sqrt(sim.temp), size=sim.num_classical_coordinates)
-    z = np.sqrt(sim.h * sim.m / 2) * (q + 1.0j * (p / (sim.h * sim.m)))
+    q = np.random.normal(loc=0, scale=np.sqrt(model.temp / (model.mass * (model.pq_weight ** 2))),
+                         size=model.num_classical_coordinates)
+    p = np.random.normal(loc=0, scale=np.sqrt(model.temp), size=model.num_classical_coordinates)
+    z = np.sqrt(model.pq_weight * model.mass / 2) * (q + 1.0j * (p / (model.pq_weight * model.mass)))
     return z
 
 
-def harmonic_oscillator_wigner_init_classical(sim, seed=None):
+def harmonic_oscillator_wigner_init_classical(model, seed=None):
     """
     Initialize classical coordiantes according to Wigner distribution of the ground state of a harmonic oscillator
-    :param sim: simulation object with temperature, harmonic oscillator mass and frequency
-    :return: z = sqrt(m*h/2)*(q + i*(p/((m*h))), z* = sqrt(m*h/2)*(q - i*(p/((m*h)))
+    :param model: model object with temperature, harmonic oscillator mass and frequency
+    :return: z = sqrt(m*pq_weight/2)*(q + i*(p/((m*pq_weight))), z* = sqrt(m*pq_weight/2)*(q - i*(p/((m*pq_weight)))
     """
     np.random.seed(seed)
-    q = np.random.normal(loc=0, scale=np.sqrt(1 / (2 * sim.h * sim.m)), size=sim.num_classical_coordinates)
-    p = np.random.normal(loc=0, scale=np.sqrt((sim.m * sim.h) / 2), size=sim.num_classical_coordinates)
-    z = np.sqrt(sim.h * sim.m / 2) * (q + 1.0j * (p / (sim.h * sim.m)))
+    q = np.random.normal(loc=0, scale=np.sqrt(1 / (2 * model.pq_weight * model.mass)),
+                         size=model.num_classical_coordinates)
+    p = np.random.normal(loc=0, scale=np.sqrt((model.mass * model.pq_weight) / 2), size=model.num_classical_coordinates)
+    z = np.sqrt(model.pq_weight * model.mass / 2) * (q + 1.0j * (p / (model.pq_weight * model.mass)))
     return z
 
 
-def harmonic_oscillator_focused_init_classical(sim, seed=None):
+def harmonic_oscillator_focused_init_classical(model, seed=None):
     """
     Initialize classical coordiantes according to focused sampling of the 
     Wigner distribution of the ground state of a harmonic oscillator
-    :param sim: simulation object with temperature, harmonic oscillator mass and frequency
-    :return: z = sqrt(m*h/2)*(q + i*(p/((m*h))), z* = sqrt(m*h/2)*(q - i*(p/((m*h)))
+    :param model: model object with temperature, harmonic oscillator mass and frequency
+    :return: z = sqrt(m*pq_weight/2)*(q + i*(p/((m*pq_weight))), z* = sqrt(m*pq_weight/2)*(q - i*(p/((m*pq_weight)))
     """
     np.random.seed()
-    phase = np.random.rand(sim.num_classical_coordinates) * 2 * np.pi
-    q = np.sqrt(1 / (2 * sim.h * sim.m)) * np.cos(phase)
-    p = np.sqrt((sim.m * sim.h) / 2) * np.sin(phase)
-    z = np.sqrt(sim.h * sim.m / 2) * (q + 1.0j * (p / (sim.h * sim.m)))
+    phase = np.random.rand(model.num_classical_coordinates) * 2 * np.pi
+    q = np.sqrt(1 / (2 * model.pq_weight * model.mass)) * np.cos(phase)
+    p = np.sqrt((model.mass * model.pq_weight) / 2) * np.sin(phase)
+    z = np.sqrt(model.pq_weight * model.mass / 2) * (q + 1.0j * (p / (model.pq_weight * model.mass)))
     return z
 
 
-def harmonic_oscillator_h_c(h_c_params, z_coord):
-    h = h_c_params
-    return np.real(np.sum(h[np.newaxis, :] * np.conj(z_coord) * z_coord, axis=1))
+def harmonic_oscillator_h_c(state, z_coord):
+    return np.real(np.sum(state.model.pq_weight[..., :] * np.conj(state.z_coord) * state.z_coord, axis=(0,1)))
 
 
-def harmonic_oscillator_dh_c_dz(h_c_params, z_coord):
+def harmonic_oscillator_dh_c_dz(state, z_coord):
     """
     Gradient of harmonic oscillator hamiltonian wrt z_coord
     :param z_coord: z coordinate in each branch
     :return:
     """
-    h = h_c_params
-    return h[np.newaxis, :] * np.conj(z_coord)
+    return state.model.pq_weight[np.newaxis, np.newaxis, :] * np.conj(z_coord)
 
 
-def harmonic_oscillator_dh_c_dzc(h_c_params, z_coord):
+def harmonic_oscillator_dh_c_dzc(state, z_coord):
     """
     Gradient of harmonic oscillator hamiltonian wrt zc_branch
     :param z_coord: z coordinate in each branch
     :return:
     """
-    h = h_c_params
-    return h[np.newaxis, :] * z_coord
-
+    return state.model.pq_weight[np.newaxis, np.newaxis, :] * z_coord
 
 
 ############################################################
 #                      FILE MANAGEMENT                     #
 ############################################################
-
 
 
 def save_pickle(obj, filename):
@@ -468,14 +375,14 @@ def load_pickle(filename):
 ############################################################
 
 
-def initialize_timesteps(sim):
-    sim.tmax_n = np.round(sim.tmax/sim.dt,1).astype(int)
-    sim.dt_output_n = np.round(sim.dt_output / sim.dt, 1).astype(int)
-    sim.tdat = np.arange(0, sim.tmax_n + 1, 1) * sim.dt
-    sim.tdat_n = np.arange(0, sim.tmax_n + 1, 1)
-    sim.tdat_output = np.arange(0, sim.tmax_n + 1, sim.dt_output_n) * sim.dt
-    sim.tdat_ouput_n = np.arange(0, sim.tmax_n + 1, sim.dt_output_n)
-    return sim
+def initialize_timesteps(model):
+    model.tmax_n = np.round(model.tmax / model.dt, 1).astype(int)
+    model.dt_output_n = np.round(model.dt_output / model.dt, 1).astype(int)
+    model.tdat = np.arange(0, model.tmax_n + 1, 1) * model.dt
+    model.tdat_n = np.arange(0, model.tmax_n + 1, 1)
+    model.tdat_output = np.arange(0, model.tmax_n + 1, model.dt_output_n) * model.dt
+    model.tdat_ouput_n = np.arange(0, model.tmax_n + 1, model.dt_output_n)
+    return model
 
 
 def evaluate_observables_t(recipe):

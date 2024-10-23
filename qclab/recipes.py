@@ -4,8 +4,8 @@ import argparse
 
 
 class MeanFieldDynamicsRecipe:
-    def __init__(self, sim):
-        self.sim = sim
+    def __init__(self, model):
+        self.model = model
         self.initialize = [
             ingredients.initialize_wf_db,
             ingredients.initialize_z_coord,
@@ -30,14 +30,14 @@ class MeanFieldDynamicsRecipe:
         return
 
     @staticmethod
-    def defaults(sim):
-        var_names = list(sim.__dict__.keys())
+    def defaults(model):
+        var_names = list(model.__dict__.keys())
         defaults = {
             'init_classical': auxiliary.harmonic_oscillator_boltzmann_init_classical,
             'h_c': auxiliary.harmonic_oscillator_h_c,
             'dh_c_dz': auxiliary.harmonic_oscillator_dh_c_dz,
             'dh_c_dzc': auxiliary.harmonic_oscillator_dh_c_dzc,
-            'h_c_params': sim.h,
+            'h_c_params': model.pq_weight,
             'h_qc_params': None,
             'h_q_params': None,
             'tmax': 10,
@@ -50,14 +50,14 @@ class MeanFieldDynamicsRecipe:
         }
         for name in defaults.keys():
             if not (name in list(var_names)):
-                sim.__dict__[name] = defaults[name]
-        assert sim.num_branches == 1
-        return sim
+                model.__dict__[name] = defaults[name]
+        assert model.num_branches == 1
+        return model
 
 
 class FewestSwitchesSurfaceHoppingDynamicsRecipe:
-    def __init__(self, sim):
-        self.sim = sim
+    def __init__(self, model):
+        self.model = model
         self.initialize = [
             ingredients.initialize_random_values,
             ingredients.initialize_wf_db,
@@ -82,11 +82,11 @@ class FewestSwitchesSurfaceHoppingDynamicsRecipe:
                        ingredients.update_quantum_force_act_surf,
                        ]
 
-        self.output = [ingredients.update_dm_adb_fssh,
-                       ingredients.update_dm_db_fssh,
-                       ingredients.update_e_c,
-                       ingredients.update_e_q_fssh,
-                       ]
+        self.output = [  # ingredients.update_dm_adb_fssh,
+            ingredients.update_dm_db_fssh,
+            ingredients.update_e_c,
+            ingredients.update_e_q_fssh,
+        ]
         self.output_names = ['dm_db',
                              'e_q',
                              'e_c',
@@ -96,15 +96,15 @@ class FewestSwitchesSurfaceHoppingDynamicsRecipe:
         return
 
     @staticmethod
-    def defaults(sim):
-        var_names = list(sim.__dict__.keys())
+    def defaults(model):
+        var_names = list(model.__dict__.keys())
         defaults = {
             'hop': auxiliary.harmonic_oscillator_hop,
             'init_classical': auxiliary.harmonic_oscillator_boltzmann_init_classical,
             'h_c': auxiliary.harmonic_oscillator_h_c,
             'dh_c_dz': auxiliary.harmonic_oscillator_dh_c_dz,
             'dh_c_dzc': auxiliary.harmonic_oscillator_dh_c_dzc,
-            'h_c_params': sim.h,
+            'h_c_params': model.pq_weight,
             'h_qc_params': None,
             'h_q_params': None,
             'tmax': 10,
@@ -112,22 +112,22 @@ class FewestSwitchesSurfaceHoppingDynamicsRecipe:
             'dt': 0.01,
             'temp': 1,
             'num_states': 2,
-            'num_branches': sim.num_states,
+            'num_branches': model.num_states,
             'sh_deterministic': True,
             'gauge_fix': 0,
             'num_classical_coordinates': None
         }
         for name in defaults.keys():
             if not (name in list(var_names)):
-                sim.__dict__[name] = defaults[name]
-        if sim.sh_deterministic:
-            assert sim.num_branches == sim.num_states
-        return sim
+                model.__dict__[name] = defaults[name]
+        if model.sh_deterministic:
+            assert model.num_branches == model.num_states
+        return model
 
 
 class CoherentFewestSwitchesSurfaceHoppingDynamicsRecipe:
-    def __init__(self, sim):
-        self.sim = sim
+    def __init__(self, model):
+        self.model = model
         self.initialize = [
             ingredients.initialize_random_values,
             ingredients.initialize_wf_db,
@@ -167,7 +167,7 @@ class CoherentFewestSwitchesSurfaceHoppingDynamicsRecipe:
                        ingredients.update_e_c,
                        ingredients.update_e_q_fssh,
                        ]
-        self.output_names = [ 
+        self.output_names = [
             'dm_db',
             'e_q',
             'e_c',
@@ -177,15 +177,15 @@ class CoherentFewestSwitchesSurfaceHoppingDynamicsRecipe:
         return
 
     @staticmethod
-    def defaults(sim):
-        var_names = list(sim.__dict__.keys())
+    def defaults(model):
+        var_names = list(model.__dict__.keys())
         defaults = {
             'hop': auxiliary.harmonic_oscillator_hop,
             'init_classical': auxiliary.harmonic_oscillator_boltzmann_init_classical,
             'h_c': auxiliary.harmonic_oscillator_h_c,
             'dh_c_dz': auxiliary.harmonic_oscillator_dh_c_dz,
             'dh_c_dzc': auxiliary.harmonic_oscillator_dh_c_dzc,
-            'h_c_params': sim.h,
+            'h_c_params': model.pq_weight,
             'h_qc_params': None,
             'h_q_params': None,
             'tmax': 10,
@@ -193,14 +193,14 @@ class CoherentFewestSwitchesSurfaceHoppingDynamicsRecipe:
             'dt': 0.01,
             'temp': 1,
             'num_states': 2,
-            'num_branches': sim.num_states,
+            'num_branches': model.num_states,
             'sh_deterministic': True,
             'gauge_fix': 0,
             'num_classical_coordinates': None
         }
         for name in defaults.keys():
             if not (name in list(var_names)):
-                sim.__dict__[name] = defaults[name]
-        if sim.sh_deterministic:
-            assert sim.num_branches == sim.num_states
-        return sim
+                model.__dict__[name] = defaults[name]
+        if model.sh_deterministic:
+            assert model.num_branches == model.num_states
+        return model

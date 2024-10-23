@@ -13,15 +13,15 @@ class HolsteinLatticeModel:
         self.w = input_params['w']  # classical oscillator frequency
         self.g = input_params['g']  # electron-phonon coupling
         self.open = input_params['open']  # open or closed boundary conditions
-        self.m = input_params['m'] * np.ones(self.num_states)  # mass of the classical oscillators
-        self.h = np.ones(self.num_states) * self.w
-        self.h_c_params = self.h
-        self.h_qc_params = (self.h, self.g)
+        self.mass = input_params['m'] * np.ones(self.num_states)  # mass of the classical oscillators
+        self.pq_weight = np.ones(self.num_states) * self.w
+        self.h_c_params = self.pq_weight
+        self.h_qc_params = (self.pq_weight, self.g)
         self.h_q_params = (self.j, self.open)
         self.num_classical_coordinates = self.num_states
         self.init_classical = auxiliary.harmonic_oscillator_boltzmann_init_classical
         self.dh_c_dzc = auxiliary.harmonic_oscillator_dh_c_dzc
-        # initialize derivatives of h wrt z and zc
+        # initialize derivatives of pq_weight wrt z and zc
         # tensors have dimension # classical osc \times # quantum states \times # quantum states
         dz_mat = np.zeros((self.num_states, self.num_states, self.num_states), dtype=complex)
         for i in range(self.num_states):
@@ -33,12 +33,11 @@ class HolsteinLatticeModel:
         dz_mels = dz_mat[dz_ind] + 0.0j
 
         @njit
-        def dh_qc_dz(h_qc_params, psi_a, psi_b, z_coord):
+        def dh_qc_dz(self, state, psi_a, psi_b):
             """
-            Computes <\psi_a| dH_qc/dz  |\psi_b> in each branch
+            Computes <psi_a| dH_qc/dz  |psi_b> in each branch
             :param psi_a: left vector in each branch
             :param psi_b: right vector in each branch
-            :param z_coord: z coordinate in each branch
             :return:
             """
             out = np.ascontiguousarray(np.zeros((len(psi_a), dz_shape[0]))) + 0.0j
@@ -47,43 +46,38 @@ class HolsteinLatticeModel:
             return out
 
         @njit
-        def dh_qc_dzc(h_qc_params, psi_a, psi_b, z_coord):
+        def dh_qc_dzc(self, state, psi_a, psi_b):
             """
-            Computes <\psi_a| dH_qc/dzc  |\psi_b> in each branch
+            Computes <psi_a| dH_qc/dzc  |psi_b> in each branch
             :param psi_a: left vector in each branch
             :param psi_b: right vector in each branch
-            :param z_coord: z coordinate in each branch
             :return:
             """
-            return np.conj(dh_qc_dz(h_qc_params, psi_a, psi_b, z_coord))
+            return np.conj(dh_qc_dz(self, state, psi_a, psi_b))
 
-        def h_q(h_q_params):
+        def h_q(self, state):
             """
             Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
             :return: h_q Hamiltonian
             """
-            j, open = h_q_params
             out = np.zeros((self.num_states, self.num_states), dtype=complex)
             for n in range(self.num_states - 1):
-                out[n, n + 1] = -j
-                out[n + 1, n] = -j
-            if not open:
-                out[0, -1] = -j
-                out[-1, 0] = -j
-            return out  
+                out[n, n + 1] = -self.j
+                out[n + 1, n] = -self.j
+            if not self.open_boundaries:
+                out[0, -1] = -self.j
+                out[-1, 0] = -self.j
+            return out
 
-        def h_qc(h_qc_params, z_coord):
+        def h_qc(self, state):
             """
             Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
-            :param z: z coordinate
-            :param zc: z^{*} conjugate z
             :return: h_qc(z,z^{*}) Hamiltonian
             """
-            h, g = h_qc_params
-            h_qc_out = np.zeros((self.num_trajs * self.num_branches, self.num_states, self.num_states), dtype=complex)
-            # h_qc_diag = g * h[np.newaxis,:] * ((z_coord + np.conj(z_coord)) - (1/self.num_classical_coordinates)*np.sum((z_coord + np.conj(z_coord)),axis=-1)[:,np.newaxis])
-            h_qc_diag = g * h[np.newaxis, :] * (z_coord + np.conj(z_coord))
-
+            #h, g = h_qc_params
+            #z_coord = h_qc_vars
+            h_qc_out = np.zeros((self.batch_size * self.num_branches, self.num_states, self.num_states), dtype=complex)
+            h_qc_diag = self.g * self.h[np.newaxis, :] * (state.z_coord + np.conj(state.z_coord))
             np.einsum('...jj->...j', h_qc_out)[...] = h_qc_diag
             return h_qc_out
 

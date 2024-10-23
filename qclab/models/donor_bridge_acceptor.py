@@ -5,7 +5,8 @@ from numba import njit
 
 class DonorBridgeAcceptorModel:
     def __init__(self, input_params):
-        # Here we can define some input parameters that the model accepts and use them to construct the relevant aspects of the physical system 
+        # Here we can define some input parameters that the model accepts and use them to construct the relevant
+        # aspects of the physical system
         self.temp = input_params['temp']  # temperature
         self.V = input_params['V']  # donor-bridge bridge-acceptor coupling
         self.E_D = input_params['E_D']  # donor energy
@@ -19,8 +20,8 @@ class DonorBridgeAcceptorModel:
         self.g = self.w * np.sqrt(2 * self.l / self.A)  # electron-phonon coupling
         self.g = np.concatenate((self.g, self.g, self.g))
         self.w = np.concatenate((self.w, self.w, self.w))
-        self.h = self.w
-        self.m = np.ones_like(self.w)
+        self.pq_weight = self.w
+        self.mass = np.ones_like(self.w)
         self.num_states = 3  # number of states
         self.num_classical_coordinates = int(self.A * 3)
         self.h_q_params = (self.E_D, self.E_B, self.E_A, self.V)
@@ -28,9 +29,9 @@ class DonorBridgeAcceptorModel:
         # initialize derivatives of the hamiltonian with respect to z
         # tensors have dimension # classical osc \times # quantum states \times # quantum states
         dz_mat = np.zeros((self.num_states * self.A, self.num_states, self.num_states), dtype=complex)
-        dz_mat[0:self.A, 0, 0] = (self.g * np.sqrt(1 / (2 * self.m * self.h)))[0:self.A]
-        dz_mat[self.A:2 * self.A, 1, 1] = (self.g * np.sqrt(1 / (2 * self.m * self.h)))[self.A:2 * self.A]
-        dz_mat[2 * self.A:3 * self.A, 2, 2] = (self.g * np.sqrt(1 / (2 * self.m * self.h)))[2 * self.A:3 * self.A]
+        dz_mat[0:self.A, 0, 0] = (self.g * np.sqrt(1 / (2 * self.mass * self.pq_weight)))[0:self.A]
+        dz_mat[self.A:2 * self.A, 1, 1] = (self.g * np.sqrt(1 / (2 * self.mass * self.pq_weight)))[self.A:2 * self.A]
+        dz_mat[2 * self.A:3 * self.A, 2, 2] = (self.g * np.sqrt(1 / (2 * self.mass * self.pq_weight)))[2 * self.A:3 * self.A]
         dz_shape = np.shape(dz_mat)
         # position of nonzero matrix elements
         dz_ind = np.where(np.abs(dz_mat) > 1e-12)
@@ -38,13 +39,11 @@ class DonorBridgeAcceptorModel:
         dz_mels = dz_mat[dz_ind] + 0.0j
 
         @njit
-        def dh_qc_dz(h_qc_params, psi_a, psi_b, z_coord):
+        def dh_qc_dz(self, state, psi_a, psi_b):
             """
-            Computes <\psi_a| dH_qc/dz  |\psi_b> in each branch/traj
-            :param h_qc_params: a tuple of parameters needed to evaluate dH_qc/dz
-            :param psi_a: left vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
-            :param psi_b: right vector in each branch/trajectory with shape (sim.num_trajs*sim.num_branches, sim.num_states)
-            :param z_coord: z coordinate in each branch with shape (sim.num_trajs*sim.num_branches, sim.num_classical_coordinates)
+            Computes <psi_a| dH_qc/dz  |psi_b> in each branch
+            :param psi_a: left vector in each branch
+            :param psi_b: right vector in each branch
             :return:
             """
             out = np.ascontiguousarray(np.zeros((len(psi_a), dz_shape[0]))) + 0.0j
@@ -53,43 +52,37 @@ class DonorBridgeAcceptorModel:
             return out
 
         @njit
-        def dh_qc_dzc(h_qc_params, psi_a, psi_b, z_coord):
+        def dh_qc_dzc(self, state, psi_a, psi_b):
             """
-            Computes <\psi_a| dH_qc/dzc  |\psi_b> in each branch
+            Computes <psi_a| dH_qc/dzc  |psi_b> in each branch
             :param psi_a: left vector in each branch
             :param psi_b: right vector in each branch
-            :param z_coord: z coordinate in each branch
             :return:
             """
-            # here we take advantage of the fact that this is the conjugate of <\psi_a| dH_qc/dz  |\psi_b>
-            return np.conj(dh_qc_dz(h_qc_params, psi_a, psi_b, z_coord))
+            return np.conj(dh_qc_dz(self, state, psi_a, psi_b))
 
-        def h_q(h_q_params):
+        def h_q(self, state):
             """
             Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
             :return: h_q Hamiltonian
             """
-            e_d, e_b, e_a, v = h_q_params
             out = np.zeros((self.num_states, self.num_states), dtype=complex)
-            out[0, 0] = e_d
-            out[1, 1] = e_b
-            out[2, 2] = e_a
-            out[0, 1] = v
-            out[1, 0] = v
-            out[1, 2] = v
-            out[2, 1] = v
+            out[0, 0] = self.E_D
+            out[1, 1] = self.E_B
+            out[2, 2] = self.E_A
+            out[0, 1] = self.V
+            out[1, 0] = self.V
+            out[1, 2] = self.V
+            out[2, 1] = self.V
             return out
 
-        def h_qc(h_qc_params, z_coord):
+        def h_qc(self, state):
             """
             Holstein Hamiltonian on a lattice in real-space with frequency-weighted coordinates
-            :param h_qc_params: parameters for generating h_qc
-            :param z_coord: z coordinate
             :return:
             """
-            h_qc_out = np.zeros((len(z_coord), self.num_states, self.num_states), dtype=complex)
-            mel = self.g[np.newaxis, :] * np.sqrt(1 / (2 * self.m * self.h))[np.newaxis, :] * (
-                        z_coord + np.conj(z_coord))
+            h_qc_out = np.zeros((self.num_branches * self.num_states, self.num_states, self.num_states), dtype=complex)
+            mel = self.g[np.newaxis, :] * np.sqrt(1 / (2 * self.mass * self.pq_weight))[np.newaxis, :] * (state.z_coord + np.conj(state.z_coord))
             h_qc_out[:, 0, 0] = np.sum(mel[:, 0:self.A], axis=1)
             h_qc_out[:, 1, 1] = np.sum(mel[:, self.A:2 * self.A], axis=1)
             h_qc_out[:, 2, 2] = np.sum(mel[:, 2 * self.A:3 * self.A], axis=1)
