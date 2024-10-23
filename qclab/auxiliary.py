@@ -223,12 +223,19 @@ def matprod_sparse(shape, ind, mels, vec1, vec2):  # calculates <1|mat|2> TODO m
     :param vec2: |2>
     :return: f_{i}
     """
-    i_ind, j_ind, k_ind = ind
-    prod = np.conj(vec1)[..., j_ind] * mels[...] * vec2[..., k_ind]
-    out_mat = np.zeros((*np.shape(vec1)[:-1], shape[0])) + 0.0j
-    for i in range(len(i_ind)):
-        out_mat[..., i_ind[i]] += prod[..., i]
-    return out_mat
+   # i_ind, j_ind, k_ind = ind
+    prod = np.conj(vec1)[..., ind[-2]] * mels[...] * vec2[..., ind[-1]]
+    #out_mat = np.zeros((*np.shape(vec1)[:-1], shape[0])) + 0.0j
+    #for i in range(len(ind[0])):
+    #    out_mat[..., i_ind[i]] += prod[..., i]
+    #out_mat = np.zeros((*np.shape(vec1)[:-1], shape[-3])) + 0.0j
+    #np.put(out_mat, )
+    print(np.shape(ind))
+    print(np.shape(out_mat), np.shape(ind[:-2]), np.shape(prod))
+    print(ind[:-2])
+    out_mat = np.zeros(len(ind), dtype=complex)
+    np.add.at(out_mat, ind, prod.flatten())
+    return out_mat.reshape(shape[:-2])
 
 
 @njit
@@ -323,8 +330,8 @@ def harmonic_oscillator_focused_init_classical(model, seed=None):
     """
     np.random.seed()
     phase = np.random.rand(model.num_classical_coordinates) * 2 * np.pi
-    q = np.sqrt(1 / (2 * model.pq_weight * model.mass)) * np.cos(phase)
-    p = np.sqrt((model.mass * model.pq_weight) / 2) * np.sin(phase)
+    q = np.sqrt(1 / (model.pq_weight * model.mass)) * np.cos(phase)
+    p = np.sqrt((model.mass * model.pq_weight)) * np.sin(phase)
     z = np.sqrt(model.pq_weight * model.mass / 2) * (q + 1.0j * (p / (model.pq_weight * model.mass)))
     return z
 
@@ -391,3 +398,4 @@ def evaluate_observables_t(recipe):
     for key in recipe.output_names:
         observables_dic[key] = state_dic[key]
     return observables_dic
+

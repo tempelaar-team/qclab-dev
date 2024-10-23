@@ -23,12 +23,12 @@ def initialize_z_coord(state):
 
 def update_h_quantum(state):
     state.h_quantum = np.zeros((state.model.batch_size, state.model.num_branches, state.model.num_states, state.model.num_states), dtype=complex) \
-                      + state.model.h_q(state) + state.model.h_qc(state)
+                      + state.model.h_q(state) + state.model.h_qc(state, state.z_coord)
     return state
 
 
 def update_quantum_force_wf_db(state):
-    state.quantum_force = state.model.dh_qc_dzc(state, state.wf_db, state.wf_db)
+    state.quantum_force = state.model.dh_qc_dzc(state, state.z_coord, state.wf_db, state.wf_db)
     return state
 
 
@@ -36,14 +36,6 @@ def update_z_coord_rk4(state):
     state.z_coord = auxiliary.rk4_c(state, state.z_coord, state.quantum_force, state.model.dt)
     return state
 
-def rk4_c(state, z_coord, qfzc, dt):
-    """ 4-th order Runge-Kutta integrator for the z_coord coordinate with force qfzc"""
-    k1 = -1.0j * (state.model.dh_c_dzc(state.model.h_c_params, z_coord) + qfzc)
-    k2 = -1.0j * (state.model.dh_c_dzc(state.model.h_c_params, z_coord + 0.5 * dt * k1) + qfzc)
-    k3 = -1.0j * (state.model.dh_c_dzc(state.model.h_c_params, z_coord + 0.5 * dt * k2) + qfzc)
-    k4 = -1.0j * (state.model.dh_c_dzc(state.model.h_c_params, z_coord + dt * k3) + qfzc)
-    z_coord = z_coord + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
-    return z_coord
 
 
 def update_wf_db_rk4(state):
@@ -58,7 +50,7 @@ def update_dm_db_mf(state):
 
 
 def update_e_c(state):
-    state.e_c = np.sum(state.model.h_c(state))
+    state.e_c = np.sum(state.model.h_c(state, state.z_coord))
     return state
 
 
@@ -154,7 +146,7 @@ def update_quantum_force_act_surf(state):
                                                                                dtype=int)
     branch_ind = np.arange(state.model.num_branches, dtype=int)[np.newaxis, :] + np.zeros(
         (state.model.batch_size, state.model.num_branches), dtype=int)
-    state.quantum_force = state.model.dh_qc_dzc(state, state.eigvecs[traj_ind, branch_ind, :, state.act_surf_ind],
+    state.quantum_force = state.model.dh_qc_dzc(state, state.z_coord, state.eigvecs[traj_ind, branch_ind, :, state.act_surf_ind],
                                           state.eigvecs[traj_ind, branch_ind, :, state.act_surf_ind])
     return state
 

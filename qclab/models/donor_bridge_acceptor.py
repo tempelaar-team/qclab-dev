@@ -38,54 +38,53 @@ class DonorBridgeAcceptorModel:
         # nonzero matrix elements
         dz_mels = dz_mat[dz_ind] + 0.0j
 
-        @njit
-        def dh_qc_dz(self, state, psi_a, psi_b):
+        def dh_qc_dz(state, z_coord, psi_a, psi_b):
             """
             Computes <psi_a| dH_qc/dz  |psi_b> in each branch
             :param psi_a: left vector in each branch
             :param psi_b: right vector in each branch
             :return:
             """
-            out = np.ascontiguousarray(np.zeros((len(psi_a), dz_shape[0]))) + 0.0j
-            for n in range(len(psi_a)):
-                out[n] = auxiliary.matprod_sparse(dz_shape, dz_ind, dz_mels, psi_a[n], psi_b[n])
-            return out
+            dz_mat = np.zeros((state.model.num_states * state.model.A, state.model.num_states, state.model.num_states), dtype=complex)
+            dz_mat[0:state.model.A, 0, 0] = (state.model.g * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight)))[0:state.model.A]
+            dz_mat[state.model.A:2 * self.A, 1, 1] = (self.g * np.sqrt(1 / (2 * self.mass * state.model.pq_weight)))[state.model.A:2 * state.model.A]
+            dz_mat[2 * state.model.A:3 * state.model.A, 2, 2] = (state.model.g * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight)))[2 * state.model.A:3 * state.model.A]
+            return np.einsum('...i,cij,...j->...c', np.conj(psi_a), dz_mat, psi_b, optimize='greedy')
 
-        @njit
-        def dh_qc_dzc(self, state, psi_a, psi_b):
+        def dh_qc_dzc(state, z_coord, psi_a, psi_b):
             """
             Computes <psi_a| dH_qc/dzc  |psi_b> in each branch
             :param psi_a: left vector in each branch
             :param psi_b: right vector in each branch
             :return:
             """
-            return np.conj(dh_qc_dz(self, state, psi_a, psi_b))
+            return np.conj(dh_qc_dz(state, z_coord, psi_a, psi_b))
 
-        def h_q(self, state):
+        def h_q(state):
             """
             Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
             :return: h_q Hamiltonian
             """
-            out = np.zeros((self.num_states, self.num_states), dtype=complex)
-            out[0, 0] = self.E_D
-            out[1, 1] = self.E_B
-            out[2, 2] = self.E_A
-            out[0, 1] = self.V
-            out[1, 0] = self.V
-            out[1, 2] = self.V
-            out[2, 1] = self.V
+            out = np.zeros((state.model.num_states, state.model.num_states), dtype=complex)
+            out[0, 0] = state.model.E_D
+            out[1, 1] = state.model.E_B
+            out[2, 2] = state.model.E_A
+            out[0, 1] = state.model.V
+            out[1, 0] = state.model.V
+            out[1, 2] = state.model.V
+            out[2, 1] = state.model.V
             return out
 
-        def h_qc(self, state):
+        def h_qc(state, z_coord):
             """
             Holstein Hamiltonian on a lattice in real-space with frequency-weighted coordinates
             :return:
             """
-            h_qc_out = np.zeros((self.num_branches * self.num_states, self.num_states, self.num_states), dtype=complex)
-            mel = self.g[np.newaxis, :] * np.sqrt(1 / (2 * self.mass * self.pq_weight))[np.newaxis, :] * (state.z_coord + np.conj(state.z_coord))
-            h_qc_out[:, 0, 0] = np.sum(mel[:, 0:self.A], axis=1)
-            h_qc_out[:, 1, 1] = np.sum(mel[:, self.A:2 * self.A], axis=1)
-            h_qc_out[:, 2, 2] = np.sum(mel[:, 2 * self.A:3 * self.A], axis=1)
+            h_qc_out = np.zeros((state.model.batch_size, state.model.num_branches, state.model.num_states, state.model.num_states), dtype=complex)
+            mel = state.model.g[..., :] * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight))[..., :] * (z_coord + np.conj(z_coord))
+            h_qc_out[..., 0, 0] = np.sum(mel[..., 0:state.model.A], axis=-1)
+            h_qc_out[..., 1, 1] = np.sum(mel[..., state.model.A:2 * state.model.A], axis=-1)
+            h_qc_out[..., 2, 2] = np.sum(mel[..., 2 * state.model.A:3 * state.model.A], axis=-1)
             return h_qc_out
 
         self.dh_qc_dz = dh_qc_dz
