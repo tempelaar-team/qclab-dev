@@ -126,7 +126,7 @@ def initialize_active_surface(state):
         intervals = np.zeros((state.model.batch_size, state.model.num_states))
         for traj_n in range(state.model.batch_size):
             for state_n in range(state.model.num_states):
-                intervals[traj_n, state_n] = np.real(np.sum((np.abs(state.wf_adb[traj_n]) ** 2)[0:state_n + 1]))
+                intervals[traj_n, state_n] = np.real(np.sum((np.abs(state.wf_adb[traj_n, 0]) ** 2)[0:state_n + 1]))
         # initialize active surface index
         act_surf_ind_0 = np.zeros((state.model.batch_size, state.model.num_branches), dtype=int)
         for traj_n in range(state.model.batch_size):
@@ -229,8 +229,7 @@ def update_active_surface_fssh(state):
 def update_dm_db_fssh(state):
     state.dm_adb = np.einsum('tbi,tbj->tbij', state.wf_adb, np.conj(state.wf_adb), optimize='greedy')
     for nt in range(state.model.batch_size):
-        for nb in range(state.model.num_branches):
-            np.einsum('...jj->...j', state.dm_adb[nt, nb])[...] = state.act_surf[nt, nb]
+        np.einsum('...jj->...j', state.dm_adb[nt])[...] = state.act_surf[nt]
     if state.model.sh_deterministic:
         state.dm_adb = np.einsum('tbb->tb', state.dm_adb_0, optimize='greedy')[:, :, np.newaxis, np.newaxis] * state.dm_adb
     else:
