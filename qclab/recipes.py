@@ -84,8 +84,8 @@ class FewestSwitchesSurfaceHoppingDynamicsRecipe:
 
         self.output = [  # ingredients.update_dm_adb_fssh,
             ingredients.update_dm_db_fssh,
-            ingredients.update_e_c,
             ingredients.update_e_q_fssh,
+            ingredients.update_e_c,
         ]
         self.output_names = ['dm_db',
                              'e_q',

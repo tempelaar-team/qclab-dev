@@ -39,7 +39,6 @@ def update_z_coord_rk4(state):
     return state
 
 
-
 def update_wf_db_rk4(state):
     # evolve wf_db using an RK4 solver
     state.wf_db = auxiliary.rk4_q(state.h_quantum, state.wf_db, state.model.dt)
@@ -253,22 +252,45 @@ def update_e_q_fssh(state):
 ############################################################
 
 
-def update_wf_db_delta_eigs(state):
-    state.wf_db_delta, state.wf_adb_delta = auxiliary.evolve_wf_eigs(state.wf_db_delta, state.eigvals, state.eigvecs, state.model.dt)
+def update_branch_pair_eigs(state):
+    state.eigvals_branch_pair = np.zeros((state.model.batch_size, state.model.num_branches, 
+                                          state.model.num_branches, state.model.num_states), dtype=float)
+    state.eigvecs_branch_pair = np.zeros((state.model.batch_size, state.model.num_branches, state.model.num_branches, 
+                                          state.model.num_states, state.model.num_states), dtype=complex)
+    h_q = state.model.h_q(state)
+    for nt in range(state.model.batch_size):
+        for i in range(state.model.num_branches):
+            for j in range(i, state.model.num_branches):
+                z_coord_nt_ij = (state.z_coord[nt, i] + state.z_coord[nt, j]) / 2
+                state.eigvals_branch_pair[nt, i, j], state.eigvecs_branch_pair[nt, i, j] = np.linalg.eigh(h_q + state.model.h_qc(state, z_coord_nt_ij))
+                if i != j:
+                    state.eigvals_branch_pair[nt, j, i], state.eigvecs_branch_pair[nt, j, i] = state.eigvals_branch_pair[nt, i, j], state.eigvecs_branch_pair[nt, i, j]
     return state
 
 
-def initialize_branch_phase(state):
-    state.branch_phase = np.zeros((state.model.batch_size, state.model.num_branches))
+def analytic_gauge_fix_branch_pair_eigs(state):
+    # compute initial eigenvalues and eigenvectors in each branch
+    for n in range(state.model.batch_size):
+        for b in range(state.model.num_branches):
+            for d in range(state.model.num_branches):
+                # compute initial gauge shift for real-valued derivative couplings
+                z_coord_ij = (state.z_coord[n,b] + state.z_coord[n,d])/2
+                der_couple_q_phase, der_couple_p_phase = (auxiliary.get_der_couple_phase(state, z_coord_ij, state.eigvals_branch_pair[n, b, d], state.eigvecs_branch_pair[n, b, d]))
+                # execute phase shift
+                state.eigvecs_branch_pair[n, b, d] = np.copy(np.matmul(state.eigvecs_branch_pair[n, b, d], np.diag(np.conjugate(der_couple_q_phase))))
+                # recalculate phases and check that they are zero
+                der_couple_q_phase, der_couple_p_phase = (
+                    auxiliary.get_der_couple_phase(state, z_coord_ij, state.eigvals_branch_pair[n, b, d], state.eigvecs_branch_pair[n, b, d]))
+                if np.sum(np.abs(np.imag(der_couple_q_phase)) ** 2 + np.abs(np.imag(der_couple_p_phase)) ** 2) > 1e-10:
+                    # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
+                    # and/or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
+                    print('Warning: phase init',
+                        np.sum(np.abs(np.imag(der_couple_q_phase)) ** 2 + np.abs(np.imag(der_couple_p_phase)) ** 2))
     return state
 
 
-def update_branch_phase(state):
-    traj_ind = np.arange(state.model.batch_size, dtype=int)[:, np.newaxis] + \
-        np.zeros((state.model.batch_size, state.model.num_branches), dtype=int)
-    branch_ind = np.arange(state.model.num_branches, dtype=int)[np.newaxis, :] + \
-        np.zeros((state.model.batch_size, state.model.num_branches), dtype=int)
-    state.branch_phase = state.branch_phase + state.model.dt * state.eigvals[traj_ind, branch_ind, state.act_surf_ind_0]
+def update_branch_pair_eigs_previous(state):
+    state.eigvecs_branch_pair_previous = np.copy(state.eigvecs_branch_pair)
     return state
 
 
@@ -280,6 +302,25 @@ def initialize_wf_adb_delta(state):
     # transform to diabatic basis
     state.wf_adb_delta = wf_adb_delta
     state.wf_db_delta = auxiliary.vec_adb_to_db(wf_adb_delta, state.eigvecs)
+    return state
+
+
+def initialize_branch_phase(state):
+    state.branch_phase = np.zeros((state.model.batch_size, state.model.num_branches))
+    return state
+
+
+def update_wf_db_delta_eigs(state):
+    state.wf_db_delta, state.wf_adb_delta = auxiliary.evolve_wf_eigs(state.wf_db_delta, state.eigvals, state.eigvecs, state.model.dt)
+    return state
+
+
+def update_branch_phase(state):
+    traj_ind = np.arange(state.model.batch_size, dtype=int)[:, np.newaxis] + \
+        np.zeros((state.model.batch_size, state.model.num_branches), dtype=int)
+    branch_ind = np.arange(state.model.num_branches, dtype=int)[np.newaxis, :] + \
+        np.zeros((state.model.batch_size, state.model.num_branches), dtype=int)
+    state.branch_phase = state.branch_phase + state.model.dt * state.eigvals[traj_ind, branch_ind, state.act_surf_ind_0]
     return state
 
 
@@ -329,6 +370,15 @@ def update_active_surface_cfssh(state):
                         state.act_surf[nt, i] = np.zeros_like(state.act_surf[nt, i])
                         state.act_surf[nt, i][state.act_surf_ind[nt, i]] = 1
                     break
+    return state
+
+
+def gauge_fix_branch_pair_eigs(state):
+    # fix the gauge of each set of branches in each batch of trajectories
+    for nt in range(state.model.batch_size):
+        state.eigvals_branch_pair[nt], state.eigvecs_branch_pair[nt] = \
+        auxiliary.sign_adjust_branch_pair_eigs(state,state.z_coord[nt], state.eigvecs_branch_pair[nt],
+            state.eigvals_branch_pair[nt], state.eigvecs_branch_pair_previous[nt])
     return state
 
 
@@ -393,55 +443,4 @@ def update_dm_db_cfssh(state):
         state.dm_db = (state.dm_db + (dm_db_coh[:, np.newaxis, :, :] / state.model.num_branches)) / state.model.num_branches
     
     state.dm_db = np.sum(state.dm_db, axis=(0, 1))
-    return state
-
-
-def update_branch_pair_eigs(state):
-    state.eigvals_branch_pair = np.zeros((state.model.batch_size, state.model.num_branches, 
-                                          state.model.num_branches, state.model.num_states), dtype=float)
-    state.eigvecs_branch_pair = np.zeros((state.model.batch_size, state.model.num_branches, state.model.num_branches, 
-                                          state.model.num_states, state.model.num_states), dtype=complex)
-    h_q = state.model.h_q(state)
-    for nt in range(state.model.batch_size):
-        for i in range(state.model.num_branches):
-            for j in range(i, state.model.num_branches):
-                z_coord_nt_ij = (state.z_coord[nt, i] + state.z_coord[nt, j]) / 2
-                state.eigvals_branch_pair[nt, i, j], state.eigvecs_branch_pair[nt, i, j] = np.linalg.eigh(h_q + state.model.h_qc(state, z_coord_nt_ij))
-                if i != j:
-                    state.eigvals_branch_pair[nt, j, i], state.eigvecs_branch_pair[nt, j, i] = state.eigvals_branch_pair[nt, i, j], state.eigvecs_branch_pair[nt, i, j]
-    return state
-
-
-def gauge_fix_branch_pair_eigs(state):
-    # fix the gauge of each set of branches in each batch of trajectories
-    for nt in range(state.model.batch_size):
-        state.eigvals_branch_pair[nt], state.eigvecs_branch_pair[nt] = \
-        auxiliary.sign_adjust_branch_pair_eigs(state,state.z_coord[nt], state.eigvecs_branch_pair[nt],
-            state.eigvals_branch_pair[nt], state.eigvecs_branch_pair_previous[nt])
-    return state
-
-
-def update_branch_pair_eigs_previous(state):
-    state.eigvecs_branch_pair_previous = np.copy(state.eigvecs_branch_pair)
-    return state
-
-
-def analytic_gauge_fix_branch_pair_eigs(state):
-    # compute initial eigenvalues and eigenvectors in each branch
-    for n in range(state.model.batch_size):
-        for b in range(state.model.num_branches):
-            for d in range(state.model.num_branches):
-                # compute initial gauge shift for real-valued derivative couplings
-                z_coord_ij = (state.z_coord[n,b] + state.z_coord[n,d])/2
-                der_couple_q_phase, der_couple_p_phase = (auxiliary.get_der_couple_phase(state, z_coord_ij, state.eigvals_branch_pair[n, b, d], state.eigvecs_branch_pair[n, b, d]))
-                # execute phase shift
-                state.eigvecs_branch_pair[n, b, d] = np.copy(np.matmul(state.eigvecs_branch_pair[n, b, d], np.diag(np.conjugate(der_couple_q_phase))))
-                # recalculate phases and check that they are zero
-                der_couple_q_phase, der_couple_p_phase = (
-                    auxiliary.get_der_couple_phase(state, z_coord_ij, state.eigvals_branch_pair[n, b, d], state.eigvecs_branch_pair[n, b, d]))
-                if np.sum(np.abs(np.imag(der_couple_q_phase)) ** 2 + np.abs(np.imag(der_couple_p_phase)) ** 2) > 1e-10:
-                    # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
-                    # and/or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
-                    print('Warning: phase init',
-                        np.sum(np.abs(np.imag(der_couple_q_phase)) ** 2 + np.abs(np.imag(der_couple_p_phase)) ** 2))
     return state
