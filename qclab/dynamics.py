@@ -1,9 +1,8 @@
 import numpy as np
-import qclab.simulation as simulation
 import qclab.auxiliary as auxiliary
 
 
-def dynamics(model, recipe, traj=simulation.Trajectory()):
+def dynamics(model, recipe, traj):
     # initialize the timestep axes
     model = auxiliary.initialize_timesteps(model)
     # load defaults of recipe class

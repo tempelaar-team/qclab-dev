@@ -78,6 +78,7 @@ def get_der_couple_phase(state, z_coord, evals, evecs):
     zc} H (stored in model.dq_vars) :return: der_couple_q_phase (diag(G^{dagger}) calculated using d_{ab}^{q}),
     der_couple_p_phase ( diag(G^{dagger}) calculated using d_{ab}^{p})
     """
+    # TODO fix and validate this
     der_couple_q_phase = np.ones(len(evals), dtype=complex)
     der_couple_p_phase = np.ones(len(evals), dtype=complex)
     for i in range(len(evals) - 1):
@@ -131,7 +132,7 @@ def sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out):  # mak
 
 def sign_adjust_branch(state, z_coord, evecs_branch, evecs_branch_previous, evals_branch):
     # commented out einsum terms found to be slower
-    phase_out = np.ones(np.shape(evals_branch), dtype=complex)
+    phase_out = np.ones(np.shape(evals_branch), dtype=complex) # TODO this is wrong!!
     if state.model.gauge_fix >= 1:
         evecs_branch, phase_out = sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out)
     if state.model.gauge_fix >= 2:

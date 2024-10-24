@@ -1,18 +1,20 @@
 import ray
-import qclab.simulation as simulation
+from qclab.auxiliary import Data, Trajectory
 import qclab.dynamics as dynamics
 from tqdm import tqdm
 import numpy as np
 
 
-def dynamics_parallel_ray(algorithm, model, seeds, ncpus, data=simulation.Data()):
+def dynamics_parallel_ray(algorithm, model, seeds, ncpus, data=None):
+    if data is None:
+        data = Data()
     ray.shutdown()
     ray.init(ignore_reinit_error=True)
 
     @ray.remote
     def dynamics_ray(algorithm, model, seeds):
         model.seeds = seeds
-        traj = simulation.Trajectory()
+        traj = Trajectory()
         traj.seeds = seeds
         return dynamics.dynamics_(algorithm, model, traj)
 

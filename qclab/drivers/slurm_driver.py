@@ -1,11 +1,13 @@
 import os
 import numpy as np
-import qclab.simulation as simulation
+from qclab.auxiliary import Data
 from qclab.drivers.serial_driver import dynamics_serial
 
 
 def dynamics_parallel_slurm(algorithm, model, seeds, ntasks, ncpus_per_task, sub_driver=dynamics_serial,
-                            data=simulation.Data()):
+                            data=None):
+    if data is None:
+        data = Data()
     # get SLURM id of 
     idx = int(os.environ["SLURM_ARRAY_TASK_ID"])
     # total number of seeds must be an integer multiple of the batch_size
