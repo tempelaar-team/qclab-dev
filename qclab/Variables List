@@ -69,4 +69,5 @@ variables are quantities over which the function should be independently evaluat
 a function should be considered a programming object that is applied to a quantity that is arbitrary (i.e a variable)
 while a parameter is a quantity used in the definition of the function. 
 
-For example, the classical Hamiltonian has the variable z_coord and the parameters model.mass, model.qp_weight. 
+For example, the classical Hamiltonian has the variable z_coord and the parameters model.mass, model.qp_weight.
+Gradients of functions always inherit their variables.

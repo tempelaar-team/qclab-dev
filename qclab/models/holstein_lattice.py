@@ -1,12 +1,9 @@
 import numpy as np
 import qclab.auxiliary as auxiliary
-from numba import njit
 
 
 class HolsteinLatticeModel:
     def __init__(self, input_params):
-        # Here we can define some input parameters that the model accepts and use them to construct the relevant
-        # aspects of the physical system
         self.num_states = input_params['num_states']  # number of states
         self.temp = input_params['temp']  # temperature
         self.j = input_params['j']  # hopping integral
@@ -26,9 +23,8 @@ class HolsteinLatticeModel:
             :param psi_b: right vector in each branch
             :return:
             """
-            #TODO update docstrings
-            return np.conj(psi_a) * state.model.g*state.model.pq_weight[...,:] * psi_b
-
+            # TODO update docstrings
+            return np.conj(psi_a) * state.model.g * state.model.pq_weight[..., :] * psi_b
 
         def dh_qc_dzc(state, z_coord, psi_a, psi_b):
             """
@@ -58,7 +54,8 @@ class HolsteinLatticeModel:
             Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
             :return: h_qc(z,z^{*}) Hamiltonian
             """
-            h_qc_out = np.zeros((state.model.batch_size, state.model.num_branches, state.model.num_states, state.model.num_states), dtype=complex)
+            h_qc_out = np.zeros((state.model.batch_size, state.model.num_branches,
+                                 state.model.num_states, state.model.num_states), dtype=complex)
             h_qc_diag = state.model.g * state.model.pq_weight[np.newaxis, :] * (z_coord + np.conj(z_coord))
             np.einsum('...jj->...j', h_qc_out)[...] = h_qc_diag
             return h_qc_out
