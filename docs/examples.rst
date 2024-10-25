@@ -155,7 +155,7 @@ To demonstrate the versatility of QC-lab, let's now apply the fewest-switches su
 All we have to do is import the relevant recipe and run the dynamics again! This calculation takes just under three minutes on a cpu with eight cores. ::
 
       from qclab.recipes import FewestSwitchesSurfaceHoppingRecipe
-      recipe = MeanFieldDynamicsRecipe(model)
+      recipe = FewestSwitchesSurfaceHoppingRecipe(model)
 
       data = dynamics_serial(recipe=recipe, model = model, seeds = seeds, ncpus=1, data = None)
 
@@ -171,4 +171,33 @@ Now we can use the same code as above to generate the following plots:
    :width: 75%
    :align: center
 
+CFSSH Spin-Boson Model 
+----------------------
+
+It is now straight forward to do the same for the CFSSH algorithm, ::
+
+      from qclab.recipes import CoherentFewestSwitchesSurfaceHoppingRecipe
+      recipe = CoherentFewestSwitchesSurfaceHoppingRecipe(model)
+
+      data = dynamics_serial(recipe=recipe, model = model, seeds = seeds, ncpus=1, data = None)
+
+Yielding the following plots: 
+
+.. image:: images/pops_sb_cfssh.png
+   :alt: diabatic populations of mean-field spin-boson simulation
+   :width: 75%
+   :align: center
+
+.. image:: images/de_sb_cfssh.png
+   :alt: change in energy of mean-field spin-boson simulation
+   :width: 75%
+   :align: center
+
+Useful Tips
+-----------
+
+* To add additional trajectories to an existing data object, simply feed the data object and a new set of seeds into the dynamics driver. ::
+
+      new_seeds = data.seed_list + len(data.seed_list) # increment seeds up 
+      data = dynamics_serial(recipe=recipe, model = model, seeds = new_seeds, ncpus=1, data = data)
 

@@ -4,7 +4,7 @@ from tqdm import tqdm
 import numpy as np
 
 
-def dynamics_serial(recipe, model, seeds, ncpus=1, data=None):
+def dynamics_serial(recipe, model, seeds, ncpus=None, data=None):
     if data is None:
         data = Data()
     assert np.mod(len(seeds), model.batch_size) == 0
