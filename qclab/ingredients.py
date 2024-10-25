@@ -454,3 +454,34 @@ def update_dm_db_cfssh(state):
     
     state.dm_db = np.sum(state.dm_db, axis=(0, 1))
     return state
+
+
+
+############################################################
+#              MANYBODY MEAN-FIELD INGREDIENTS             #
+############################################################
+
+
+def initialize_wf_db_mb(state):
+    state.wf_db_MB = np.zeros((state.model.batch_size, state.model.num_branches, 
+                               state.model.num_states, state.model.num_particles), dtype=complex) + state.model.wf_db_MB[..., :, :]
+    return state
+
+
+
+def update_quantum_force_wf_db_mbmf(state):
+    state.quantum_force = np.zeros((state.model.batch_size, state.model.num_branches, state.model.num_classical_coordinates), dtype=complex)
+    for n in range(state.model.num_particles):
+        state.quantum_force += state.model.dh_qc_dzc(state, state.z_coord, state.wf_db_MB[:, :, n], state.wf_db_MB[:, :, n])
+    return state
+
+
+def update_wf_db_mb_rk4(state):
+    # evolve wf_db using an RK4 solver
+    state.wf_db_MB = auxiliary.rk4_q(state.h_quantum, state.wf_db_MB, state.model.dt)
+    return state
+
+
+def update_e_q_mbmf(state):
+    state.e_q = np.einsum('tbin,tbij,tbjn', np.conj(state.wf_db_MB), state.h_quantum, state.wf_db_MB, optimize='greedy')
+    return state
