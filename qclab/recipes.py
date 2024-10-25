@@ -202,7 +202,6 @@ class ManyBodyMeanFieldDynamicsRecipe:
         self.sim = sim 
         self.initialize = [
                            ingredients.initialize_wf_db_mb,
-                           ingredients.initialize_wf_db_mb_coeffs,
                            ingredients.initialize_z_coord,
                            ingredients.update_h_quantum,
                            ingredients.update_quantum_force_wf_db_mbmf,
