@@ -6,19 +6,26 @@ Model Object
 model.dt # propagation timestep
 model.dt_output # output timestep (integer multiple of dt)
 model.tmax # maximum simulation time (integer multiple of dt_output)
-model.batch_size # number of simulations to be run simultaneously in a single process
+
 model.num_branches # number of simulation branches
 model.num_states # number of quantum states
 model.num_classical_coordinates # total number of classical coordinates
+model.batch_size # number of simulations to be run simultaneously in a single process
+
+model.sh_deterministic
+
 model.temp # temperature
 model.mass # classical oscillator mass
 model.pq_weight # classical oscillator auxiliary weight parameter
+
 model.h_c # classical Hamiltonian
 model.h_qc # quantum-classical Hamiltonian
 model.h_q # quantum Hamiltonian
+
 model.dh_qc_dzc # dH_qc/dz*
 model.dh_qc_dz # dH_qc/dz
 model.dh_c_dzc # dH_c/dz*
+
 model.wf_db # initial diabatic wavefunction
 
 # spin-boson model parameters

@@ -280,7 +280,7 @@ def harmonic_oscillator_focused_init_classical(model, seed=None):
 
 
 def harmonic_oscillator_h_c(state, z_coord):
-    return np.real(np.sum(state.model.pq_weight[..., :] * np.conj(state.z_coord) * state.z_coord, axis=(0,1)))
+    return np.real(np.sum(state.model.pq_weight[..., :] * np.conj(state.z_coord) * state.z_coord, axis=(-1)))
 
 
 def harmonic_oscillator_dh_c_dz(state, z_coord):

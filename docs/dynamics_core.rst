@@ -1,4 +1,4 @@
-Dynamics core
+Dynamics Core
 ===================================
 
 The dynamics core is a central function of the qc-lab package that enables it to execute arbitrary algorithms defined in terms of a recipe class. 

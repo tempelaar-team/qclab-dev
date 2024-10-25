@@ -18,30 +18,14 @@ class SpinBosonModel:
         self.num_classical_coordinates = self.A
 
         def dh_qc_dz(state, z_coord, psi_a, psi_b):
-            """
-            Computes <psi_a| dH_qc/dzc  |psi_b> in each branch
-            :param psi_a: left vector in each branch
-            :param psi_b: right vector in each branch
-            :return:
-            """
             out = np.conj(psi_a[...,0][...,np.newaxis])*psi_b[...,0][...,np.newaxis]*(state.model.g * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight)))
             out += np.conj(psi_a[...,1][...,np.newaxis])*psi_b[...,1][...,np.newaxis]*(-state.model.g * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight)))
             return out
 
         def dh_qc_dzc(state, z_coord, psi_a, psi_b):
-            """
-            Computes <psi_a| dH_qc/dzc  |psi_b> in each branch
-            :param psi_a: left vector in each branch
-            :param psi_b: right vector in each branch
-            :return:
-            """
             return np.conj(dh_qc_dz(state, z_coord, psi_a, psi_b))
 
         def h_q(state):
-            """
-            Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
-            :return: h_q Hamiltonian
-            """
             out = np.zeros((state.model.num_states, state.model.num_states), dtype=complex)
             out[0, 0] = state.model.E
             out[1, 1] = -state.model.E
@@ -50,10 +34,6 @@ class SpinBosonModel:
             return out[np.newaxis, np.newaxis]
 
         def h_qc(state, z_coord):
-            """
-            Holstein Hamiltonian on a lattice in real-space using frequency-weighted coordinates
-            :return:
-            """
             h_qc_out = np.zeros(
                 (*np.shape(z_coord)[:-1], state.model.num_states, state.model.num_states),
                 dtype=complex)

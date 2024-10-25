@@ -8,6 +8,16 @@ import qclab.auxiliary as auxiliary
 
 
 def initialize_wf_db(state):
+    """
+    Return a list of random ingredients as strings.
+
+    :param kind: Optional "kind" of ingredients.
+    :type kind: list[str] or None
+    :raise lumache.InvalidKindError: If the kind is invalid.
+    :return: The ingredients list.
+    :rtype: list[str]
+
+    """
     state.wf_db = (np.zeros((state.model.batch_size, state.model.num_branches, state.model.num_states), dtype=complex)
                    + state.model.wf_db[np.newaxis, :])
     return state

@@ -3,8 +3,6 @@ import numpy as np
 
 class DonorBridgeAcceptorModel:
     def __init__(self, input_params):
-        # Here we can define some input parameters that the model accepts and use them to construct the relevant
-        # aspects of the physical system
         self.temp = input_params['temp']  # temperature
         self.V = input_params['V']  # donor-bridge bridge-acceptor coupling
         self.E_D = input_params['E_D']  # donor energy
@@ -25,12 +23,6 @@ class DonorBridgeAcceptorModel:
         self.h_q_params = (self.E_D, self.E_B, self.E_A, self.V)
 
         def dh_qc_dz(state, z_coord, psi_a, psi_b):
-            """
-            Computes <psi_a| dH_qc/dz  |psi_b> in each branch
-            :param psi_a: left vector in each branch
-            :param psi_b: right vector in each branch
-            :return:
-            """
             dz_mat = np.zeros((state.model.num_states * state.model.A,
                                state.model.num_states, state.model.num_states), dtype=complex)
             dz_mat[0:state.model.A, 0, 0] = \
@@ -42,19 +34,9 @@ class DonorBridgeAcceptorModel:
             return np.einsum('...i,cij,...j->...c', np.conj(psi_a), dz_mat, psi_b, optimize='greedy')
 
         def dh_qc_dzc(state, z_coord, psi_a, psi_b):
-            """
-            Computes <psi_a| dH_qc/dzc  |psi_b> in each branch
-            :param psi_a: left vector in each branch
-            :param psi_b: right vector in each branch
-            :return:
-            """
             return np.conj(dh_qc_dz(state, z_coord, psi_a, psi_b))
 
         def h_q(state):
-            """
-            Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
-            :return: h_q Hamiltonian
-            """
             out = np.zeros((state.model.num_states, state.model.num_states), dtype=complex)
             out[0, 0] = state.model.E_D
             out[1, 1] = state.model.E_B
@@ -66,10 +48,6 @@ class DonorBridgeAcceptorModel:
             return out
 
         def h_qc(state, z_coord):
-            """
-            Holstein Hamiltonian on a lattice in real-space with frequency-weighted coordinates
-            :return:
-            """
             h_qc_out = np.zeros((state.model.batch_size, state.model.num_branches,
                                  state.model.num_states, state.model.num_states), dtype=complex)
             mel = (state.model.g[..., :] * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight))[..., :]

@@ -17,29 +17,12 @@ class HolsteinLatticeModel:
         self.dh_c_dzc = auxiliary.harmonic_oscillator_dh_c_dzc
 
         def dh_qc_dz(state, z_coord, psi_a, psi_b):
-            """
-            Computes <psi_a| dH_qc/dz  |psi_b> in each branch
-            :param psi_a: left vector in each branch
-            :param psi_b: right vector in each branch
-            :return:
-            """
-            # TODO update docstrings
             return np.conj(psi_a) * state.model.g * state.model.pq_weight[..., :] * psi_b
 
         def dh_qc_dzc(state, z_coord, psi_a, psi_b):
-            """
-            Computes <psi_a| dH_qc/dzc  |psi_b> in each branch
-            :param psi_a: left vector in each branch
-            :param psi_b: right vector in each branch
-            :return:
-            """
             return np.conj(dh_qc_dz(state, z_coord, psi_a, psi_b))
 
         def h_q(state):
-            """
-            Nearest-neighbor tight-binding Hamiltonian with periodic boundary conditions and dimension num_states.
-            :return: h_q Hamiltonian
-            """
             out = np.zeros((state.model.num_states, state.model.num_states), dtype=complex)
             for n in range(state.model.num_states - 1):
                 out[n, n + 1] = -state.model.j
@@ -50,10 +33,6 @@ class HolsteinLatticeModel:
             return out
 
         def h_qc(state, z_coord):
-            """
-            Holstein Hamiltonian on a lattice in real-space, z and zc are frequency weighted
-            :return: h_qc(z,z^{*}) Hamiltonian
-            """
             h_qc_out = np.zeros((state.model.batch_size, state.model.num_branches,
                                  state.model.num_states, state.model.num_states), dtype=complex)
             h_qc_diag = state.model.g * state.model.pq_weight[np.newaxis, :] * (z_coord + np.conj(z_coord))
