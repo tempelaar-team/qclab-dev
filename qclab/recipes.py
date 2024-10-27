@@ -214,10 +214,14 @@ class ManyBodyMeanFieldDynamicsRecipe:
         self.output = [
                        ingredients.update_e_c, 
                        ingredients.update_e_q_mbmf,
+                       ingredients.update_rdm1,
+                       ingredients.update_rdm2,
                        ]
         self.output_names = [
                              'e_c', 
                              'e_q',
+                             'rdm1',
+                             'rdm2',
                              ]
         self.state = argparse.Namespace()
         
