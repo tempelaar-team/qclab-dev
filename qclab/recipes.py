@@ -195,3 +195,55 @@ class CoherentFewestSwitchesSurfaceHoppingDynamicsRecipe:
         if model.sh_deterministic:
             assert model.num_branches == model.num_states
         return model
+
+
+class ManyBodyMeanFieldDynamicsRecipe:
+    def __init__(self, sim):
+        self.sim = sim 
+        self.initialize = [
+                           ingredients.initialize_wf_db_mb,
+                           ingredients.initialize_z_coord,
+                           ingredients.update_h_quantum,
+                           ingredients.update_quantum_force_wf_db_mbmf,
+                           ]
+        self.update = [ingredients.update_z_coord_rk4, 
+                       ingredients.update_wf_db_mb_rk4,
+                       ingredients.update_h_quantum,
+                       ingredients.update_quantum_force_wf_db_mbmf,
+                       ]
+        self.output = [
+                       ingredients.update_e_c, 
+                       ingredients.update_e_q_mbmf,
+                       ingredients.update_rdm1,
+                       ingredients.update_rdm2,
+                       ]
+        self.output_names = [
+                             'e_c', 
+                             'e_q',
+                             'rdm1',
+                             'rdm2',
+                             ]
+        self.state = argparse.Namespace()
+        
+        return
+    
+    def defaults(self, sim):
+        var_names = list(sim.__dict__.keys())
+        defaults = {
+            'init_classical': auxiliary.harmonic_oscillator_boltzmann_init_classical,
+            'h_c': auxiliary.harmonic_oscillator_h_c,
+            'dh_c_dz': auxiliary.harmonic_oscillator_dh_c_dz,
+            'dh_c_dzc': auxiliary.harmonic_oscillator_dh_c_dzc,
+            'tmax': 10,
+            'dt_output': 0.1,
+            'dt': 0.01,
+            'temp': 1,
+            'num_states': 2,
+            'num_branches': 1,
+            'num_classical_coordinates': None,
+        }
+        for name in defaults.keys():
+            if not (name in list(var_names)):
+                sim.__dict__[name] = defaults[name]
+        assert sim.num_branches == 1
+        return sim
