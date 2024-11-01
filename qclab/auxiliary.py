@@ -8,12 +8,12 @@ import dill as pickle
 ############################################################
 
 
-def rk4_c(state, z_coord, qfzc, dt):
+def rk4_c(state, model, params, z_coord, qfzc, dt):
     """ 4-th order Runge-Kutta integrator for the z_coord coordinate with force qfzc"""
-    k1 = -1.0j * (state.model.dh_c_dzc(state, z_coord) + qfzc)
-    k2 = -1.0j * (state.model.dh_c_dzc(state, z_coord + 0.5 * dt * k1) + qfzc)
-    k3 = -1.0j * (state.model.dh_c_dzc(state, z_coord + 0.5 * dt * k2) + qfzc)
-    k4 = -1.0j * (state.model.dh_c_dzc(state, z_coord + dt * k3) + qfzc)
+    k1 = -1.0j * (model.dh_c_dzc(state, model, params, z_coord) + qfzc)
+    k2 = -1.0j * (model.dh_c_dzc(state, model, params, z_coord + 0.5 * dt * k1) + qfzc)
+    k3 = -1.0j * (model.dh_c_dzc(state, model, params, z_coord + 0.5 * dt * k2) + qfzc)
+    k4 = -1.0j * (model.dh_c_dzc(state, model, params, z_coord + dt * k3) + qfzc)
     z_coord = z_coord + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return z_coord
 
@@ -71,7 +71,7 @@ def rk4_q(h, psi, dt):
 ############################################################
 
 
-def get_der_couple_phase(state, z_coord, evals, evecs):
+def get_der_couple_phase(state, model, params, z_coord, evals, evecs): # TODO update usage of this function in ingredients
     """
     Computes the diagonal gauge transformation G such that (VG)^{dagger}\nabla(VG) is real-valued. :param evals:
     eigenvalues :param evecs: eigenvectors (V) :param diff_vars: sparse matrix variables of \nabla_{z} H and \nabla_{
@@ -92,11 +92,11 @@ def get_der_couple_phase(state, z_coord, evals, evecs):
         if np.abs(ev_diff) < 1e-14:
             plus = 1
             print('Warning: Degenerate eigenvalues')
-        der_couple_z = state.model.dh_qc_dz(state, z_coord, evec_i, evec_j) / (ev_diff + plus)
-        der_couple_zc = state.model.dh_qc_dzc(state, z_coord, evec_i, evec_j) / (ev_diff + plus)
+        der_couple_z = model.dh_qc_dz(state, model, params, z_coord, evec_i, evec_j) / (ev_diff + plus)
+        der_couple_zc = model.dh_qc_dzc(state, model, params, z_coord, evec_i, evec_j) / (ev_diff + plus)
         # convert to q/p nonadiabatic couplings
-        der_couple_q = np.sqrt(state.model.pq_weight * state.model.mass / 2) * (der_couple_z + der_couple_zc)
-        der_couple_p = np.sqrt(1 / (2 * state.model.pq_weight * state.model.mass)) * 1.0j * (der_couple_z - der_couple_zc)
+        der_couple_q = np.sqrt(model.pq_weight * model.mass / 2) * (der_couple_z + der_couple_zc)
+        der_couple_p = np.sqrt(1 / (2 * model.pq_weight * model.mass)) * 1.0j * (der_couple_z - der_couple_zc)
         der_couple_q_angle = np.angle(der_couple_q[np.argmax(np.abs(der_couple_q))])
         der_couple_p_angle = np.angle(der_couple_p[np.argmax(np.abs(der_couple_p))])
         if np.max(np.abs(der_couple_q)) < 1e-14:
@@ -130,14 +130,14 @@ def sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out):  # mak
     return evecs_branch, phase_out
 
 
-def sign_adjust_branch(state, z_coord, evecs_branch, evecs_branch_previous, evals_branch):
+def sign_adjust_branch(state, model, params, z_coord, evecs_branch, evecs_branch_previous, evals_branch):
     # commented out einsum terms found to be slower
     phase_out = np.ones(np.shape(evals_branch), dtype=complex) # TODO this is wrong!!
-    if state.model.gauge_fix >= 1:
+    if params.gauge_fix >= 1:
         evecs_branch, phase_out = sign_adjust_branch_1(evecs_branch, evecs_branch_previous, phase_out)
-    if state.model.gauge_fix >= 2:
+    if params.gauge_fix >= 2:
         der_couple_phase_mat = np.ones((len(evecs_branch), len(evecs_branch)), dtype=complex)
-        for i in range(state.model.batch_size):
+        for i in range(params.batch_size):
             der_couple_q_phase_list, der_couple_p_phase_list = (
                 get_der_couple_phase(state, z_coord[i], evals_branch[i], evecs_branch[i]))
             der_couple_phase_list = np.conjugate(der_couple_q_phase_list)
@@ -145,16 +145,16 @@ def sign_adjust_branch(state, z_coord, evecs_branch, evecs_branch_previous, eval
             phase_out[i] *= der_couple_phase_list
         #    evecs_branch[i] = np.einsum('jk,k->jk',evecs_branch[i],der_couple_phase_list)
         evecs_branch = np.einsum('ijk,ik->ijk', evecs_branch, der_couple_phase_mat, optimize='greedy')
-    if state.model.gauge_fix >= 0:
+    if params.gauge_fix >= 0:
         evecs_branch, phase_out = sign_adjust_branch_0(evecs_branch, evecs_branch_previous, phase_out)
     return evecs_branch, phase_out
 
 
-def sign_adjust_branch_pair_eigs(state, z_coord, eigvecs_branch_pair, eigvals_branch_pair, eigvecs_branch_pair_previous):
-    for i in range(state.model.num_branches):
-        for j in range(i + 1, state.model.num_branches):
+def sign_adjust_branch_pair_eigs(state, model, params, z_coord, eigvecs_branch_pair, eigvals_branch_pair, eigvecs_branch_pair_previous):
+    for i in range(params.num_branches):
+        for j in range(i + 1, params.num_branches):
             z_coord_ij = np.array([(z_coord[i] + z_coord[j]) / 2])
-            eigvecs_branch_pair[i, j], _ = sign_adjust_branch(state, z_coord_ij, eigvecs_branch_pair[i, j],
+            eigvecs_branch_pair[i, j], _ = sign_adjust_branch(state, model, params, z_coord_ij, eigvecs_branch_pair[i, j],
                                                             eigvecs_branch_pair_previous[i, j],
                                                             eigvals_branch_pair[i, j])
             eigvecs_branch_pair[j, i] = eigvecs_branch_pair[i, j]
@@ -169,11 +169,11 @@ def sign_adjust_branch_pair_eigs(state, z_coord, eigvecs_branch_pair, eigvals_br
 
 
 
-def get_classical_overlap(state, z_coord):
+def get_classical_overlap(state, model, params, z_coord):
     out_mat = np.zeros((len(z_coord), len(z_coord)))
     zc_branch = np.conjugate(z_coord)
-    q_branch = (1 / np.sqrt(2 * state.model.mass * state.model.pq_weight)) * (z_coord + zc_branch)
-    p_branch = -1.0j * np.sqrt(state.model.pq_weight * state.model.mass / 2) * (z_coord - zc_branch)
+    q_branch = (1 / np.sqrt(2 * model.mass * model.pq_weight)) * (z_coord + zc_branch)
+    p_branch = -1.0j * np.sqrt(model.pq_weight * model.mass / 2) * (z_coord - zc_branch)
     for i in range(len(z_coord)):
         for j in range(len(z_coord)):
             out_mat[i, j] = np.exp(-(1 / 2) * np.sum(np.abs((p_branch[i] - p_branch[j]) * (q_branch[i] - q_branch[j]))))
@@ -204,7 +204,7 @@ nan_num_vec = np.vectorize(nan_num)
 ############################################################
 
 
-def harmonic_oscillator_hop(state, z_coord, delta_z_coord, ev_diff):
+def harmonic_oscillator_hop(state, model, params, z_coord, delta_z_coord, ev_diff):
     # TODO change z variable name to z_coord
     """
     Carries out the hopping procedure for a harmonic oscillator Hamiltonian, defined on a single branch only. 
@@ -217,8 +217,8 @@ def harmonic_oscillator_hop(state, z_coord, delta_z_coord, ev_diff):
     hopped = False
     delta_zc_coord = np.conj(delta_z_coord)
     zc = np.conj(z_coord)
-    akj_z = np.real(np.sum(state.model.pq_weight * delta_zc_coord * delta_z_coord))
-    bkj_z = np.real(np.sum(1j * state.model.pq_weight * (zc * delta_z_coord - z_coord * delta_zc_coord)))
+    akj_z = np.real(np.sum(model.pq_weight * delta_zc_coord * delta_z_coord))
+    bkj_z = np.real(np.sum(1j * model.pq_weight * (zc * delta_z_coord - z_coord * delta_zc_coord)))
     ckj_z = ev_diff
     disc = bkj_z ** 2 - 4 * akj_z * ckj_z
     if disc >= 0:
@@ -279,26 +279,26 @@ def harmonic_oscillator_focused_init_classical(model, seed=None):
     return z
 
 
-def harmonic_oscillator_h_c(state, z_coord):
-    return np.real(np.sum(state.model.pq_weight[..., :] * np.conj(state.z_coord) * state.z_coord, axis=(-1)))
+def harmonic_oscillator_h_c(state, model, params, z_coord):
+    return np.real(np.sum(model.pq_weight[..., :] * np.conj(state.z_coord) * state.z_coord, axis=(-1)))
 
 
-def harmonic_oscillator_dh_c_dz(state, z_coord):
+def harmonic_oscillator_dh_c_dz(state, model, params, z_coord):
     """
     Gradient of harmonic oscillator hamiltonian wrt z_coord
     :param z_coord: z coordinate in each branch
     :return:
     """
-    return state.model.pq_weight[np.newaxis, np.newaxis, :] * np.conj(z_coord)
+    return model.pq_weight[np.newaxis, np.newaxis, :] * np.conj(z_coord)
 
 
-def harmonic_oscillator_dh_c_dzc(state, z_coord):
+def harmonic_oscillator_dh_c_dzc(state, model, params, z_coord):
     """
     Gradient of harmonic oscillator hamiltonian wrt zc_branch
     :param z_coord: z coordinate in each branch
     :return:
     """
-    return state.model.pq_weight[np.newaxis, np.newaxis, :] * z_coord
+    return model.pq_weight[np.newaxis, np.newaxis, :] * z_coord
 
 
 ############################################################
@@ -325,14 +325,14 @@ def load_pickle(filename):
 ############################################################
 
 
-def initialize_timesteps(model):
-    model.tmax_n = np.round(model.tmax / model.dt, 1).astype(int)
-    model.dt_output_n = np.round(model.dt_output / model.dt, 1).astype(int)
-    model.tdat = np.arange(0, model.tmax_n + 1, 1) * model.dt
-    model.tdat_n = np.arange(0, model.tmax_n + 1, 1)
-    model.tdat_output = np.arange(0, model.tmax_n + 1, model.dt_output_n) * model.dt
-    model.tdat_ouput_n = np.arange(0, model.tmax_n + 1, model.dt_output_n)
-    return model
+def initialize_timesteps(params):
+    params.tmax_n = np.round(params.tmax / params.dt, 1).astype(int)
+    params.dt_output_n = np.round(params.dt_output / params.dt, 1).astype(int)
+    params.tdat = np.arange(0, params.tmax_n + 1, 1) * params.dt
+    params.tdat_n = np.arange(0, params.tmax_n + 1, 1)
+    params.tdat_output = np.arange(0, params.tmax_n + 1, params.dt_output_n) * params.dt
+    params.tdat_ouput_n = np.arange(0, params.tmax_n + 1, params.dt_output_n)
+    return params
 
 
 def evaluate_observables_t(recipe):
@@ -341,6 +341,16 @@ def evaluate_observables_t(recipe):
     for key in recipe.output_names:
         observables_dic[key] = state_dic[key]
     return observables_dic
+
+
+def generate_seeds(params, data):
+    if len(data.seed_list) > 0:
+        new_seeds = np.max(data.seed_list) + np.arange(params.num_trajs, dtype=int) + 1
+    else:
+        new_seeds = np.arange(params.num_trajs, dtype=int)
+    return new_seeds
+
+
 
 class Trajectory:
     def __init__(self):
