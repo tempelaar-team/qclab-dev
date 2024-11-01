@@ -28,24 +28,24 @@ def initialize_z_coord(state, model, params):
                               model.num_classical_coordinates), dtype=complex)
     # load initial values of the z coordinate 
     for traj_n in range(params.batch_size):
-        state.z_coord[traj_n, :, :] = model.init_classical(model, model.seeds[traj_n])
+        state.z_coord[traj_n, :, :] = model.init_classical(model, params.seeds[traj_n])
     return state, model, params
 
 
 def update_h_quantum(state, model, params):
     state.h_quantum = np.zeros((params.batch_size, params.num_branches,
                                 model.num_states, model.num_states), dtype=complex) \
-                      + model.h_q(state, model, params) + model.h_qc(state, state.z_coord)
+                      + model.h_q(state, model, params) + model.h_qc(state, model, params, state.z_coord)
     return state, model, params
 
 
 def update_quantum_force_wf_db(state, model, params):
-    state.quantum_force = model.dh_qc_dzc(state, state.z_coord, state.wf_db, state.wf_db)
+    state.quantum_force = model.dh_qc_dzc(state, model, params, state.z_coord, state.wf_db, state.wf_db)
     return state, model, params
 
 
 def update_z_coord_rk4(state, model, params):
-    state.z_coord = auxiliary.rk4_c(state, state.z_coord, state.quantum_force, params.dt)
+    state.z_coord = auxiliary.rk4_c(state, model, params, state.z_coord, state.quantum_force, params.dt)
     return state, model, params
 
 
@@ -61,7 +61,7 @@ def update_dm_db_mf(state, model, params):
 
 
 def update_e_c(state, model, params):
-    state.e_c = np.sum(model.h_c(state, state.z_coord))
+    state.e_c = np.sum(model.h_c(state, model, params, state.z_coord))
     return state, model, params
 
 
@@ -78,11 +78,11 @@ def update_e_q_mf(state, model, params):
 
 def initialize_random_values(state, model, params):
     # initialize random numbers needed in each trajectory
-    state.hopping_probs_rand_vals = np.zeros((params.batch_size, len(model.tdat)))
+    state.hopping_probs_rand_vals = np.zeros((params.batch_size, len(params.tdat)))
     state.stochastic_sh_rand_vals = np.zeros((params.batch_size, params.num_branches))
     for nt in range(params.batch_size):
-        np.random.seed(model.seeds[nt])
-        state.hopping_probs_rand_vals[nt, :] = np.random.rand(len(model.tdat))
+        np.random.seed(params.seeds[nt])
+        state.hopping_probs_rand_vals[nt, :] = np.random.rand(len(params.tdat))
         state.stochastic_sh_rand_vals[nt, :] = np.random.rand(params.num_branches)
     return state, model, params
 
@@ -98,13 +98,13 @@ def analytic_gauge_fix_eigs(state, model, params):
         for branch_n in range(params.num_branches):
             # compute initial gauge shift for real-valued derivative couplings
             der_couple_q_phase, der_couple_p_phase = (
-                auxiliary.get_der_couple_phase(state, state.z_coord[traj_n, branch_n], state.eigvals[traj_n, branch_n], state.eigvecs[traj_n, branch_n]))
+                auxiliary.get_der_couple_phase(state, model, params, state.z_coord[traj_n, branch_n], state.eigvals[traj_n, branch_n], state.eigvecs[traj_n, branch_n]))
             # execute phase shift
             state.eigvecs[traj_n, branch_n] = np.copy(
                 np.matmul(state.eigvecs[traj_n, branch_n], np.diag(np.conjugate(der_couple_q_phase))))
             # recalculate phases and check that they are zero
             der_couple_q_phase, der_couple_p_phase = (
-                auxiliary.get_der_couple_phase(state, state.z_coord[traj_n, branch_n], state.eigvals[traj_n, branch_n], state.eigvecs[traj_n, branch_n]))
+                auxiliary.get_der_couple_phase(state, model, params, state.z_coord[traj_n, branch_n], state.eigvals[traj_n, branch_n], state.eigvecs[traj_n, branch_n]))
             if np.sum(np.abs(np.imag(der_couple_q_phase)) ** 2 + np.abs(np.imag(der_couple_p_phase)) ** 2) > 1e-10:
                 # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
                 # and/or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
@@ -126,7 +126,7 @@ def initialize_wf_adb(state, model, params):
 
 def initialize_active_surface(state, model, params):
     # Options for deterministic branch modelulation, num_branches==num_states
-    if model.sh_deterministic:
+    if params.sh_deterministic:
         assert params.num_branches == model.num_states
         act_surf_ind_0 = np.zeros((params.batch_size, params.num_branches)) + np.arange(params.num_branches, dtype=int)[
                                                                            np.newaxis, :]
@@ -158,7 +158,7 @@ def update_quantum_force_act_surf(state, model, params):
                                                                                dtype=int)
     branch_ind = np.arange(params.num_branches, dtype=int)[np.newaxis, :] + np.zeros(
         (params.batch_size, params.num_branches), dtype=int)
-    state.quantum_force = model.dh_qc_dzc(state, state.z_coord, state.eigvecs[traj_ind, branch_ind, :, state.act_surf_ind],
+    state.quantum_force = model.dh_qc_dzc(state, model, params, state.z_coord, state.eigvecs[traj_ind, branch_ind, :, state.act_surf_ind],
                                           state.eigvecs[traj_ind, branch_ind, :, state.act_surf_ind])
     return state, model, params
 
@@ -180,7 +180,7 @@ def update_wf_db_eigs(state, model, params):
 def gauge_fix_eigs(state, model, params):
     for nt in range(params.batch_size):  # TODO can this loop be eliminated? Make sign_adjust_branch not branch dependent?
         # adjust gauge of eigenvectors
-        state.eigvecs[nt], _ = auxiliary.sign_adjust_branch(state, state.z_coord[nt], state.eigvecs[nt], 
+        state.eigvecs[nt], _ = auxiliary.sign_adjust_branch(state, model, params, state.z_coord[nt], state.eigvecs[nt], 
                                                             state.eigvecs_previous[nt], state.eigvals[nt])
     return state, model, params
 
@@ -212,8 +212,8 @@ def update_active_surface_fssh(state, model, params):
                     ev_diff = eval_j - eval_k
                     # dkj_q is wrt q dkj_p is wrt p.
                     #dkj_z, dkj_zc = auxiliary.get_der_couple(state, state.z_coord, evec_k, evec_j, ev_diff)
-                    dkj_z = model.dh_qc_dz(state, state.z_coord, evec_k, evec_j) / (ev_diff)
-                    dkj_zc = model.dh_qc_dzc(state, state.z_coord, evec_k, evec_j) / (ev_diff)
+                    dkj_z = model.dh_qc_dz(state, model, params, state.z_coord, evec_k, evec_j) / (ev_diff)
+                    dkj_zc = model.dh_qc_dzc(state, model, params, state.z_coord, evec_k, evec_j) / (ev_diff)
                     # check that nonadiabatic couplings are real-valued
                     dkj_q = np.sqrt(model.pq_weight * model.mass / 2) * (dkj_z + dkj_zc)
                     dkj_p = np.sqrt(1 / (2 * model.pq_weight * model.mass)) * 1.0j * (dkj_z - dkj_zc)
@@ -226,7 +226,7 @@ def update_active_surface_fssh(state, model, params):
                             np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))) > 1e-2:
                         raise Exception('dkj_p Nonadiabatic coupling is complex, needs gauge fixing!')
                     delta_z = dkj_zc
-                    state.z_coord[nt, i], hopped = model.hop(state, state.z_coord[nt, i], delta_z, ev_diff)
+                    state.z_coord[nt, i], hopped = model.hop(state, model, params, state.z_coord[nt, i], delta_z, ev_diff)
                     if hopped:  # adjust active surfaces if a hop has occurred
                         state.act_surf_ind[nt, i] = k
                         state.act_surf[nt, i] = np.zeros_like(state.act_surf[nt, i])
@@ -239,7 +239,7 @@ def update_dm_db_fssh(state, model, params):
     state.dm_adb = np.einsum('tbi,tbj->tbij', state.wf_adb, np.conj(state.wf_adb), optimize='greedy')
     for nt in range(params.batch_size):
         np.einsum('...jj->...j', state.dm_adb[nt])[...] = state.act_surf[nt]
-    if model.sh_deterministic:
+    if params.sh_deterministic:
         state.dm_adb = np.einsum('tbb->tb', state.dm_adb_0, optimize='greedy')[:, :, np.newaxis, np.newaxis] * state.dm_adb
     else:
         state.dm_adb = state.dm_adb / params.num_branches
@@ -272,7 +272,7 @@ def update_branch_pair_eigs(state, model, params):
         for i in range(params.num_branches):
             for j in range(i, params.num_branches):
                 z_coord_nt_ij = (state.z_coord[nt, i] + state.z_coord[nt, j]) / 2
-                state.eigvals_branch_pair[nt, i, j], state.eigvecs_branch_pair[nt, i, j] = np.linalg.eigh(h_q + model.h_qc(state, z_coord_nt_ij))
+                state.eigvals_branch_pair[nt, i, j], state.eigvecs_branch_pair[nt, i, j] = np.linalg.eigh(h_q + model.h_qc(state, model, params, z_coord_nt_ij))
                 if i != j:
                     state.eigvals_branch_pair[nt, j, i], state.eigvecs_branch_pair[nt, j, i] = state.eigvals_branch_pair[nt, i, j], state.eigvecs_branch_pair[nt, i, j]
     return state, model, params
@@ -285,12 +285,12 @@ def analytic_gauge_fix_branch_pair_eigs(state, model, params):
             for d in range(params.num_branches):
                 # compute initial gauge shift for real-valued derivative couplings
                 z_coord_ij = (state.z_coord[n,b] + state.z_coord[n,d])/2
-                der_couple_q_phase, der_couple_p_phase = (auxiliary.get_der_couple_phase(state, z_coord_ij, state.eigvals_branch_pair[n, b, d], state.eigvecs_branch_pair[n, b, d]))
+                der_couple_q_phase, der_couple_p_phase = (auxiliary.get_der_couple_phase(state, model, params, z_coord_ij, state.eigvals_branch_pair[n, b, d], state.eigvecs_branch_pair[n, b, d]))
                 # execute phase shift
                 state.eigvecs_branch_pair[n, b, d] = np.copy(np.matmul(state.eigvecs_branch_pair[n, b, d], np.diag(np.conjugate(der_couple_q_phase))))
                 # recalculate phases and check that they are zero
                 der_couple_q_phase, der_couple_p_phase = (
-                    auxiliary.get_der_couple_phase(state, z_coord_ij, state.eigvals_branch_pair[n, b, d], state.eigvecs_branch_pair[n, b, d]))
+                    auxiliary.get_der_couple_phase(state, model, params, z_coord_ij, state.eigvals_branch_pair[n, b, d], state.eigvecs_branch_pair[n, b, d]))
                 if np.sum(np.abs(np.imag(der_couple_q_phase)) ** 2 + np.abs(np.imag(der_couple_p_phase)) ** 2) > 1e-10:
                     # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
                     # and/or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
@@ -360,8 +360,8 @@ def update_active_surface_cfssh(state, model, params):
                     ev_diff = eval_j - eval_k
                     # dkj_q is wrt q dkj_p is wrt p.
                     #dkj_z, dkj_zc = auxiliary.get_der_couple(evec_k, evec_j, ev_diff, state.z_coord[nt, i], model)
-                    dkj_z = model.dh_qc_dz(state, state.z_coord, evec_k, evec_j) / (ev_diff)
-                    dkj_zc = model.dh_qc_dzc(state, state.z_coord, evec_k, evec_j) / (ev_diff)
+                    dkj_z = model.dh_qc_dz(state, model, params, state.z_coord, evec_k, evec_j) / (ev_diff)
+                    dkj_zc = model.dh_qc_dzc(state, model, params, state.z_coord, evec_k, evec_j) / (ev_diff)
                     # check that nonadiabatic couplings are real-valued
                     dkj_q = np.sqrt(model.pq_weight * model.mass / 2) * (dkj_z + dkj_zc)
                     dkj_p = np.sqrt(1 / (2 * model.pq_weight * model.mass)) * 1.0j * (dkj_z - dkj_zc)
@@ -374,7 +374,7 @@ def update_active_surface_cfssh(state, model, params):
                             np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))) > 1e-2:
                         raise Exception('dkj_p Nonadiabatic coupling is complex, needs gauge fixing!')
                     delta_z = dkj_zc
-                    state.z_coord[nt, i], hopped = model.hop(state, state.z_coord[nt, i], delta_z, ev_diff)
+                    state.z_coord[nt, i], hopped = model.hop(state, model, params, state.z_coord[nt, i], delta_z, ev_diff)
                     if hopped:  # adjust active surfaces if a hop has occured
                         state.act_surf_ind[nt, i] = k
                         state.act_surf[nt, i] = np.zeros_like(state.act_surf[nt, i])
@@ -387,7 +387,7 @@ def gauge_fix_branch_pair_eigs(state, model, params):
     # fix the gauge of each set of branches in each batch of trajectories
     for nt in range(params.batch_size):
         state.eigvals_branch_pair[nt], state.eigvecs_branch_pair[nt] = \
-        auxiliary.sign_adjust_branch_pair_eigs(state,state.z_coord[nt], state.eigvecs_branch_pair[nt],
+        auxiliary.sign_adjust_branch_pair_eigs(state, model, params, state.z_coord[nt], state.eigvecs_branch_pair[nt],
             state.eigvals_branch_pair[nt], state.eigvecs_branch_pair_previous[nt])
     return state, model, params
 
@@ -396,7 +396,7 @@ def update_classical_overlap(state, model, params):
     # calculate overlap matrix
     state.overlap = np.zeros((params.batch_size, params.num_branches, params.num_branches))
     for nt in range(params.batch_size):
-        state.overlap[nt] = auxiliary.get_classical_overlap(state, state.z_coord[nt])
+        state.overlap[nt] = auxiliary.get_classical_overlap(state, model, params, state.z_coord[nt])
     return state, model, params
 
 
@@ -422,7 +422,7 @@ def update_dm_db_cfssh(state, model, params):
                 a_i_0 = act_surf_ind_0_nt[i]
                 a_j_0 = act_surf_ind_0_nt[j]
                 if a_i != a_j and a_i == a_i_0 and a_j == a_j_0 and np.abs(state.dm_adb_0[nt][a_i, a_j]) > 1e-12:
-                    if model.sh_deterministic:
+                    if params.sh_deterministic:
                         prob_fac = 1
                     else:
                         prob_fac = 1 / (state.dm_adb_0[nt][a_i, a_i] * state.dm_adb_0[nt][a_j, a_j] * (
@@ -439,7 +439,7 @@ def update_dm_db_cfssh(state, model, params):
                     dm_adb_coh[nt] = dm_adb_coh[nt] + dm_adb_coh_ij
                     dm_adb_coh_ij = np.zeros((model.num_states, model.num_states), dtype=complex)
 
-        if model.sh_deterministic:
+        if params.sh_deterministic:
             rho_diag = np.diag(state.dm_adb_0[nt]).reshape((-1, 1)) * act_surf_nt
             np.einsum('...jj->...j', state.dm_adb[nt], optimize='greedy')[...] = rho_diag
         else:
@@ -447,7 +447,7 @@ def update_dm_db_cfssh(state, model, params):
             for n in range(params.num_branches):
                 state.dm_adb[n, state.act_surf_ind[n], state.act_surf_ind[n]] += 1 # This is probably wrong with the indices
     state.dm_db = auxiliary.mat_adb_to_db(state.dm_adb, state.eigvecs)
-    if model.sh_deterministic:
+    if params.sh_deterministic:
         state.dm_db = (state.dm_db + (dm_db_coh[:, np.newaxis, :, :] / params.num_branches))
     else:
         state.dm_db = (state.dm_db + (dm_db_coh[:, np.newaxis, :, :] / params.num_branches)) / params.num_branches

@@ -3,21 +3,21 @@ import qclab.auxiliary as auxiliary
 
 
 def dynamics(model, recipe, traj):
-    # initialize the timestep axes
-    model = auxiliary.initialize_timesteps(model)
-    # load defaults of recipe class
-    model = recipe.defaults(model)
-    # first initialize state variable
-    state = recipe.state
     # get simulation parameters 
     params = recipe.params
+    # load defaults
+    model, params = recipe.defaults(model, params)
+    # initialize the timestep axes
+    params = auxiliary.initialize_timesteps(params)
+    # first initialize state variable
+    state = recipe.state
     # set initial time index to zero
     state.t_ind = 0
     # attach trajectory object to the state variable
     state.traj = traj
     # execute functions in the initialize procedure
     for func in recipe.initialize:
-        state = func(state)
+        state, model, params = func(state, model, params)
     # begine loop over timesteps
     for t_ind in params.tdat_n:
         # detect output timesteps
@@ -39,7 +39,7 @@ def dynamics(model, recipe, traj):
             state.traj = traj
         # evaluate the functions in the update procedure
         for func in recipe.update:
-            state = func(state)
+            state, model, params = func(state, model, params)
         # increment the timestep index
         state.t_ind = t_ind + 1
     # attach a time axis to the trajectory object

@@ -17,31 +17,31 @@ class SpinBosonModel:
         self.num_states = 2  # number of states
         self.num_classical_coordinates = self.A
 
-        def dh_qc_dz(state, z_coord, psi_a, psi_b):
-            out = np.conj(psi_a[...,0][...,np.newaxis])*psi_b[...,0][...,np.newaxis]*(state.model.g * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight)))
-            out += np.conj(psi_a[...,1][...,np.newaxis])*psi_b[...,1][...,np.newaxis]*(-state.model.g * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight)))
+        def dh_qc_dz(state, model, params, z_coord, psi_a, psi_b):
+            out = np.conj(psi_a[...,0][...,np.newaxis])*psi_b[...,0][...,np.newaxis]*(model.g * np.sqrt(1 / (2 * model.mass * model.pq_weight)))
+            out += np.conj(psi_a[...,1][...,np.newaxis])*psi_b[...,1][...,np.newaxis]*(-model.g * np.sqrt(1 / (2 * model.mass * model.pq_weight)))
             return out
 
-        def dh_qc_dzc(state, z_coord, psi_a, psi_b):
-            return np.conj(dh_qc_dz(state, z_coord, psi_a, psi_b))
+        def dh_qc_dzc(state, model, params, z_coord, psi_a, psi_b):
+            return np.conj(dh_qc_dz(state, model, params, z_coord, psi_a, psi_b))
 
-        def h_q(state):
-            out = np.zeros((state.model.num_states, state.model.num_states), dtype=complex)
-            out[0, 0] = state.model.E
-            out[1, 1] = -state.model.E
-            out[0, 1] = state.model.V
-            out[1, 0] = state.model.V
+        def h_q(state, model, params):
+            out = np.zeros((model.num_states, model.num_states), dtype=complex)
+            out[0, 0] = model.E
+            out[1, 1] = -model.E
+            out[0, 1] = model.V
+            out[1, 0] = model.V
             return out[np.newaxis, np.newaxis]
 
-        def h_qc(state, z_coord):
+        def h_qc(state, model, params, z_coord):
             h_qc_out = np.zeros(
-                (*np.shape(z_coord)[:-1], state.model.num_states, state.model.num_states),
+                (*np.shape(z_coord)[:-1], model.num_states, model.num_states),
                 dtype=complex)
             h_qc_out[..., 0, 0] = np.sum(
-                state.model.g[...,:] * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight))[...,:] * (
+                model.g[...,:] * np.sqrt(1 / (2 * model.mass * model.pq_weight))[...,:] * (
                         z_coord + np.conj(z_coord)), axis=-1)
             h_qc_out[..., 1, 1] = np.sum(
-                -state.model.g[...,:] * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight))[...,:] * (
+                -model.g[...,:] * np.sqrt(1 / (2 * model.mass * model.pq_weight))[...,:] * (
                         z_coord + np.conj(z_coord)), axis=-1)
             return h_qc_out
 
