@@ -4,8 +4,7 @@ import argparse
 
 
 class MeanFieldDynamicsRecipe:
-    def __init__(self, model):
-        self.model = model
+    def __init__(self):
         self.initialize = [
             ingredients.initialize_wf_db,
             ingredients.initialize_z_coord,
@@ -26,35 +25,41 @@ class MeanFieldDynamicsRecipe:
                              'e_q',
                              ]
         self.state = argparse.Namespace()
+        self.params = argparse.Namespace()
 
         return
 
     @staticmethod
-    def defaults(model):
-        var_names = list(model.__dict__.keys())
-        defaults = {
+    def defaults(model, params):
+        params_var_names = list(params.__dict__.keys())
+        model_var_names = list(model.__dict__.keys())
+        params_defaults = {
+            'tmax': 10,
+            'dt_output': 0.1,
+            'dt': 0.01,
+            'num_branches': 1,
+        }
+        model_defaults = {
             'init_classical': auxiliary.harmonic_oscillator_boltzmann_init_classical,
             'h_c': auxiliary.harmonic_oscillator_h_c,
             'dh_c_dz': auxiliary.harmonic_oscillator_dh_c_dz,
             'dh_c_dzc': auxiliary.harmonic_oscillator_dh_c_dzc,
-            'tmax': 10,
-            'dt_output': 0.1,
-            'dt': 0.01,
             'temp': 1,
             'num_states': 2,
-            'num_branches': 1,
             'num_classical_coordinates': None
         }
-        for name in defaults.keys():
-            if not (name in list(var_names)):
-                model.__dict__[name] = defaults[name]
-        assert model.num_branches == 1
-        return model
-
+        for name in model_defaults.keys():
+            if not (name in list(model_var_names)):
+                model.__dict__[name] = model_defaults[name]
+        for name in params_defaults.keys():
+            if not (name in list(params_var_names)):
+                params.__dict__[name] = params_defaults[name]
+        assert params.num_branches == 1
+        return model, params
+    
 
 class FewestSwitchesSurfaceHoppingDynamicsRecipe:
-    def __init__(self, model):
-        self.model = model
+    def __init__(self):
         self.initialize = [
             ingredients.initialize_random_values,
             ingredients.initialize_wf_db,
@@ -90,38 +95,43 @@ class FewestSwitchesSurfaceHoppingDynamicsRecipe:
                              ]
 
         self.state = argparse.Namespace()
+        self.params = argparse.Namespace()
         return
-
     @staticmethod
-    def defaults(model):
-        var_names = list(model.__dict__.keys())
-        defaults = {
+    def defaults(model, params):
+        params_var_names = list(params.__dict__.keys())
+        model_var_names = list(model.__dict__.keys())
+        params_defaults = {
+            'tmax': 10,
+            'dt_output': 0.1,
+            'dt': 0.01,
+            'num_branches': model.num_states,
+            'sh_deterministic': True,
+            'gauge_fix': 0,
+        }
+        model_defaults = {
             'hop': auxiliary.harmonic_oscillator_hop,
             'init_classical': auxiliary.harmonic_oscillator_boltzmann_init_classical,
             'h_c': auxiliary.harmonic_oscillator_h_c,
             'dh_c_dz': auxiliary.harmonic_oscillator_dh_c_dz,
             'dh_c_dzc': auxiliary.harmonic_oscillator_dh_c_dzc,
-            'tmax': 10,
-            'dt_output': 0.1,
-            'dt': 0.01,
             'temp': 1,
             'num_states': 2,
-            'num_branches': model.num_states,
-            'sh_deterministic': True,
-            'gauge_fix': 0,
             'num_classical_coordinates': None
         }
-        for name in defaults.keys():
-            if not (name in list(var_names)):
-                model.__dict__[name] = defaults[name]
-        if model.sh_deterministic:
-            assert model.num_branches == model.num_states
-        return model
-
+        for name in model_defaults.keys():
+            if not (name in list(model_var_names)):
+                model.__dict__[name] = model_defaults[name]
+        for name in params_defaults.keys():
+            if not (name in list(params_var_names)):
+                params.__dict__[name] = params_defaults[name]
+        if params.sh_deterministic:
+            assert params.num_branches == model.num_states
+        return model, params
+    
 
 class CoherentFewestSwitchesSurfaceHoppingDynamicsRecipe:
-    def __init__(self, model):
-        self.model = model
+    def __init__(self):
         self.initialize = [
             ingredients.initialize_random_values,
             ingredients.initialize_wf_db,
@@ -168,38 +178,45 @@ class CoherentFewestSwitchesSurfaceHoppingDynamicsRecipe:
         ]
 
         self.state = argparse.Namespace()
+        self.params = argparse.Namespace()
         return
 
     @staticmethod
-    def defaults(model):
-        var_names = list(model.__dict__.keys())
-        defaults = {
+    def defaults(model, params):
+        params_var_names = list(params.__dict__.keys())
+        model_var_names = list(model.__dict__.keys())
+        params_defaults = {
+            'tmax': 10,
+            'dt_output': 0.1,
+            'dt': 0.01,
+            'num_branches': model.num_states,
+            'sh_deterministic': True,
+            'gauge_fix': 0,
+        }
+        model_defaults = {
             'hop': auxiliary.harmonic_oscillator_hop,
             'init_classical': auxiliary.harmonic_oscillator_boltzmann_init_classical,
             'h_c': auxiliary.harmonic_oscillator_h_c,
             'dh_c_dz': auxiliary.harmonic_oscillator_dh_c_dz,
             'dh_c_dzc': auxiliary.harmonic_oscillator_dh_c_dzc,
-            'tmax': 10,
-            'dt_output': 0.1,
-            'dt': 0.01,
             'temp': 1,
             'num_states': 2,
-            'num_branches': model.num_states,
-            'sh_deterministic': True,
-            'gauge_fix': 0,
             'num_classical_coordinates': None
         }
-        for name in defaults.keys():
-            if not (name in list(var_names)):
-                model.__dict__[name] = defaults[name]
-        if model.sh_deterministic:
-            assert model.num_branches == model.num_states
-        return model
+        for name in model_defaults.keys():
+            if not (name in list(model_var_names)):
+                model.__dict__[name] = model_defaults[name]
+        for name in params_defaults.keys():
+            if not (name in list(params_var_names)):
+                params.__dict__[name] = params_defaults[name]
+        if params.sh_deterministic:
+            assert params.num_branches == model.num_states
+        return model, params
+
 
 
 class ManyBodyMeanFieldDynamicsRecipe:
-    def __init__(self, sim):
-        self.sim = sim 
+    def __init__(self):
         self.initialize = [
                            ingredients.initialize_wf_db_mb,
                            ingredients.initialize_z_coord,
@@ -224,26 +241,34 @@ class ManyBodyMeanFieldDynamicsRecipe:
                              'rdm2',
                              ]
         self.state = argparse.Namespace()
+        self.params = argparse.Namespace()
         
         return
-    
-    def defaults(self, sim):
-        var_names = list(sim.__dict__.keys())
-        defaults = {
+    @staticmethod
+    def defaults(model, params):
+        params_var_names = list(params.__dict__.keys())
+        model_var_names = list(model.__dict__.keys())
+        params_defaults = {
+            'tmax': 10,
+            'dt_output': 0.1,
+            'dt': 0.01,
+            'num_branches': 1,
+        }
+        model_defaults = {
             'init_classical': auxiliary.harmonic_oscillator_boltzmann_init_classical,
             'h_c': auxiliary.harmonic_oscillator_h_c,
             'dh_c_dz': auxiliary.harmonic_oscillator_dh_c_dz,
             'dh_c_dzc': auxiliary.harmonic_oscillator_dh_c_dzc,
-            'tmax': 10,
-            'dt_output': 0.1,
-            'dt': 0.01,
             'temp': 1,
             'num_states': 2,
-            'num_branches': 1,
-            'num_classical_coordinates': None,
+            'num_particles':1,
+            'num_classical_coordinates': None
         }
-        for name in defaults.keys():
-            if not (name in list(var_names)):
-                sim.__dict__[name] = defaults[name]
-        assert sim.num_branches == 1
-        return sim
+        for name in model_defaults.keys():
+            if not (name in list(model_var_names)):
+                model.__dict__[name] = model_defaults[name]
+        for name in params_defaults.keys():
+            if not (name in list(params_var_names)):
+                params.__dict__[name] = params_defaults[name]
+        assert params.num_branches == 1
+        return model, params
