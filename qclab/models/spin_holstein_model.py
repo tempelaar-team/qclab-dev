@@ -20,32 +20,32 @@ class SpinHolsteinLatticeModel:
         self.init_classical = auxiliary.harmonic_oscillator_boltzmann_init_classical
         self.dh_c_dzc = auxiliary.harmonic_oscillator_dh_c_dzc
         
-        def dh_qc_dz(state, z_coord, psi_a, psi_b):
-            out = np.conj(psi_a[...,:int(state.model.num_states/2)]) * state.model.g * state.model.pq_weight[..., :] * psi_b[...,:int(state.model.num_states/2)] +\
-                np.conj(psi_a[...,int(state.model.num_states/2):]) * state.model.g * state.model.pq_weight[..., :] * psi_b[...,int(state.model.num_states/2):]
+        def dh_qc_dz(state, model, params, z_coord, psi_a, psi_b):
+            out = np.conj(psi_a[...,:int(model.num_states/2)]) * model.g * model.pq_weight[..., :] * psi_b[...,:int(model.num_states/2)] +\
+                np.conj(psi_a[...,int(model.num_states/2):]) * model.g * model.pq_weight[..., :] * psi_b[...,int(model.num_states/2):]
             return out
 
-        def dh_qc_dzc(state, z_coord, psi_a, psi_b):
+        def dh_qc_dzc(state, model, params, z_coord, psi_a, psi_b):
             return np.conj(dh_qc_dz(state, z_coord, psi_a, psi_b))
         
-        def h_q(state):
-                out = np.zeros((state.model.num_states, state.model.num_states), dtype=complex)
-                for n in range(int(state.model.num_states/2) - 1):
-                    out[n, n + 1] = -state.model.j
-                    out[n + 1, n] = -state.model.j
-                    out[n+int(state.model.num_states/2), n+int(state.model.num_states/2) + 1] = -state.model.j
-                    out[n+int(state.model.num_states/2) + 1, n+int(state.model.num_states/2)] = -state.model.j
+        def h_q(state, model, params):
+                out = np.zeros((model.num_states, model.num_states), dtype=complex)
+                for n in range(int(model.num_states/2) - 1):
+                    out[n, n + 1] = -model.j
+                    out[n + 1, n] = -model.j
+                    out[n+int(model.num_states/2), n+int(model.num_states/2) + 1] = -model.j
+                    out[n+int(model.num_states/2) + 1, n+int(model.num_states/2)] = -model.j
                 if not(open):
-                    out[0, int(state.model.num_states/2)-1] = -state.model.j
-                    out[int(state.model.num_states/2)-1, 0] = -state.model.j
-                    out[int(state.model.num_states/2), int(state.model.num_states)-1] = -state.model.j
-                    out[int(state.model.num_states)-1, int(state.model.num_states/2)] = -state.model.j
+                    out[0, int(model.num_states/2)-1] = -model.j
+                    out[int(model.num_states/2)-1, 0] = -model.j
+                    out[int(model.num_states/2), int(model.num_states)-1] = -model.j
+                    out[int(model.num_states)-1, int(model.num_states/2)] = -model.j
                 return out #+ np.identity(self.num_states)*2*self.j + np.identity(self.num_states)*(0.5/0.0252488)
 
-        def h_qc(state,z_coord):
-            h_qc_out = np.zeros((state.model.batch_size, state.model.num_branches,
-                                 state.model.num_states, state.model.num_states), dtype=complex)
-            h_qc_diag = state.model.g * state.model.pq_weight[np.newaxis, :] * (z_coord + np.conj(z_coord))
+        def h_qc(state, model, params,z_coord):
+            h_qc_out = np.zeros((model.batch_size, model.num_branches,
+                                 model.num_states, model.num_states), dtype=complex)
+            h_qc_diag = model.g * model.pq_weight[np.newaxis, :] * (z_coord + np.conj(z_coord))
             np.einsum('...jj->...j', h_qc_out)[...] =  np.concatenate((h_qc_diag, h_qc_diag), axis=-1)#h_qc_diag
             return h_qc_out
         

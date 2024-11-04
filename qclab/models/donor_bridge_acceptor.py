@@ -22,39 +22,39 @@ class DonorBridgeAcceptorModel:
         self.num_classical_coordinates = int(self.A * 3)
         self.h_q_params = (self.E_D, self.E_B, self.E_A, self.V)
 
-        def dh_qc_dz(state, z_coord, psi_a, psi_b):
-            dz_mat = np.zeros((state.model.num_states * state.model.A,
-                               state.model.num_states, state.model.num_states), dtype=complex)
-            dz_mat[0:state.model.A, 0, 0] = \
-                (state.model.g * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight)))[0:state.model.A]
-            dz_mat[state.model.A:2 * self.A, 1, 1] = \
-                (self.g * np.sqrt(1 / (2 * self.mass * state.model.pq_weight)))[state.model.A:2 * state.model.A]
-            dz_mat[2 * state.model.A:3 * state.model.A, 2, 2] = \
-                (state.model.g * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight)))[2 * state.model.A:3 * state.model.A]
+        def dh_qc_dz(state, model, params, z_coord, psi_a, psi_b):
+            dz_mat = np.zeros((model.num_states * model.A,
+                               model.num_states, model.num_states), dtype=complex)
+            dz_mat[0:model.A, 0, 0] = \
+                (model.g * np.sqrt(1 / (2 * model.mass * model.pq_weight)))[0:model.A]
+            dz_mat[model.A:2 * self.A, 1, 1] = \
+                (self.g * np.sqrt(1 / (2 * self.mass * model.pq_weight)))[model.A:2 * model.A]
+            dz_mat[2 * model.A:3 * model.A, 2, 2] = \
+                (model.g * np.sqrt(1 / (2 * model.mass * model.pq_weight)))[2 * model.A:3 * model.A]
             return np.einsum('...i,cij,...j->...c', np.conj(psi_a), dz_mat, psi_b, optimize='greedy')
 
-        def dh_qc_dzc(state, z_coord, psi_a, psi_b):
-            return np.conj(dh_qc_dz(state, z_coord, psi_a, psi_b))
+        def dh_qc_dzc(state, model, params, z_coord, psi_a, psi_b):
+            return np.conj(dh_qc_dz(state, model, params, z_coord, psi_a, psi_b))
 
-        def h_q(state):
-            out = np.zeros((state.model.num_states, state.model.num_states), dtype=complex)
-            out[0, 0] = state.model.E_D
-            out[1, 1] = state.model.E_B
-            out[2, 2] = state.model.E_A
-            out[0, 1] = state.model.V
-            out[1, 0] = state.model.V
-            out[1, 2] = state.model.V
-            out[2, 1] = state.model.V
+        def h_q(state, model, params):
+            out = np.zeros((model.num_states, model.num_states), dtype=complex)
+            out[0, 0] = model.E_D
+            out[1, 1] = model.E_B
+            out[2, 2] = model.E_A
+            out[0, 1] = model.V
+            out[1, 0] = model.V
+            out[1, 2] = model.V
+            out[2, 1] = model.V
             return out
 
-        def h_qc(state, z_coord):
-            h_qc_out = np.zeros((state.model.batch_size, state.model.num_branches,
-                                 state.model.num_states, state.model.num_states), dtype=complex)
-            mel = (state.model.g[..., :] * np.sqrt(1 / (2 * state.model.mass * state.model.pq_weight))[..., :]
+        def h_qc(state, model, params, z_coord):
+            h_qc_out = np.zeros((model.batch_size, model.num_branches,
+                                 model.num_states, model.num_states), dtype=complex)
+            mel = (model.g[..., :] * np.sqrt(1 / (2 * model.mass * model.pq_weight))[..., :]
                    * (z_coord + np.conj(z_coord)))
-            h_qc_out[..., 0, 0] = np.sum(mel[..., 0:state.model.A], axis=-1)
-            h_qc_out[..., 1, 1] = np.sum(mel[..., state.model.A:2 * state.model.A], axis=-1)
-            h_qc_out[..., 2, 2] = np.sum(mel[..., 2 * state.model.A:3 * state.model.A], axis=-1)
+            h_qc_out[..., 0, 0] = np.sum(mel[..., 0:model.A], axis=-1)
+            h_qc_out[..., 1, 1] = np.sum(mel[..., model.A:2 * model.A], axis=-1)
+            h_qc_out[..., 2, 2] = np.sum(mel[..., 2 * model.A:3 * model.A], axis=-1)
             return h_qc_out
 
         self.dh_qc_dz = dh_qc_dz

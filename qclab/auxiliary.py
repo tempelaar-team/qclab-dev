@@ -171,12 +171,12 @@ def sign_adjust_branch_pair_eigs(state, model, params, z_coord, eigvecs_branch_p
 
 def get_classical_overlap(state, model, params, z_coord):
     out_mat = np.zeros((len(z_coord), len(z_coord)))
-    zc_branch = np.conjugate(z_coord)
-    q_branch = (1 / np.sqrt(2 * model.mass * model.pq_weight)) * (z_coord + zc_branch)
-    p_branch = -1.0j * np.sqrt(model.pq_weight * model.mass / 2) * (z_coord - zc_branch)
+    zc_coord = np.conjugate(z_coord)
+    q_coord = (1 / np.sqrt(2 * model.mass * model.pq_weight)) * (z_coord + zc_coord)
+    p_coord = -1.0j * np.sqrt(model.pq_weight * model.mass / 2) * (z_coord - zc_coord)
     for i in range(len(z_coord)):
         for j in range(len(z_coord)):
-            out_mat[i, j] = np.exp(-(1 / 2) * np.sum(np.abs((p_branch[i] - p_branch[j]) * (q_branch[i] - q_branch[j]))))
+            out_mat[i, j] = np.exp(-(1 / 2) * np.sum(np.abs((p_coord[i] - p_coord[j]) * (q_coord[i] - q_coord[j]))))
     return out_mat
 
 
@@ -280,7 +280,7 @@ def harmonic_oscillator_focused_init_classical(model, seed=None):
 
 
 def harmonic_oscillator_h_c(state, model, params, z_coord):
-    return np.real(np.sum(model.pq_weight[..., :] * np.conj(state.z_coord) * state.z_coord, axis=(-1)))
+    return np.real(np.sum(model.w[..., :] * np.conj(state.z_coord) * state.z_coord, axis=(-1)))
 
 
 def harmonic_oscillator_dh_c_dz(state, model, params, z_coord):
@@ -289,7 +289,7 @@ def harmonic_oscillator_dh_c_dz(state, model, params, z_coord):
     :param z_coord: z coordinate in each branch
     :return:
     """
-    return model.pq_weight[np.newaxis, np.newaxis, :] * np.conj(z_coord)
+    return model.w[np.newaxis, np.newaxis, :] * np.conj(z_coord)
 
 
 def harmonic_oscillator_dh_c_dzc(state, model, params, z_coord):
@@ -298,7 +298,8 @@ def harmonic_oscillator_dh_c_dzc(state, model, params, z_coord):
     :param z_coord: z coordinate in each branch
     :return:
     """
-    return model.pq_weight[np.newaxis, np.newaxis, :] * z_coord
+    return model.w[np.newaxis, np.newaxis, :] * z_coord
+
 
 
 ############################################################

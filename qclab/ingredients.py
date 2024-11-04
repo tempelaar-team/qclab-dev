@@ -1,5 +1,8 @@
 import numpy as np
 import qclab.auxiliary as auxiliary
+import copy
+import pyscf
+from pyscf import gto, scf, ci, grad, nac
 
 
 ############################################################
@@ -501,3 +504,108 @@ def update_rdm2(state, model, params):
 
 
     
+
+
+
+############################################################
+#              AB INITIO MEAN-FIELD DYNAMICS              #
+############################################################
+
+
+def initialize_wf_adb_ab_initio(state, model, params):
+    state.wf_adb = (np.zeros((params.batch_size, params.num_branches, model.num_states), dtype=complex)
+                   + model.wf_adb[np.newaxis, :])
+    return state, model, params
+
+
+def update_quantum_force_wf_adb(state, model, params):
+    state.quantum_force = model.dh_qc_dzc(state, model, params, state.z_coord, state.wf_adb, state.wf_adb)
+    return state, model, params 
+
+
+def update_wf_adb_rk4(state, model, params):
+    # evolve wf_db using an RK4 solver
+    state.wf_adb = auxiliary.rk4_q(state.h_quantum, state.wf_adb, params.dt)
+    print(np.sum(np.abs(state.h_quantum - np.einsum('tbij->tbji',np.conj(state.h_quantum)))))
+    return state, model, params
+
+def update_ab_initio_ham_prev(state, model, params):
+    state.ab_initio_hams_posthf_prev = copy.copy(state.ab_initio_hams_posthf)
+    state.ab_initio_hams_mf_prev = copy.copy(state.ab_initio_hams_mf)
+    return state, model, params
+
+def update_q_coord(state, model, params):
+    state.q_coord = np.sum(np.real(state.z_coord + np.conj(state.z_coord))/np.sqrt(2*model.mass*model.pq_weight),axis=(0,1))
+    #print(state.q_coord.reshape(model.num_atoms, 3))
+    print(state.t_ind/len(params.tdat_n), np.sum(np.abs(np.sum(state.wf_adb, axis=(0,1)))**2))
+    return state, model, params
+
+def update_ab_initio_ham(state, model, params):
+    ab_initio_hams_posthf = np.zeros((params.batch_size, params.num_branches), dtype=object)
+    ab_initio_hams_mf = np.zeros((params.batch_size, params.num_branches), dtype=object)
+    for traj in range(params.batch_size):
+        for branch in range(params.num_branches):
+            q_coord = np.real((1 / np.sqrt(2 * model.mass * model.pq_weight)) * (state.z_coord[traj, branch] + np.conj(state.z_coord[traj, branch])))
+            q_coord = q_coord.reshape((model.num_atoms, 3))
+            atom_coords = [['H', tuple(q_coord[n])] for n in range(model.num_atoms)]
+            mol = pyscf.gto.M(atom = atom_coords, basis=model.basis)
+            mol.verbose=0
+            mf = pyscf.scf.RHF(mol).run()
+            myci = pyscf.ci.CISD(mf)
+            #myci = pyscf.fci.FCI(mf)
+            myci.nroots = model.num_states
+            myci.run()
+            ab_initio_hams_posthf[traj][branch] = myci
+            ab_initio_hams_mf[traj][branch] = mf
+
+
+    state.ab_initio_hams_posthf = ab_initio_hams_posthf
+    state.ab_initio_hams_mf = ab_initio_hams_mf
+    return state, model, params 
+
+def update_diag_eq(state, model, params):
+    state.diag_eq = np.diag(np.sum(state.h_quantum, axis=(0,1)))
+    return state, model, params
+
+
+from functools import reduce
+def sort_surfaces(state, model, params):
+    for traj in range(params.batch_size):
+        for branch in range(params.num_branches):
+            myci = state.ab_initio_hams_posthf[traj][branch]
+            myci_prev = state.ab_initio_hams_posthf_prev[traj][branch]
+            #eris = myci.ao2mo()
+            mf = state.ab_initio_hams_mf[traj][branch]
+            mf_prev = state.ab_initio_hams_mf_prev[traj][branch]
+            s12 = pyscf.gto.intor_cross('cint1e_ovlp_sph', mf.mol, mf_prev.mol)
+            s12 = reduce(np.dot, (mf.mo_coeff.T, s12, mf_prev.mo_coeff))
+            nmo = mf_prev.mo_energy.size 
+            nocc = mf.mol.nelectron // 2
+            if model.num_states > 1:
+                overlap_mat = np.zeros((model.num_states, model.num_states), dtype=complex)
+                for n in range(model.num_states):
+                    for m in range(model.num_states):
+                        #overlap_mat[m, n] = pyscf.ci.cisd.overlap(myci.ci[m], myci_prev.ci[n], nmo, nocc, s12)
+                        overlap_mat[m, n] = pyscf.fci.addons.overlap(myci.ci[m], myci_prev.ci[n], myci.norb, myci.nelec)
+              
+                order = np.argmax(np.abs(overlap_mat), axis=1)
+                #print(np.round(np.abs(overlap_mat)**2,1))
+                #print(np.round(np.diag(out_mat[traj,branch]),2))
+                #print(np.round(np.abs(overlap_mat)**2,1)[:,order][order,:])
+                #out_mat[traj,branch] = out_mat[traj, branch][:,order][order,:]
+                #print(np.round(np.diag(out_mat[traj,branch]),2))
+                state.ab_initio_hams_posthf[traj][branch].ci = list(np.array(state.ab_initio_hams_posthf[traj][branch].ci)[order])
+    return state, model, params
+
+
+
+
+############################################################
+#           MANYBODY SURFACE HOPPING INGREDIENTS          #
+############################################################
+
+
+def initialize_wf_adb_mb(state, model, params):
+    state.wf_adb_MB = np.einsum('...ji->...ij',auxiliary.vec_db_to_adb(np.einsum('...ij->...ji',state.wf_db_MB,optimize='greedy'), state.eigvecs),optimize='greedy')
+    return state, model, params 
+
