@@ -1,6 +1,7 @@
 from numba import njit
 import numpy as np
 import dill as pickle
+import h5py
 
 
 ############################################################
@@ -345,8 +346,8 @@ def evaluate_observables_t(recipe):
 
 
 def generate_seeds(params, data):
-    if len(data.seed_list) > 0:
-        new_seeds = np.max(data.seed_list) + np.arange(params.num_trajs, dtype=int) + 1
+    if len(data.data_dic['seeds']) > 0:
+        new_seeds = np.max(data.data_dic['seeds']) + np.arange(params.num_trajs, dtype=int) + 1
     else:
         new_seeds = np.arange(params.num_trajs, dtype=int)
     return new_seeds
@@ -370,7 +371,7 @@ class Trajectory:
     
 class Data:
     def __init__(self):
-        self.data_dic = {}
+        self.data_dic = {'seeds':np.array([],dtype=int)}
     def add_data(self, traj_obj):  # adds data from a traj_obj
         for key, val in traj_obj.data_dic.items():
             if key in self.data_dic:
@@ -387,3 +388,48 @@ class Data:
                 self.data_dic[key] = val
         self.data_dic['seeds'] = np.concatenate((self.data_dic['seeds'], data_obj.data_dic['seeds']))
         return
+    def save_as_h5(self, filename):
+        with h5py.File(filename, 'w') as h5file:
+            self._recursive_save(h5file, '/', self.data_dic)
+        return 
+    
+    def load_from_h5(self, filename):
+        with h5py.File(filename, 'r') as h5file:
+            self._recursive_load(h5file, '/', self.data_dic)
+
+    def _recursive_save(self, h5file, path, dic):
+        """
+         
+        I got this from google Gemini, we should validate it
+        Recursively saves dictionary contents to an HDF5 group.
+
+        Args:
+            h5file (h5py.File): The HDF5 file object.
+            path (str): The path to the group in the HDF5 file.
+            dic (dict): The dictionary to save.
+        """
+        for key, item in dic.items():
+            if isinstance(item, (np.ndarray, np.int64, np.float64, str, bytes)):
+                h5file[path + key] = item
+            elif isinstance(item, dict):
+                self._recursive_save(h5file, path + key + '/', item)
+            elif isinstance(item, list):
+                h5file[path + key] = np.array(item)
+            else:
+                raise ValueError(f"Cannot save {type(item)} type")
+
+    def _recursive_load(self, h5file, path, dic):
+        """
+        Recursively loads dictionary contents from an HDF5 group.
+
+        Args:
+            h5file (h5py.File): The HDF5 file object.
+            path (str): The path to the group in the HDF5 file.
+            data_dict (dict): The dictionary to load the data into.
+        """
+        for key, item in h5file[path].items():
+            if isinstance(item, h5py._hl.dataset.Dataset):
+                dic[key] = item[()]
+            elif isinstance(item, h5py._hl.group.Group):
+                dic[key] = {}
+                self._recursive_load(h5file, path + key + '/', dic[key])
