@@ -475,7 +475,7 @@ def initialize_wf_db_mb(state, model, params):
 def update_quantum_force_wf_db_mbmf(state, model, params):
     state.quantum_force = np.zeros((params.batch_size, params.num_branches, model.num_classical_coordinates), dtype=complex)
     for n in range(model.num_particles):
-        state.quantum_force += model.dh_qc_dzc(state, state.z_coord, state.wf_db_MB[..., n], state.wf_db_MB[..., n])
+        state.quantum_force += model.dh_qc_dzc(state, model, params, state.z_coord, state.wf_db_MB[..., n], state.wf_db_MB[..., n])
     return state, model, params
 
 
@@ -550,9 +550,15 @@ def update_ab_initio_ham(state, model, params):
             atom_coords = [['H', tuple(q_coord[n])] for n in range(model.num_atoms)]
             mol = pyscf.gto.M(atom = atom_coords, basis=model.basis)
             mol.verbose=0
-            mf = pyscf.scf.RHF(mol).run()
-            myci = pyscf.ci.CISD(mf)
-            #myci = pyscf.fci.FCI(mf)
+            if model.method == 'CISD':
+                mf = pyscf.scf.RHF(mol).run()
+                myci = pyscf.ci.CISD(mf)
+            if model.method == 'UCISD':
+                mf = pyscf.scf.UHF(mol).run()
+                myci = pyscf.ci.UCISD(mf)
+            if model.method == 'FCI':
+                mf = pyscf.scf.RHF(mol).run()
+                myci = pyscf.fci.FCI(mf)
             myci.nroots = model.num_states
             myci.run()
             ab_initio_hams_posthf[traj][branch] = myci
@@ -577,16 +583,18 @@ def sort_surfaces(state, model, params):
             #eris = myci.ao2mo()
             mf = state.ab_initio_hams_mf[traj][branch]
             mf_prev = state.ab_initio_hams_mf_prev[traj][branch]
-            s12 = pyscf.gto.intor_cross('cint1e_ovlp_sph', mf.mol, mf_prev.mol)
-            s12 = reduce(np.dot, (mf.mo_coeff.T, s12, mf_prev.mo_coeff))
+            if model.method == 'CISD':
+                s12 = pyscf.gto.intor_cross('cint1e_ovlp_sph', mf.mol, mf_prev.mol)
+                s12 = reduce(np.dot, (mf.mo_coeff.T, s12, mf_prev.mo_coeff))
             nmo = mf_prev.mo_energy.size 
             nocc = mf.mol.nelectron // 2
             if model.num_states > 1:
                 overlap_mat = np.zeros((model.num_states, model.num_states), dtype=complex)
                 for n in range(model.num_states):
                     for m in range(model.num_states):
-                        #overlap_mat[m, n] = pyscf.ci.cisd.overlap(myci.ci[m], myci_prev.ci[n], nmo, nocc, s12)
-                        overlap_mat[m, n] = pyscf.fci.addons.overlap(myci.ci[m], myci_prev.ci[n], myci.norb, myci.nelec)
+                        if model.method == 'CISD':
+                            overlap_mat[m, n] = pyscf.ci.cisd.overlap(myci.ci[m], myci_prev.ci[n], nmo, nocc, s12)
+                        #overlap_mat[m, n] = pyscf.fci.addons.overlap(myci.ci[m], myci_prev.ci[n], myci.norb, myci.nelec, s12)
               
                 order = np.argmax(np.abs(overlap_mat), axis=1)
                 #print(np.round(np.abs(overlap_mat)**2,1))

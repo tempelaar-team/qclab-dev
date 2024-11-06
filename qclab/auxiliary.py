@@ -371,14 +371,13 @@ class Trajectory:
 class Data:
     def __init__(self):
         self.data_dic = {}
-        self.seed_list = np.array([], dtype=int)
     def add_data(self, traj_obj):  # adds data from a traj_obj
         for key, val in traj_obj.data_dic.items():
             if key in self.data_dic:
                 self.data_dic[key] = self.data_dic[key] + val
             else:
                 self.data_dic[key] = val
-        self.seed_list = np.append(self.seed_list, traj_obj.seeds)
+        self.data_dic['seeds'] = np.append(self.data_dic['seeds'], traj_obj.seeds)
         return
     def sum_data(self, data_obj):  # adds data from a data_obj
         for key, val in data_obj.data_dic.items():
@@ -386,5 +385,5 @@ class Data:
                 self.data_dic[key] = self.data_dic[key] + val
             else:
                 self.data_dic[key] = val
-        self.seed_list = np.concatenate((self.seed_list, data_obj.seed_list))
+        self.data_dic['seeds'] = np.concatenate((self.data_dic['seeds'], data_obj.data_dic['seeds']))
         return

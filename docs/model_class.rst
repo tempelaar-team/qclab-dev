@@ -121,7 +121,13 @@ Physical System Attributes
 
 .. py:function:: model.dh_qc_dz[namespace, ndarray, ndarray, ndarray](state, z_coord, wf_a, wf_b)
 
-        Calculates the matrix element of the gradient of the quantum-classical interaction with respect to z_coord between wf_a and wf_b:  `<a| dH_{qc}/dz| b>`
+        Calculates the matrix element of the gradient of the quantum-classical interaction with respect to z_coord between wf_a and wf_b:  
+
+        .. math::
+
+                \langle a\vert \partial_{z_{i}}\hat{H}_{qc}(\mathbf{z}) \vert b\rangle
+
+
         By convention, the complex-conjugation of wf_a is performed internally.
 
         :param state:
@@ -133,7 +139,13 @@ Physical System Attributes
 
 .. py:function:: model.dh_qc_dzc[namespace, ndarray, ndarray, ndarray](state, z_coord, wf_a, wf_b)
 
-        Calculates the matrix element of the gradient of the quantum-classical interaction with respect to the conjugate z_coord between wf_a and wf_b:  `<a| dH_{qc}/dz*| b>`
+        Calculates the matrix element of the gradient of the quantum-classical interaction with respect to the conjugate z_coord between wf_a and wf_b:
+
+        .. math::
+
+                \langle a\vert \partial_{z^{*}_{i}}\hat{H}_{qc}(\mathbf{z}) \vert b\rangle
+
+
         By convention, the complex-conjugation of wf_a is performed internally.
 
         :param state:

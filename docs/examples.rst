@@ -115,6 +115,8 @@ The complete code is::
 
       from qclab.recipes import MeanFieldDynamicsRecipe
       recipe = MeanFieldDynamicsRecipe(model)
+      recipe.params.dt = 0.01 
+      
 
       from qclab.drivers.serial_driver import dynamics_serial
 
