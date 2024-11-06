@@ -78,3 +78,17 @@ while a parameter is a quantity used in the definition of the function.
 
 For example, the classical Hamiltonian has the variable z_coord and the parameters model.mass, model.qp_weight.
 Gradients of functions always inherit their variables.
+
+
+Add default wf_db 
+
+user specifies batch_size and num_trajs 
+
+automatically generate seeds, automatically add to existing seeds when given data object
+
+Separate model and recipe fully, only physical parameters belong in the model class, everything else in recipe. 
+
+determine if its possible to send a function a copy of state with updated z coord and if so make all ingredients depend on onl state, modle, params 
+
+
+seeds are read from the data/trajectory objects
