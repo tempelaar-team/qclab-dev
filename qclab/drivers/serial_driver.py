@@ -4,13 +4,16 @@ from tqdm import tqdm
 import numpy as np
 
 
-def dynamics_serial(recipe, model,seeds=None, ncpus=None, data=None):
+def dynamics_serial(recipe, model, seeds=None, ncpus=None, data=None):
     if data is None:
         data = auxiliary.Data()
     if seeds is None:
         seeds = auxiliary.generate_seeds(recipe.params, data)
+        num_trajs = recipe.params.num_trajs
+    else:
+        num_trajs = len(seeds)
     # partition the sees across each group of model.batch_size trajectories
-    num_sims = int(recipe.params.num_trajs / recipe.params.batch_size) + 1
+    num_sims = int(num_trajs / recipe.params.batch_size) + 1
     if ((num_sims - 1)*recipe.params.batch_size - recipe.params.num_trajs)<1e-3:
         num_sims = num_sims - 1
     for n in tqdm(range(num_sims)):
