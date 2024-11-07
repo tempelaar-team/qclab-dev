@@ -471,6 +471,11 @@ def initialize_wf_db_mb(state, model, params):
     return state, model, params
 
 
+def initialize_wf_db_mb_coeffs(state, model, params):
+    state.wf_db_MB_coeffs = np.zeros((params.batch_size, params.num_branches, model.num_SD),
+                                     dtype=complex) + model.wf_db_MB_coeffs[..., :]
+    return state, model, params
+
 
 def update_quantum_force_wf_db_mbmf(state, model, params):
     state.quantum_force = np.zeros((params.batch_size, params.num_branches, model.num_classical_coordinates), dtype=complex)
@@ -503,7 +508,49 @@ def update_rdm2(state, model, params):
     return state, model, params
 
 
-    
+############################################################
+#           MANYBODY MEAN FIELD ARPES INGREDIENTS          #
+############################################################
+
+
+def update_quantum_force_wf_db_mbmf_arpes(state, model, params):
+    if state.t_ind >= params.delay_ind:
+        qf_mat_1 = np.zeros(
+            (params.batch_size, params.num_branches, model.num_classical_coordinates, model.num_particles, model.num_particles),
+            dtype=complex)
+        for i in range(model.num_particles):
+            for j in range(model.num_particles):
+                qf_mat_1[..., i, j] = model.dh_qc_dzc(state, model, params, state.z_coord, state.wf_db_MB[..., i], state.wf_db_MB[..., j])
+                if i != j:
+                    qf_mat_1[..., i, j] *= -1
+        qf_mat = np.copy(qf_mat_1)
+        for n in range(model.num_SD):
+            qf_mat_1_tmp = np.copy(qf_mat_1)
+            qf_mat_1_tmp[..., n, n] *= 0
+            qf_mat[..., n, n] = np.einsum('...nn->...', qf_mat_1, optimize='greedy')
+        state.quantum_force = np.einsum('...n,...amn,...m->...a', np.conj(state.wf_db_MB_coeffs), qf_mat, state.wf_db_MB_coeffs, optimize='greedy')
+    else:
+        state.quantum_force = np.zeros((params.batch_size, params.num_branches, model.num_classical_coordinates), dtype=complex)
+        for n in range(model.num_particles):
+            state.quantum_force += model.dh_qc_dzc(state, model, params, state.z_coord, state.wf_db_MB[..., n], state.wf_db_MB[..., n])
+    return state, model, params
+
+
+def update_e_q_mbmf_arpes(state, model, params):
+    if state.t_ind >= params.delay_ind:
+        mat = 1 + 2 * np.identity(model.num_SD) - np.ones((model.num_SD, model.num_SD)) * 2
+        h_mat_1 = np.einsum('...in,...ij,...jm->...mn', np.conj(state.wf_db_MB), state.h_quantum, state.wf_db_MB, optimize='greedy') * mat
+        h_mat = np.copy(h_mat_1)
+        for n in range(model.num_SD):
+            h_mat_1_tmp = np.copy(h_mat_1)
+            h_mat_1_tmp[..., n, n] *= 0
+            h_mat[..., n, n] = np.einsum('...nn->...', h_mat_1, optimize='greedy')
+        state.e_q_traj = np.einsum('tbn,tbnm,tbm->t', np.conj(state.wf_db_MB_coeffs), h_mat, state.wf_db_MB_coeffs,optimize='greedy')
+        state.e_q = np.sum(state.e_q_traj)
+    else:
+        state.e_q_traj = np.einsum('tbin,tbij,tbjn->t', np.conj(state.wf_db_MB), state.h_quantum, state.wf_db_MB)
+        state.e_q = np.sum(state.e_q_traj)
+    return state, model, params
 
 
 
