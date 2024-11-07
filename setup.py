@@ -14,7 +14,7 @@ setup(
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,
         packages=find_packages(),
-        install_requires=['numpy','numba','ray','tqdm', 'scipy>=0.16', 'dill'], 
+        install_requires=['numpy','numba','ray','tqdm', 'scipy>=0.16', 'dill', 'pyscf', 'h5py'], 
         keywords=['surface hopping', 'mixed quantum-classical dynamics', 'theoretical chemistry', 'ehrenfest', 'python', 'first package'],
         classifiers= [
             "Development Status :: 3 - Alpha",
