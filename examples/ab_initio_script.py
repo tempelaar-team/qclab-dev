@@ -9,8 +9,8 @@ mol = gto.M(atom="H 0 0 0; H 0 0 2", basis="6-31g")
 init_momentum = np.array([[0, 0, 0], [0, 0, -1]])
 # Initialize the ab initio model providing the mol object, initial momentum, 
 # number of electronic states, and electronic structure theory method. 
-input_params = dict(pyscf_mol=mol, init_momentum=init_momentum, num_states=5, method="CISD")
-model = AbInitioModel(input_params)
+inputs = {"pyscf_mol":mol, "init_momentum":init_momentum, "num_states":5, "method":"CISD"}
+model = AbInitioModel(inputs)
 # Define an initial wavefunction in the adiabatic basis.
 model.wf_adb = np.zeros(model.num_states) + 0.0j
 model.wf_adb[0] = 1.0 + 0.0j
