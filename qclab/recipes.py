@@ -332,6 +332,7 @@ class ManyBodySurfaceHoppingRecipe:
 class AbInitioMeanFieldDynamicsRecipe:
     def __init__(self):
         self.initialize = [
+            ingredients.initialize_ab_initio_pyscf_mol,
             ingredients.initialize_wf_adb_ab_initio,
             ingredients.initialize_z_coord,
             ingredients.update_ab_initio_ham,
@@ -349,8 +350,8 @@ class AbInitioMeanFieldDynamicsRecipe:
                        ingredients.update_quantum_force_wf_adb,
                        ]
         self.output = [
-                       #ingredients.update_e_c,
-                       #ingredients.update_e_q_mf,
+                       ingredients.update_e_c,
+                       ingredients.update_e_q_ab_initio,
                        ingredients.update_q_coord,
                        ingredients.update_diag_eq,
                        ]
@@ -358,11 +359,14 @@ class AbInitioMeanFieldDynamicsRecipe:
                              'q_coord',
                              'wf_adb',
                              'diag_eq',
-                             #'e_c',
-                             #'e_q',
+                             'e_c',
+                             'e_q',
                              ]
         self.state = argparse.Namespace()
         self.params = argparse.Namespace()
+
+        self.params.num_trajs = 1
+        self.params.batch_size = 1
 
         return
 
@@ -375,6 +379,7 @@ class AbInitioMeanFieldDynamicsRecipe:
             'dt_output': 0.1,
             'dt': 0.01,
             'num_branches': 1,
+            'num_trajs':1,
         }
         model_defaults = {
             'init_classical': auxiliary.harmonic_oscillator_boltzmann_init_classical,

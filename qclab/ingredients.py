@@ -215,8 +215,8 @@ def update_active_surface_fssh(state, model, params):
                     ev_diff = eval_j - eval_k
                     # dkj_q is wrt q dkj_p is wrt p.
                     #dkj_z, dkj_zc = auxiliary.get_der_couple(state, state.z_coord, evec_k, evec_j, ev_diff)
-                    dkj_z = model.dh_qc_dz(state, model, params, state.z_coord, evec_k, evec_j) / (ev_diff)
-                    dkj_zc = model.dh_qc_dzc(state, model, params, state.z_coord, evec_k, evec_j) / (ev_diff)
+                    dkj_z = model.dh_qc_dz(state, model, params, state.z_coord[nt, i], evec_k, evec_j) / (ev_diff)
+                    dkj_zc = model.dh_qc_dzc(state, model, params, state.z_coord[nt, i], evec_k, evec_j) / (ev_diff)
                     # check that nonadiabatic couplings are real-valued
                     dkj_q = np.sqrt(model.pq_weight * model.mass / 2) * (dkj_z + dkj_zc)
                     dkj_p = np.sqrt(1 / (2 * model.pq_weight * model.mass)) * 1.0j * (dkj_z - dkj_zc)
@@ -559,6 +559,10 @@ def update_e_q_mbmf_arpes(state, model, params):
 ############################################################
 
 
+def initialize_ab_initio_pyscf_mol(state, model, params):
+    state.pyscf_mol = model.pyscf_mol
+    return state, model, params
+
 def initialize_wf_adb_ab_initio(state, model, params):
     state.wf_adb = (np.zeros((params.batch_size, params.num_branches, model.num_states), dtype=complex)
                    + model.wf_adb[np.newaxis, :])
@@ -573,7 +577,6 @@ def update_quantum_force_wf_adb(state, model, params):
 def update_wf_adb_rk4(state, model, params):
     # evolve wf_db using an RK4 solver
     state.wf_adb = auxiliary.rk4_q(state.h_quantum, state.wf_adb, params.dt)
-    print(np.sum(np.abs(state.h_quantum - np.einsum('tbij->tbji',np.conj(state.h_quantum)))))
     return state, model, params
 
 def update_ab_initio_ham_prev(state, model, params):
@@ -590,39 +593,67 @@ def update_q_coord(state, model, params):
 def update_ab_initio_ham(state, model, params):
     ab_initio_hams_posthf = np.zeros((params.batch_size, params.num_branches), dtype=object)
     ab_initio_hams_mf = np.zeros((params.batch_size, params.num_branches), dtype=object)
+    if state.t_ind == 0:
+        energy_offset = np.zeros((params.batch_size, params.num_branches))
     for traj in range(params.batch_size):
         for branch in range(params.num_branches):
             q_coord = np.real((1 / np.sqrt(2 * model.mass * model.pq_weight)) * (state.z_coord[traj, branch] + np.conj(state.z_coord[traj, branch])))
             q_coord = q_coord.reshape((model.num_atoms, 3))
-            atom_coords = [['H', tuple(q_coord[n])] for n in range(model.num_atoms)]
-            mol = pyscf.gto.M(atom = atom_coords, basis=model.basis)
+            #atom_coords = [['H', tuple(q_coord[n])] for n in range(model.num_atoms)]
+            #mol = state.pyscf_mol#pyscf.gto.M(atom = atom_coords, basis=model.basis)
+            old_atoms = [n[0] for n in state.pyscf_mol._atom]
+            new_atom = [(old_atoms[n], list(q_coord[n])) for n in range(len(old_atoms))]
+            state.pyscf_mol = gto.M(atom=new_atom, basis=state.pyscf_mol.basis)
+            mol = state.pyscf_mol
             mol.verbose=0
             if model.method == 'CISD':
-                mf = pyscf.scf.RHF(mol).run()
+                if model.use_x2c:
+                    mf = pyscf.scf.RHF(mol).x2c().run()
+                else:
+                    mf = pyscf.scf.RHF(mol).run()
                 myci = pyscf.ci.CISD(mf)
             if model.method == 'UCISD':
-                mf = pyscf.scf.UHF(mol).run()
+                if model.use_x2c:
+                    mf = pyscf.scf.UHF(mol).x2c().run()
+                else:
+                    mf = pyscf.scf.UHF(mol).run()
                 myci = pyscf.ci.UCISD(mf)
             if model.method == 'FCI':
-                mf = pyscf.scf.RHF(mol).run()
+                if model.use_x2c:
+                    mf = pyscf.scf.RHF(mol).x2c().run()
+                else:
+                    mf = pyscf.scf.RHF(mol).run()
                 myci = pyscf.fci.FCI(mf)
             myci.nroots = model.num_states
             myci.run()
             ab_initio_hams_posthf[traj][branch] = myci
             ab_initio_hams_mf[traj][branch] = mf
+            if state.t_ind == 0:
+                if model.num_states == 1:
+                    etot = myci.e_tot
+                else:
+                    etot = myci.e_tot[0]
+                #energy_offset[traj][branch] = -(etot - mf.energy_nuc())
 
 
     state.ab_initio_hams_posthf = ab_initio_hams_posthf
     state.ab_initio_hams_mf = ab_initio_hams_mf
-    return state, model, params 
+    if state.t_ind == 0:
+        state.energy_offset = energy_offset
+    return state, model, params
 
 def update_diag_eq(state, model, params):
-    state.diag_eq = np.diag(np.sum(state.h_quantum, axis=(0,1)))
+    assert params.batch_size == 1 
+    assert params.num_branches == 1
+    state.diag_eq = np.einsum('...ii->...i',state.h_quantum[0,0] - state.energy_offset[0,0])
     return state, model, params
 
 
 from functools import reduce
 def sort_surfaces(state, model, params):
+    if state.t_ind == 0:
+        state.order = np.zeros((params.batch_size, params.num_branches, model.num_states), dtype=int) + np.arange(model.num_states).astype(int)[...,:]
+    state.order_prev = copy.copy(state.order)
     for traj in range(params.batch_size):
         for branch in range(params.num_branches):
             myci = state.ab_initio_hams_posthf[traj][branch]
@@ -633,14 +664,23 @@ def sort_surfaces(state, model, params):
             if model.method == 'CISD':
                 s12 = pyscf.gto.intor_cross('cint1e_ovlp_sph', mf.mol, mf_prev.mol)
                 s12 = reduce(np.dot, (mf.mo_coeff.T, s12, mf_prev.mo_coeff))
-            nmo = mf_prev.mo_energy.size 
-            nocc = mf.mol.nelectron // 2
+                nmo = mf_prev.mo_energy.size 
+                nocc = mf.mol.nelectron // 2
+            if model.method == 'UCISD':
+                s12 = pyscf.gto.intor_cross('cint1e_ovlp_sph', mf.mol, mf_prev.mol)
+                s12a = reduce(np.dot, (mf.mo_coeff[0].T, s12, mf_prev.mo_coeff[0]))
+                s12b = reduce(np.dot, (mf.mo_coeff[1].T, s12, mf_prev.mo_coeff[1]))
+                s12 = (s12a, s12b)
+                nmo = (mf_prev.mo_energy.size // 2, mf_prev.mo_energy.size // 2)
+                nocc = (mf.mol.nelectron // 2, mf.mol.nelectron // 2)
             if model.num_states > 1:
                 overlap_mat = np.zeros((model.num_states, model.num_states), dtype=complex)
                 for n in range(model.num_states):
                     for m in range(model.num_states):
                         if model.method == 'CISD':
                             overlap_mat[m, n] = pyscf.ci.cisd.overlap(myci.ci[m], myci_prev.ci[n], nmo, nocc, s12)
+                        if model.method == 'UCISD':
+                            overlap_mat[m, n] = pyscf.ci.ucisd.overlap(myci.ci[m], myci_prev.ci[n], nmo, nocc, s12)
                         #overlap_mat[m, n] = pyscf.fci.addons.overlap(myci.ci[m], myci_prev.ci[n], myci.norb, myci.nelec, s12)
               
                 order = np.argmax(np.abs(overlap_mat), axis=1)
@@ -649,10 +689,16 @@ def sort_surfaces(state, model, params):
                 #print(np.round(np.abs(overlap_mat)**2,1)[:,order][order,:])
                 #out_mat[traj,branch] = out_mat[traj, branch][:,order][order,:]
                 #print(np.round(np.diag(out_mat[traj,branch]),2))
-                state.ab_initio_hams_posthf[traj][branch].ci = list(np.array(state.ab_initio_hams_posthf[traj][branch].ci)[order])
+                #state.ab_initio_hams_posthf[traj][branch].ci = list(np.array(state.ab_initio_hams_posthf[traj][branch].ci))
+                state.order[traj, branch] = state.order[traj, branch][order]
     return state, model, params
 
 
+def update_e_q_ab_initio(state, model, params):
+    #state.e_q = state.ab_initio_hams_posthf[0][0].e_tot - state.ab_initio_hams_mf[0][0].energy_nuc()#np.real(np.sum(np.conj(state.wf_adb) * np.einsum('...ii->...i',state.h_quantum, optimize='greedy') * state.wf_adb))
+
+    state.e_q = np.real(np.sum(np.conj(state.wf_adb) * np.einsum('...ii->...i',state.h_quantum, optimize='greedy') * state.wf_adb))
+    return state, model, params
 
 
 ############################################################

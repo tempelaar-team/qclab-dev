@@ -382,10 +382,11 @@ class Data:
         return
     def sum_data(self, data_obj):  # adds data from a data_obj
         for key, val in data_obj.data_dic.items():
-            if key in self.data_dic and key != 'seeds':
-                self.data_dic[key] = self.data_dic[key] + val
-            else:
-                self.data_dic[key] = val
+            if key != 'seeds':
+                if key in self.data_dic:
+                    self.data_dic[key] = self.data_dic[key] + val
+                else:
+                    self.data_dic[key] = val
         self.data_dic['seeds'] = np.concatenate((self.data_dic['seeds'], data_obj.data_dic['seeds']))
         return
     def save_as_h5(self, filename):
