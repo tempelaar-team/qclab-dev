@@ -12,10 +12,10 @@ model = qc_lab.ab_initio_model.AbInitioModel(inputs)
 # Define an initial wavefunction in the adiabatic basis.
 model.wf_adb = np.zeros(model.num_states) + 0.0j
 model.wf_adb[0] = 1.0 + 0.0j
-# Initialize the dynamics algorithm and set the simulation parameters.
+# Initialize the method and set the simulation parameters.
 recipe = qc_lab.recipes.MeanFieldDynamicsRecipe()
 recipe.params.tmax = 4
 recipe.params.dt_output = 0.01
 recipe.params.dt = 0.01
-# Execute the simulation using the dynamics driver.
+# Execute the simulation using the dynamics driver, and obtain the data.
 data = qc_lab.drivers.dynamics_serial(recipe=recipe, model=model)
