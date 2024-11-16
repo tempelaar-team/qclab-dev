@@ -17,5 +17,5 @@ recipe = qc_lab.recipes.MeanFieldDynamicsRecipe()
 recipe.params.tmax = 4
 recipe.params.dt_output = 0.01
 recipe.params.dt = 0.01
-# Execute the simulation using the dynamics driver, and obtain the data.
+# Execute the simulation using the dynamics driver, and obtain data.
 data = qc_lab.drivers.dynamics_serial(recipe=recipe, model=model)
