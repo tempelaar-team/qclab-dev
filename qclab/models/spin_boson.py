@@ -1,51 +1,132 @@
 import numpy as np
+from qclab.model import ModelClass
+from qclab.parameter import ParameterClass
+import qclab.ingredients as ingredients
 
 
-class SpinBosonModel:
-    def __init__(self, input_params):
-        self.temp = input_params['temp']  # temperature
-        self.V = input_params['V']  # offdiagonal coupling
-        self.E = input_params['E']  # diagonal energy
-        self.A = input_params['A']  # total number of classical oscillators
-        self.W = input_params['W']  # characteristic frequency
-        self.l_reorg = input_params['l_reorg']  # reorganization energy
-        self.w = self.W * np.tan(
-            ((np.arange(self.A) + 1) - (1 / 2)) * np.pi / (2 * self.A))  # classical oscillator frequency
-        self.g = self.w * np.sqrt(2 * self.l_reorg / self.A)  # electron-phonon coupling
-        self.pq_weight = self.w
-        self.mass = np.ones_like(self.w)
-        self.num_states = 2  # number of states
-        self.num_classical_coordinates = self.A
+class SpinBosonModel(ModelClass):
+    """
+    Spin-Boson model class for the simulation framework.
 
-        def dh_qc_dz(state, model, params, z_coord, psi_a, psi_b):
-            out = np.conj(psi_a[...,0][...,np.newaxis])*psi_b[...,0][...,np.newaxis]*(model.g * np.sqrt(1 / (2 * model.mass * model.pq_weight)))
-            out += np.conj(psi_a[...,1][...,np.newaxis])*psi_b[...,1][...,np.newaxis]*(-model.g * np.sqrt(1 / (2 * model.mass * model.pq_weight)))
-            return out
+    Attributes:
+        parameters (ParameterClass): The parameters of the model.
+    """
 
-        def dh_qc_dzc(state, model, params, z_coord, psi_a, psi_b):
-            return np.conj(dh_qc_dz(state, model, params, z_coord, psi_a, psi_b))
+    def __init__(self, parameters=None):
+        """
+        Initializes the SpinBosonModel with given parameters.
 
-        def h_q(state, model, params):
-            out = np.zeros((model.num_states, model.num_states), dtype=complex)
-            out[0, 0] = model.E
-            out[1, 1] = -model.E
-            out[0, 1] = model.V
-            out[1, 0] = model.V
-            return out[np.newaxis, np.newaxis]
+        Args:
+            parameters (dict): A dictionary of parameters to initialize the model.
+        """
+        if parameters is None:
+            parameters = {}
+        default_parameters = {
+            'temp': 1, 'V': 0.5, 'E': 0.5, 'A': 100, 'W': 0.1,
+            'l_reorg': 0.02 / 4, 'mass': 1
+        }
+        # Add default parameters to the provided parameters if not already present
+        parameters = {**default_parameters, **parameters}
+        self.parameters = ParameterClass(self.update_model_parameters)
+        for key, val in parameters.items():
+            setattr(self.parameters, key, val)
+        self.parameters._init_complete = True
+        self.update_model_parameters()
 
-        def h_qc(state, model, params, z_coord):
-            h_qc_out = np.zeros(
-                (*np.shape(z_coord)[:-1], model.num_states, model.num_states),
-                dtype=complex)
-            h_qc_out[..., 0, 0] = np.sum(
-                model.g[...,:] * np.sqrt(1 / (2 * model.mass * model.pq_weight))[...,:] * (
-                        z_coord + np.conj(z_coord)), axis=-1)
-            h_qc_out[..., 1, 1] = np.sum(
-                -model.g[...,:] * np.sqrt(1 / (2 * model.mass * model.pq_weight))[...,:] * (
-                        z_coord + np.conj(z_coord)), axis=-1)
-            return h_qc_out
+    def update_model_parameters(self):
+        """
+        Update model parameters based on the current parameter values.
+        """
+        self.parameters.w = self.parameters.W * np.tan(
+            ((np.arange(self.parameters.A) + 1) - 0.5) * np.pi / (2 * self.parameters.A)
+        )  # Classical oscillator frequency
+        self.parameters.g = self.parameters.w * np.sqrt(
+            2 * self.parameters.l_reorg / self.parameters.A
+        )  # Electron-phonon coupling
+        self.parameters.two_level_system_a = self.parameters.E  # Diagonal energy of state 0
+        self.parameters.two_level_system_b = -self.parameters.E  # Diagonal energy of state 1
+        self.parameters.two_level_system_c = self.parameters.V  # Real part of the off-diagonal coupling
+        self.parameters.two_level_system_d = 0  # Imaginary part of the off-diagonal coupling
+        self.parameters.pq_weight = self.parameters.w
+        self.parameters.num_classical_coordinates = self.parameters.A
+        self.parameters.mass = np.ones(self.parameters.A) * self.parameters.mass
 
-        self.dh_qc_dz = dh_qc_dz
-        self.dh_qc_dzc = dh_qc_dzc
-        self.h_qc = h_qc
-        self.h_q = h_q
+    def h_qc(self, **kwargs):
+        """
+        Quantum-classical Hamiltonian function.
+
+        Args:
+            z_coord (np.ndarray): The z-coordinates.
+
+        Returns:
+            np.ndarray: The quantum-classical Hamiltonian matrix.
+        """
+        z_coord = kwargs['z_coord']
+        h_qc = np.zeros((2, 2), dtype=complex)
+        h_qc[0, 0] = np.sum(
+            (self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight))) *
+            (z_coord + np.conj(z_coord))
+        )
+        h_qc[1, 1] = -h_qc[0, 0]
+        return h_qc
+
+    def h_qc_vectorized(self, **kwargs):
+        """
+        Vectorized quantum-classical Hamiltonian function.
+
+        Args:
+            z_coord (np.ndarray): The z-coordinates.
+
+        Returns:
+            np.ndarray: The vectorized quantum-classical Hamiltonian matrix.
+        """
+        z_coord = kwargs['z_coord']
+        h_qc = np.zeros((len(z_coord), 2, 2), dtype=complex)
+        h_qc[:, 0, 0] = np.sum(
+            (self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight)))[..., :] *
+            (z_coord + np.conj(z_coord)), axis=-1
+        )
+        h_qc[:, 1, 1] = -h_qc[:, 0, 0]
+        return h_qc
+
+    def dh_qc_dzc(self, **kwargs):
+        """
+        Gradient of the quantum-classical Hamiltonian with respect to the z-coordinates.
+
+        Args:
+            z_coord (np.ndarray): The z-coordinates.
+
+        Returns:
+            np.ndarray: The gradient of the quantum-classical Hamiltonian.
+        """
+        dh_qc_dzc = np.zeros((self.parameters.A, 2, 2), dtype=complex)
+        dh_qc_dzc[:, 0, 0] = self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight))
+        dh_qc_dzc[:, 1, 1] = -dh_qc_dzc[:, 0, 0]
+        return dh_qc_dzc
+
+    def dh_qc_dzc_vectorized(self, **kwargs):
+        """
+        Vectorized gradient of the quantum-classical Hamiltonian with respect to the z-coordinates.
+
+        Args:
+            z_coord (np.ndarray): The z-coordinates.
+
+        Returns:
+            np.ndarray: The vectorized gradient of the quantum-classical Hamiltonian.
+        """
+        dh_qc_dzc = np.zeros((len(kwargs['z_coord']), self.parameters.A, 2, 2), dtype=complex)
+        dh_qc_dzc[:, :, 0, 0] = (
+            self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight))
+        )[np.newaxis, :]
+        dh_qc_dzc[:, :, 1, 1] = -dh_qc_dzc[:, :, 0, 0]
+        return dh_qc_dzc
+
+    # Assigning functions from ingredients module
+    h_q = ingredients.two_level_system_h_q
+    h_c = ingredients.harmonic_oscillator_h_c
+    dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
+    init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
+
+    h_c_vectorized = ingredients.harmonic_oscillator_h_c_vectorized
+    h_q_vectorized = ingredients.two_level_system_h_q_vectorized
+    dh_c_dzc_vectorized = ingredients.harmonic_oscillator_dh_c_dzc_vectorized

@@ -1,47 +1,32 @@
 import numpy as np
-import qclab.auxiliary as auxiliary
+from tqdm import tqdm
 
 
-def dynamics(model, recipe, traj):
-    # get simulation parameters 
-    params = recipe.params
-    # load defaults
-    model, params = recipe.defaults(model, params)
-    # initialize the timestep axes
-    params = auxiliary.initialize_timesteps(params)
-    # first initialize state variable
-    state = recipe.state
-    # set initial time index to zero
-    state.t_ind = 0
-    # attach trajectory object to the state variable
-    state.traj = traj
-    # execute functions in the initialize procedure
-    for func in recipe.initialize:
-        state, model, params = func(state, model, params)
-    # begine loop over timesteps
-    for t_ind in params.tdat_n:
-        # detect output timesteps
-        if np.mod(t_ind, params.dt_output_n) == 0:
-            # execute functions in the output procedure
-            for func in recipe.output:
-                state, model, params = func(state, model, params)
-            # store the requested variables in a dictionary 
-            observables_t = auxiliary.evaluate_observables_t(recipe)
-            # if this is the first output timestep initialize the output variables in the trajectory object
-            if t_ind == 0:
-                for key in observables_t.keys():
-                    traj.new_observable(key, (len(params.tdat_output), *np.shape(observables_t[key])),
-                                        observables_t[key].dtype)
-            # add the variables from the dictionary observables_t to the trajectory object
-            traj.add_observable_dict(int(t_ind / params.dt_output_n),
-                                     observables_t)  # add observables to the trajectory object
-            # update the trajectory object in the state variable
-            state.traj = traj
-        # evaluate the functions in the update procedure
-        for func in recipe.update:
-            state, model, params = func(state, model, params)
-        # increment the timestep index
-        state.t_ind = t_ind + 1
-    # attach a time axis to the trajectory object
-    traj.add_to_dic('t', params.tdat_output * params.batch_size)
-    return traj
+def dynamics(sim, state_list, full_state, data):
+    """
+    Run the dynamics of the simulation.
+
+    Args:
+        sim (Simulation): The simulation object containing the simulation parameters and state.
+        state_list (list): List of state objects for each trajectory.
+        full_state (State): The full state object containing all trajectories.
+        data (Data): The Data object to store the simulation results.
+
+    Returns:
+        Data: The Data object containing the results of the simulation.
+    """
+    # Execute initialization recipe
+    state_list, full_state = sim.algorithm.execute_initialization_recipe(sim, state_list, full_state)
+
+    # Iterate over each time step
+    for t_ind in tqdm(sim.parameters.tdat_n):
+        # Detect output timesteps
+        if np.mod(t_ind, sim.parameters.dt_output_n) == 0:
+            # Calculate output variables
+            state_list, full_state = sim.algorithm.execute_output_recipe(sim, state_list, full_state)
+            full_state.collect_output_variables(sim.algorithm.output_variables)
+            # Collect totals in output dictionary
+            data.add_to_output_total_arrays(sim, full_state, t_ind)
+        # Execute update recipe
+        state_list, full_state = sim.algorithm.execute_update_recipe(sim, state_list, full_state)
+    return data
