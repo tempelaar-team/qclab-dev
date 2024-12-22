@@ -1,5 +1,6 @@
 import numpy as np
 from numba import njit
+import qclab.ingredients as ingredients
 
 
 def initialize_z_coord(sim, state, **kwargs):
@@ -15,7 +16,10 @@ def initialize_z_coord(sim, state, **kwargs):
         State: The updated state object.
     """
     seed = kwargs['seed']
-    state.modify('z_coord', sim.model.init_classical(seed=seed))
+    if hasattr(sim.model, 'init_classical'):
+        state.modify('z_coord', sim.model.init_classical(seed=seed))
+    else:
+        state.modify('z_coord', ingredients.harmonic_oscillator_boltzmann_init_classical(sim.model, seed=state.seed))
     return state
 
 
