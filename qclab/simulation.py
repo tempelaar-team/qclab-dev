@@ -1,7 +1,7 @@
 import numpy as np
-import argparse
 import ctypes
 import h5py
+from qclab.parameter import ParameterClass
 
 
 def initialize_state_objects(sim, batch_seeds):
@@ -26,7 +26,7 @@ def initialize_state_objects(sim, batch_seeds):
     # Create a full_state
     full_state = new_full_state(state_list)
     state_list = new_state_list(full_state)
-    sim.algorithm.determine_vectorized(sim, state_list, full_state)
+    sim.algorithm.determine_vectorized()
 
     # Initialization recipe
     for ind, func in enumerate(sim.algorithm.initialization_recipe):
@@ -347,9 +347,11 @@ class Simulation:
     The simulation object represents the entire simulation process.
     """
     def __init__(self, parameters={}):
-        default_parameters = dict(tmax=10, dt=0.01, dt_output=0.1)
+        default_parameters = dict(tmax=10, dt=0.01, dt_output=0.1, num_trajs=10, batch_size=1)
         parameters = {**default_parameters, **parameters}
-        self.parameters = argparse.Namespace(**parameters)
+        self.parameters = ParameterClass()
+        for key, val in parameters.items():
+            setattr(self.parameters, key, val)
         self.algorithm = None
         self.model = None
         self.state = State()
