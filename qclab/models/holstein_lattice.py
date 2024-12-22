@@ -1,0 +1,49 @@
+import numpy as np
+from qclab.model import ModelClass
+from qclab.parameter import ParameterClass
+import qclab.ingredients as ingredients
+
+
+class HolsteinLatticeModel(ModelClass):
+    """
+    A model representing a nearest-neighbor tight-binding model with Holstein-type electron-phonon coupling with a 
+    single optical mode.
+    """
+    def __init__(self, parameters=None):
+        if parameters is None:
+            parameters = {}
+        default_parameters = {
+            'temp': 1, 'g': 0.5, 'w': 0.5, 'N': 10, 'j': 1, 'mass': 1, 'periodic_boundary': True
+        }
+        parameters = {**default_parameters, **parameters}
+        self.parameters = ParameterClass(self.update_model_parameters)
+        for key, val in parameters.items():
+            setattr(self.parameters, key, val)
+        self.parameters._init_complete = True
+        self.update_model_parameters()
+
+    def update_model_parameters(self):
+        self.parameters.w = self.parameters.w * np.ones(self.parameters.N)
+        self.parameters.g = self.parameters.g * np.ones(self.parameters.N)
+        self.parameters.mass = self.parameters.mass * np.ones(self.parameters.N)
+        self.parameters.num_classical_coordinates = self.parameters.N
+        self.parameters.pq_weight = self.parameters.w
+        self.parameters.nearest_neighbor_lattice_h_q_num_sites = self.parameters.N
+        self.parameters.nearest_neighbor_lattice_h_q_hopping_energy = self.parameters.j
+        self.parameters.nearest_neighbor_lattice_h_q_periodic_boundary = self.parameters.periodic_boundary
+        self.parameters.holstein_lattice_h_qc_num_sites = self.parameters.N
+        self.parameters.holstein_lattice_h_qc_oscillator_frequency = self.parameters.w
+        self.parameters.holstein_lattice_h_qc_dimensionless_coupling = self.parameters.g
+
+
+    h_q_vectorized = ingredients.nearest_neighbor_lattice_h_q_vectorized
+    h_q = ingredients.nearest_neighbor_lattice_h_q
+    h_c = ingredients.harmonic_oscillator_h_c
+    dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
+    dh_c_dzc_vectorized = ingredients.harmonic_oscillator_dh_c_dzc_vectorized
+    h_c_vectorized = ingredients.harmonic_oscillator_h_c_vectorized
+    h_qc = ingredients.holstein_lattice_h_qc
+    h_qc_vectorized = ingredients.holstein_lattice_h_qc_vectorized
+    dh_qc_dzc = ingredients.holstein_lattice_dh_qc_dzc
+    dh_qc_dzc_vectorized = ingredients.holstein_lattice_dh_qc_dzc_vectorized
+    init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
