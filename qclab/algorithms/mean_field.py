@@ -1,8 +1,8 @@
 from qclab.algorithm import AlgorithmClass
 import qclab.tasks as tasks
-import argparse
+from qclab.parameter import ParameterClass
 
-class MeanFieldDynamics(AlgorithmClass):
+class MeanField(AlgorithmClass):
     """
     Mean-field dynamics algorithm class. 
 
@@ -15,7 +15,9 @@ class MeanFieldDynamics(AlgorithmClass):
         default_parameters = dict()
         # add default_params to params if not already in params
         parameters = {**default_parameters, **parameters}
-        self.parameters = argparse.Namespace(**parameters)
+        self.parameters = ParameterClass()
+        for key, val in parameters.items():
+            setattr(self.parameters, key, val)
     initialization_recipe = [
         lambda sim, state: tasks.initialize_z_coord(sim = sim, state = state, seed = state.seed),
         lambda sim, state: tasks.update_h_quantum(sim = sim, state = state, z_coord = state.z_coord),
