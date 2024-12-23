@@ -71,8 +71,7 @@ def update_dh_c_dzc_vectorized(sim, state, **kwargs):
         State: The updated state object.
     """
     z_coord = kwargs['z_coord']
-    val = sim.model.dh_c_dzc_vectorized(z_coord=z_coord)
-    state.modify('dh_c_dzc', val)
+    state.modify('dh_c_dzc', sim.model.dh_c_dzc_vectorized(z_coord=z_coord))
     return state
 
 
@@ -91,8 +90,7 @@ def update_dh_qc_dzc(sim, state, **kwargs):
     z_coord = kwargs['z_coord']
     if hasattr(sim.model, 'dh_qc_dzc'):
         # Use the model's built-in method if available
-        val = sim.model.dh_qc_dzc(z_coord=z_coord)
-        state.modify('dh_qc_dzc', val)
+        state.modify('dh_qc_dzc', sim.model.dh_qc_dzc(z_coord=z_coord))
     else:
         # Approximate the gradient using finite differences
         delta_z = 1e-3
