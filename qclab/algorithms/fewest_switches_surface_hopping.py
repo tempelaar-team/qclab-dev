@@ -4,7 +4,7 @@ from qclab.parameter import ParameterClass
 
 class FewestSwitchesSurfaceHopping(AlgorithmClass):
     def __init__(self, parameters=dict()):
-        default_parameters = dict(fssh_deterministic=True)
+        default_parameters = dict(fssh_deterministic=False)
         # add default_params to params if not already in params
         parameters = {**default_parameters, **parameters}
         self.parameters = ParameterClass()
