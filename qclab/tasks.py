@@ -1,6 +1,7 @@
 import numpy as np
 from numba import njit
 import qclab.ingredients as ingredients
+import warnings
 
 
 def initialize_z_coord(sim, state, **kwargs):
@@ -71,7 +72,11 @@ def update_dh_c_dzc_vectorized(sim, state, **kwargs):
         State: The updated state object.
     """
     z_coord = kwargs['z_coord']
-    state.modify('dh_c_dzc', sim.model.dh_c_dzc_vectorized(z_coord=z_coord))
+    if hasattr(sim.model, 'dh_c_dzc_vectorized'):
+        state.modify('dh_c_dzc', sim.model.dh_c_dzc_vectorized(z_coord=z_coord))
+    else:
+        state.modify('dh_c_dzc', np.array([sim.model.dh_c_dzc(z_coord=z_coord[n]) for n in range(len(z_coord))]))
+        warnings.warn("dh_c_dzc_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
     return state
 
 
@@ -127,7 +132,11 @@ def update_dh_qc_dzc_vectorized(sim, state, **kwargs):
         State: The updated state object.
     """
     z_coord = kwargs['z_coord']
-    state.modify('dh_qc_dzc', sim.model.dh_qc_dzc_vectorized(z_coord=z_coord))
+    if hasattr(sim.model, 'dh_qc_dzc_vectorized'):
+        state.modify('dh_qc_dzc', sim.model.dh_qc_dzc_vectorized(z_coord=z_coord))
+    else:
+        state.modify('dh_qc_dzc', np.array([sim.model.dh_qc_dzc(z_coord=z_coord[n]) for n in range(len(z_coord))]))
+        warnings.warn("dh_qc_dzc_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
     return state
 
 
@@ -304,7 +313,12 @@ def update_h_quantum_vectorized(sim, state, **kwargs):
         State: The updated state object.
     """
     z_coord = kwargs['z_coord']
-    state.modify('h_quantum', sim.model.h_q_vectorized() + sim.model.h_qc_vectorized(z_coord=z_coord) + 0j)
+    if hasattr(sim.model, 'h_q_vectorized') and hasattr(sim.model, 'h_qc_vectorized'):
+        state.modify('h_quantum', sim.model.h_q_vectorized() + sim.model.h_qc_vectorized(z_coord=z_coord) + 0j)
+    else:
+        state.modify('h_quantum', np.array([(sim.model.h_q() + sim.model.h_qc(z_coord=z_coord[n]) + 0j) for n in range(len(z_coord))]))
+        warnings.warn("h_quantum_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
+        warnings.warn("h_qc_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
     return state
 
 
@@ -431,7 +445,11 @@ def update_classical_energy_vectorized(sim, state, **kwargs):
         State: The updated state object.
     """
     z_coord = kwargs['z_coord']
-    state.modify('classical_energy', np.real(sim.model.h_c_vectorized(z_coord=z_coord)))
+    if hasattr(sim.model, 'h_c_vectorized'):
+        state.modify('classical_energy', np.real(sim.model.h_c_vectorized(z_coord=z_coord)))
+    else:
+        state.modify('classical_energy', np.array([np.real(sim.model.h_c_vectorized(z_coord=z_coord[n])) for n in range(len(z_coord))]))
+        warnings.warn("h_c_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
     return state
 
 

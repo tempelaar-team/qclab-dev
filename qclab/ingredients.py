@@ -174,7 +174,7 @@ def holstein_lattice_dh_qc_dzc(model, **kwargs):
     num_sites = model.parameters.holstein_lattice_h_qc_num_sites
     oscillator_frequency = model.parameters.holstein_lattice_h_qc_oscillator_frequency
     dimensionless_coupling = model.parameters.holstein_lattice_h_qc_dimensionless_coupling
-    dh_qc_dzc = np.zeros((len(z_coord), num_sites, num_sites, num_sites), dtype=complex)
+    dh_qc_dzc = np.zeros((num_sites, num_sites, num_sites), dtype=complex)
     np.einsum('iii->i', dh_qc_dzc)[...] = dimensionless_coupling*oscillator_frequency*np.sqrt(1/(2*model.parameters.mass*model.parameters.pq_weight))*(np.ones_like(z_coord)) + 0.0j
     return dh_qc_dzc
 
