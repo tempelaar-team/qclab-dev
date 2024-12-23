@@ -81,12 +81,12 @@ class SpinBosonModel(ModelClass):
             np.ndarray: The vectorized quantum-classical Hamiltonian matrix.
         """
         z_coord = kwargs['z_coord']
-        h_qc = np.zeros((len(z_coord), 2, 2), dtype=complex)
-        h_qc[:, 0, 0] = np.sum(
+        h_qc = np.zeros((np.shape(z_coord)[:-1], 2, 2), dtype=complex)
+        h_qc[..., 0, 0] = np.sum(
             (self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight)))[..., :] *
             (z_coord + np.conj(z_coord)), axis=-1
         )
-        h_qc[:, 1, 1] = -h_qc[:, 0, 0]
+        h_qc[..., 1, 1] = -h_qc[..., 0, 0]
         return h_qc
 
     def dh_qc_dzc(self, **kwargs):
@@ -114,11 +114,11 @@ class SpinBosonModel(ModelClass):
         Returns:
             np.ndarray: The vectorized gradient of the quantum-classical Hamiltonian.
         """
-        dh_qc_dzc = np.zeros((len(kwargs['z_coord']), self.parameters.A, 2, 2), dtype=complex)
-        dh_qc_dzc[:, :, 0, 0] = (
+        dh_qc_dzc = np.zeros((np.shape(kwargs['z_coord'])[:-1], self.parameters.A, 2, 2), dtype=complex)
+        dh_qc_dzc[..., :, 0, 0] = (
             self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight))
-        )[np.newaxis, :]
-        dh_qc_dzc[:, :, 1, 1] = -dh_qc_dzc[:, :, 0, 0]
+        )[..., :]
+        dh_qc_dzc[..., :, 1, 1] = -dh_qc_dzc[..., :, 0, 0]
         return dh_qc_dzc
 
     # Assigning functions from ingredients module
