@@ -3,6 +3,14 @@ from numba import njit
 import qclab.ingredients as ingredients
 import warnings
 
+def vectorize(func, arg):
+    """
+    Vectorizes a function over all but the last index of arg.
+    """
+    arg_vec = arg.reshape((np.prod(np.shape(arg)[:-1]), np.shape(arg)[-1])) # Reshape to 2D array
+    val_vec = np.array([func(arg_vec[n]) for n in range(len(arg_vec))]) # Vectorize function
+    return val_vec.reshape((*np.shape(arg)[:-1], *np.shape(val_vec)[1:]))
+
 
 def initialize_z_coord(sim, state, **kwargs):
     """
@@ -75,7 +83,7 @@ def update_dh_c_dzc_vectorized(sim, state, **kwargs):
     if hasattr(sim.model, 'dh_c_dzc_vectorized'):
         state.modify('dh_c_dzc', sim.model.dh_c_dzc_vectorized(z_coord=z_coord))
     else:
-        state.modify('dh_c_dzc', np.array([sim.model.dh_c_dzc(z_coord=z_coord[n]) for n in range(len(z_coord))]))
+        state.modify('dh_c_dzc', vectorize(lambda z: sim.model.dh_c_dzc(z_coord=z), z_coord))
         warnings.warn("dh_c_dzc_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
     return state
 
@@ -135,7 +143,7 @@ def update_dh_qc_dzc_vectorized(sim, state, **kwargs):
     if hasattr(sim.model, 'dh_qc_dzc_vectorized'):
         state.modify('dh_qc_dzc', sim.model.dh_qc_dzc_vectorized(z_coord=z_coord))
     else:
-        state.modify('dh_qc_dzc', np.array([sim.model.dh_qc_dzc(z_coord=z_coord[n]) for n in range(len(z_coord))]))
+        state.modify('dh_qc_dzc', vectorize(lambda z: sim.model.dh_qc_dzc(z_coord=z), z_coord))
         warnings.warn("dh_qc_dzc_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
     return state
 
@@ -210,7 +218,7 @@ def update_quantum_classical_forces_vectorized(sim, state, **kwargs):
     z_coord = kwargs['z_coord']
     wf = kwargs['wf']
     state = update_dh_qc_dzc_vectorized(sim, state, z_coord=z_coord)
-    state.modify('quantum_classical_forces', np.einsum('bnj,bj->bn', np.einsum('bnji,bi->bnj', state.dh_qc_dzc, wf), np.conj(wf)))
+    state.modify('quantum_classical_forces', np.einsum('...nj,...j->...n', np.einsum('...nji,...i->...nj', state.dh_qc_dzc, wf), np.conj(wf)))
     return state
 
 
