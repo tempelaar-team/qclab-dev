@@ -4,7 +4,6 @@ from tqdm import tqdm
 import numpy as np
 
 
-
 def run_simulation(sim, seeds=None, ncpus=1, data=None):
     """
     Run the simulation in a serial manner.

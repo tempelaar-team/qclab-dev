@@ -16,7 +16,7 @@ def initialize_state_objects(sim, batch_seeds):
         state_list: List of state objects.
         full_state: The full state object.
     """
-    batch_seeds_single = np.arange(2)
+    batch_seeds_single = np.arange(1)
     state_list = [sim.state.copy() for _ in batch_seeds_single]
 
     # Initialize seed in each state
@@ -36,8 +36,7 @@ def initialize_state_objects(sim, batch_seeds):
         else:
             state_list = [func(sim, state) for state in state_list]
             full_state = new_full_state(state_list)
-
-    initialized_full_state = full_state
+            state_list = new_state_list(full_state)
 
     # Update recipe
     for ind, func in enumerate(sim.algorithm.update_recipe):
@@ -47,6 +46,7 @@ def initialize_state_objects(sim, batch_seeds):
         else:
             state_list = [func(sim, state) for state in state_list]
             full_state = new_full_state(state_list)
+            state_list = new_state_list(full_state)
 
     # Output recipe
     for ind, func in enumerate(sim.algorithm.output_recipe):
@@ -56,6 +56,8 @@ def initialize_state_objects(sim, batch_seeds):
         else:
             state_list = [func(sim, state) for state in state_list]
             full_state = new_full_state(state_list)
+            state_list = new_state_list(full_state)
+
 
     # Zero out every variable
     for name in full_state.pointers.keys():
