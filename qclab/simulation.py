@@ -48,6 +48,7 @@ def initialize_state_objects(sim, batch_seeds):
             full_state = new_full_state(state_list)
             state_list = new_state_list(full_state)
 
+
     # Output recipe
     for ind, func in enumerate(sim.algorithm.output_recipe):
         if sim.algorithm.output_recipe_vectorized_bool[ind]:

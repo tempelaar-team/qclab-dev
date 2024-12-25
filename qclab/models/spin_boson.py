@@ -81,7 +81,7 @@ class SpinBosonModel(ModelClass):
             np.ndarray: The vectorized quantum-classical Hamiltonian matrix.
         """
         z_coord = kwargs['z_coord']
-        h_qc = np.zeros((np.shape(z_coord)[:-1], 2, 2), dtype=complex)
+        h_qc = np.zeros((*np.shape(z_coord)[:-1], 2, 2), dtype=complex)
         h_qc[..., 0, 0] = np.sum(
             (self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight)))[..., :] *
             (z_coord + np.conj(z_coord)), axis=-1
@@ -114,7 +114,7 @@ class SpinBosonModel(ModelClass):
         Returns:
             np.ndarray: The vectorized gradient of the quantum-classical Hamiltonian.
         """
-        dh_qc_dzc = np.zeros((np.shape(kwargs['z_coord'])[:-1], self.parameters.A, 2, 2), dtype=complex)
+        dh_qc_dzc = np.zeros((*np.shape(kwargs['z_coord'])[:-1], self.parameters.A, 2, 2), dtype=complex)
         dh_qc_dzc[..., :, 0, 0] = (
             self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight))
         )[..., :]

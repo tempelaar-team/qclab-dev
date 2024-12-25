@@ -20,7 +20,7 @@ class MeanField(AlgorithmClass):
             setattr(self.parameters, key, val)
     initialization_recipe = [
         lambda sim, state: tasks.initialize_z_coord(sim = sim, state = state, seed = state.seed),
-        lambda sim, state: tasks.update_h_quantum(sim = sim, state = state, z_coord = state.z_coord),
+        lambda sim, state: tasks.update_h_quantum_vectorized(sim = sim, state = state, z_coord = state.z_coord),
     ]
     update_recipe = [
         lambda sim, state: tasks.update_h_quantum_vectorized(sim = sim, state = state, z_coord = state.z_coord),
@@ -28,9 +28,9 @@ class MeanField(AlgorithmClass):
         lambda sim, state: tasks.update_wf_db_rk4_vectorized(sim = sim, state = state),
     ]
     output_recipe = [
-        lambda sim, state: tasks.update_dm_db_mf(sim = sim, state = state),
-        lambda sim, state: tasks.update_quantum_energy(sim = sim, state = state, wf = state.wf_db),
-        lambda sim, state: tasks.update_classical_energy(sim = sim, state = state, z_coord = state.z_coord),
+        lambda sim, state: tasks.update_dm_db_mf_vectorized(sim = sim, state = state),
+        lambda sim, state: tasks.update_quantum_energy_mf_vectorized(sim = sim, state = state, wf = state.wf_db),
+        lambda sim, state: tasks.update_classical_energy_vectorized(sim = sim, state = state, z_coord = state.z_coord),
     ]
     output_variables = [
         'dm_db',

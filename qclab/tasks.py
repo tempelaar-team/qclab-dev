@@ -463,7 +463,7 @@ def update_classical_energy_vectorized(sim, state, **kwargs):
     """
     z_coord = kwargs['z_coord']
     if hasattr(sim.model, 'h_c_vectorized'):
-        state.modify('classical_energy', np.real(sim.model.h_c_vectorized(z_coord=z_coord)))
+        state.modify('classical_energy', np.real(sim.model.h_c_vectorized(z_coord=z_coord))[:,np.newaxis])
     else:
         state.modify('classical_energy', np.array([np.real(sim.model.h_c_vectorized(z_coord=z_coord[n])) for n in range(len(z_coord))]))
         warnings.warn("h_c_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
@@ -489,7 +489,7 @@ def update_classical_energy_fssh_vectorized(sim, state, **kwargs):
         warnings.warn("h_c_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
     return state
 
-def update_quantum_energy(sim, state, **kwargs):
+def update_quantum_energy_mf(sim, state, **kwargs):
     """
     Update the quantum energy.
 
@@ -503,6 +503,23 @@ def update_quantum_energy(sim, state, **kwargs):
     """
     wf = kwargs['wf']
     state.modify('quantum_energy', np.real(np.matmul(np.conj(wf), np.matmul(state.h_quantum, wf)))[np.newaxis])
+    return state
+
+def update_quantum_energy_mf_vectorized(sim, state, **kwargs):
+    """
+    Update the quantum energy.
+
+    Args:
+        sim (Simulation): The simulation object.
+        state (State): The state object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        State: The updated state object.
+    """
+    wf = kwargs['wf'] 
+    state.modify('quantum_energy', np.real(np.einsum('...i,...ij,...j->...',np.conj(wf), state.h_quantum, wf))[:,np.newaxis])
+
     return state
 
 def update_quantum_energy_fssh_vectorized(sim, state, **kwargs):
