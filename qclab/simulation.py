@@ -309,7 +309,7 @@ class State:
         self.pointers[name] = val.ctypes.data_as(ctypes.POINTER(get_ctypes_type(val)))
         self.shapes[name] = np.shape(val)
         self.dtypes[name] = val.dtype
-        self.__dict__[name] = self.get(name).view()
+        self.__dict__[name] = self.get(name).view()#val.view()#
 
     def get(self, name):
         """
@@ -339,7 +339,7 @@ class State:
         """
         if name in self.pointers:
             ctypes.memmove(ctypes.addressof(self.pointers[name].contents), val.ctypes.data_as(ctypes.c_void_p), val.nbytes)
-            self.__dict__[name] = self.get(name).view()
+            self.__dict__[name] = self.get(name).view()#val.view()#
         else:
             self.add(name, val)
 

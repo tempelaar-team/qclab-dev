@@ -170,7 +170,7 @@ def update_classical_forces(sim, state, **kwargs):
     """
     z_coord = kwargs['z_coord']
     state = update_dh_c_dzc(sim, state, z_coord=z_coord)
-    state.modify('classical_forces', state.get('dh_c_dzc'))
+    state.modify('classical_forces', state.dh_c_dzc)
     return state
 
 
@@ -356,7 +356,7 @@ def update_wf_db_rk4(sim, state, **kwargs):
     k2 = (-1j * np.dot(state.h_quantum, state.wf_db + 0.5 * dt * k1))
     k3 = (-1j * np.dot(state.h_quantum, state.wf_db + 0.5 * dt * k2))
     k4 = (-1j * np.dot(state.h_quantum, state.wf_db + dt * k3))
-    state.modify('wf_db', state.get('wf_db') + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
+    state.modify('wf_db', state.wf_db + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
     return state
 
 
@@ -714,9 +714,9 @@ def nan_num(num):
 
 def update_active_surface(sim, state, **kwargs):
     rand = state.hopping_probs_rand_vals[state.t_ind[0]]
-    z_coord_branch = np.copy(state.z_coord_branch)
-    act_surf_ind = np.copy(state.act_surf_ind)
-    act_surf = np.copy(state.act_surf)
+    z_coord_branch = state.z_coord_branch#np.copy(state.z_coord_branch)
+    act_surf_ind = state.act_surf_ind#np.copy(state.act_surf_ind)
+    act_surf = state.act_surf#np.copy(state.act_surf)
     for i in range(sim.algorithm.parameters.num_branches):
         prod = np.matmul(np.conj(state.eigvecs[i][:, state.act_surf_ind[i]]), state.eigvecs_previous[i])
         hop_prob = -2 * np.real(prod * (state.wf_adb_branch[i] / (state.wf_adb_branch[i][state.act_surf_ind[i]])))

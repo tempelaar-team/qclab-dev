@@ -143,13 +143,13 @@ def nearest_neighbor_lattice_h_q_vectorized(model, **kwargs):
     
     # Fill the Hamiltonian matrix with hopping energies
     for n in range(num_sites - 1):
-        h_q[n, n + 1] = -hopping_energy
-        h_q[n + 1, n] = np.conj(h_q[n, n + 1])
+        h_q[n, n + 1] += -hopping_energy
+        h_q[n + 1, n] += np.conj(h_q[n, n + 1])
     
     # Apply periodic boundary conditions if specified
     if periodic_boundary:
-        h_q[0, num_sites - 1] = -hopping_energy
-        h_q[num_sites - 1, 0] = np.conj(h_q[0, num_sites - 1])
+        h_q[0, num_sites - 1] += -hopping_energy
+        h_q[num_sites - 1, 0] += np.conj(h_q[0, num_sites - 1])
 
     return h_q[..., :, :]
 
