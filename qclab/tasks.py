@@ -706,14 +706,37 @@ def update_wf_db_eigs_vectorized(sim, state, **kwargs):
 
 
 def initialize_timestep_index(sim, state, **kwargs):
+    """
+    Initialize the timestep index for the simulation.
+
+    This function sets the timestep index (`t_ind`) in the state object to an array with a single element [0].
+
+    Args:
+        sim (Simulation): The simulation object.
+        state (State): The state object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        State: The updated state object.
+    """
     state.modify('t_ind', np.array([0]))
     return state
 
 def update_timestep_index(sim, state, **kwargs):
-    if not hasattr(state, 't_ind'):
-        state.modify('t_ind', np.array([0]))
-    else:
-        state.modify('t_ind', state.t_ind + 1)
+    """
+    Update the timestep index for the simulation.
+
+    This function increments the timestep index (`t_ind`) in the state object.
+
+    Args:
+        sim (Simulation): The simulation object.
+        state (State): The state object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        State: The updated state object.
+    """
+    state.modify('t_ind', state.t_ind + 1)
     return state
 @njit
 def nan_num(num):
@@ -729,48 +752,70 @@ def nan_num(num):
     else:
         return num
 
-def update_active_surface(sim, state, **kwargs):
+def update_active_surface_fssh(sim, state, **kwargs):
+    """
+    Execute the fewest-switches surface hopping (FSSH) procedure for updating the active surface.
+
+    Args:
+        sim (Simulation): The simulation object.
+        state (State): The state object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        State: The updated state object.
+    """
     rand = state.hopping_probs_rand_vals[state.t_ind[0]]
-    z_coord_branch = state.z_coord_branch#np.copy(state.z_coord_branch)
-    act_surf_ind = state.act_surf_ind#np.copy(state.act_surf_ind)
-    act_surf = state.act_surf#np.copy(state.act_surf)
+    z_coord_branch = state.z_coord_branch
+    act_surf_ind = state.act_surf_ind
+    act_surf = state.act_surf
+
     for i in range(sim.algorithm.parameters.num_branches):
+        # Calculate hopping probabilities
         prod = np.matmul(np.conj(state.eigvecs[i][:, state.act_surf_ind[i]]), state.eigvecs_previous[i])
         hop_prob = -2 * np.real(prod * (state.wf_adb_branch[i] / (state.wf_adb_branch[i][state.act_surf_ind[i]])))
         hop_prob[state.act_surf_ind[i]] = 0
+
         bin_edge = 0
         for k in range(len(hop_prob)):
             hop_prob[k] = nan_num(hop_prob[k])
-            bin_edge = bin_edge + hop_prob[k]
+            bin_edge += hop_prob[k]
             if rand < bin_edge:
+                # Perform hopping
                 evec_k = state.eigvecs[i][:, state.act_surf_ind[i]]
                 evec_j = state.eigvecs[i][:, k]
                 eval_k = state.eigvals[i][state.act_surf_ind[i]]
                 eval_j = state.eigvals[i][k]
-                ev_diff = eval_j - eval_k 
-                dkj_z = np.einsum('...i,...nij,...j->...n', np.conj(evec_k), np.einsum('...nij->...nji',state.dh_qc_dzc[i]).conj(), evec_j) / ((ev_diff)[...,np.newaxis])
-                dkj_zc = np.einsum('...i,...nij,...j->...n', np.conj(evec_k), state.dh_qc_dzc[i], evec_j) / ((ev_diff)[...,np.newaxis])
+                ev_diff = eval_j - eval_k
+
+                dkj_z = np.einsum('...i,...nij,...j->...n', np.conj(evec_k), np.einsum('...nij->...nji', state.dh_qc_dzc[i]).conj(), evec_j) / ev_diff[..., np.newaxis]
+                dkj_zc = np.einsum('...i,...nij,...j->...n', np.conj(evec_k), state.dh_qc_dzc[i], evec_j) / ev_diff[..., np.newaxis]
                 dkj_p = np.sqrt(1 / (2 * sim.model.parameters.pq_weight * sim.model.parameters.mass)) * (dkj_z - dkj_zc)
                 dkj_q = np.sqrt(sim.model.parameters.pq_weight * sim.model.parameters.mass / 2) * (dkj_z + dkj_zc)
+
                 max_pos_q = np.argmax(np.abs(dkj_q))
                 max_pos_p = np.argmax(np.abs(dkj_p))
-                if np.abs(dkj_q[max_pos_q]) > 1e-8 and np.abs(
-                        np.sin(np.angle(dkj_q[np.argmax(np.abs(dkj_q))]))) > 1e-2:
+
+                # Check for complex nonadiabatic couplings
+                if np.abs(dkj_q[max_pos_q]) > 1e-8 and np.abs(np.sin(np.angle(dkj_q[max_pos_q]))) > 1e-2:
                     warnings.warn('dkj_q Nonadiabatic coupling is complex, needs gauge fixing!', UserWarning)
-                if np.abs(dkj_p[max_pos_p]) > 1e-8 and np.abs(
-                        np.sin(np.angle(dkj_p[np.argmax(np.abs(dkj_p))]))) > 1e-2:
+                if np.abs(dkj_p[max_pos_p]) > 1e-8 and np.abs(np.sin(np.angle(dkj_p[max_pos_p]))) > 1e-2:
                     warnings.warn('dkj_p Nonadiabatic coupling is complex, needs gauge fixing!', UserWarning)
-                delta_z = dkj_zc 
+
+                delta_z = dkj_zc
+
+                # Perform hopping using the model's hop function or the default harmonic oscillator hop function
                 if hasattr(sim.model, 'hop_function'):
                     z_coord_branch_i, hopped = sim.model.hop_function(sim.model, z_coord_branch[i], delta_z, ev_diff)
                 else:
-                    z_coord_branch_i, hopped = ingredients.harmonic_oscillator_hop(sim.model, z_coord = z_coord_branch[i], delta_z_coord = delta_z, ev_diff = ev_diff)
+                    z_coord_branch_i, hopped = ingredients.harmonic_oscillator_hop(sim.model, z_coord=z_coord_branch[i], delta_z_coord=delta_z, ev_diff=ev_diff)
+
                 if hopped:
-                    act_surf_ind[i] = k 
+                    act_surf_ind[i] = k
                     act_surf[i] = np.zeros_like(act_surf[i])
-                    act_surf[i][act_surf_ind[i]] = 1 
+                    act_surf[i][act_surf_ind[i]] = 1
                     z_coord_branch[i] = z_coord_branch_i
                 break
+
     state.modify('act_surf_ind', act_surf_ind)
     state.modify('act_surf', act_surf)
     state.modify('z_coord_branch', z_coord_branch)

@@ -36,7 +36,7 @@ class FewestSwitchesSurfaceHopping(AlgorithmClass):
         lambda sim, state: tasks.update_h_quantum_vectorized(sim = sim, state = state, z_coord = state.z_coord_branch),
         lambda sim, state: tasks.diagonalize_matrix_vectorized(sim = sim, state = state, matrix = state.h_quantum, eigvals_name='eigvals', eigvecs_name='eigvecs'),
         lambda sim, state: tasks.gauge_fix_eigs_vectorized(sim = sim, state = state, eigvals=state.eigvals, eigvecs=state.eigvecs, eigvecs_previous=state.eigvecs_previous, output_eigvecs_name='eigvecs', z_coord = state.z_coord_branch, gauge_fixing=sim.algorithm.parameters.gauge_fixing),
-        lambda sim, state: tasks.update_active_surface(sim = sim, state = state),
+        lambda sim, state: tasks.update_active_surface_fssh(sim = sim, state = state),
         lambda sim, state: tasks.update_act_surf_wf_vectorized(sim = sim, state = state),
         lambda sim, state: tasks.update_timestep_index(sim = sim, state = state),
     ]
