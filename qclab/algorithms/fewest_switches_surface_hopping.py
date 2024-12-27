@@ -5,9 +5,9 @@ import numpy as np
 
 class FewestSwitchesSurfaceHopping(AlgorithmClass):
     def __init__(self, parameters=dict()):
-        default_parameters = dict(fssh_deterministic=False, num_branches = 2, gauge_fixing=2)
+        self.default_parameters = dict(fssh_deterministic=False, num_branches = 2, gauge_fixing=2)
         # add default_params to params if not already in params
-        parameters = {**default_parameters, **parameters}
+        parameters = {**self.default_parameters, **parameters}
         self.parameters = ParameterClass()
         for key, val in parameters.items():
             setattr(self.parameters, key, val)

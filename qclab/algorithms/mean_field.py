@@ -12,9 +12,9 @@ class MeanField(AlgorithmClass):
     
     """
     def __init__(self, parameters=dict()):
-        default_parameters = dict()
+        self.default_parameters = dict()
         # add default_params to params if not already in params
-        parameters = {**default_parameters, **parameters}
+        parameters = {**self.default_parameters, **parameters}
         self.parameters = ParameterClass()
         for key, val in parameters.items():
             setattr(self.parameters, key, val)
