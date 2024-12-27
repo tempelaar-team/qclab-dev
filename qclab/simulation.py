@@ -350,8 +350,8 @@ class Simulation:
     The simulation object represents the entire simulation process.
     """
     def __init__(self, parameters={}):
-        default_parameters = dict(tmax=10, dt=0.01, dt_output=0.1, num_trajs=10, batch_size=1)
-        parameters = {**default_parameters, **parameters}
+        self.default_parameters = dict(tmax=10, dt=0.01, dt_output=0.1, num_trajs=10, batch_size=1)
+        parameters = {**self.default_parameters, **parameters}
         self.parameters = ParameterClass()
         for key, val in parameters.items():
             setattr(self.parameters, key, val)
