@@ -1,0 +1,23 @@
+Metadata-Version: 2.1
+Name: QC-lab
+Version: 0.0.1
+Summary: QC-lab: a python package for quantum-classical modeling.
+Author: Alex Krotz
+Author-email: alexkrotz2024@u.northwestern.edu
+Keywords: surface hopping,mixed quantum-classical dynamics,theoretical chemistry,ehrenfest,python,first package
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Education
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: Linux :: Linux
+Requires-Dist: numpy
+Requires-Dist: numba
+Requires-Dist: ray
+Requires-Dist: tqdm
+Requires-Dist: scipy>=0.16
+Requires-Dist: dill
+Requires-Dist: pyscf
+Requires-Dist: h5py
+
+QC-lab is a python package for mixed quantum-classical modeling.
