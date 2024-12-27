@@ -48,7 +48,6 @@ def initialize_state_objects(sim, batch_seeds):
             full_state = new_full_state(state_list)
             state_list = new_state_list(full_state)
 
-
     # Output recipe
     for ind, func in enumerate(sim.algorithm.output_recipe):
         if sim.algorithm.output_recipe_vectorized_bool[ind]:
@@ -58,7 +57,6 @@ def initialize_state_objects(sim, batch_seeds):
             state_list = [func(sim, state) for state in state_list]
             full_state = new_full_state(state_list)
             state_list = new_state_list(full_state)
-
 
     # Zero out every variable
     for name in full_state.pointers.keys():
@@ -144,6 +142,7 @@ class Data:
     """
     The data object handles the collection of data from the dynamics driver.
     """
+
     def __init__(self):
         self.data_dic = {'seed': np.array([], dtype=int)}
 
@@ -190,8 +189,8 @@ class Data:
     def save_as_h5(self, filename):
         with h5py.File(filename, 'w') as h5file:
             self._recursive_save(h5file, '/', self.data_dic)
-        return 
-    
+        return
+
     def load_from_h5(self, filename):
         with h5py.File(filename, 'r') as h5file:
             self._recursive_load(h5file, '/', self.data_dic)
@@ -223,7 +222,7 @@ class Data:
         Args:
             h5file (h5py.File): The HDF5 file object.
             path (str): The path to the group in the HDF5 file.
-            data_dict (dict): The dictionary to load the data into.
+            dic (dict): The dictionary to load the data into.
         """
         for key, item in h5file[path].items():
             if isinstance(item, h5py._hl.dataset.Dataset):
@@ -271,6 +270,7 @@ class State:
     """
     The state object represents the state of the simulation.
     """
+
     def __init__(self):
         self.pointers = {}
         self.shapes = {}
@@ -310,7 +310,7 @@ class State:
         self.pointers[name] = val.ctypes.data_as(ctypes.POINTER(get_ctypes_type(val)))
         self.shapes[name] = np.shape(val)
         self.dtypes[name] = val.dtype
-        self.__dict__[name] = self.get(name).view()#val.view()#
+        self.__dict__[name] = self.get(name).view()  # val.view()#
 
     def get(self, name):
         """
@@ -339,8 +339,9 @@ class State:
             val: The new value of the variable.
         """
         if name in self.pointers:
-            ctypes.memmove(ctypes.addressof(self.pointers[name].contents), val.ctypes.data_as(ctypes.c_void_p), val.nbytes)
-            self.__dict__[name] = self.get(name).view()#val.view()#
+            ctypes.memmove(ctypes.addressof(self.pointers[name].contents), val.ctypes.data_as(ctypes.c_void_p),
+                           val.nbytes)
+            self.__dict__[name] = self.get(name).view()  # val.view()#
         else:
             self.add(name, val)
 
@@ -349,6 +350,7 @@ class Simulation:
     """
     The simulation object represents the entire simulation process.
     """
+
     def __init__(self, parameters={}):
         self.default_parameters = dict(tmax=10, dt=0.01, dt_output=0.1, num_trajs=10, batch_size=1)
         parameters = {**self.default_parameters, **parameters}
@@ -367,7 +369,8 @@ class Simulation:
         self.parameters.dt_output_n = np.round(self.parameters.dt_output / self.parameters.dt, 1).astype(int)
         self.parameters.tdat = np.arange(0, self.parameters.tmax_n + 1, 1) * self.parameters.dt
         self.parameters.tdat_n = np.arange(0, self.parameters.tmax_n + 1, 1)
-        self.parameters.tdat_output = np.arange(0, self.parameters.tmax_n + 1, self.parameters.dt_output_n) * self.parameters.dt
+        self.parameters.tdat_output = np.arange(0, self.parameters.tmax_n + 1,
+                                                self.parameters.dt_output_n) * self.parameters.dt
         self.parameters.tdat_output_n = np.arange(0, self.parameters.tmax_n + 1, self.parameters.dt_output_n)
 
     def generate_seeds(self, data):

@@ -1,5 +1,6 @@
 from qclab.parameter import ParameterClass
 
+
 class ModelClass:
     """
     Base class for models in the simulation framework.

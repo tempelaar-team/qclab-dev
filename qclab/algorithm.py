@@ -1,6 +1,6 @@
-import numpy as np
 from qclab.parameter import ParameterClass
 import inspect
+
 
 class AlgorithmClass:
     """
@@ -21,6 +21,9 @@ class AlgorithmClass:
         Args:
             parameters (dict): A dictionary of parameters to initialize the algorithm.
         """
+        self.output_recipe_vectorized_bool = None
+        self.update_recipe_vectorized_bool = None
+        self.initialization_recipe_vectorized_bool = None
         default_parameters = dict()
         # Add default parameters to the provided parameters if not already present
         parameters = {**default_parameters, **parameters}
@@ -33,27 +36,11 @@ class AlgorithmClass:
     output_recipe = []
     output_variables = []
 
-    def _check_vectorized_old(self, func):
-        """
-        Check if a function is vectorized.
-
-        Args:
-            func (function): The function to check.
-
-        Returns:
-            bool: True if the function is vectorized, False otherwise.
-        """
-        
-        func_name = func.__code__.co_names[1]
-        return func_name.endswith('_vectorized')
-    
     def _is_vectorized(self, func):
         if '_vectorized' in inspect.getsource(func):
             return True
         else:
             return False
-
-        
 
     def determine_vectorized(self):
         """

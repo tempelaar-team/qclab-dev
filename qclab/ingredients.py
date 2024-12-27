@@ -1,6 +1,7 @@
 import numpy as np
 import warnings
 
+
 def harmonic_oscillator_h_c(model, **kwargs):
     """
     Calculate the classical Hamiltonian.
@@ -15,6 +16,7 @@ def harmonic_oscillator_h_c(model, **kwargs):
     z_coord = kwargs['z_coord']
     h_c = np.sum(model.parameters.pq_weight * np.conjugate(z_coord) * z_coord)
     return h_c
+
 
 def harmonic_oscillator_h_c_vectorized(model, **kwargs):
     """
@@ -31,6 +33,7 @@ def harmonic_oscillator_h_c_vectorized(model, **kwargs):
     h_c = np.sum(model.parameters.pq_weight[..., :] * np.conjugate(z_coord) * z_coord, axis=1)
     return h_c
 
+
 def harmonic_oscillator_dh_c_dzc(model, **kwargs):
     """
     Calculate the derivative of the classical Hamiltonian with respect to the z-coordinates.
@@ -46,6 +49,7 @@ def harmonic_oscillator_dh_c_dzc(model, **kwargs):
     dh_c_dzc = model.parameters.pq_weight * z_coord + 0.0j
     return dh_c_dzc
 
+
 def harmonic_oscillator_dh_c_dzc_vectorized(model, **kwargs):
     """
     Calculate the vectorized derivative of the classical Hamiltonian with respect to the z-coordinates.
@@ -60,6 +64,7 @@ def harmonic_oscillator_dh_c_dzc_vectorized(model, **kwargs):
     z_coord = kwargs['z_coord']
     dh_c_dzc = model.parameters.pq_weight[..., :] * z_coord + 0.0j
     return dh_c_dzc
+
 
 def two_level_system_h_q(model, **kwargs):
     """
@@ -79,6 +84,7 @@ def two_level_system_h_q(model, **kwargs):
     h_q[1, 0] = model.parameters.two_level_system_c - 1j * model.parameters.two_level_system_d
     return h_q
 
+
 def two_level_system_h_q_vectorized(model, **kwargs):
     """
     Calculate the vectorized quantum Hamiltonian for a two-level system.
@@ -97,6 +103,7 @@ def two_level_system_h_q_vectorized(model, **kwargs):
     h_q[1, 0] = model.parameters.two_level_system_c - 1j * model.parameters.two_level_system_d
     return h_q[np.newaxis, :, :]
 
+
 def nearest_neighbor_lattice_h_q(model, **kwargs):
     """
     Calculate the quantum Hamiltonian for a nearest-neighbor lattice.
@@ -112,18 +119,19 @@ def nearest_neighbor_lattice_h_q(model, **kwargs):
     hopping_energy = model.parameters.nearest_neighbor_lattice_h_q_hopping_energy
     periodic_boundary = model.parameters.nearest_neighbor_lattice_h_q_periodic_boundary
     h_q = np.zeros((num_sites, num_sites), dtype=complex)
-    
+
     # Fill the Hamiltonian matrix with hopping energies
     for n in range(num_sites - 1):
         h_q[n, n + 1] = -hopping_energy
         h_q[n + 1, n] = -np.conj(hopping_energy)
-    
+
     # Apply periodic boundary conditions if specified
     if periodic_boundary:
         h_q[0, num_sites - 1] = -hopping_energy
         h_q[num_sites - 1, 0] = -np.conj(hopping_energy)
-    
+
     return h_q
+
 
 def nearest_neighbor_lattice_h_q_vectorized(model, **kwargs):
     """
@@ -140,12 +148,12 @@ def nearest_neighbor_lattice_h_q_vectorized(model, **kwargs):
     hopping_energy = model.parameters.nearest_neighbor_lattice_h_q_hopping_energy
     periodic_boundary = model.parameters.nearest_neighbor_lattice_h_q_periodic_boundary
     h_q = np.zeros((num_sites, num_sites), dtype=complex)
-    
+
     # Fill the Hamiltonian matrix with hopping energies
     for n in range(num_sites - 1):
         h_q[n, n + 1] += -hopping_energy
         h_q[n + 1, n] += np.conj(h_q[n, n + 1])
-    
+
     # Apply periodic boundary conditions if specified
     if periodic_boundary:
         h_q[0, num_sites - 1] += -hopping_energy
@@ -153,13 +161,14 @@ def nearest_neighbor_lattice_h_q_vectorized(model, **kwargs):
 
     return h_q[..., :, :]
 
+
 def holstein_lattice_h_qc(model, **kwargs):
     z_coord = kwargs['z_coord']
-    num_sites = model.parameters.holstein_lattice_h_qc_num_sites
     oscillator_frequency = model.parameters.holstein_lattice_h_qc_oscillator_frequency
     dimensionless_coupling = model.parameters.holstein_lattice_h_qc_dimensionless_coupling
-    h_qc = np.diag(dimensionless_coupling*oscillator_frequency)*(z_coord + np.conj(z_coord)) + 0.0j
+    h_qc = np.diag(dimensionless_coupling * oscillator_frequency) * (z_coord + np.conj(z_coord)) + 0.0j
     return h_qc
+
 
 def holstein_lattice_h_qc_vectorized(model, **kwargs):
     z_coord = kwargs['z_coord']
@@ -167,8 +176,10 @@ def holstein_lattice_h_qc_vectorized(model, **kwargs):
     oscillator_frequency = model.parameters.holstein_lattice_h_qc_oscillator_frequency
     dimensionless_coupling = model.parameters.holstein_lattice_h_qc_dimensionless_coupling
     h_qc = np.zeros((*np.shape(z_coord)[:-1], num_sites, num_sites), dtype=complex)
-    np.einsum('...ii->...i',h_qc)[...] = (dimensionless_coupling*oscillator_frequency)[...,:]*(z_coord + np.conj(z_coord)) + 0.0j
+    np.einsum('...ii->...i', h_qc)[...] = (dimensionless_coupling * oscillator_frequency)[..., :] * (
+                z_coord + np.conj(z_coord)) + 0.0j
     return h_qc
+
 
 def holstein_lattice_dh_qc_dzc(model, **kwargs):
     z_coord = kwargs['z_coord']
@@ -176,8 +187,9 @@ def holstein_lattice_dh_qc_dzc(model, **kwargs):
     oscillator_frequency = model.parameters.holstein_lattice_h_qc_oscillator_frequency
     dimensionless_coupling = model.parameters.holstein_lattice_h_qc_dimensionless_coupling
     dh_qc_dzc = np.zeros((num_sites, num_sites, num_sites), dtype=complex)
-    np.einsum('iii->i', dh_qc_dzc)[...] = dimensionless_coupling*oscillator_frequency*(np.ones_like(z_coord)) + 0.0j
+    np.einsum('iii->i', dh_qc_dzc)[...] = dimensionless_coupling * oscillator_frequency * (np.ones_like(z_coord)) + 0.0j
     return dh_qc_dzc
+
 
 def holstein_lattice_dh_qc_dzc_vectorized(model, **kwargs):
     z_coord = kwargs['z_coord']
@@ -185,7 +197,8 @@ def holstein_lattice_dh_qc_dzc_vectorized(model, **kwargs):
     oscillator_frequency = model.parameters.holstein_lattice_h_qc_oscillator_frequency
     dimensionless_coupling = model.parameters.holstein_lattice_h_qc_dimensionless_coupling
     dh_qc_dzc = np.zeros((*np.shape(z_coord)[:-1], num_sites, num_sites, num_sites), dtype=complex)
-    np.einsum('...iii->...i', dh_qc_dzc)[...] = (dimensionless_coupling*oscillator_frequency)[...,:]*(np.ones_like(z_coord)) + 0.0j
+    np.einsum('...iii->...i', dh_qc_dzc)[...] = (dimensionless_coupling * oscillator_frequency)[..., :] * (
+        np.ones_like(z_coord)) + 0.0j
     return dh_qc_dzc
 
 
@@ -240,6 +253,6 @@ def harmonic_oscillator_boltzmann_init_classical(model, **kwargs):
         size=model.parameters.num_classical_coordinates
     )
     z = np.sqrt(model.parameters.pq_weight * model.parameters.mass / 2) * (
-        q + 1.0j * (p / (model.parameters.pq_weight * model.parameters.mass))
+            q + 1.0j * (p / (model.parameters.pq_weight * model.parameters.mass))
     )
     return z

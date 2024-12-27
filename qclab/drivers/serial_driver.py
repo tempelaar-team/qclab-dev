@@ -1,18 +1,15 @@
 import qclab.simulation as simulation
 import qclab.dynamics as dynamics
-from tqdm import tqdm
-import numpy as np
 
 
 def run_simulation(sim, seeds=None, ncpus=1, data=None):
     """
     Run the simulation in a serial manner.
 
-    Args:
-        sim (Simulation): The simulation object containing the simulation parameters and state.
-        seeds (list, optional): List of seeds for initializing the simulation. If None, seeds will be generated.
-        ncpus (int, optional): Number of CPUs to use. This parameter is not used in the serial implementation.
-        data (Data, optional): An existing Data object to store the simulation results. If None, a new Data object will be created.
+    Args: sim (Simulation): The simulation object containing the simulation parameters and state. seeds (list,
+    optional): List of seeds for initializing the simulation. If None, seeds will be generated. ncpus (int,
+    optional): Number of CPUs to use. This parameter is not used in the serial implementation. data (Data,
+    optional): An existing Data object to store the simulation results. If None, a new Data object will be created.
 
     Returns:
         Data: The Data object containing the results of the simulation.
@@ -40,4 +37,3 @@ def run_simulation(sim, seeds=None, ncpus=1, data=None):
         data.add_data(new_data)  # Add the collected data to the main Data object
 
     return data  # Return the Data object containing all simulation results
-    
