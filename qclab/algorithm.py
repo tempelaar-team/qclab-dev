@@ -1,8 +1,8 @@
-from qclab.parameter import ParameterClass
+from qclab.parameter import Parameter
 import inspect
 
 
-class AlgorithmClass:
+class Algorithm:
     """
     Base class for algorithms in the simulation framework.
 
@@ -27,7 +27,7 @@ class AlgorithmClass:
         default_parameters = dict()
         # Add default parameters to the provided parameters if not already present
         parameters = {**default_parameters, **parameters}
-        self.parameters = ParameterClass()
+        self.parameters = Parameter()
         for key, val in parameters.items():
             setattr(self.parameters, key, val)  # Set attributes
 

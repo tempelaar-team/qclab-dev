@@ -1,15 +1,15 @@
-from qclab.algorithm import AlgorithmClass
+from qclab.algorithm import Algorithm
 import qclab.tasks as tasks
-from qclab.parameter import ParameterClass
+from qclab.parameter import Parameter
 import numpy as np
 
 
-class FewestSwitchesSurfaceHopping(AlgorithmClass):
+class FewestSwitchesSurfaceHopping(Algorithm):
     def __init__(self, parameters=dict()):
         self.default_parameters = dict(fssh_deterministic=False, num_branches=2, gauge_fixing=2)
         # add default_params to params if not already in params
         parameters = {**self.default_parameters, **parameters}
-        self.parameters = ParameterClass()
+        self.parameters = Parameter()
         for key, val in parameters.items():
             setattr(self.parameters, key, val)
 

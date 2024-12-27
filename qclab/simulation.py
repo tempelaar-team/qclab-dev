@@ -1,7 +1,7 @@
 import numpy as np
 import ctypes
 import h5py
-from qclab.parameter import ParameterClass
+from qclab.parameter import Parameter
 
 
 def initialize_state_objects(sim, batch_seeds):
@@ -346,7 +346,7 @@ class State:
             self.add(name, val)
 
 
-class SimulationClass:
+class Simulation:
     """
     The simulation object represents the entire simulation process.
     """
@@ -354,7 +354,7 @@ class SimulationClass:
     def __init__(self, parameters={}):
         self.default_parameters = dict(tmax=10, dt=0.01, dt_output=0.1, num_trajs=10, batch_size=1)
         parameters = {**self.default_parameters, **parameters}
-        self.parameters = ParameterClass()
+        self.parameters = Parameter()
         for key, val in parameters.items():
             setattr(self.parameters, key, val)
         self.algorithm = None

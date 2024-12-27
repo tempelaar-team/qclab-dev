@@ -1,10 +1,10 @@
 import numpy as np
-from qclab.model import ModelClass
-from qclab.parameter import ParameterClass
+from qclab.model import Model
+from qclab.parameter import Parameter
 import qclab.ingredients as ingredients
 
 
-class HolsteinLatticeModel(ModelClass):
+class HolsteinLatticeModel(Model):
     """
     A model representing a nearest-neighbor tight-binding model with Holstein-type electron-phonon coupling with a 
     single optical mode.
@@ -16,7 +16,7 @@ class HolsteinLatticeModel(ModelClass):
             'temp': 1, 'g': 0.5, 'w': 0.5, 'N': 10, 'j': 1, 'mass': 1, 'periodic_boundary': True
         }
         parameters = {**self.default_parameters, **parameters}
-        self.parameters = ParameterClass(self.update_model_parameters)
+        self.parameters = Parameter(self.update_model_parameters)
         for key, val in parameters.items():
             setattr(self.parameters, key, val)
         self.parameters._init_complete = True

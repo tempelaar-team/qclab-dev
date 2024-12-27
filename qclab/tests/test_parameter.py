@@ -1,5 +1,5 @@
 import pytest
-from qclab.parameter import ParameterClass
+from qclab.parameter import Parameter
 
 def test_parameter_class():
     """
@@ -29,7 +29,7 @@ def test_parameter_class():
     def update_function():
         parameters.p1 *= 2
 
-    parameters = ParameterClass(update_function)
+    parameters = Parameter(update_function)
     for key, val in default_parameters.items():
         setattr(parameters, key, val)
     parameters._init_complete = True

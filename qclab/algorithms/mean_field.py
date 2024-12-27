@@ -1,9 +1,9 @@
-from qclab.algorithm import AlgorithmClass
+from qclab.algorithm import Algorithm
 import qclab.tasks as tasks
-from qclab.parameter import ParameterClass
+from qclab.parameter import Parameter
 
 
-class MeanField(AlgorithmClass):
+class MeanField(Algorithm):
     """
     Mean-field dynamics algorithm class. 
 
@@ -17,7 +17,7 @@ class MeanField(AlgorithmClass):
         self.default_parameters = dict()
         # add default_params to params if not already in params
         parameters = {**self.default_parameters, **parameters}
-        self.parameters = ParameterClass()
+        self.parameters = Parameter()
         for key, val in parameters.items():
             setattr(self.parameters, key, val)
 

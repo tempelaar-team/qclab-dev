@@ -1,4 +1,4 @@
-class ParameterClass:
+class Parameter:
     """
     Class to handle parameters and trigger updates when parameters change.
 

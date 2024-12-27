@@ -1,10 +1,10 @@
 import numpy as np
-from qclab.model import ModelClass
-from qclab.parameter import ParameterClass
+from qclab.model import Model
+from qclab.parameter import Parameter
 import qclab.ingredients as ingredients
 
 
-class SpinBosonModel(ModelClass):
+class SpinBosonModel(Model):
     """
     Spin-Boson model class for the simulation framework.
 
@@ -27,7 +27,7 @@ class SpinBosonModel(ModelClass):
         }
         # Add default parameters to the provided parameters if not already present
         parameters = {**self.default_parameters, **parameters}
-        self.parameters = ParameterClass(self.update_model_parameters)
+        self.parameters = Parameter(self.update_model_parameters)
         for key, val in parameters.items():
             setattr(self.parameters, key, val)
         self.parameters._init_complete = True

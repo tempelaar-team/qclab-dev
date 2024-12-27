@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from qclab.algorithm import AlgorithmClass
+from qclab.algorithm import Algorithm
 import qclab.simulation as simulation
 
 
@@ -16,7 +16,7 @@ def test_algorithm_initialization():
         - The 'param2' attribute of the algorithm's parameters should be 2.
     """
     parameters = {'param1': 1, 'param2': 2}
-    algorithm = AlgorithmClass(parameters)
+    algorithm = Algorithm(parameters)
     assert algorithm.parameters.param1 == 1
     assert algorithm.parameters.param2 == 2
 
@@ -31,7 +31,7 @@ def test_is_vectorized():
     3. A lambda function wrapping a vectorized dummy function should return True.
     4. A lambda function wrapping a vectorized dummy function assigned to the algorithm should return True.
     """
-    algorithm = AlgorithmClass()
+    algorithm = Algorithm()
 
     def dummy_func(x):
         pass
@@ -68,7 +68,7 @@ def test_determine_vectorized():
     The test ensures that the determine_vectorized method correctly
     identifies which functions in the recipes are vectorized.
     """
-    algorithm = AlgorithmClass()
+    algorithm = Algorithm()
 
     def dummy_func():
         pass
@@ -108,7 +108,7 @@ def test_execute_initialization_recipe():
     - Verify that the 'non_vectorized_output' and 'vectorized_output' fields retrieved using
       the get method are correctly incremented.
     """
-    algorithm = AlgorithmClass()
+    algorithm = Algorithm()
 
     def dummy_func(sim, state):
         state.modify('non_vectorized_output', state.get('non_vectorized_output') + 1)
@@ -132,7 +132,7 @@ def test_execute_initialization_recipe():
     full_state.add('non_vectorized_output', np.arange(3).reshape(3, 1))
     full_state.add('vectorized_output', np.arange(3).reshape(3, 1))
     state_list = simulation.new_state_list(full_state)
-    sim = simulation.SimulationClass()
+    sim = simulation.Simulation()
     sim.algorithm = algorithm
     sim.algorithm.determine_vectorized()
     state_list, full_state = algorithm.execute_initialization_recipe(sim, state_list, full_state)
@@ -178,7 +178,7 @@ def test_execute_update_recipe():
     - The 'non_vectorized_output' and 'vectorized_output' keys in each state object
       and the full_state object match the expected values.
     """
-    algorithm = AlgorithmClass()
+    algorithm = Algorithm()
 
     def dummy_func(sim, state):
         state.modify('non_vectorized_output', state.get('non_vectorized_output') + 1)
@@ -202,7 +202,7 @@ def test_execute_update_recipe():
     full_state.add('non_vectorized_output', np.arange(3).reshape(3, 1))
     full_state.add('vectorized_output', np.arange(3).reshape(3, 1))
     state_list = simulation.new_state_list(full_state)
-    sim = simulation.SimulationClass()
+    sim = simulation.Simulation()
     sim.algorithm = algorithm
     sim.algorithm.determine_vectorized()
     state_list, full_state = algorithm.execute_update_recipe(sim, state_list, full_state)
@@ -247,7 +247,7 @@ def test_execute_output_recipe():
     - Ensures that the values in the state_list and full_state match the expected
       results after executing the output recipe.
     """
-    algorithm = AlgorithmClass()
+    algorithm = Algorithm()
 
     def dummy_func(sim, state):
         state.modify('non_vectorized_output', state.get('non_vectorized_output') + 1)
@@ -271,7 +271,7 @@ def test_execute_output_recipe():
     full_state.add('non_vectorized_output', np.arange(3).reshape(3, 1))
     full_state.add('vectorized_output', np.arange(3).reshape(3, 1))
     state_list = simulation.new_state_list(full_state)
-    sim = simulation.SimulationClass()
+    sim = simulation.Simulation()
     sim.algorithm = algorithm
     sim.algorithm.determine_vectorized()
     state_list, full_state = algorithm.execute_output_recipe(sim, state_list, full_state)

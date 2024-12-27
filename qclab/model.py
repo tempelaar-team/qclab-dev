@@ -1,7 +1,7 @@
-from qclab.parameter import ParameterClass
+from qclab.parameter import Parameter
 
 
-class ModelClass:
+class Model:
     """
     Base class for models in the simulation framework.
 
@@ -21,7 +21,7 @@ class ModelClass:
         default_parameters = {}
         # Add default parameters to the provided parameters if not already present
         parameters = {**default_parameters, **parameters}
-        self.parameters = ParameterClass(self.update_model_parameters)
+        self.parameters = Parameter(self.update_model_parameters)
         for key, val in parameters.items():
             setattr(self.parameters, key, val)
         self.parameters._init_complete = True
