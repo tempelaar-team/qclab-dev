@@ -132,7 +132,7 @@ def test_execute_initialization_recipe():
     full_state.add('non_vectorized_output', np.arange(3).reshape(3, 1))
     full_state.add('vectorized_output', np.arange(3).reshape(3, 1))
     state_list = simulation.new_state_list(full_state)
-    sim = simulation.Simulation()
+    sim = simulation.SimulationClass()
     sim.algorithm = algorithm
     sim.algorithm.determine_vectorized()
     state_list, full_state = algorithm.execute_initialization_recipe(sim, state_list, full_state)
@@ -202,7 +202,7 @@ def test_execute_update_recipe():
     full_state.add('non_vectorized_output', np.arange(3).reshape(3, 1))
     full_state.add('vectorized_output', np.arange(3).reshape(3, 1))
     state_list = simulation.new_state_list(full_state)
-    sim = simulation.Simulation()
+    sim = simulation.SimulationClass()
     sim.algorithm = algorithm
     sim.algorithm.determine_vectorized()
     state_list, full_state = algorithm.execute_update_recipe(sim, state_list, full_state)
@@ -271,7 +271,7 @@ def test_execute_output_recipe():
     full_state.add('non_vectorized_output', np.arange(3).reshape(3, 1))
     full_state.add('vectorized_output', np.arange(3).reshape(3, 1))
     state_list = simulation.new_state_list(full_state)
-    sim = simulation.Simulation()
+    sim = simulation.SimulationClass()
     sim.algorithm = algorithm
     sim.algorithm.determine_vectorized()
     state_list, full_state = algorithm.execute_output_recipe(sim, state_list, full_state)

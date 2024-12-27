@@ -346,7 +346,7 @@ class State:
             self.add(name, val)
 
 
-class Simulation:
+class SimulationClass:
     """
     The simulation object represents the entire simulation process.
     """
