@@ -21,12 +21,12 @@ class SpinBosonModel(ModelClass):
         """
         if parameters is None:
             parameters = {}
-        default_parameters = {
+        self.default_parameters = {
             'temp': 1, 'V': 0.5, 'E': 0.5, 'A': 100, 'W': 0.1,
-            'l_reorg': 0.02 / 4, 'mass': 1
+            'l_reorg': 0.02 / 4, 'boson_mass': 1
         }
         # Add default parameters to the provided parameters if not already present
-        parameters = {**default_parameters, **parameters}
+        parameters = {**self.default_parameters, **parameters}
         self.parameters = ParameterClass(self.update_model_parameters)
         for key, val in parameters.items():
             setattr(self.parameters, key, val)
@@ -49,7 +49,7 @@ class SpinBosonModel(ModelClass):
         self.parameters.two_level_system_d = 0  # Imaginary part of the off-diagonal coupling
         self.parameters.pq_weight = self.parameters.w
         self.parameters.num_classical_coordinates = self.parameters.A
-        self.parameters.mass = np.ones(self.parameters.A) * self.parameters.mass
+        self.parameters.mass = np.ones(self.parameters.A) * self.parameters.boson_mass
 
     def h_qc(self, **kwargs):
         """

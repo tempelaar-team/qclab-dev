@@ -12,10 +12,10 @@ class HolsteinLatticeModel(ModelClass):
     def __init__(self, parameters=None):
         if parameters is None:
             parameters = {}
-        default_parameters = {
+        self.default_parameters = {
             'temp': 1, 'g': 0.5, 'w': 0.5, 'N': 10, 'j': 1, 'mass': 1, 'periodic_boundary': True
         }
-        parameters = {**default_parameters, **parameters}
+        parameters = {**self.default_parameters, **parameters}
         self.parameters = ParameterClass(self.update_model_parameters)
         for key, val in parameters.items():
             setattr(self.parameters, key, val)
