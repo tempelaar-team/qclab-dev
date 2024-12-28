@@ -15,12 +15,7 @@ class HolsteinLatticeModel(Model):
         self.default_parameters = {
             'temp': 1, 'g': 0.5, 'w': 0.5, 'N': 10, 'j': 1, 'mass': 1, 'periodic_boundary': True
         }
-        parameters = {**self.default_parameters, **parameters}
-        self.parameters = Parameter(self.update_model_parameters)
-        for key, val in parameters.items():
-            setattr(self.parameters, key, val)
-        self.parameters._init_complete = True
-        self.update_model_parameters()
+        super().__init__(self.default_parameters, parameters)
 
     def update_model_parameters(self):
         self.parameters.w = self.parameters.w * np.ones(self.parameters.N)

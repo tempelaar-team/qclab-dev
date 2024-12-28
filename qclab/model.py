@@ -9,7 +9,7 @@ class Model:
         parameters (ParameterClass): The parameters of the model.
     """
 
-    def __init__(self, parameters=None):
+    def __init__(self, default_parameters = None, parameters=None):
         """
         Initializes the ModelClass with given parameters.
 
@@ -18,7 +18,8 @@ class Model:
         """
         if parameters is None:
             parameters = {}
-        default_parameters = {}
+        if default_parameters is None:
+            default_parameters = {}
         # Add default parameters to the provided parameters if not already present
         parameters = {**default_parameters, **parameters}
         self.parameters = Parameter(self.update_model_parameters)

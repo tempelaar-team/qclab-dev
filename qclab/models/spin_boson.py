@@ -25,13 +25,7 @@ class SpinBosonModel(Model):
             'temp': 1, 'V': 0.5, 'E': 0.5, 'A': 100, 'W': 0.1,
             'l_reorg': 0.02 / 4, 'boson_mass': 1
         }
-        # Add default parameters to the provided parameters if not already present
-        parameters = {**self.default_parameters, **parameters}
-        self.parameters = Parameter(self.update_model_parameters)
-        for key, val in parameters.items():
-            setattr(self.parameters, key, val)
-        self.parameters._init_complete = True
-        self.update_model_parameters()
+        super().__init__(self.default_parameters, parameters)
 
     def update_model_parameters(self):
         """
