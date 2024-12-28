@@ -256,3 +256,17 @@ def harmonic_oscillator_boltzmann_init_classical(model, **kwargs):
             q + 1.0j * (p / (model.parameters.pq_weight * model.parameters.mass))
     )
     return z
+
+def harmonic_oscillator_wigner_init_classical(model, seed=None):
+    """
+    Initialize classical coordiantes according to Wigner distribution of the ground state of a harmonic oscillator
+    :param model: model object with temperature, harmonic oscillator mass and frequency
+    :return: z = sqrt(m*pq_weight/2)*(q + i*(p/((m*pq_weight))), z* = sqrt(m*pq_weight/2)*(q - i*(p/((m*pq_weight)))
+    """
+    np.random.seed(seed)
+    q = np.random.normal(loc=0, 
+    scale=np.sqrt(1 / (2 * model.parameters.pq_weight * model.parameters.mass*np.tanh(model.parameters.pq_weight/(2*model.parameters.temp)))),
+                         size=model.parameters.num_classical_coordinates)
+    p = np.random.normal(loc=0, scale=np.sqrt((model.parameters.mass * model.parameters.pq_weight) / (2 * np.tanh(model.parameters.pq_weight/(2*model.parameters.temp)))), size=model.parameters.num_classical_coordinates)
+    z = np.sqrt(model.parameters.pq_weight * model.parameters.mass / 2) * (q + 1.0j * (p / (model.parameters.pq_weight * model.parameters.mass)))
+    return z
