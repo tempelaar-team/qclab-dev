@@ -37,8 +37,8 @@ class SpinBosonModel(Model):
         self.parameters.g = self.parameters.w * np.sqrt(
             2 * self.parameters.l_reorg / self.parameters.A
         )  # Electron-phonon coupling
-        self.parameters.two_level_system_a = self.parameters.E  # Diagonal energy of state 0
-        self.parameters.two_level_system_b = -self.parameters.E  # Diagonal energy of state 1
+        self.parameters.two_level_system_a = -self.parameters.E  # Diagonal energy of state 0
+        self.parameters.two_level_system_b = self.parameters.E  # Diagonal energy of state 1
         self.parameters.two_level_system_c = self.parameters.V  # Real part of the off-diagonal coupling
         self.parameters.two_level_system_d = 0  # Imaginary part of the off-diagonal coupling
         self.parameters.pq_weight = self.parameters.w
