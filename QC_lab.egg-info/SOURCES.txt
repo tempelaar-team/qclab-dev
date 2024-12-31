@@ -16,6 +16,7 @@ qclab/simulation.py
 qclab/tasks.py
 qclab/drivers/__init__.py
 qclab/drivers/serial_driver.py
+qclab/drivers/slurm_driver.py
 qclab/models/__init__.py
 qclab/models/holstein_lattice.py
 qclab/models/spin_boson.py
