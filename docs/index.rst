@@ -45,6 +45,7 @@ Using QC Lab
    model_class
    algorithm_class
    dynamics_core
+   ingredients
 
 Bibliography
 ------------
