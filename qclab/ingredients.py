@@ -30,7 +30,7 @@ def harmonic_oscillator_h_c_vectorized(model, **kwargs):
         np.ndarray: The vectorized classical Hamiltonian.
     """
     z_coord = kwargs['z_coord']
-    h_c = np.sum(model.parameters.pq_weight[..., :] * np.conjugate(z_coord) * z_coord, axis=1)
+    h_c = np.sum(model.parameters.pq_weight[..., :] * np.conjugate(z_coord) * z_coord, axis=-1)
     return h_c
 
 
