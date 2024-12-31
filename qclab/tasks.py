@@ -39,6 +39,42 @@ def initialize_z_coord(sim, state, **kwargs):
         state.modify('z_coord', ingredients.harmonic_oscillator_boltzmann_init_classical(sim.model, seed=state.seed))
     return state
 
+def dh_c_dzc_finite_differences(sim, state, **kwargs):
+    z_coord = kwargs['z_coord']
+    # Approximate the gradient using finite differences
+    delta_z = 1e-3
+    offset_z_coord_re = z_coord[np.newaxis, :] + np.identity(len(z_coord)) * delta_z
+    offset_z_coord_im = z_coord[np.newaxis, :] + 1j * np.identity(len(z_coord)) * delta_z
+
+    h_c_0 = sim.model.h_c(z_coord=z_coord)
+    dh_c_dzc = np.zeros((len(z_coord), *np.shape(h_c_0)), dtype=complex)
+
+    for n in range(len(z_coord)):
+        h_c_offset_re = sim.model.h_c(z_coord=offset_z_coord_re[n])
+        diff_re = (h_c_offset_re - h_c_0) / delta_z
+        h_c_offset_im = sim.model.h_c(z_coord=offset_z_coord_im[n])
+        diff_im = (h_c_offset_im - h_c_0) / delta_z
+        dh_c_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
+    return dh_c_dzc
+
+
+def dh_qc_dzc_finite_differences(sim, state, **kwargs):
+    z_coord = kwargs['z_coord']
+    # Approximate the gradient using finite differences
+    delta_z = 1e-3
+    offset_z_coord_re = z_coord[np.newaxis, :] + np.identity(len(z_coord)) * delta_z
+    offset_z_coord_im = z_coord[np.newaxis, :] + 1j * np.identity(len(z_coord)) * delta_z
+
+    h_qc_0 = sim.model.h_qc(z_coord=z_coord)
+    dh_qc_dzc = np.zeros((len(z_coord), *np.shape(h_qc_0)), dtype=complex)
+
+    for n in range(len(z_coord)):
+        h_qc_offset_re = sim.model.h_qc(z_coord=offset_z_coord_re[n])
+        diff_re = (h_qc_offset_re - h_qc_0) / delta_z
+        h_qc_offset_im = sim.model.h_qc(z_coord=offset_z_coord_im[n])
+        diff_im = (h_qc_offset_im - h_qc_0) / delta_z
+        dh_qc_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
+    return dh_qc_dzc
 
 def update_dh_c_dzc(sim, state, **kwargs):
     """
@@ -91,8 +127,13 @@ def update_dh_c_dzc_vectorized(sim, state, **kwargs):
     if hasattr(sim.model, 'dh_c_dzc_vectorized'):
         state.modify('dh_c_dzc', sim.model.dh_c_dzc_vectorized(z_coord=z_coord))
     else:
-        state.modify('dh_c_dzc', vector_apply_all_but_last(lambda z: sim.model.dh_c_dzc(z_coord=z), z_coord))
         warnings.warn("dh_c_dzc_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
+        if hasattr(sim.model, 'dh_c_dzc'):
+            state.modify('dh_c_dzc', vector_apply_all_but_last(lambda z: sim.model.dh_c_dzc(z_coord=z), z_coord))
+        else:
+            warnings.warn("dh_c_dzc not implemented for this model. Using finite differences.", UserWarning)
+            state.modify('dh_c_dzc', vector_apply_all_but_last(lambda z: dh_c_dzc_finite_differences(sim, state, z_coord=z), z_coord))
+
     return state
 
 
@@ -151,8 +192,13 @@ def update_dh_qc_dzc_vectorized(sim, state, **kwargs):
     if hasattr(sim.model, 'dh_qc_dzc_vectorized'):
         state.modify('dh_qc_dzc', sim.model.dh_qc_dzc_vectorized(z_coord=z_coord))
     else:
-        state.modify('dh_qc_dzc', vector_apply_all_but_last(lambda z: sim.model.dh_qc_dzc(z_coord=z), z_coord))
         warnings.warn("dh_qc_dzc_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
+        if hasattr(sim.model, 'dh_qc_dzc'):
+            state.modify('dh_qc_dzc', vector_apply_all_but_last(lambda z: sim.model.dh_qc_dzc(z_coord=z), z_coord))
+        else:
+            warnings.warn("dh_qc_dzc not implemented for this model. Using finite differences.", UserWarning)
+            state.modify('dh_qc_dzc', vector_apply_all_but_last(lambda z: dh_qc_dzc_finite_differences(sim, state, z_coord=z), z_coord))
+
     return state
 
 
@@ -334,10 +380,7 @@ def update_h_quantum_vectorized(sim, state, **kwargs):
     if hasattr(sim.model, 'h_q_vectorized') and hasattr(sim.model, 'h_qc_vectorized'):
         state.modify('h_quantum', sim.model.h_q_vectorized() + sim.model.h_qc_vectorized(z_coord=z_coord) + 0j)
     else:
-        state.modify('h_quantum', np.array(
-            [(sim.model.h_q() + sim.model.h_qc(z_coord=z_coord[n]) + 0j) for n in range(len(z_coord))]))
-        warnings.warn("h_quantum_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
-        warnings.warn("h_qc_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
+        state.modify('h_quantum', np.array([(sim.model.h_q() + sim.model.h_qc(z_coord=z_coord[n]) + 0j) for n in range(len(z_coord))]))
     return state
 
 
@@ -430,7 +473,7 @@ def update_dm_db_mf_vectorized(sim, state, **kwargs):
         State: The updated state object.
     """
     wf_db = state.wf_db
-    state.modify('dm_db', np.einsum('bi,bj->bij', wf_db, np.conj(wf_db)))
+    state.modify('dm_db', np.einsum('...i,...j->...ij', wf_db, np.conj(wf_db)))
     return state
 
 
@@ -447,7 +490,7 @@ def update_classical_energy(sim, state, **kwargs):
         State: The updated state object.
     """
     z_coord = kwargs['z_coord']
-    state.modify('classical_energy', np.real(sim.model.h_c(z_coord=z_coord))[np.newaxis])
+    state.modify('classical_energy', sim.model.h_c(z_coord=z_coord)[np.newaxis])
     return state
 
 
@@ -465,11 +508,10 @@ def update_classical_energy_vectorized(sim, state, **kwargs):
     """
     z_coord = kwargs['z_coord']
     if hasattr(sim.model, 'h_c_vectorized'):
-        state.modify('classical_energy', np.real(sim.model.h_c_vectorized(z_coord=z_coord))[:, np.newaxis])
+        state.modify('classical_energy', sim.model.h_c_vectorized(z_coord=z_coord)[:,np.newaxis])
     else:
-        state.modify('classical_energy',
-                     np.array([np.real(sim.model.h_c_vectorized(z_coord=z_coord[n])) for n in range(len(z_coord))]))
         warnings.warn("h_c_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
+        state.modify('classical_energy', vector_apply_all_but_last(lambda z: sim.model.h_c(z_coord=z), z_coord)[:,np.newaxis])
     return state
 
 
@@ -487,11 +529,9 @@ def update_classical_energy_fssh_vectorized(sim, state, **kwargs):
     """
     z_coord = kwargs['z_coord']
     if hasattr(sim.model, 'h_c_vectorized'):
-        state.modify('classical_energy',
-                     np.real(np.sum(sim.model.h_c_vectorized(z_coord=z_coord), axis=-1)[:, np.newaxis]))
+        state.modify('classical_energy',np.sum(sim.model.h_c_vectorized(z_coord=z_coord), axis=-1)[:, np.newaxis])
     else:
-        state.modify('classical_energy', np.array(
-            [np.real(np.sum(sim.model.h_c_vectorized(z_coord=z_coord[n]), axis=-1)) for n in range(len(z_coord))]))
+        state.modify('classical_energy', vector_apply_all_but_last(lambda z: sim.model.h_c(z_coord=z), z_coord))
         warnings.warn("h_c_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
     return state
 
@@ -509,7 +549,7 @@ def update_quantum_energy_mf(sim, state, **kwargs):
         State: The updated state object.
     """
     wf = kwargs['wf']
-    state.modify('quantum_energy', np.real(np.matmul(np.conj(wf), np.matmul(state.h_quantum, wf)))[np.newaxis])
+    state.modify('quantum_energy', np.matmul(np.conj(wf), np.matmul(state.h_quantum, wf))[np.newaxis])
     return state
 
 
@@ -526,15 +566,13 @@ def update_quantum_energy_mf_vectorized(sim, state, **kwargs):
         State: The updated state object.
     """
     wf = kwargs['wf']
-    state.modify('quantum_energy',
-                 np.real(np.einsum('...i,...ij,...j->...', np.conj(wf), state.h_quantum, wf))[:, np.newaxis])
-
+    state.modify('quantum_energy', np.einsum('...i,...ij,...j->...', np.conj(wf), state.h_quantum, wf)[:, np.newaxis])
     return state
 
 
 def update_quantum_energy_fssh_vectorized(sim, state, **kwargs):
-    state.modify('quantum_energy', np.real(
-        np.einsum('...bi,...bij,...bj->...', np.conj(state.act_surf_wf), state.h_quantum, state.act_surf_wf))[:,
+    state.modify('quantum_energy', 
+        np.einsum('...bi,...bij,...bj->...', np.conj(state.act_surf_wf), state.h_quantum, state.act_surf_wf)[:,
                                    np.newaxis])
     return state
 
