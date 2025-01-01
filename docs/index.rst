@@ -31,21 +31,23 @@ Model Systems
 The following models are implemented in the current version of QC Lab.
 
 * :ref:`sb-model` [4]
-* :ref:`holstein-model` [5]
+* :ref:`holstein_model` [5]
 
 
 
 Using QC Lab
------------
+------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    quickstart
    model_class
    algorithm_class
    dynamics_core
    ingredients
+   holstein_model 
+   spin_boson_model
 
 Bibliography
 ------------

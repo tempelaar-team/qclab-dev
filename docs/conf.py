@@ -7,7 +7,7 @@ from datetime import datetime
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'QC-lab'
+project = 'QC Lab'
 year = datetime.now().year
 copyright = f'2024-{year}, Tempelaar Group'
 author = 'Tempelaar Group'
@@ -32,7 +32,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 #import sphinx_rtd_theme
 #html_theme = 'sphinx_rtd_theme'
 #html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-html_theme = 'pydata_sphinx_theme' #'bizstyle'
+html_theme = 'pydata_sphinx_theme' #'bizstyle'#
 html_static_path = ['_static']
 html_theme_options = {
     'body_max_width': '100%',  # Remove maximum width constraint
@@ -48,4 +48,7 @@ html_css_files=['custom.css']
 #}
 html_sidebars = {
     "**": ["sidebar-nav-bs.html", "sidebar-ethical-ads.html"],
+    "quickstart": [],
+    "model_class": [],
+    "ingredients": [],
 }
