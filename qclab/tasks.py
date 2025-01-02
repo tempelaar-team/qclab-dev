@@ -377,10 +377,21 @@ def update_h_quantum_vectorized(sim, state, **kwargs):
         State: The updated state object.
     """
     z_coord = kwargs['z_coord']
-    if hasattr(sim.model, 'h_q_vectorized') and hasattr(sim.model, 'h_qc_vectorized'):
-        state.modify('h_quantum', sim.model.h_q_vectorized() + sim.model.h_qc_vectorized(z_coord=z_coord) + 0j)
+    if hasattr(sim.model, 'h_q_vectorized'):
+        h_q = sim.model.h_q_vectorized()
     else:
-        state.modify('h_quantum', np.array([(sim.model.h_q() + sim.model.h_qc(z_coord=z_coord[n]) + 0j) for n in range(len(z_coord))]))
+        warnings.warn("h_q_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
+        h_q = sim.model.h_q()
+    if hasattr(sim.model, 'h_qc_vectorized'):
+        h_tot = h_q + sim.model.h_qc_vectorized(z_coord=z_coord) + 0.0j
+    else:
+        warnings.warn("h_qc_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
+        h_tot = np.array([(h_q + sim.model.h_qc(z_coord=z_coord[n]) + 0j) for n in range(len(z_coord))]) 
+    state.modify('h_quantum', h_tot)
+    #if hasattr(sim.model, 'h_q_vectorized') and hasattr(sim.model, 'h_qc_vectorized'):
+    #    state.modify('h_quantum', sim.model.h_q_vectorized() + sim.model.h_qc_vectorized(z_coord=z_coord) + 0j)
+    #else:
+    #    state.modify('h_quantum', np.array([(sim.model.h_q() + sim.model.h_qc(z_coord=z_coord[n]) + 0j) for n in range(len(z_coord))]))
     return state
 
 

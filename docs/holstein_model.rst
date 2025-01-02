@@ -63,3 +63,5 @@ The following table lists all of the parameters required by the `HolsteinLattice
    * - `periodic_boundary`
      - Periodic boundary condition
      - True
+
+     
