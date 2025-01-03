@@ -41,6 +41,7 @@ def initialize_z_coord(sim, state, **kwargs):
     return state
 
 def dh_c_dzc_finite_differences(sim, state, **kwargs):
+    del state
     z_coord = kwargs['z_coord']
     # Approximate the gradient using finite differences
     delta_z = 1e-3
@@ -60,6 +61,7 @@ def dh_c_dzc_finite_differences(sim, state, **kwargs):
 
 
 def dh_qc_dzc_finite_differences(sim, state, **kwargs):
+    del state
     z_coord = kwargs['z_coord']
     # Approximate the gradient using finite differences
     delta_z = 1e-3
@@ -408,6 +410,7 @@ def update_wf_db_rk4(sim, state, **kwargs):
     Returns:
         State: The updated state object.
     """
+    del kwargs
     dt = sim.parameters.dt
     k1 = (-1j * np.dot(state.h_quantum, state.wf_db))
     k2 = (-1j * np.dot(state.h_quantum, state.wf_db + 0.5 * dt * k1))
@@ -444,6 +447,7 @@ def update_wf_db_rk4_vectorized(sim, state, **kwargs):
     Returns:
         State: The updated state object.
     """
+    del kwargs
     dt = sim.parameters.dt
     wf_db = state.wf_db
     h_quantum = state.h_quantum
@@ -467,6 +471,7 @@ def update_dm_db_mf(sim, state, **kwargs):
     Returns:
         State: The updated state object.
     """
+    del sim, kwargs
     wf_db = state.wf_db
     state.modify('dm_db', np.outer(wf_db, np.conj(wf_db)))
     return state
@@ -484,6 +489,7 @@ def update_dm_db_mf_vectorized(sim, state, **kwargs):
     Returns:
         State: The updated state object.
     """
+    del sim, kwargs
     wf_db = state.wf_db
     state.modify('dm_db', np.einsum('...i,...j->...ij', wf_db, np.conj(wf_db)))
     return state
@@ -560,6 +566,7 @@ def update_quantum_energy_mf(sim, state, **kwargs):
     Returns:
         State: The updated state object.
     """
+    del sim 
     wf = kwargs['wf']
     state.modify('quantum_energy', np.matmul(np.conj(wf), np.matmul(state.h_quantum, wf))[np.newaxis])
     return state
@@ -577,12 +584,14 @@ def update_quantum_energy_mf_vectorized(sim, state, **kwargs):
     Returns:
         State: The updated state object.
     """
+    del sim 
     wf = kwargs['wf']
     state.modify('quantum_energy', np.einsum('...i,...ij,...j->...', np.conj(wf), state.h_quantum, wf)[:, np.newaxis])
     return state
 
 
 def update_quantum_energy_fssh_vectorized(sim, state, **kwargs):
+    del sim, kwargs
     state.modify('quantum_energy', 
         np.einsum('...bi,...bij,...bj->...', np.conj(state.act_surf_wf), state.h_quantum, state.act_surf_wf)[:,
                                    np.newaxis])
@@ -598,6 +607,7 @@ def broadcast_var_to_branch_vectorized(sim, state, **kwargs):
 
 
 def diagonalize_matrix_vectorized(sim, state, **kwargs):
+    del sim 
     matrix = kwargs['matrix']
     eigvals_name = kwargs['eigvals_name']
     eigvecs_name = kwargs['eigvecs_name']
@@ -672,6 +682,7 @@ def gauge_fix_eigs_vectorized(sim, state, **kwargs):
 
 
 def copy_value_vectorized(sim, state, **kwargs):
+    del sim
     name = kwargs['name']
     val = kwargs['val']
     state.modify(name, np.copy(val))
@@ -679,6 +690,7 @@ def copy_value_vectorized(sim, state, **kwargs):
 
 
 def basis_transform_vec_vectorized(sim, state, **kwargs):
+    del sim 
     # default is adb to db
     input_vec = kwargs['input_vec']
     basis = kwargs['basis']
@@ -688,6 +700,7 @@ def basis_transform_vec_vectorized(sim, state, **kwargs):
 
 
 def basis_transform_mat_vectorized(sim, state, **kwargs):
+    del sim
     # default is adb to db
     input_mat = kwargs['input_mat']
     basis = kwargs['basis']
@@ -698,6 +711,7 @@ def basis_transform_mat_vectorized(sim, state, **kwargs):
 
 
 def initialize_active_surface(sim, state, **kwargs):
+    del kwargs
     num_states = np.shape(state.wf_db)[-1]
     if sim.algorithm.parameters.fssh_deterministic:
         if sim.algorithm.parameters.num_branches != num_states:
@@ -722,6 +736,7 @@ def initialize_active_surface(sim, state, **kwargs):
 
 
 def initialize_random_values_fssh(sim, state, **kwargs):
+    del kwargs
     np.random.seed(state.seed)
     state.modify('hopping_probs_rand_vals', np.random.rand(len(sim.parameters.tdat)))
     state.modify('stochastic_sh_rand_vals', np.random.rand(sim.algorithm.parameters.num_branches))
@@ -729,11 +744,13 @@ def initialize_random_values_fssh(sim, state, **kwargs):
 
 
 def initialize_dm_adb_0_fssh_vectorized(sim, state, **kwargs):
+    del sim, kwargs
     state.modify('dm_adb_0', np.einsum('...i,...j->...ij', state.wf_adb_branch, np.conj(state.wf_adb_branch)) + 0.0j)
     return state
 
 
 def update_act_surf_wf_vectorized(sim, state, **kwargs):
+    del sim, kwargs
     init_shape = np.shape(state.act_surf_ind)
     act_surf_ind_flat = state.act_surf_ind.reshape((np.prod(init_shape)))
     evecs_flat = state.eigvecs.reshape((np.prod(init_shape), *np.shape(state.eigvecs)[-2:]))[
@@ -744,6 +761,7 @@ def update_act_surf_wf_vectorized(sim, state, **kwargs):
 
 
 def update_dm_db_fssh_vectorized(sim, state, **kwargs):
+    del kwargs
     dm_adb_branch = np.einsum('...i,...j->...ij', state.wf_adb_branch, np.conj(state.wf_adb_branch), optimize='greedy')
     for nt in range(len(dm_adb_branch)):
         np.einsum('...jj->...j', dm_adb_branch[nt])[...] = state.act_surf[nt]
@@ -786,6 +804,7 @@ def initialize_timestep_index(sim, state, **kwargs):
     Returns:
         State: The updated state object.
     """
+    del sim, kwargs
     state.modify('t_ind', np.array([0]))
     return state
 
@@ -804,6 +823,7 @@ def update_timestep_index(sim, state, **kwargs):
     Returns:
         State: The updated state object.
     """
+    del sim, kwargs
     state.modify('t_ind', state.t_ind + 1)
     return state
 
@@ -835,6 +855,7 @@ def update_active_surface_fssh(sim, state, **kwargs):
     Returns:
         State: The updated state object.
     """
+    del kwargs
     rand = state.hopping_probs_rand_vals[state.t_ind[0]]
     z_coord_branch = state.z_coord_branch
     act_surf_ind = state.act_surf_ind
