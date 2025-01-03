@@ -30,3 +30,11 @@ jobs:
         make clean
         make html
         make latex
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: documentation
+        path: |
+          docs/_build/html/
+          docs/_build/latex/qclab.pdf  # Replace with your PDF filename
