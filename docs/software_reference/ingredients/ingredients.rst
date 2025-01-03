@@ -1,8 +1,9 @@
 .. _ingredients:
-Ingredients
-~~~~~~~~~~~~~~~~~~~
 
-Ingredients are are methods associated with model classes. A generic ingredient as the form:
+Ingredients
+-----------
+
+Ingredients are are methods associated with model classes. A generic ingredient has the form:
 
 .. code-block:: python
 

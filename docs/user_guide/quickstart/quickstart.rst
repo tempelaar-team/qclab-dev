@@ -1,17 +1,16 @@
 .. _quickstart:
 
-Quickstart Guide 
-~~~~~~~~~~~~~~~~
+Quick Start Guide
+-----------------
+
 
 QC Lab is organized into models and algorithms which are combined into a simulation object. 
 The simulation object fully defines a quantum-classical dynamics simulation which is then carried out by a dynamics driver. 
 This guide will walk you through the process of setting up a simulation object and running a simulation.
 
-.. contents:: Table of Contents
-   :local:
 
 Importing Modules
------------------
+~~~~~~~~~~~~~~~~~
 
 First, we import the necessary modules:
 
@@ -25,7 +24,7 @@ First, we import the necessary modules:
     from qclab.drivers.serial_driver import run_simulation  # import the desired dynamics driver
 
 Instantiating Simulation Object
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Next, we instantiate a simulation object. Each object has a set of default parameters which can be accessed by calling `sim.default_parameters`.
 Passing a dictionary to the simulation object when instantiating it will override the default parameters.
@@ -49,7 +48,7 @@ timestep used for propagation (dt).
     sim.parameters.dt = 0.001
 
 Instantiating Model Object
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Next, we instantiate a model object. Like the simulation object, it has a set of default parameters. 
 
@@ -60,7 +59,7 @@ Next, we instantiate a model object. Like the simulation object, it has a set of
     # default model parameters:  {'temp': 1, 'V': 0.5, 'E': 0.5, 'A': 100, 'W': 0.1, 'l_reorg': 0.005, 'boson_mass': 1}
 
 Instantiating Algorithm Object
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Next, we instantiate an algorithm object. 
 
@@ -71,7 +70,7 @@ Next, we instantiate an algorithm object.
     # default algorithm parameters:  {}
 
 Setting Initial State
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 Before using the dynamics driver to run the simulation, it is necessary to provide the simulation with an initial state. This initial state is
 dependent on both the model and algorithm. For mean-field dynamics, we require a diabatic wavefunction called "wf_db". Because we are using a spin-boson model,
@@ -84,7 +83,7 @@ The initial state is stored in `sim.state` which must be accessed with a particu
     sim.state.modify('wf_db', np.array([0, 1], dtype=np.complex128))
 
 Running the Simulation
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 Finally, we run the simulation using the dynamics driver.
 
@@ -93,7 +92,7 @@ Finally, we run the simulation using the dynamics driver.
     data = run_simulation(sim)
 
 Analyzing Results
------------------
+~~~~~~~~~~~~~~~~~
 
 The data object returned by the dynamics driver contains the results of the simulation in a dictionary with keys corresponding
 to the names of the observables that were requested to be recorded during the simulation.
@@ -119,7 +118,7 @@ The time axis can be retrieved from the simulation object
     time = sim.parameters.time 
 
 Plotting Results
-----------------
+~~~~~~~~~~~~~~~~
 
 Finally, we can plot the results of the simulation like the population dynamics:
 

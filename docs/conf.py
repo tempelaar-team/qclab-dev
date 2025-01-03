@@ -48,7 +48,4 @@ html_css_files=['custom.css']
 #}
 html_sidebars = {
     "**": ["sidebar-nav-bs.html", "sidebar-ethical-ads.html"],
-    "quickstart": [],
-    "model_class": [],
-    "ingredients": [],
 }

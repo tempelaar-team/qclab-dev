@@ -1,4 +1,4 @@
-.. _sb-model:
+.. _spin_boson_model:
 
 Spin-Boson Model
 ~~~~~~~~~~~~~~~~
@@ -69,3 +69,30 @@ The following table lists all of the parameters required by the `SpinBosonModel`
    * - `boson_mass` :math:`(m)`
      - Mass of the bosons
      - 1
+
+
+Example
+-------
+
+::
+
+    from qclab.models.spin_boson import SpinBosonModel
+    from qclab.simulation import Simulation
+    from qclab.algorithms.mean_field import MeanField
+    from qclab.drivers.serial_driver import run_simulation
+    import numpy as np
+
+    # instantiate a simulation
+    sim = Simulation()
+
+    # instantiate a model 
+    sim.model = SpinBosonModel()
+
+    # instantiate an algorithm 
+    sim.algorithm = MeanField()
+
+    # define an initial diabatic wavefunction 
+    sim.state.modify('wf_db',np.array([1, 0], dtype=np.complex128))
+
+    # run the simulation
+    data = run_simulation(sim)

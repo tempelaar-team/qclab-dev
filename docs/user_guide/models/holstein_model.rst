@@ -8,17 +8,17 @@ Holstein coupling. The current implementation accommodates a single electronic p
 
 .. math::
     
-    \hat{H}_{\mathrm{q}} = -t\sum_{\langle i,j\rangle}\hat{c}^{\dagger}_{i}\hat{c}_{j}
+    \hat{H}_{\mathrm{q}} = -t\sum_{\langle i,j\rangle}^{N}\hat{c}^{\dagger}_{i}\hat{c}_{j}
 
-where :math:`\langle i,j\rangle` denotes nearest-neighbor sites with or without periodic boundaries determined by the parameter `periodic_boundaries=True`.
-
-.. math::
-
-    \hat{H}_{\mathrm{q-c}} = g\omega\sum_{i} \hat{c}^{\dagger}_{i}\hat{c}_{i} \frac{1}{\sqrt{2mh_{i}}} \left(z^{*}_{i} + z_{i}\right)
+where :math:`\langle i,j\rangle` denotes nearest-neighbor sites with or without periodic boundaries determined by the parameter `periodic_boundary=True`.
 
 .. math::
 
-    H_{\mathrm{c}} = \omega \sum_{i} z^{*}_{i} z_{i}
+    \hat{H}_{\mathrm{q-c}} = g\omega\sum_{i}^{N} \hat{c}^{\dagger}_{i}\hat{c}_{i} \frac{1}{\sqrt{2mh_{i}}} \left(z^{*}_{i} + z_{i}\right)
+
+.. math::
+
+    H_{\mathrm{c}} = \omega \sum_{i}^{N} z^{*}_{i} z_{i}
 
 Here, :math:`g` is the dimensionless electron-phonon coupling, :math:`\omega` is the phonon frequency, :math:`m` is the phonon mass, and :math:`h_{i}` is 
 the complex-valued coordinate parameter which we take to be :math:`h_{i} = \omega`. 
@@ -54,10 +54,10 @@ The following table lists all of the parameters required by the `HolsteinLattice
    * - `N` :math:`(N)`
      - Number of sites
      - 10
-   * - `j` :math:`(t)`
+   * - `t` :math:`(t)`
      - Hopping energy
      - 1
-   * - `mass` :math:`(m)`
+   * - `phonon_mass` :math:`(m)`
      - Phonon mass
      - 1
    * - `periodic_boundary`
@@ -65,3 +65,30 @@ The following table lists all of the parameters required by the `HolsteinLattice
      - True
 
      
+Example
+-------
+
+::
+
+    from qclab.models.holstein_lattice import HolsteinLatticeModel
+    from qclab.simulation import Simulation
+    from qclab.algorithms.mean_field import MeanField
+    from qclab.drivers.serial_driver import run_simulation
+    import numpy as np
+
+    # instantiate a simulation
+    sim = Simulation()
+
+    # instantiate a model 
+    sim.model = HolsteinLatticeModel()
+
+    # instantiate an algorithm 
+    sim.algorithm = MeanField()
+
+    # define an initial diabatic wavefunction 
+    wf_db_0 = np.zeros((sim.model.parameters.N), dtype=np.complex128)
+    wf_db_0[0] = 1.0 + 0.0j
+    sim.state.modify('wf_db',wf_db_0)
+
+    # run the simulation
+    data = run_simulation(sim)
