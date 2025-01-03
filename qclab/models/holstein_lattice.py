@@ -13,14 +13,14 @@ class HolsteinLatticeModel(Model):
         if parameters is None:
             parameters = {}
         self.default_parameters = {
-            'temp': 1, 'g': 0.5, 'w': 0.5, 'N': 10, 'j': 1, 'mass': 1, 'periodic_boundary': True
+            'temp': 1, 'g': 0.5, 'w': 0.5, 'N': 10, 't': 1, 'phonon_mass': 1, 'periodic_boundary': True
         }
         super().__init__(self.default_parameters, parameters)
 
     def update_model_parameters(self):
         self.parameters.w = self.parameters.w * np.ones(self.parameters.N)
         self.parameters.g = self.parameters.g * np.ones(self.parameters.N)
-        self.parameters.mass = self.parameters.mass * np.ones(self.parameters.N)
+        self.parameters.mass = self.parameters.phonon_mass * np.ones(self.parameters.N)
         self.parameters.num_classical_coordinates = self.parameters.N
         self.parameters.pq_weight = self.parameters.w
         self.parameters.nearest_neighbor_lattice_h_q_num_sites = self.parameters.N
