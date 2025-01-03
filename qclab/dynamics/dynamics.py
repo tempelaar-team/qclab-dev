@@ -16,14 +16,16 @@ def dynamics(sim, state_list, full_state, data):
         Data: The Data object containing the results of the simulation.
     """
     # Execute initialization recipe
-    state_list, full_state = sim.algorithm.execute_initialization_recipe(sim, state_list, full_state)
+    state_list, full_state = sim.algorithm.execute_initialization_recipe(
+        sim, state_list, full_state)
 
     # Iterate over each time step
     for t_ind in tqdm(sim.parameters.tdat_n):
         # Detect output timesteps
         if np.mod(t_ind, sim.parameters.dt_output_n) == 0:
             # Calculate output variables
-            state_list, full_state = sim.algorithm.execute_output_recipe(sim, state_list, full_state)
+            state_list, full_state = sim.algorithm.execute_output_recipe(
+                sim, state_list, full_state)
             full_state.collect_output_variables(sim.algorithm.output_variables)
             # Collect totals in output dictionary
             data.add_to_output_total_arrays(sim, full_state, t_ind)

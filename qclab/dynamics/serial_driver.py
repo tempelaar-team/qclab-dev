@@ -6,10 +6,14 @@ def serial_driver(sim, seeds=None, ncpus=1, data=None):
     """
     Run the simulation in a serial manner.
 
-    Args: sim (Simulation): The simulation object containing the simulation parameters and state. seeds (list,
-    optional): List of seeds for initializing the simulation. If None, seeds will be generated. ncpus (int,
-    optional): Number of CPUs to use. This parameter is not used in the serial implementation. data (Data,
-    optional): An existing Data object to store the simulation results. If None, a new Data object will be created.
+    Args: sim (Simulation): The simulation object containing the 
+    simulation parameters and state. seeds (list,
+    optional): List of seeds for initializing the simulation. If 
+    None, seeds will be generated. ncpus (int,
+    optional): Number of CPUs to use. This parameter is not used 
+    in the serial implementation. data (Data,
+    optional): An existing Data object to store the simulation 
+    results. If None, a new Data object will be created.
 
     Returns:
         Data: The Data object containing the results of the simulation.
@@ -30,10 +34,10 @@ def serial_driver(sim, seeds=None, ncpus=1, data=None):
             break  # Exit the loop if there are no more seeds to process
 
         sim.initialize_timesteps()  # Initialize the timesteps for the simulation
-        state_list, full_state = simulation.initialize_state_objects(sim, batch_seeds)  # Initialize state objects
+        state_list, full_state = simulation.initialize_state_objects(sim, batch_seeds)
         new_data = simulation.Data()  # Create a new Data object for this batch
-        new_data.initialize_output_total_arrays(sim, full_state)  # Initialize output arrays in the Data object
-        new_data = dynamics.dynamics(sim, state_list, full_state, new_data)  # Run the dynamics and collect data
+        new_data.initialize_output_total_arrays(sim, full_state)
+        new_data = dynamics.dynamics(sim, state_list, full_state, new_data)
         data.add_data(new_data)  # Add the collected data to the main Data object
 
     return data  # Return the Data object containing all simulation results

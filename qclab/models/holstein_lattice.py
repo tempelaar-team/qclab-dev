@@ -5,14 +5,16 @@ import qclab.ingredients as ingredients
 
 class HolsteinLatticeModel(Model):
     """
-    A model representing a nearest-neighbor tight-binding model with Holstein-type electron-phonon coupling with a 
+    A model representing a nearest-neighbor tight-binding model 
+    with Holstein-type electron-phonon coupling with a 
     single optical mode.
     """
     def __init__(self, parameters=None):
         if parameters is None:
             parameters = {}
         self.default_parameters = {
-            'temp': 1, 'g': 0.5, 'w': 0.5, 'N': 10, 't': 1, 'phonon_mass': 1, 'periodic_boundary': True
+            'temp': 1, 'g': 0.5, 'w': 0.5, 'N': 10, 't': 1, \
+                'phonon_mass': 1, 'periodic_boundary': True
         }
         super().__init__(self.default_parameters, parameters)
 
@@ -24,7 +26,8 @@ class HolsteinLatticeModel(Model):
         self.parameters.pq_weight = self.parameters.w
         self.parameters.nearest_neighbor_lattice_h_q_num_sites = self.parameters.N
         self.parameters.nearest_neighbor_lattice_h_q_hopping_energy = self.parameters.j
-        self.parameters.nearest_neighbor_lattice_h_q_periodic_boundary = self.parameters.periodic_boundary
+        self.parameters.nearest_neighbor_lattice_h_q_periodic_boundary = \
+            self.parameters.periodic_boundary
         self.parameters.holstein_lattice_h_qc_num_sites = self.parameters.N
         self.parameters.holstein_lattice_h_qc_oscillator_frequency = self.parameters.w
         self.parameters.holstein_lattice_h_qc_dimensionless_coupling = self.parameters.g

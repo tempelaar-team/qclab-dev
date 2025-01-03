@@ -1,7 +1,7 @@
-import qclab.simulation as simulation
-import qclab.dynamics as dynamics
 import os
 import numpy as np
+import qclab.simulation as simulation
+import qclab.dynamics as dynamics
 import qclab.dynamics.serial_driver as serial_driver
 
 def slurm_driver(sim, seeds=None, num_tasks=1, data=None):
@@ -15,9 +15,10 @@ def slurm_driver(sim, seeds=None, num_tasks=1, data=None):
 
     idx = int(os.environ["SLURM_ARRAY_TASK_ID"])
 
-    assert np.mod(num_trajs, num_tasks) == 0, "Number of trajectories must be divisible by number of tasks"
+    assert np.mod(num_trajs, num_tasks) == 0, \
+        "Number of trajectories must be divisible by number of tasks"
     # get number of trajectories per task
-    num_trajs_per_task = int(num_trajs / num_tasks) 
+    num_trajs_per_task = int(num_trajs / num_tasks)
     seeds = seeds.reshape((num_tasks, num_trajs_per_task))
     task_seeds = seeds[idx]
     data = serial_driver.serial_driver(sim, task_seeds, data=data)

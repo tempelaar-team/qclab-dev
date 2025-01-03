@@ -31,18 +31,24 @@ class SpinBosonModel(Model):
         Update model parameters based on the current parameter values.
         """
         self.parameters.w = self.parameters.W * np.tan(
-            ((np.arange(self.parameters.A) + 1) - 0.5) * np.pi / (2 * self.parameters.A)
+            ((np.arange(self.parameters.A) + 1) - 0.5) *
+            np.pi / (2 * self.parameters.A)
         )  # Classical oscillator frequency
         self.parameters.g = self.parameters.w * np.sqrt(
             2 * self.parameters.l_reorg / self.parameters.A
         )  # Electron-phonon coupling
-        self.parameters.two_level_system_a = self.parameters.E  # Diagonal energy of state 0
-        self.parameters.two_level_system_b = -self.parameters.E  # Diagonal energy of state 1
-        self.parameters.two_level_system_c = self.parameters.V  # Real part of the off-diagonal coupling
-        self.parameters.two_level_system_d = 0  # Imaginary part of the off-diagonal coupling
+        # Diagonal energy of state 0
+        self.parameters.two_level_system_a = self.parameters.E
+        # Diagonal energy of state 1
+        self.parameters.two_level_system_b = -self.parameters.E
+        # Real part of the off-diagonal coupling
+        self.parameters.two_level_system_c = self.parameters.V
+        # Imaginary part of the off-diagonal coupling
+        self.parameters.two_level_system_d = 0
         self.parameters.pq_weight = self.parameters.w
         self.parameters.num_classical_coordinates = self.parameters.A
-        self.parameters.mass = np.ones(self.parameters.A) * self.parameters.boson_mass
+        self.parameters.mass = np.ones(
+            self.parameters.A) * self.parameters.boson_mass
 
     def h_qc(self, **kwargs):
         """
@@ -57,7 +63,8 @@ class SpinBosonModel(Model):
         z_coord = kwargs['z_coord']
         h_qc = np.zeros((2, 2), dtype=complex)
         h_qc[0, 0] = np.sum(
-            (self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight))) *
+            (self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass
+                                              * self.parameters.pq_weight))) *
             (z_coord + np.conj(z_coord))
         )
         h_qc[1, 1] = -h_qc[0, 0]
@@ -76,7 +83,8 @@ class SpinBosonModel(Model):
         z_coord = kwargs['z_coord']
         h_qc = np.zeros((*np.shape(z_coord)[:-1], 2, 2), dtype=complex)
         h_qc[..., 0, 0] = np.sum(
-            (self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight)))[..., :] *
+            (self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass\
+                                               * self.parameters.pq_weight)))[..., :] *
             (z_coord + np.conj(z_coord)), axis=-1
         )
         h_qc[..., 1, 1] = -h_qc[..., 0, 0]
@@ -92,8 +100,10 @@ class SpinBosonModel(Model):
         Returns:
             np.ndarray: The gradient of the quantum-classical Hamiltonian.
         """
+        del kwargs
         dh_qc_dzc = np.zeros((self.parameters.A, 2, 2), dtype=complex)
-        dh_qc_dzc[:, 0, 0] = self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight))
+        dh_qc_dzc[:, 0, 0] = self.parameters.g * \
+            np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight))
         dh_qc_dzc[:, 1, 1] = -dh_qc_dzc[:, 0, 0]
         return dh_qc_dzc
 
@@ -107,9 +117,11 @@ class SpinBosonModel(Model):
         Returns:
             np.ndarray: The vectorized gradient of the quantum-classical Hamiltonian.
         """
-        dh_qc_dzc = np.zeros((*np.shape(kwargs['z_coord'])[:-1], self.parameters.A, 2, 2), dtype=complex)
+        dh_qc_dzc = np.zeros(
+            (*np.shape(kwargs['z_coord'])[:-1], self.parameters.A, 2, 2), dtype=complex)
         dh_qc_dzc[..., :, 0, 0] = (
-            self.parameters.g * np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight))
+            self.parameters.g *
+            np.sqrt(1 / (2 * self.parameters.mass * self.parameters.pq_weight))
         )[..., :]
         dh_qc_dzc[..., :, 1, 1] = -dh_qc_dzc[..., :, 0, 0]
         return dh_qc_dzc
