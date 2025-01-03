@@ -18,7 +18,7 @@ class Algorithm:
         output_variables (list): List of variables to be output.
     """
 
-    def __init__(self, parameters=dict()):
+    def __init__(self, parameters={}):
         """
         Initializes the AlgorithmClass with given parameters.
 
@@ -28,7 +28,7 @@ class Algorithm:
         self.output_recipe_vectorized_bool = None
         self.update_recipe_vectorized_bool = None
         self.initialization_recipe_vectorized_bool = None
-        default_parameters = dict()
+        default_parameters = {}
         # Add default parameters to the provided parameters if not already present
         parameters = {**default_parameters, **parameters}
         self.parameters = Parameter()

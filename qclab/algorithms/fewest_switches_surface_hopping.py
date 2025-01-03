@@ -1,14 +1,21 @@
+"""
+This module contains the FSSH algorithm class.
+"""
+
 import numpy as np
 from qclab.algorithm import Algorithm
-import qclab.tasks as tasks
+from qclab import tasks
 from qclab.parameter import Parameter
 
 
 
 class FewestSwitchesSurfaceHopping(Algorithm):
-    def __init__(self, parameters=dict()):
-        self.default_parameters = dict(
-            fssh_deterministic=False, num_branches=2, gauge_fixing=2)
+    def __init__(self, parameters=None):
+        if parameters is None:
+            parameters = {}
+        self.default_parameters = {"fssh_deterministic": False,
+                                    "num_branches": 1, 
+                                    "gauge_fixing": 0}
         # add default_params to params if not already in params
         parameters = {**self.default_parameters, **parameters}
         self.parameters = Parameter()
