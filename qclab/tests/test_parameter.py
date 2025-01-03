@@ -1,5 +1,5 @@
 import pytest
-from qclab.parameter import Parameter
+from qclab import Parameter
 
 def test_parameter_class():
     """

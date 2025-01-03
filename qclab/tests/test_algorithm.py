@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from qclab.algorithm import Algorithm
+from qclab import Algorithm
 import qclab.simulation as simulation
 
 

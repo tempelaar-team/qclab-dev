@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from qclab.simulation import Simulation, State, Data
+from qclab import Simulation, State, Data
 
 def test_simulation_initialization():
     """
