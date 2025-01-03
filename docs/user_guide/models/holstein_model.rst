@@ -70,10 +70,10 @@ Example
 
 ::
 
-    from qclab.models.holstein_lattice import HolsteinLatticeModel
-    from qclab.simulation import Simulation
-    from qclab.algorithms.mean_field import MeanField
-    from qclab.drivers.serial_driver import run_simulation
+    from qclab.models import HolsteinLatticeModel
+    from qclab import Simulation
+    from qclab.algorithms import MeanField
+    from qclab.dynamics import serial_driver
     import numpy as np
 
     # instantiate a simulation
@@ -91,4 +91,4 @@ Example
     sim.state.modify('wf_db',wf_db_0)
 
     # run the simulation
-    data = run_simulation(sim)
+    data = serial_driver(sim)

@@ -76,10 +76,10 @@ Example
 
 ::
 
-    from qclab.models.spin_boson import SpinBosonModel
-    from qclab.simulation import Simulation
-    from qclab.algorithms.mean_field import MeanField
-    from qclab.drivers.serial_driver import run_simulation
+    from qclab.models import SpinBosonModel
+    from qclab import Simulation
+    from qclab.algorithms import MeanField
+    from qclab.dynamics import serial_driver
     import numpy as np
 
     # instantiate a simulation
@@ -95,4 +95,4 @@ Example
     sim.state.modify('wf_db',np.array([1, 0], dtype=np.complex128))
 
     # run the simulation
-    data = run_simulation(sim)
+    data = serial_driver(sim)

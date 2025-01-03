@@ -19,7 +19,7 @@ The `MeanField` class is initialized with a set of parameters. These parameters 
 
 .. code-block:: python
 
-    from qclab.algorithms.mean_field import MeanField
+    from qclab.algorithms import MeanField
 
     parameters = {
         'param1': value1,

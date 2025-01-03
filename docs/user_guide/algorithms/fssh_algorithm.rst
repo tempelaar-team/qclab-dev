@@ -19,7 +19,7 @@ The `FewestSwitchesSurfaceHopping` class is initialized with a set of parameters
 
 .. code-block:: python
 
-    from qclab.algorithms.fewest_switches_surface_hopping import FewestSwitchesSurfaceHopping
+    from qclab.algorithms import FewestSwitchesSurfaceHopping
 
     parameters = {
         'fssh_deterministic': False,

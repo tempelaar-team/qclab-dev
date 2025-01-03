@@ -11,7 +11,7 @@ The algorithms currently available in QC Lab can be imported from the algorithms
 
 .. code-block:: python
 
-    from qclab.algorithms.mean_field import MeanField
+    from qclab.algorithms import MeanField
 
 After which they can be instantiated with a set of parameters:
 
