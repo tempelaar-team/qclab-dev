@@ -1,11 +1,11 @@
-qc_lab
-=====
+QC Lab: A package for quantum-classical modeling
+================================================
 
 
-**qc_lab** qc_lab (pronounced "QC" "lab") is a package for carrying out mixed quantum-classical (MQC) dynamics simulations. 
-It implements popular MQC algorithms in a manner that is agnostic to the underlying physical system and flexible to the mixed quantum-classical algorithm. 
-Along with several built-in dynamics algorithms, qc_lab comes with a variety of physical models that can be used as starting points for exploring MQC dynamics 
-or to implement more elaborate models. 
+**QC Lab** is a Python package designed for implementing and executing quantum-classical (QC) dynamics simulations. It offers a framework for developing both physical models 
+and QC algorithms that enables algorithms and models to be combined arbitrarily. QC Lab comes with a variety of already implemented models and algorithms which we hope 
+encourage new researchers to explore the field of quantum-classical dynamics. It also provides a framework for advanced users to implement their own models and algorithms 
+which we hope will become part of a growing library of quantum-classical dynamics tools.
 
 Capabilities
 ------------
@@ -18,14 +18,13 @@ The following algorithms are implemented making use of the complex-classical coo
 
 * Mean-field (Ehrenfest) dynamics [2]
 * Fewest-switches surface hopping (FSSH) dynamics [3]
-* Coherent fewest-switches surface hopping (CFSSH) dynamics [4]
 
 Model Systems
 `````````````
 
 * Spin-boson model [4]
-* Donor-bridge-acceptor model [5]
 * Holstein lattice model [6]
+* Fenna-Matthews-Olson (FMO) model [7]
 
 
 Installing qc_lab

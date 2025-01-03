@@ -37,28 +37,3 @@ A reference guide for QC Lab, documenting all tasks and ingredients available in
    :maxdepth: 2
    
    software_reference/index
-
-Overview
---------
-
-Brief description of the software, its purpose, and goals.
-
-Key Features
-------------
-
-- Feature 1
-- Feature 2
-- Feature 3
-
-Installation
-------------
-
-System requirements and installation steps.
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Contents
-
-   user_guide
-   developer_guide
-   software_reference
