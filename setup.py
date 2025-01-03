@@ -1,13 +1,13 @@
 from setuptools import setup, find_packages
 
 VERSION = '0.0.1' 
-DESCRIPTION = 'QC-lab: a python package for quantum-classical modeling.'
-LONG_DESCRIPTION = 'QC-lab is a python package for mixed quantum-classical modeling.'
+DESCRIPTION = 'QC Lab: a python package for quantum-classical modeling.'
+LONG_DESCRIPTION = 'QC Lab is a python package for quantum-classical modeling.'
 
 # Setting up
 setup(
        # the name must match the folder name 'verysimplemodule'
-        name="QC-lab", 
+        name="QC Lab", 
         version=VERSION,
         author="Alex Krotz",
         author_email="alexkrotz2024@u.northwestern.edu",
