@@ -1,5 +1,9 @@
-from qclab.parameter import Parameter
+"""
+This module contains the Algorithm class, which is the base class for Algorithm objects in QC Lab.
+"""
+
 import inspect
+from qclab.parameter import Parameter
 
 
 class Algorithm:

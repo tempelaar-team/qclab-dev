@@ -1,3 +1,6 @@
+"""
+This file contains ingredient functions for use in Model classes.
+"""
 import warnings
 import numpy as np
 

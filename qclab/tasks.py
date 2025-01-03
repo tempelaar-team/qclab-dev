@@ -1,3 +1,7 @@
+"""
+This file contains tasks that are used in Algorithm classes.
+"""
+
 import warnings
 import numpy as np
 from numba import njit

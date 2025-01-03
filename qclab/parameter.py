@@ -1,3 +1,8 @@
+"""
+This file contains the Parameter class, which is used to handle 
+parameters and trigger updates when parameters change.
+"""
+
 class Parameter:
     """
     Class to handle parameters and trigger updates when parameters change.

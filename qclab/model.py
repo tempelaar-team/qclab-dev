@@ -1,3 +1,7 @@
+"""
+This file contains the Model class, which is the base class for Model objects in QC Lab.
+"""
+
 from qclab.parameter import Parameter
 
 
