@@ -18,10 +18,11 @@ First, we import the necessary modules:
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from qclab.simulation import Simulation  # import the simulation class
-    from qclab.models.spin_boson import SpinBosonModel  # import the model class 
-    from qclab.algorithms.mean_field import MeanField  # import the algorithm class 
-    from qclab.drivers.serial_driver import run_simulation  # import the desired dynamics driver
+    from qclab import Simulation # import simulation class 
+    from qclab.models import SpinBosonModel # import model class 
+    from qclab.algorithms import MeanField # import algorithm class 
+    from qclab.dynamics import serial_driver # import dynamics driver
+
 
 Instantiating Simulation Object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,7 +90,7 @@ Finally, we run the simulation using the dynamics driver.
 
 ::
 
-    data = run_simulation(sim)
+    data = serial_driver(sim)
 
 Analyzing Results
 ~~~~~~~~~~~~~~~~~
