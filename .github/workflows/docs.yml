@@ -37,4 +37,4 @@ jobs:
         name: documentation
         path: |
           docs/_build/html/
-          docs/_build/latex/qclab.pdf  # Replace with your PDF filename
+          docs/_build/latex/qclab.pdf
