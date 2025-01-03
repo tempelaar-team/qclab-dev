@@ -1,8 +1,0 @@
-numpy
-numba
-ray
-tqdm
-scipy>=0.16
-dill
-pyscf
-h5py
