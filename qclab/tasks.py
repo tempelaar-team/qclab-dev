@@ -1,7 +1,8 @@
+import warnings
 import numpy as np
 from numba import njit
-import qclab.ingredients as ingredients
-import warnings
+from qclab import ingredients
+
 
 
 def vector_apply_all_but_last(func, arg):
@@ -654,7 +655,7 @@ def gauge_fix_eigs_vectorized(sim, state, **kwargs):
     if kwargs['gauge_fixing'] >= 2:
         z_coord = kwargs['z_coord']
         update_dh_qc_dzc_vectorized(sim, state, z_coord=z_coord)
-        der_couple_q_phase, der_couple_p_phase = analytic_der_couple_phase(sim, state, eigvals, eigvecs)
+        der_couple_q_phase, _ = analytic_der_couple_phase(sim, state, eigvals, eigvecs)
         eigvecs = np.einsum('...ai,...i->...ai', eigvecs, np.conj(der_couple_q_phase))
     if kwargs['gauge_fixing'] >= 0:
         signs = np.sign(np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2))

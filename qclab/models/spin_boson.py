@@ -1,6 +1,5 @@
 import numpy as np
 from qclab.model import Model
-from qclab.parameter import Parameter
 import qclab.ingredients as ingredients
 
 

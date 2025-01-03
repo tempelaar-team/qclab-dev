@@ -1,8 +1,8 @@
 import qclab.simulation as simulation
-import qclab.dynamics as dynamics
+import qclab.dynamics.dynamics as dynamics
 
 
-def run_simulation(sim, seeds=None, ncpus=1, data=None):
+def serial_driver(sim, seeds=None, ncpus=1, data=None):
     """
     Run the simulation in a serial manner.
 

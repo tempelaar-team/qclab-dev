@@ -2,9 +2,9 @@ import qclab.simulation as simulation
 import qclab.dynamics as dynamics
 import os
 import numpy as np
-import qclab.drivers.serial_driver as serial_driver
+import qclab.dynamics.serial_driver as serial_driver
 
-def run_simulation(sim, seeds=None, num_tasks=1, data=None):
+def slurm_driver(sim, seeds=None, num_tasks=1, data=None):
     if data is None:
         data = simulation.Data()  # Create a new Data object if none is provided
     if seeds is None:
@@ -20,5 +20,5 @@ def run_simulation(sim, seeds=None, num_tasks=1, data=None):
     num_trajs_per_task = int(num_trajs / num_tasks) 
     seeds = seeds.reshape((num_tasks, num_trajs_per_task))
     task_seeds = seeds[idx]
-    data = serial_driver.run_simulation(sim, task_seeds, data=data)
+    data = serial_driver.serial_driver(sim, task_seeds, data=data)
     return data, idx

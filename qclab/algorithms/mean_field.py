@@ -13,8 +13,10 @@ class MeanField(Algorithm):
     
     """
 
-    def __init__(self, parameters=dict()):
-        self.default_parameters = dict()
+    def __init__(self, parameters=None):
+        if parameters is None:
+            parameters = {}
+        self.default_parameters = {}
         # add default_params to params if not already in params
         parameters = {**self.default_parameters, **parameters}
         self.parameters = Parameter()
