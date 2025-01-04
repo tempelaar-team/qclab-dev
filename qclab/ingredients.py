@@ -31,7 +31,7 @@ def harmonic_oscillator_h_c_vectorized(model, **kwargs):
 def harmonic_oscillator_dh_c_dzc_vectorized(model, **kwargs):
     """
     Calculate the vectorized derivative of the classical Hamiltonian
-      with respect to the z-coordinates.
+    with respect to the z-coordinates.
 
     Model Ingredient:
         - model.dh_c_dzc_vectorized
@@ -150,7 +150,7 @@ def holstein_lattice_h_qc_vectorized(model, **kwargs):
 def holstein_lattice_dh_qc_dzc_vectorized(model, **kwargs):
     """
     Calculate the vectorized derivative of the quantum-classical Hamiltonian with
-      respect to the z-coordinates.
+    respect to the z-coordinates.
 
     Model Ingredient:
         - model.dh_qc_dzc_vectorized
@@ -278,7 +278,7 @@ def harmonic_oscillator_boltzmann_init_classical(model, **kwargs):
 def harmonic_oscillator_wigner_init_classical(model, **kwargs):
     """
     Initialize classical coordinates according to the Wigner distribution
-      of the ground state of a harmonic oscillator.
+    of the ground state of a harmonic oscillator.
 
     Model Ingredient:
         - model.init_classical
