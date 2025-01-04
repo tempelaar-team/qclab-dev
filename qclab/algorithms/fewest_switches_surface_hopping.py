@@ -84,7 +84,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             eigvecs_previous=state.eigvecs_previous,
             output_eigvecs_name='eigvecs', z_coord=state.z_coord_branch,
             gauge_fixing=sim.algorithm.parameters.gauge_fixing),
-        lambda sim, state: tasks.update_active_surface_fssh(
+        lambda sim, state: tasks.update_active_surface_fssh_vectorized(
             sim=sim, state=state),
         lambda sim, state: tasks.update_act_surf_wf_vectorized(
             sim=sim, state=state),
