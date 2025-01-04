@@ -808,13 +808,8 @@ def analytic_der_couple_phase(sim, state, eigvals, eigvecs):
         if np.any(np.abs(ev_diff) < 1e-12):
             plus[np.where(np.abs(ev_diff) < 1e-12)] = 1
             warnings.warn("Degenerate eigenvalues detected.")
-        der_couple_zc = np.ascontiguousarray(
-            np.einsum(
-                "...i,...nij,...j->...n", np.conj(
-                    evec_i), state.dh_qc_dzc, evec_j
-            )
-            / ((ev_diff + plus)[..., np.newaxis])
-        )
+        der_couple_zc = np.einsum("...i,...nij,...j->...n",\
+            np.conj(evec_i), state.dh_qc_dzc, evec_j)/ ((ev_diff + plus)[..., np.newaxis])
         der_couple_z = np.ascontiguousarray(
             np.einsum(
                 "...i,...nij,...j->...n",
@@ -824,7 +819,7 @@ def analytic_der_couple_phase(sim, state, eigvals, eigvecs):
             )
             / ((ev_diff + plus)[..., np.newaxis])
         )
-        der_couple_p = np.sqrt(
+        der_couple_p = 1.0j*np.sqrt(
             1 / (2 * sim.model.parameters.pq_weight * sim.model.parameters.mass)
         )[..., :] * (der_couple_z - der_couple_zc)
         der_couple_q = np.sqrt(
@@ -871,6 +866,9 @@ def gauge_fix_eigs_vectorized(sim, state, **kwargs):
                              * eigvecs, axis=-2))
         )
         eigvecs = np.einsum("...ai,...i->...ai", eigvecs, phase)
+    if kwargs["gauge_fixing"] >= 0:
+        signs = np.sign(np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2))
+        eigvecs = np.einsum("...ai,...i->...ai", eigvecs, signs)
     if kwargs["gauge_fixing"] >= 2:
         z_coord = kwargs["z_coord"]
         update_dh_qc_dzc_vectorized(sim, state, z_coord=z_coord)
@@ -878,9 +876,6 @@ def gauge_fix_eigs_vectorized(sim, state, **kwargs):
             sim, state, eigvals, eigvecs)
         eigvecs = np.einsum("...ai,...i->...ai", eigvecs,
                             np.conj(der_couple_q_phase))
-    if kwargs["gauge_fixing"] >= 0:
-        signs = np.sign(np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2))
-        eigvecs = np.einsum("...ai,...i->...ai", eigvecs, signs)
     if kwargs["gauge_fixing"] == 2:
         der_couple_q_phase_new, der_couple_p_phase_new = analytic_der_couple_phase(
             sim, state, eigvals, eigvecs
@@ -1223,7 +1218,7 @@ def update_active_surface_fssh(sim, state, **kwargs):
                     )
                     / ev_diff[..., np.newaxis]
                 )
-                dkj_p = np.sqrt(
+                dkj_p = 1.0j*np.sqrt(
                     1 / (2 * sim.model.parameters.pq_weight *
                          sim.model.parameters.mass)
                 ) * (dkj_z - dkj_zc)
@@ -1342,7 +1337,7 @@ def update_active_surface_fssh_vectorized(sim, state, **kwargs):
                         )
                         / ev_diff[..., np.newaxis]
                     )
-                    dkj_p = np.sqrt(
+                    dkj_p = 1.0j*np.sqrt(
                         1 / (2 * sim.model.parameters.pq_weight *
                             sim.model.parameters.mass)
                     ) * (dkj_z - dkj_zc)
