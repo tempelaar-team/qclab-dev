@@ -217,6 +217,7 @@ class Data:
         """
         with h5py.File(filename, 'r') as h5file:
             self._recursive_load(h5file, '/', self.data_dic)
+        return self
 
     def _recursive_save(self, h5file, path, dic):
         """
