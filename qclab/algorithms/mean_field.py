@@ -1,6 +1,9 @@
+"""
+This module contains the MF algorithm class.
+"""
+
 from qclab.algorithm import Algorithm
 import qclab.tasks as tasks
-from qclab.parameter import Parameter
 
 
 class MeanField(Algorithm):
@@ -20,10 +23,8 @@ class MeanField(Algorithm):
             parameters = {}
         self.default_parameters = {}
         # add default_params to params if not already in params
-        parameters = {**self.default_parameters, **parameters}
-        self.parameters = Parameter()
-        for key, val in parameters.items():
-            setattr(self.parameters, key, val)
+
+        super().__init__(self.default_parameters, parameters)
 
         self.initialization_recipe = [
             lambda sim, state: tasks.initialize_z_coord(

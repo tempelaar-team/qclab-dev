@@ -5,7 +5,6 @@ This module contains the FSSH algorithm class.
 import numpy as np
 from qclab.algorithm import Algorithm
 from qclab import tasks
-from qclab.parameter import Parameter
 
 
 
@@ -17,10 +16,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
                                     "num_branches": 1, 
                                     "gauge_fixing": 0}
         # add default_params to params if not already in params
-        parameters = {**self.default_parameters, **parameters}
-        self.parameters = Parameter()
-        for key, val in parameters.items():
-            setattr(self.parameters, key, val)
+        super().__init__(self.default_parameters, parameters)
 
         self.initialization_recipe = [
             lambda sim, state: tasks.initialize_z_coord(
