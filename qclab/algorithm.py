@@ -35,10 +35,10 @@ class Algorithm:
         for key, val in parameters.items():
             setattr(self.parameters, key, val)  # Set attributes
 
-    initialization_recipe = []
-    update_recipe = []
-    output_recipe = []
-    output_variables = []
+        self.initialization_recipe = []
+        self.update_recipe = []
+        self.output_recipe = []
+        self.output_variables = []
 
     def _is_vectorized(self, func):
         if '_vectorized' in inspect.getsource(func):
