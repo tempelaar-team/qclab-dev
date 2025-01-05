@@ -18,27 +18,40 @@ class Algorithm:
         output_variables (list): List of variables to be output.
     """
 
-    def __init__(self, parameters={}):
+    def __init__(self, default_parameters = None, parameters=None):
         """
         Initializes the AlgorithmClass with given parameters.
 
         Args:
             parameters (dict): A dictionary of parameters to initialize the algorithm.
         """
+        if parameters is None:
+            parameters = {}
+        if default_parameters is None:
+            default_parameters = {}
+        # Add default parameters to the provided parameters if not already present
+        parameters = {**default_parameters, **parameters}
+        self.parameters = Parameter(self.update_algorithm_parameters)
+        for key, val in parameters.items():
+            setattr(self.parameters, key, val)
+        self.parameters._init_complete = True
         self.output_recipe_vectorized_bool = None
         self.update_recipe_vectorized_bool = None
         self.initialization_recipe_vectorized_bool = None
-        default_parameters = {}
-        # Add default parameters to the provided parameters if not already present
-        parameters = {**default_parameters, **parameters}
-        self.parameters = Parameter()
-        for key, val in parameters.items():
-            setattr(self.parameters, key, val)  # Set attributes
-
         self.initialization_recipe = []
         self.update_recipe = []
         self.output_recipe = []
         self.output_variables = []
+        self.parameters._init_complete = True
+        self.update_algorithm_parameters()
+
+
+    def update_algorithm_parameters(self):
+        """
+        Update algorithm parameters. This method should be overridden by subclasses.
+        """
+        pass
+
 
     def _is_vectorized(self, func):
         if '_vectorized' in inspect.getsource(func):
