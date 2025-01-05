@@ -1,3 +1,7 @@
+"""
+Tests for functions in the Algorithm class.
+"""
+
 import pytest
 import numpy as np
 from qclab import Algorithm
@@ -27,14 +31,16 @@ def test_is_vectorized():
 
     This test verifies the following scenarios:
     1. A lambda function wrapping a non-vectorized dummy function should return False.
-    2. A lambda function wrapping a non-vectorized dummy function assigned to the algorithm should return False.
+    2. A lambda function wrapping a non-vectorized dummy function assigned to the algorithm
+    should return False.
     3. A lambda function wrapping a vectorized dummy function should return True.
-    4. A lambda function wrapping a vectorized dummy function assigned to the algorithm should return True.
+    4. A lambda function wrapping a vectorized dummy function assigned to the algorithm
+    should return True.
     """
     algorithm = Algorithm()
 
     def dummy_func(x):
-        pass
+        del x
 
     lambda_dummy_func = lambda x: dummy_func(x)
     assert algorithm._is_vectorized(lambda_dummy_func) is False
@@ -44,7 +50,7 @@ def test_is_vectorized():
     assert algorithm._is_vectorized(lambda_dummy_func) is False
 
     def dummy_func_vectorized(x):
-        pass
+        del x
 
     lambda_dummy_func_vectorized = lambda x: dummy_func_vectorized(x)
     assert algorithm._is_vectorized(lambda_dummy_func_vectorized) is True
@@ -111,10 +117,12 @@ def test_execute_initialization_recipe():
     algorithm = Algorithm()
 
     def dummy_func(sim, state):
+        del sim
         state.modify('non_vectorized_output', state.get('non_vectorized_output') + 1)
         return state
 
     def dummy_func_vectorized(sim, state):
+        del sim
         state.modify('vectorized_output', state.get('vectorized_output') + 1)
         return state
 
@@ -124,8 +132,8 @@ def test_execute_initialization_recipe():
     state_list = [state.copy() for _ in batch_seeds_single]
 
     # Initialize seed in each state
-    for n in range(len(batch_seeds_single)):
-        state_list[n].add('seed', batch_seeds_single[n][np.newaxis])
+    for n, seed in enumerate(batch_seeds_single):
+        state_list[n].add('seed', seed[np.newaxis])
 
     # Create a full_state
     full_state = simulation.new_full_state(state_list)
@@ -181,10 +189,12 @@ def test_execute_update_recipe():
     algorithm = Algorithm()
 
     def dummy_func(sim, state):
+        del sim
         state.modify('non_vectorized_output', state.get('non_vectorized_output') + 1)
         return state
 
     def dummy_func_vectorized(sim, state):
+        del sim
         state.modify('vectorized_output', state.get('vectorized_output') + 1)
         return state
 
@@ -194,8 +204,8 @@ def test_execute_update_recipe():
     state_list = [state.copy() for _ in batch_seeds_single]
 
     # Initialize seed in each state
-    for n in range(len(batch_seeds_single)):
-        state_list[n].add('seed', batch_seeds_single[n][np.newaxis])
+    for n, seed in enumerate(batch_seeds_single):
+        state_list[n].add('seed', seed[np.newaxis])
 
     # Create a full_state
     full_state = simulation.new_full_state(state_list)
@@ -250,10 +260,12 @@ def test_execute_output_recipe():
     algorithm = Algorithm()
 
     def dummy_func(sim, state):
+        del sim
         state.modify('non_vectorized_output', state.get('non_vectorized_output') + 1)
         return state
 
     def dummy_func_vectorized(sim, state):
+        del sim
         state.modify('vectorized_output', state.get('vectorized_output') + 1)
         return state
 
@@ -263,8 +275,8 @@ def test_execute_output_recipe():
     state_list = [state.copy() for _ in batch_seeds_single]
 
     # Initialize seed in each state
-    for n in range(len(batch_seeds_single)):
-        state_list[n].add('seed', batch_seeds_single[n][np.newaxis])
+    for n, seed in enumerate(batch_seeds_single):
+        state_list[n].add('seed', seed[np.newaxis])
 
     # Create a full_state
     full_state = simulation.new_full_state(state_list)

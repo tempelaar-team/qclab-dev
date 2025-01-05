@@ -2,8 +2,8 @@
 This file contains the Simulation, State, and Data classes. It also contains additional 
 functions for initializing and handling these objects.
 """
-import numpy as np
 import ctypes
+import numpy as np
 import h5py
 from qclab.parameter import Parameter
 
@@ -24,8 +24,10 @@ def initialize_state_objects(sim, batch_seeds):
     state_list = [sim.state.copy() for _ in batch_seeds_single]
 
     # Initialize seed in each state
-    for n in range(len(batch_seeds_single)):
-        state_list[n].add('seed', batch_seeds_single[n][np.newaxis])
+    # for n in range(len(batch_seeds_single)):
+    #    state_list[n].add('seed', batch_seeds_single[n][np.newaxis])
+    for n, seed in enumerate(batch_seeds_single):
+        state_list[n].modify('seed', seed[np.newaxis])
 
     # Create a full_state
     full_state = new_full_state(state_list)
@@ -70,10 +72,14 @@ def initialize_state_objects(sim, batch_seeds):
     state_list = [state_list[0].copy() for _ in batch_seeds]
 
     # Initialize state objects with batch seeds
-    for n in range(len(batch_seeds)):
+    # for n in range(len(batch_seeds)):
+    #    for name in sim.state.pointers.keys():
+    #        state_list[n].add(name, sim.state.get(name))
+    #    state_list[n].modify('seed', batch_seeds[n][np.newaxis])
+    for n, seed in enumerate(batch_seeds):
         for name in sim.state.pointers.keys():
             state_list[n].add(name, sim.state.get(name))
-        state_list[n].modify('seed', batch_seeds[n][np.newaxis])
+        state_list[n].modify('seed', seed[np.newaxis])
 
     full_state = new_full_state(state_list)
     state_list = new_state_list(full_state)
@@ -95,8 +101,12 @@ def check_vars(state_list, full_state):
         MemoryError: If there is a misalignment in the variables.
     """
     for name in full_state.pointers.keys():
-        for n in range(len(state_list)):
-            if not (state_list[n].get(name).__array_interface__['data'][0] ==
+        # for n in range(len(state_list)):
+        #    if not (state_list[n].get(name).__array_interface__['data'][0] ==
+        #            full_state.get(name)[n].__array_interface__['data'][0]):
+        #        raise MemoryError('Error, variable: ', name)
+        for n, state in enumerate(state_list):
+            if not (state.get(name).__array_interface__['data'][0] ==
                     full_state.get(name)[n].__array_interface__['data'][0]):
                 raise MemoryError('Error, variable: ', name)
 
@@ -160,7 +170,8 @@ class Data:
         """
         self.data_dic['seed'] = np.copy(full_state.get('seed'))
         for key, val in full_state.output_dict.items():
-            self.data_dic[key] = np.zeros((len(sim.parameters.tdat_output), *np.shape(val)[1:]), dtype=val.dtype)
+            self.data_dic[key] = np.zeros(
+                (len(sim.parameters.tdat_output), *np.shape(val)[1:]), dtype=val.dtype)
 
     def add_to_output_total_arrays(self, sim, full_state, t_ind):
         """
@@ -172,7 +183,8 @@ class Data:
             t_ind: Time index.
         """
         for key, val in full_state.output_dict.items():
-            self.data_dic[key][int(t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
+            self.data_dic[key][int(
+                t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
 
     def add_data(self, new_data):
         """
@@ -183,25 +195,32 @@ class Data:
         """
         for key, val in new_data.data_dic.items():
             if key == 'seed':
-                self.data_dic[key] = np.concatenate((self.data_dic[key], val.flatten()), axis=0)
+                self.data_dic[key] = np.concatenate(
+                    (self.data_dic[key], val.flatten()), axis=0)
             else:
-                if key in self.data_dic.keys():
+                if key in self.data_dic:
                     self.data_dic[key] += val
                 else:
                     self.data_dic[key] = val
 
     def save_as_h5(self, filename):
+        """ 
+        Save the data as an h5 archive.
+        """
         with h5py.File(filename, 'w') as h5file:
             self._recursive_save(h5file, '/', self.data_dic)
         return
 
     def load_from_h5(self, filename):
+        """
+        Load a data object from an h5 archive.
+        """
         with h5py.File(filename, 'r') as h5file:
             self._recursive_load(h5file, '/', self.data_dic)
 
     def _recursive_save(self, h5file, path, dic):
         """
-         
+
         Recursively saves dictionary contents to an HDF5 group.
 
         Args:
@@ -299,7 +318,7 @@ class State:
             A new state object that is a copy of the current state.
         """
         out = State()
-        for name in self.pointers.keys():
+        for name in self.pointers:
             out.add(name, np.copy(self.get(name)))
         return out
 
@@ -311,7 +330,8 @@ class State:
             name: The name of the variable.
             val: The value of the variable.
         """
-        self.pointers[name] = val.ctypes.data_as(ctypes.POINTER(get_ctypes_type(val)))
+        self.pointers[name] = val.ctypes.data_as(
+            ctypes.POINTER(get_ctypes_type(val)))
         self.shapes[name] = np.shape(val)
         self.dtypes[name] = val.dtype
         self.__dict__[name] = self.get(name).view()  # val.view()#
@@ -331,7 +351,8 @@ class State:
         dtype = self.dtypes[name]
         dtype_size = np.dtype(dtype).itemsize
         total_bytes = np.prod(shape) * dtype_size
-        buffer = (ctypes.c_char * total_bytes).from_address(ctypes.addressof(ptr.contents))
+        buffer = (ctypes.c_char *
+                  total_bytes).from_address(ctypes.addressof(ptr.contents))
         return np.frombuffer(buffer, dtype=dtype).reshape(shape)
 
     def modify(self, name, val):
@@ -343,7 +364,8 @@ class State:
             val: The new value of the variable.
         """
         if name in self.pointers:
-            ctypes.memmove(ctypes.addressof(self.pointers[name].contents), val.ctypes.data_as(ctypes.c_void_p),
+            ctypes.memmove(ctypes.addressof(self.pointers[name].contents),
+                           val.ctypes.data_as(ctypes.c_void_p),
                            val.nbytes)
             self.__dict__[name] = self.get(name).view()  # val.view()#
         else:
@@ -355,8 +377,11 @@ class Simulation:
     The simulation object represents the entire simulation process.
     """
 
-    def __init__(self, parameters={}):
-        self.default_parameters = dict(tmax=10, dt=0.01, dt_output=0.1, num_trajs=10, batch_size=1)
+    def __init__(self, parameters=None):
+        if parameters is None:
+            parameters = {}
+        self.default_parameters = dict(
+            tmax=10, dt=0.01, dt_output=0.1, num_trajs=10, batch_size=1)
         parameters = {**self.default_parameters, **parameters}
         self.parameters = Parameter()
         for key, val in parameters.items():
@@ -369,13 +394,17 @@ class Simulation:
         """
         Initialize the timesteps for the simulation based on the parameters.
         """
-        self.parameters.tmax_n = np.round(self.parameters.tmax / self.parameters.dt, 1).astype(int)
-        self.parameters.dt_output_n = np.round(self.parameters.dt_output / self.parameters.dt, 1).astype(int)
-        self.parameters.tdat = np.arange(0, self.parameters.tmax_n + 1, 1) * self.parameters.dt
+        self.parameters.tmax_n = np.round(
+            self.parameters.tmax / self.parameters.dt, 1).astype(int)
+        self.parameters.dt_output_n = np.round(
+            self.parameters.dt_output / self.parameters.dt, 1).astype(int)
+        self.parameters.tdat = np.arange(
+            0, self.parameters.tmax_n + 1, 1) * self.parameters.dt
         self.parameters.tdat_n = np.arange(0, self.parameters.tmax_n + 1, 1)
         self.parameters.tdat_output = np.arange(0, self.parameters.tmax_n + 1,
                                                 self.parameters.dt_output_n) * self.parameters.dt
-        self.parameters.tdat_output_n = np.arange(0, self.parameters.tmax_n + 1, self.parameters.dt_output_n)
+        self.parameters.tdat_output_n = np.arange(
+            0, self.parameters.tmax_n + 1, self.parameters.dt_output_n)
 
     def generate_seeds(self, data):
         """
@@ -388,7 +417,8 @@ class Simulation:
             new_seeds: Array of new seeds.
         """
         if len(data.data_dic['seed']) > 1:
-            new_seeds = np.max(data.data_dic['seed']) + np.arange(self.parameters.num_trajs, dtype=int) + 1
+            new_seeds = np.max(
+                data.data_dic['seed']) + np.arange(self.parameters.num_trajs, dtype=int) + 1
         else:
             new_seeds = np.arange(self.parameters.num_trajs, dtype=int)
         return new_seeds
