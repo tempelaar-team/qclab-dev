@@ -9,6 +9,9 @@ from qclab import tasks
 
 
 class FewestSwitchesSurfaceHopping(Algorithm):
+    """
+    Fewest switches surface hopping algorithm class.
+    """
     def __init__(self, parameters=None):
         if parameters is None:
             parameters = {}

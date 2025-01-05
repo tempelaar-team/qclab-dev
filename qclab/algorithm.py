@@ -18,7 +18,7 @@ class Algorithm:
         output_variables (list): List of variables to be output.
     """
 
-    def __init__(self, default_parameters = None, parameters=None):
+    def __init__(self, default_parameters=None, parameters=None):
         """
         Initializes the AlgorithmClass with given parameters.
 
@@ -45,13 +45,10 @@ class Algorithm:
         self.parameters._init_complete = True
         self.update_algorithm_parameters()
 
-
     def update_algorithm_parameters(self):
         """
         Update algorithm parameters. This method should be overridden by subclasses.
         """
-        pass
-
 
     def _is_vectorized(self, func):
         if '_vectorized' in inspect.getsource(func):
@@ -63,9 +60,12 @@ class Algorithm:
         """
         Determine which functions in the recipes are vectorized.
         """
-        self.initialization_recipe_vectorized_bool = list(map(self._is_vectorized, self.initialization_recipe))
-        self.update_recipe_vectorized_bool = list(map(self._is_vectorized, self.update_recipe))
-        self.output_recipe_vectorized_bool = list(map(self._is_vectorized, self.output_recipe))
+        self.initialization_recipe_vectorized_bool = list(
+            map(self._is_vectorized, self.initialization_recipe))
+        self.update_recipe_vectorized_bool = list(
+            map(self._is_vectorized, self.update_recipe))
+        self.output_recipe_vectorized_bool = list(
+            map(self._is_vectorized, self.output_recipe))
 
     def execute_initialization_recipe(self, sim, state_list, full_state):
         """
