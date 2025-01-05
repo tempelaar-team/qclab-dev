@@ -805,8 +805,8 @@ def analytic_der_couple_phase(sim, state, eigvals, eigvecs):
         eval_j = eigvals[..., j]
         ev_diff = eval_j - eval_i
         plus = np.zeros_like(ev_diff)
-        if np.any(np.abs(ev_diff) < 1e-12):
-            plus[np.where(np.abs(ev_diff) < 1e-12)] = 1
+        if np.any(np.abs(ev_diff) < 1e-8):
+            plus[np.where(np.abs(ev_diff) < 1e-8)] = 1
             warnings.warn("Degenerate eigenvalues detected.")
         der_couple_zc = np.einsum("...i,...nij,...j->...n",\
             np.conj(evec_i), state.dh_qc_dzc, evec_j)/ ((ev_diff + plus)[..., np.newaxis])
