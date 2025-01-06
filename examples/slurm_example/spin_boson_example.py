@@ -25,11 +25,10 @@ wf_db = np.zeros((2), dtype=complex)
 wf_db[0] = 1.0+0.0j
 sim.state.modify('wf_db', wf_db)
 
-data, idx = slurm_driver(sim, num_tasks = 10)
+idx = int(os.environ["SLURM_ARRAY_TASK_ID"])
 
 data_file = 'data_'+str(idx)+'.h5'
 
-if os.path.exists(data_file):
-    data.add_data(Data().load_from_h5(data_file))
+data, idx = slurm_driver(sim, num_tasks = 10, data = Data().load_from_h5(data_file))
 
 data.save_as_h5(data_file)
