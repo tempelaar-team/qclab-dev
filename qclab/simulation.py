@@ -65,19 +65,15 @@ def initialize_state_objects(sim, batch_seeds):
             state_list = new_state_list(full_state)
 
     # Zero out every variable
-    for name in full_state.pointers.keys():
+    for name in full_state._pointers.keys():
         full_state.modify(name, full_state.get(name) * 0)
 
     state_list = new_state_list(full_state)
     state_list = [state_list[0].copy() for _ in batch_seeds]
 
     # Initialize state objects with batch seeds
-    # for n in range(len(batch_seeds)):
-    #    for name in sim.state.pointers.keys():
-    #        state_list[n].add(name, sim.state.get(name))
-    #    state_list[n].modify('seed', batch_seeds[n][np.newaxis])
     for n, seed in enumerate(batch_seeds):
-        for name in sim.state.pointers.keys():
+        for name in sim.state._pointers.keys():
             state_list[n].add(name, sim.state.get(name))
         state_list[n].modify('seed', seed[np.newaxis])
 
@@ -100,11 +96,7 @@ def check_vars(state_list, full_state):
     Raises:
         MemoryError: If there is a misalignment in the variables.
     """
-    for name in full_state.pointers.keys():
-        # for n in range(len(state_list)):
-        #    if not (state_list[n].get(name).__array_interface__['data'][0] ==
-        #            full_state.get(name)[n].__array_interface__['data'][0]):
-        #        raise MemoryError('Error, variable: ', name)
+    for name in full_state._pointers.keys():
         for n, state in enumerate(state_list):
             if not (state.get(name).__array_interface__['data'][0] ==
                     full_state.get(name)[n].__array_interface__['data'][0]):
@@ -112,18 +104,9 @@ def check_vars(state_list, full_state):
 
 
 def new_state_list(full_state):
-    """
-    Create a new list of state objects from the full state.
-
-    Args:
-        full_state: The full state object.
-
-    Returns:
-        state_list: List of state objects.
-    """
-    batch_size = len(full_state.seed)
+    batch_size = full_state._size
     state_list = [State() for _ in range(batch_size)]
-    attr_names = full_state.pointers.keys()
+    attr_names = full_state._pointers.keys()
 
     for ind, state in enumerate(state_list):
         for name in attr_names:
@@ -131,24 +114,12 @@ def new_state_list(full_state):
 
     return state_list
 
-
 def new_full_state(state_list):
-    """
-    Create a new full state object from a list of state objects.
-
-    Args:
-        state_list: List of state objects.
-
-    Returns:
-        full_state: The full state object.
-    """
-    full_state = State()
-    attribute_names = state_list[0].pointers.keys()
-
+    full_state = State(len(state_list))
+    attribute_names = state_list[0]._pointers.keys()
     for name in attribute_names:
         full_var = np.array([state.get(name) for state in state_list])
         full_state.add(name, full_var)
-
     return full_state
 
 
@@ -169,7 +140,7 @@ class Data:
             full_state: The full state object.
         """
         self.data_dic['seed'] = np.copy(full_state.get('seed'))
-        for key, val in full_state.output_dict.items():
+        for key, val in full_state._output_dict.items():
             self.data_dic[key] = np.zeros(
                 (len(sim.parameters.tdat_output), *np.shape(val)[1:]), dtype=val.dtype)
 
@@ -182,7 +153,7 @@ class Data:
             full_state: The full state object.
             t_ind: Time index.
         """
-        for key, val in full_state.output_dict.items():
+        for key, val in full_state._output_dict.items():
             self.data_dic[key][int(
                 t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
 
@@ -289,18 +260,17 @@ def get_ctypes_type(numpy_array):
         raise KeyError(f'Missing type mapping for Numpy dtype: {dtype}')
     return ctype
 
-
 class State:
-    """
-    The state object represents the state of the simulation.
-    """
-
-    def __init__(self):
-        self.pointers = {}
-        self.shapes = {}
-        self.dtypes = {}
-        self.output_dict = {}
-
+    def __init__(self, size=1):
+        self._pointers = {}
+        self._shapes = {}
+        self._dtypes = {}
+        self._output_dict = {}
+        self._size = size
+        if self._size > 1:
+            self._is_vectorized = True 
+        else:
+            self._is_vectorized = False
     def collect_output_variables(self, output_variables):
         """
         Collect output variables for the state.
@@ -309,7 +279,7 @@ class State:
             output_variables: List of output variable names.
         """
         for var in output_variables:
-            self.output_dict[var] = self.get(var)
+            self._output_dict[var] = self.get(var)
 
     def copy(self):
         """
@@ -318,59 +288,59 @@ class State:
         Returns:
             A new state object that is a copy of the current state.
         """
-        out = State()
-        for name in self.pointers:
+        out = State(self._size)
+        for name in self._pointers:
             out.add(name, np.copy(self.get(name)))
         return out
-
+    
     def add(self, name, val):
-        """
-        Add a variable to the state.
-
-        Args:
-            name: The name of the variable.
-            val: The value of the variable.
-        """
-        self.pointers[name] = val.ctypes.data_as(
-            ctypes.POINTER(get_ctypes_type(val)))
-        self.shapes[name] = np.shape(val)
-        self.dtypes[name] = val.dtype
-        self.__dict__[name] = self.get(name).view()  # val.view()#
+        if self._is_vectorized:
+            if len(np.shape(val)) < 2:
+                val = val.reshape((*np.shape(val), 1))
+        else:
+            if not isinstance(val, np.ndarray):
+                val = np.array([val])
+        self._pointers[name] = val.ctypes.data_as(ctypes.POINTER(get_ctypes_type(val)))
+        self._shapes[name] = np.shape(val)
+        self._dtypes[name] = val.dtype
+        self.__dict__[name] = self.get(name).view()
 
     def get(self, name):
-        """
-        Get the value of a variable from the state.
-
-        Args:
-            name: The name of the variable.
-
-        Returns:
-            The value of the variable.
-        """
-        ptr = self.pointers[name]
-        shape = self.shapes[name]
-        dtype = self.dtypes[name]
+        ptr = self._pointers[name]
+        shape = self._shapes[name]
+        dtype = self._dtypes[name]
         dtype_size = np.dtype(dtype).itemsize
-        total_bytes = np.prod(shape) * dtype_size
+        total_bytes = np.prod(shape, dtype=np.int64) * dtype_size
         buffer = (ctypes.c_char *
                   total_bytes).from_address(ctypes.addressof(ptr.contents))
         return np.frombuffer(buffer, dtype=dtype).reshape(shape)
-
+    
     def modify(self, name, val):
-        """
-        Modify the value of a variable in the state.
-
-        Args:
-            name: The name of the variable.
-            val: The new value of the variable.
-        """
-        if name in self.pointers:
-            ctypes.memmove(ctypes.addressof(self.pointers[name].contents),
+        if name in self._pointers:
+            if not self._is_vectorized and not isinstance(val, np.ndarray):
+                val = np.array([val])
+            assert val.dtype == self._dtypes[name], TypeError(f"Type mismatch: {val.dtype} != {self._dtypes[name]}")
+            ctypes.memmove(ctypes.addressof(self._pointers[name].contents),
                            val.ctypes.data_as(ctypes.c_void_p),
                            val.nbytes)
-            self.__dict__[name] = self.get(name).view()  # val.view()#
+            self.__dict__[name] = self.get(name).view()
         else:
             self.add(name, val)
+    
+    def __getattr__(self, name):
+        if name in self._pointers:
+            if self._is_vectorized:
+                return self.__dict__[name].reshape(*self._shapes[name][:-1])
+            else:
+                return self.__dict__[name][...,0]
+        else:
+            return self.__dict__[name]
+        
+    def __setattr__(self, name, val):
+        if name[0] == '_':
+            super().__setattr__(name, val)
+        else:
+            self.modify(name, val)
 
 
 class Simulation:
