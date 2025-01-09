@@ -552,8 +552,7 @@ def update_classical_energy(sim, state, **kwargs):
         State: The updated state object.
     """
     z_coord = kwargs['z_coord']
-    state.modify('classical_energy', sim.model.h_c(
-        z_coord=z_coord)[np.newaxis])
+    state.modify('classical_energy', sim.model.h_c(z_coord=z_coord))
     return state
 
 
@@ -571,13 +570,12 @@ def update_classical_energy_vectorized(sim, state, **kwargs):
     """
     z_coord = kwargs['z_coord']
     if hasattr(sim.model, 'h_c_vectorized'):
-        state.modify('classical_energy', sim.model.h_c_vectorized(
-            z_coord=z_coord)[:, np.newaxis])
+        state.modify('classical_energy', sim.model.h_c_vectorized(z_coord=z_coord))
     else:
         warnings.warn(
             "h_c_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
         state.modify('classical_energy', vector_apply_all_but_last(
-            lambda z: sim.model.h_c(z_coord=z), z_coord)[:, np.newaxis])
+            lambda z: sim.model.h_c(z_coord=z), z_coord))
     return state
 
 
@@ -596,7 +594,7 @@ def update_classical_energy_fssh_vectorized(sim, state, **kwargs):
     z_coord = kwargs['z_coord']
     if hasattr(sim.model, 'h_c_vectorized'):
         state.modify('classical_energy', np.sum(
-            sim.model.h_c_vectorized(z_coord=z_coord), axis=-1)[:, np.newaxis])
+            sim.model.h_c_vectorized(z_coord=z_coord), axis=-1))
     else:
         state.modify('classical_energy', vector_apply_all_but_last(
             lambda z: sim.model.h_c(z_coord=z), z_coord))
@@ -620,7 +618,7 @@ def update_quantum_energy_mf(sim, state, **kwargs):
     del sim
     wf = kwargs['wf']
     state.modify('quantum_energy', np.matmul(
-        np.conj(wf), np.matmul(state.h_quantum, wf))[np.newaxis])
+        np.conj(wf), np.matmul(state.h_quantum, wf)))
     return state
 
 
@@ -639,15 +637,14 @@ def update_quantum_energy_mf_vectorized(sim, state, **kwargs):
     del sim
     wf = kwargs['wf']
     state.modify('quantum_energy', np.einsum('...i,...ij,...j->...',
-                 np.conj(wf), state.h_quantum, wf)[:, np.newaxis])
+                 np.conj(wf), state.h_quantum, wf))
     return state
 
 
 def update_quantum_energy_fssh_vectorized(sim, state, **kwargs):
     del sim, kwargs
     state.modify('quantum_energy',
-                 np.einsum('...bi,...bij,...bj->...', np.conj(state.act_surf_wf), state.h_quantum, state.act_surf_wf)[:,
-                                                                                                                      np.newaxis])
+                 np.einsum('...bi,...bij,...bj->...', np.conj(state.act_surf_wf), state.h_quantum, state.act_surf_wf))
     return state
 
 
