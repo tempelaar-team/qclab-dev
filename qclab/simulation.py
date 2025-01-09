@@ -72,10 +72,6 @@ def initialize_state_objects(sim, batch_seeds):
     state_list = [state_list[0].copy() for _ in batch_seeds]
 
     # Initialize state objects with batch seeds
-    # for n in range(len(batch_seeds)):
-    #    for name in sim.state.pointers.keys():
-    #        state_list[n].add(name, sim.state.get(name))
-    #    state_list[n].modify('seed', batch_seeds[n][np.newaxis])
     for n, seed in enumerate(batch_seeds):
         for name in sim.state._pointers.keys():
             state_list[n].add(name, sim.state.get(name))
@@ -101,16 +97,10 @@ def check_vars(state_list, full_state):
         MemoryError: If there is a misalignment in the variables.
     """
     for name in full_state._pointers.keys():
-        # for n in range(len(state_list)):
-        #    if not (state_list[n].get(name).__array_interface__['data'][0] ==
-        #            full_state.get(name)[n].__array_interface__['data'][0]):
-        #        raise MemoryError('Error, variable: ', name)
-
         for n, state in enumerate(state_list):
             if not (state.get(name).__array_interface__['data'][0] ==
                     full_state.get(name)[n].__array_interface__['data'][0]):
-                print('Error, variable: ', name)
-                #raise MemoryError('Error, variable: ', name)
+                raise MemoryError('Error, variable: ', name)
 
 
 def new_state_list(full_state):
@@ -130,47 +120,6 @@ def new_full_state(state_list):
     for name in attribute_names:
         full_var = np.array([state.get(name) for state in state_list])
         full_state.add(name, full_var)
-    return full_state
-
-
-def new_state_list_old(full_state):
-    """
-    Create a new list of state objects from the full state.
-
-    Args:
-        full_state: The full state object.
-
-    Returns:
-        state_list: List of state objects.
-    """
-    batch_size = len(full_state.seed)
-    state_list = [State() for _ in range(batch_size)]
-    attr_names = full_state.pointers.keys()
-
-    for ind, state in enumerate(state_list):
-        for name in attr_names:
-            state.add(name, full_state.get(name)[ind])
-
-    return state_list
-
-
-def new_full_state_old(state_list):
-    """
-    Create a new full state object from a list of state objects.
-
-    Args:
-        state_list: List of state objects.
-
-    Returns:
-        full_state: The full state object.
-    """
-    full_state = State()
-    attribute_names = state_list[0].pointers.keys()
-
-    for name in attribute_names:
-        full_var = np.array([state.get(name) for state in state_list])
-        full_state.add(name, full_var)
-
     return full_state
 
 
@@ -392,88 +341,6 @@ class State:
             super().__setattr__(name, val)
         else:
             self.modify(name, val)
-            
-class State_old:
-    """
-    The state object represents the state of the simulation.
-    """
-
-    def __init__(self):
-        self.pointers = {}
-        self.shapes = {}
-        self.dtypes = {}
-        self.output_dict = {}
-
-    def collect_output_variables(self, output_variables):
-        """
-        Collect output variables for the state.
-
-        Args:
-            output_variables: List of output variable names.
-        """
-        for var in output_variables:
-            self.output_dict[var] = self.get(var)
-
-    def copy(self):
-        """
-        Create a copy of the state object.
-
-        Returns:
-            A new state object that is a copy of the current state.
-        """
-        out = State()
-        for name in self.pointers:
-            out.add(name, np.copy(self.get(name)))
-        return out
-
-    def add(self, name, val):
-        """
-        Add a variable to the state.
-
-        Args:
-            name: The name of the variable.
-            val: The value of the variable.
-        """
-        self.pointers[name] = val.ctypes.data_as(
-            ctypes.POINTER(get_ctypes_type(val)))
-        self.shapes[name] = np.shape(val)
-        self.dtypes[name] = val.dtype
-        self.__dict__[name] = self.get(name).view()  # val.view()#
-
-    def get(self, name):
-        """
-        Get the value of a variable from the state.
-
-        Args:
-            name: The name of the variable.
-
-        Returns:
-            The value of the variable.
-        """
-        ptr = self.pointers[name]
-        shape = self.shapes[name]
-        dtype = self.dtypes[name]
-        dtype_size = np.dtype(dtype).itemsize
-        total_bytes = np.prod(shape, dtype=np.int64) * dtype_size
-        buffer = (ctypes.c_char *
-                  total_bytes).from_address(ctypes.addressof(ptr.contents))
-        return np.frombuffer(buffer, dtype=dtype).reshape(shape)
-
-    def modify(self, name, val):
-        """
-        Modify the value of a variable in the state.
-
-        Args:
-            name: The name of the variable.
-            val: The new value of the variable.
-        """
-        if name in self.pointers:
-            ctypes.memmove(ctypes.addressof(self.pointers[name].contents),
-                           val.ctypes.data_as(ctypes.c_void_p),
-                           val.nbytes)
-            self.__dict__[name] = self.get(name).view()  # val.view()#
-        else:
-            self.add(name, val)
 
 
 class Simulation:
