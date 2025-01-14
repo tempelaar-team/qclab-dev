@@ -24,10 +24,8 @@ def initialize_state_objects(sim, batch_seeds):
     state_list = [sim.state.copy() for _ in batch_seeds_single]
 
     # Initialize seed in each state
-    # for n in range(len(batch_seeds_single)):
-    #    state_list[n].add('seed', batch_seeds_single[n][np.newaxis])
     for n, seed in enumerate(batch_seeds_single):
-        state_list[n].modify('seed', seed[np.newaxis])
+        state_list[n].modify('seed', seed)
 
     # Create a full_state
     full_state = new_full_state(state_list)
@@ -75,7 +73,7 @@ def initialize_state_objects(sim, batch_seeds):
     for n, seed in enumerate(batch_seeds):
         for name in sim.state._pointers.keys():
             state_list[n].add(name, sim.state.get(name))
-        state_list[n].modify('seed', seed[np.newaxis])
+        state_list[n].modify('seed', seed)
 
     full_state = new_full_state(state_list)
     state_list = new_state_list(full_state)
