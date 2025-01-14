@@ -24,10 +24,8 @@ def initialize_state_objects(sim, batch_seeds):
     state_list = [sim.state.copy() for _ in batch_seeds_single]
 
     # Initialize seed in each state
-    # for n in range(len(batch_seeds_single)):
-    #    state_list[n].add('seed', batch_seeds_single[n][np.newaxis])
     for n, seed in enumerate(batch_seeds_single):
-        state_list[n].modify('seed', seed[np.newaxis])
+        state_list[n].modify('seed', seed)
 
     # Create a full_state
     full_state = new_full_state(state_list)
@@ -75,7 +73,7 @@ def initialize_state_objects(sim, batch_seeds):
     for n, seed in enumerate(batch_seeds):
         for name in sim.state._pointers.keys():
             state_list[n].add(name, sim.state.get(name))
-        state_list[n].modify('seed', seed[np.newaxis])
+        state_list[n].modify('seed', seed)
 
     full_state = new_full_state(state_list)
     state_list = new_state_list(full_state)
@@ -261,16 +259,18 @@ def get_ctypes_type(numpy_array):
     return ctype
 
 class State:
-    def __init__(self, size=1):
+    def __init__(self, size=1, vectorized=False):
         self._pointers = {}
         self._shapes = {}
         self._dtypes = {}
         self._output_dict = {}
+        self._reshape_bool = {}
         self._size = size
-        if self._size > 1:
-            self._is_vectorized = True 
-        else:
-            self._is_vectorized = False
+        if size > 1:
+            vectorized = True
+        self._is_vectorized = vectorized
+
+
     def collect_output_variables(self, output_variables):
         """
         Collect output variables for the state.
@@ -294,16 +294,29 @@ class State:
         return out
     
     def add(self, name, val):
+        reshape_bool = False
         if self._is_vectorized:
             if len(np.shape(val)) < 2:
+                reshape_bool = True
                 val = val.reshape((*np.shape(val), 1))
         else:
             if not isinstance(val, np.ndarray):
+                reshape_bool = True
                 val = np.array([val])
         self._pointers[name] = val.ctypes.data_as(ctypes.POINTER(get_ctypes_type(val)))
         self._shapes[name] = np.shape(val)
         self._dtypes[name] = val.dtype
-        self.__dict__[name] = self.get(name).view()
+        self._reshape_bool[name] = reshape_bool
+        if self._is_vectorized:
+            if reshape_bool:
+                self.__dict__[name] = self.get(name).view()[...,0]
+            else:
+                self.__dict__[name] = self.get(name).view()
+        else:
+            if reshape_bool:
+                self.__dict__[name] = self.get(name).view()[...,0]
+            else:
+                self.__dict__[name] = self.get(name).view()
 
     def get(self, name):
         ptr = self._pointers[name]
@@ -319,28 +332,30 @@ class State:
         if name in self._pointers:
             if not self._is_vectorized and not isinstance(val, np.ndarray):
                 val = np.array([val])
-            assert val.dtype == self._dtypes[name], TypeError(f"Type mismatch: {val.dtype} != {self._dtypes[name]}")
-            ctypes.memmove(ctypes.addressof(self._pointers[name].contents),
-                           val.ctypes.data_as(ctypes.c_void_p),
-                           val.nbytes)
-            self.__dict__[name] = self.get(name).view()
+            if val.dtype == self._dtypes[name] and np.shape(val) == self._shapes[name]:
+                assert val.dtype == self._dtypes[name], TypeError(f"Type mismatch: {val.dtype} != {self._dtypes[name]}")
+                ctypes.memmove(ctypes.addressof(self._pointers[name].contents),
+                            val.ctypes.data_as(ctypes.c_void_p), val.nbytes)
+                if self._is_vectorized:
+                    if self._reshape_bool[name]:
+                        self.__dict__[name] = self.get(name).view()[...,0]
+                    else:
+                        self.__dict__[name] = self.get(name).view()
+                else:
+                    if self._reshape_bool[name]:
+                        self.__dict__[name] = self.get(name).view()[...,0]
+                    else:
+                        self.__dict__[name] = self.get(name).view()
+            else:
+                self.add(name, val)
         else:
             self.add(name, val)
-    
-    def __getattr__(self, name):
-        if name in self._pointers:
-            if self._is_vectorized:
-                return self.__dict__[name].reshape(*self._shapes[name][:-1])
-            else:
-                return self.__dict__[name][...,0]
-        else:
-            return self.__dict__[name]
-        
     def __setattr__(self, name, val):
         if name[0] == '_':
             super().__setattr__(name, val)
         else:
             self.modify(name, val)
+
 
 
 class Simulation:
