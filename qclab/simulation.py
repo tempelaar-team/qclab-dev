@@ -7,6 +7,7 @@ import numpy as np
 import h5py
 from qclab.parameter import Parameter
 
+
 def initialize_state_objects(sim, batch_seeds):
     # Initialize state objects with batch seeds
     state_vector = VectorObject(len(batch_seeds), True)
@@ -71,12 +72,14 @@ class Data:
         for key, val in full_state._output_dict.items():
             if key in self.data_dic:
                 # fill an existing data storage array
-                self.data_dic[key][int(t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
+                self.data_dic[key][int(
+                    t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
             else:
                 # initialize the data storage array and then fill it
-                self.data_dic[key] = np.zeros((len(sim.parameters.tdat_output), *np.shape(val)[1:]), dtype=val.dtype)
-                self.data_dic[key][int(t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
-
+                self.data_dic[key] = np.zeros(
+                    (len(sim.parameters.tdat_output), *np.shape(val)[1:]), dtype=val.dtype)
+                self.data_dic[key][int(
+                    t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
 
     def add_data(self, new_data):
         """
@@ -181,6 +184,7 @@ def get_ctypes_type(numpy_array):
         raise KeyError(f'Missing type mapping for Numpy dtype: {dtype}')
     return ctype
 
+
 class VectorObject:
     def __init__(self, size=1, vectorized=False):
         self._pointers = {}
@@ -208,26 +212,26 @@ class VectorObject:
             if not isinstance(val, np.ndarray):
                 reshape_bool = True
                 val = np.array([val])
-        self._pointers[name] = val.ctypes.data_as(ctypes.POINTER(get_ctypes_type(val)))
+        self._pointers[name] = val.ctypes.data_as(
+            ctypes.POINTER(get_ctypes_type(val)))
         self._shapes[name] = np.shape(val)
         self._dtypes[name] = val.dtype
         self._reshape_bool[name] = reshape_bool
         if self._is_vectorized:
             if reshape_bool:
-                self.__dict__[name] = self.get(name).view()[...,0]
+                self.__dict__[name] = self.get(name).view()[..., 0]
             else:
                 self.__dict__[name] = self.get(name).view()
         else:
             if reshape_bool:
-                self.__dict__[name] = self.get(name).view()[...,0]
+                self.__dict__[name] = self.get(name).view()[..., 0]
             else:
                 self.__dict__[name] = self.get(name).view()
-        
-        if self._is_vectorized: 
-            self._update_list = True 
+
+        if self._is_vectorized:
+            self._update_list = True
         else:
             self._update_vector = True
-
 
     def get(self, name):
         ptr = self._pointers[name]
@@ -242,27 +246,27 @@ class VectorObject:
     def modify(self, name, val):
         if name in self._pointers:
             if self._is_vectorized and self._reshape_bool[name]:
-                val = val.reshape((*np.shape(val),1))
+                val = val.reshape((*np.shape(val), 1))
             if not self._is_vectorized and self._reshape_bool[name]:
-                    val = np.array([val])
+                val = np.array([val])
             if val.dtype == self._dtypes[name] and np.shape(val) == self._shapes[name]:
                 ctypes.memmove(ctypes.addressof(self._pointers[name].contents),
-                            val.ctypes.data_as(ctypes.c_void_p), val.nbytes)
+                               val.ctypes.data_as(ctypes.c_void_p), val.nbytes)
                 if self._is_vectorized:
                     if self._reshape_bool[name]:
-                        self.__dict__[name] = self.get(name).view()[...,0]
+                        self.__dict__[name] = self.get(name).view()[..., 0]
                     else:
                         self.__dict__[name] = self.get(name).view()
                 else:
                     if self._reshape_bool[name]:
-                        self.__dict__[name] = self.get(name).view()[...,0]
+                        self.__dict__[name] = self.get(name).view()[..., 0]
                     else:
                         self.__dict__[name] = self.get(name).view()
             else:
                 self.add(name, val)
         else:
             self.add(name, val)
-    
+
     def __setattr__(self, name, val):
         if name[0] == '_':
             super().__setattr__(name, val)
@@ -280,31 +284,36 @@ class VectorObject:
         for name in self._pointers:
             out.add(name, np.copy(getattr(self, name)))
         return out
-    
+
     def to_element_list(self):
-        element_list = [VectorObject(1,False) for _ in range(self._size)]
+        element_list = [VectorObject(1, False) for _ in range(self._size)]
         for ind, state in enumerate(element_list):
             for name in self._pointers.keys():
                 state.add(name, getattr(self, name)[ind])
         return element_list
-    
+
     def from_element_list(self, element_list):
-        assert self._size == len(element_list), ValueError(f"Size mismatch: {self._size} != {len(element_list)}")
+        assert self._size == len(element_list), ValueError(
+            f"Size mismatch: {self._size} != {len(element_list)}")
         for name in element_list[0]._pointers:
-            self.add(name, np.array([getattr(element, name) for element in element_list]))
+            self.add(name, np.array([getattr(element, name)
+                     for element in element_list]))
         self._element_list = self.to_element_list()
         self._update_list = False
         self._update_vector = False
-        _ = [element.__setattr__('_update_vector', False) for element in self._element_list]
-        _ = [element.__setattr__('_update_list', False) for element in self._element_list]
-    
+        _ = [element.__setattr__('_update_vector', False)
+             for element in self._element_list]
+        _ = [element.__setattr__('_update_list', False)
+             for element in self._element_list]
+
     def make_consistent(self):
         assert self._is_vectorized, ValueError("Object is not vectorized")
         if self._update_list:
             self._element_list = self.to_element_list()
         if self._update_vector:
             self.from_element_list(self._element_list)
-        update_vector_list = np.array([element._update_vector for element in self._element_list])
+        update_vector_list = np.array(
+            [element._update_vector for element in self._element_list])
         if np.any(update_vector_list):
             self.from_element_list(self._element_list)
 

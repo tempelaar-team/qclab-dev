@@ -9,7 +9,8 @@ class Parameter:
 
     Attributes:
         _updating (bool): Flag to prevent recursion.
-        _init_complete (bool): Flag to prevent running update_function until initialization is complete.
+        _init_complete (bool): Flag to prevent running update_function until initialization 
+            is complete.
         _update_function (function): The function to call when parameters are updated.
     """
 
@@ -20,8 +21,10 @@ class Parameter:
         Args:
             update_function (function): The function to call when parameters are updated.
         """
-        self._updating = False  # Flag to prevent recursion
-        self._init_complete = False  # Flag to prevent running update_function until initialization is complete
+        # Flag to prevent recursion
+        self._updating = False
+        # Flag to prevent running update_function until initialization is complete
+        self._init_complete = False
         self._update_function = update_function
 
     def __setattr__(self, name, value):
