@@ -38,6 +38,7 @@ def initialize_z_coord(sim, state, **kwargs):
     if hasattr(sim.model, 'init_classical'):
         state.modify('z_coord', sim.model.init_classical(seed=seed))
     else:
+        warnings.warn("model.init_classical not specified, using numerical boltzmann.", UserWarning)
         state.modify('z_coord', ingredients.numerical_boltzmann_init_classical(
             sim.model, seed=state.seed))
     return state
