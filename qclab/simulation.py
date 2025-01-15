@@ -7,80 +7,17 @@ import numpy as np
 import h5py
 from qclab.parameter import Parameter
 
-
 def initialize_state_objects(sim, batch_seeds):
-    """
-    Initialize state objects for the simulation.
-
-    Args:
-        sim: The simulation object.
-        batch_seeds: List of seeds for batch processing.
-
-    Returns:
-        state_list: List of state objects.
-        full_state: The full state object.
-    """
-    batch_seeds_single = np.arange(1)
-    state_list = [sim.state.copy() for _ in batch_seeds_single]
-
-    # Initialize seed in each state
-    for n, seed in enumerate(batch_seeds_single):
-        state_list[n].modify('seed', seed)
-
-    # Create a full_state
-    full_state = new_full_state(state_list)
-    state_list = new_state_list(full_state)
-    sim.algorithm.determine_vectorized()
-
-    # Initialization recipe
-    for ind, func in enumerate(sim.algorithm.initialization_recipe):
-        if sim.algorithm.initialization_recipe_vectorized_bool[ind]:
-            full_state = func(sim, full_state)
-            state_list = new_state_list(full_state)
-        else:
-            state_list = [func(sim, state) for state in state_list]
-            full_state = new_full_state(state_list)
-            state_list = new_state_list(full_state)
-
-    # Update recipe
-    for ind, func in enumerate(sim.algorithm.update_recipe):
-        if sim.algorithm.update_recipe_vectorized_bool[ind]:
-            full_state = func(sim, full_state)
-            state_list = new_state_list(full_state)
-        else:
-            state_list = [func(sim, state) for state in state_list]
-            full_state = new_full_state(state_list)
-            state_list = new_state_list(full_state)
-
-    # Output recipe
-    for ind, func in enumerate(sim.algorithm.output_recipe):
-        if sim.algorithm.output_recipe_vectorized_bool[ind]:
-            full_state = func(sim, full_state)
-            state_list = new_state_list(full_state)
-        else:
-            state_list = [func(sim, state) for state in state_list]
-            full_state = new_full_state(state_list)
-            state_list = new_state_list(full_state)
-
-    # Zero out every variable
-    for name in full_state._pointers.keys():
-        full_state.modify(name, full_state.get(name) * 0)
-
-    state_list = new_state_list(full_state)
-    state_list = [state_list[0].copy() for _ in batch_seeds]
-
     # Initialize state objects with batch seeds
-    for n, seed in enumerate(batch_seeds):
+    state_vector = VectorObject(len(batch_seeds), True)
+    state_vector.add('seed', batch_seeds)
+    state_vector._element_list = state_vector.to_element_list()
+    state_vector.make_consistent()
+    for n, _ in enumerate(batch_seeds):
         for name in sim.state._pointers.keys():
-            state_list[n].add(name, sim.state.get(name))
-        state_list[n].modify('seed', seed)
-
-    full_state = new_full_state(state_list)
-    state_list = new_state_list(full_state)
-    check_vars(state_list, full_state)
-    full_state.collect_output_variables(sim.algorithm.output_variables)
-
-    return state_list, full_state
+            state_vector._element_list[n].add(name, getattr(sim.state, name))
+    state_vector.make_consistent()
+    return state_vector
 
 
 def check_vars(state_list, full_state):
@@ -101,26 +38,6 @@ def check_vars(state_list, full_state):
                 raise MemoryError('Error, variable: ', name)
 
 
-def new_state_list(full_state):
-    batch_size = full_state._size
-    state_list = [State() for _ in range(batch_size)]
-    attr_names = full_state._pointers.keys()
-
-    for ind, state in enumerate(state_list):
-        for name in attr_names:
-            state.add(name, full_state.get(name)[ind])
-
-    return state_list
-
-def new_full_state(state_list):
-    full_state = State(len(state_list))
-    attribute_names = state_list[0]._pointers.keys()
-    for name in attribute_names:
-        full_var = np.array([state.get(name) for state in state_list])
-        full_state.add(name, full_var)
-    return full_state
-
-
 class Data:
     """
     The data object handles the collection of data from the dynamics driver.
@@ -129,7 +46,7 @@ class Data:
     def __init__(self):
         self.data_dic = {'seed': np.array([], dtype=int)}
 
-    def initialize_output_total_arrays(self, sim, full_state):
+    def initialize_output_total_arrays_(self, sim, full_state):
         """
         Initialize the output total arrays for data collection.
 
@@ -152,8 +69,14 @@ class Data:
             t_ind: Time index.
         """
         for key, val in full_state._output_dict.items():
-            self.data_dic[key][int(
-                t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
+            if key in self.data_dic:
+                # fill an existing data storage array
+                self.data_dic[key][int(t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
+            else:
+                # initialize the data storage array and then fill it
+                self.data_dic[key] = np.zeros((len(sim.parameters.tdat_output), *np.shape(val)[1:]), dtype=val.dtype)
+                self.data_dic[key][int(t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
+
 
     def add_data(self, new_data):
         """
@@ -258,7 +181,7 @@ def get_ctypes_type(numpy_array):
         raise KeyError(f'Missing type mapping for Numpy dtype: {dtype}')
     return ctype
 
-class State:
+class VectorObject:
     def __init__(self, size=1, vectorized=False):
         self._pointers = {}
         self._shapes = {}
@@ -268,31 +191,13 @@ class State:
         self._size = size
         if size > 1:
             vectorized = True
+        if size == 1:
+            vectorized = False
         self._is_vectorized = vectorized
+        self._update_list = False
+        self._update_vector = False
+        self._element_list = []
 
-
-    def collect_output_variables(self, output_variables):
-        """
-        Collect output variables for the state.
-
-        Args:
-            output_variables: List of output variable names.
-        """
-        for var in output_variables:
-            self._output_dict[var] = self.get(var)
-
-    def copy(self):
-        """
-        Create a copy of the state object.
-
-        Returns:
-            A new state object that is a copy of the current state.
-        """
-        out = State(self._size)
-        for name in self._pointers:
-            out.add(name, np.copy(self.get(name)))
-        return out
-    
     def add(self, name, val):
         reshape_bool = False
         if self._is_vectorized:
@@ -317,6 +222,12 @@ class State:
                 self.__dict__[name] = self.get(name).view()[...,0]
             else:
                 self.__dict__[name] = self.get(name).view()
+        
+        if self._is_vectorized: 
+            self._update_list = True 
+        else:
+            self._update_vector = True
+
 
     def get(self, name):
         ptr = self._pointers[name]
@@ -327,13 +238,14 @@ class State:
         buffer = (ctypes.c_char *
                   total_bytes).from_address(ctypes.addressof(ptr.contents))
         return np.frombuffer(buffer, dtype=dtype).reshape(shape)
-    
+
     def modify(self, name, val):
         if name in self._pointers:
-            if not self._is_vectorized and not isinstance(val, np.ndarray):
-                val = np.array([val])
+            if self._is_vectorized and self._reshape_bool[name]:
+                val = val.reshape((*np.shape(val),1))
+            if not self._is_vectorized and self._reshape_bool[name]:
+                    val = np.array([val])
             if val.dtype == self._dtypes[name] and np.shape(val) == self._shapes[name]:
-                assert val.dtype == self._dtypes[name], TypeError(f"Type mismatch: {val.dtype} != {self._dtypes[name]}")
                 ctypes.memmove(ctypes.addressof(self._pointers[name].contents),
                             val.ctypes.data_as(ctypes.c_void_p), val.nbytes)
                 if self._is_vectorized:
@@ -350,12 +262,61 @@ class State:
                 self.add(name, val)
         else:
             self.add(name, val)
+    
     def __setattr__(self, name, val):
         if name[0] == '_':
             super().__setattr__(name, val)
         else:
             self.modify(name, val)
 
+    def copy(self):
+        """
+        Create a copy of the state object.
+
+        Returns:
+            A new state object that is a copy of the current state.
+        """
+        out = VectorObject(self._size)
+        for name in self._pointers:
+            out.add(name, np.copy(getattr(self, name)))
+        return out
+    
+    def to_element_list(self):
+        element_list = [VectorObject(1,False) for _ in range(self._size)]
+        for ind, state in enumerate(element_list):
+            for name in self._pointers.keys():
+                state.add(name, getattr(self, name)[ind])
+        return element_list
+    
+    def from_element_list(self, element_list):
+        assert self._size == len(element_list), ValueError(f"Size mismatch: {self._size} != {len(element_list)}")
+        for name in element_list[0]._pointers:
+            self.add(name, np.array([getattr(element, name) for element in element_list]))
+        self._element_list = self.to_element_list()
+        self._update_list = False
+        self._update_vector = False
+        _ = [element.__setattr__('_update_vector', False) for element in self._element_list]
+        _ = [element.__setattr__('_update_list', False) for element in self._element_list]
+    
+    def make_consistent(self):
+        assert self._is_vectorized, ValueError("Object is not vectorized")
+        if self._update_list:
+            self._element_list = self.to_element_list()
+        if self._update_vector:
+            self.from_element_list(self._element_list)
+        update_vector_list = np.array([element._update_vector for element in self._element_list])
+        if np.any(update_vector_list):
+            self.from_element_list(self._element_list)
+
+    def collect_output_variables(self, output_variables):
+        """
+        Collect output variables for the state.
+
+        Args:
+            output_variables: List of output variable names.
+        """
+        for var in output_variables:
+            self._output_dict[var] = self.get(var)
 
 
 class Simulation:
@@ -374,7 +335,7 @@ class Simulation:
             setattr(self.parameters, key, val)
         self.algorithm = None
         self.model = None
-        self.state = State()
+        self.state = VectorObject()
 
     def initialize_timesteps(self):
         """
