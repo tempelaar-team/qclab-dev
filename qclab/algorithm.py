@@ -67,59 +67,32 @@ class Algorithm:
         self.output_recipe_vectorized_bool = list(
             map(self._is_vectorized, self.output_recipe))
 
-    def execute_initialization_recipe(self, sim, state_list, full_state):
-        """
-        Execute the initialization recipe.
-
-        Args:
-            sim (Simulation): The simulation object.
-            state_list (list): List of state objects for each trajectory.
-            full_state (State): The full state object containing all trajectories.
-
-        Returns:
-            tuple: Updated state_list and full_state.
-        """
+    def execute_initialization_recipe(self, sim, state_vector):
         for ind, func in enumerate(sim.algorithm.initialization_recipe):
             if sim.algorithm.initialization_recipe_vectorized_bool[ind]:
-                full_state = func(sim, full_state)
+               state_vector = func(sim, state_vector)
+               state_vector.make_consistent()
             else:
-                state_list = [func(sim, state) for state in state_list]
-        return state_list, full_state
+                state_vector._element_list = [func(sim, state) for state in state_vector._element_list]
+                state_vector.make_consistent()
+        return state_vector
 
-    def execute_update_recipe(self, sim, state_list, full_state):
-        """
-        Execute the update recipe.
-
-        Args:
-            sim (Simulation): The simulation object.
-            state_list (list): List of state objects for each trajectory.
-            full_state (State): The full state object containing all trajectories.
-
-        Returns:
-            tuple: Updated state_list and full_state.
-        """
+    def execute_update_recipe(self, sim, state_vector):
         for ind, func in enumerate(sim.algorithm.update_recipe):
             if sim.algorithm.update_recipe_vectorized_bool[ind]:
-                full_state = func(sim, full_state)
+               state_vector = func(sim, state_vector)
+               state_vector.make_consistent()
             else:
-                state_list = [func(sim, state) for state in state_list]
-        return state_list, full_state
+                state_vector._element_list = [func(sim, state) for state in state_vector._element_list]
+                state_vector.make_consistent()
+        return state_vector
 
-    def execute_output_recipe(self, sim, state_list, full_state):
-        """
-        Execute the output recipe.
-
-        Args:
-            sim (Simulation): The simulation object.
-            state_list (list): List of state objects for each trajectory.
-            full_state (State): The full state object containing all trajectories.
-
-        Returns:
-            tuple: Updated state_list and full_state.
-        """
+    def execute_output_recipe(self, sim, state_vector):
         for ind, func in enumerate(sim.algorithm.output_recipe):
             if sim.algorithm.output_recipe_vectorized_bool[ind]:
-                full_state = func(sim, full_state)
+               state_vector = func(sim, state_vector)
+               state_vector.make_consistent()
             else:
-                state_list = [func(sim, state) for state in state_list]
-        return state_list, full_state
+                state_vector._element_list = [func(sim, state) for state in state_vector._element_list]
+                state_vector.make_consistent()
+        return state_vector
