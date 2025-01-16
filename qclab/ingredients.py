@@ -274,6 +274,31 @@ def harmonic_oscillator_boltzmann_init_classical(model, **kwargs):
     )
     return z
 
+def numerical_boltzmann_init_classical(model, **kwargs):
+    """
+    This function samples a discrete probability distribution 
+    approximating the Boltzmann distribution of the classical 
+    Hamiltonian function.
+    """
+    seed = kwargs.get("seed", None)
+    np.random.seed(seed)
+    rand_val = np.random.rand()
+    num_points = 1000
+    amplitudes = 4*(np.random.rand(num_points, model.parameters.num_classical_coordinates)-0.5)
+    phases = np.exp(1.0j*2*np.pi*np.random.rand(num_points, model.parameters.num_classical_coordinates))
+    z_list = amplitudes * phases
+    classical_energies = np.zeros(num_points)
+    for n in range(num_points):
+        classical_energies[n] = np.real(model.h_c(z_coord = z_list[n]))
+    boltz_facs = np.exp(-classical_energies/model.parameters.temp)
+    boltz_facs = boltz_facs/np.sum(boltz_facs)
+    cumulant = 0
+    for n in range(num_points):
+        cumulant += boltz_facs[n]
+        if cumulant >= rand_val:
+            z = z_list[n]
+            break
+    return z
 
 def harmonic_oscillator_wigner_init_classical(model, **kwargs):
     """

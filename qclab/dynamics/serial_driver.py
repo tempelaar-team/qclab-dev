@@ -1,8 +1,11 @@
+"""
+This module contains the serial driver for the dynamics core.
+"""
 import qclab.simulation as simulation
 import qclab.dynamics.dynamics as dynamics
 
 
-def serial_driver(sim, seeds=None, ncpus=1, data=None):
+def serial_driver(sim, seeds=None, data=None):
     """
     Run the simulation in a serial manner.
 
@@ -25,19 +28,19 @@ def serial_driver(sim, seeds=None, ncpus=1, data=None):
         num_trajs = sim.parameters.num_trajs
     else:
         num_trajs = len(seeds)  # Use the length of provided seeds as the number of trajectories
-
+    # Determine which tasks in the algorithm object are vectorized.
+    sim.algorithm.determine_vectorized()
     # Partition the seeds across each group of sim.parameters.batch_size trajectories
     num_sims = int(num_trajs / sim.parameters.batch_size) + 1
     for n in range(num_sims):
         batch_seeds = seeds[n * sim.parameters.batch_size:(n + 1) * sim.parameters.batch_size]
         if len(batch_seeds) == 0:
             break  # Exit the loop if there are no more seeds to process
-
         sim.initialize_timesteps()  # Initialize the timesteps for the simulation
-        state_list, full_state = simulation.initialize_state_objects(sim, batch_seeds)
+        full_state = simulation.initialize_state_objects(sim, batch_seeds)
         new_data = simulation.Data()  # Create a new Data object for this batch
-        new_data.initialize_output_total_arrays(sim, full_state)
-        new_data = dynamics.dynamics(sim, state_list, full_state, new_data)
+        new_data.data_dic['seed'] = batch_seeds # add seeds from the batch
+        new_data = dynamics.dynamics(sim, full_state, new_data)
         data.add_data(new_data)  # Add the collected data to the main Data object
 
     return data  # Return the Data object containing all simulation results

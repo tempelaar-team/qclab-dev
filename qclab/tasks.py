@@ -38,7 +38,8 @@ def initialize_z_coord(sim, state, **kwargs):
     if hasattr(sim.model, 'init_classical'):
         state.modify('z_coord', sim.model.init_classical(seed=seed))
     else:
-        state.modify('z_coord', ingredients.harmonic_oscillator_boltzmann_init_classical(
+        warnings.warn("model.init_classical not specified, using numerical boltzmann.", UserWarning)
+        state.modify('z_coord', ingredients.numerical_boltzmann_init_classical(
             sim.model, seed=state.seed))
     return state
 
@@ -570,7 +571,8 @@ def update_classical_energy_vectorized(sim, state, **kwargs):
     """
     z_coord = kwargs['z_coord']
     if hasattr(sim.model, 'h_c_vectorized'):
-        state.modify('classical_energy', sim.model.h_c_vectorized(z_coord=z_coord))
+        state.modify('classical_energy',
+                     sim.model.h_c_vectorized(z_coord=z_coord))
     else:
         warnings.warn(
             "h_c_vectorized not implemented for this model. Using non-vectorized method.", UserWarning)
@@ -979,12 +981,10 @@ def update_active_surface_fssh(sim, state, **kwargs):
 
                 # Perform hopping using the model's hop function or the default harmonic oscillator hop function
                 if hasattr(sim.model, 'hop_function'):
-                    z_coord_branch_i, hopped = sim.model.hop_function(
-                        sim.model, z_coord_branch[i], delta_z, ev_diff)
+                    z_coord_branch_i, hopped = sim.model.hop_function(z_coord=z_coord_branch[i], delta_z_coord=delta_z, ev_diff=ev_diff)
                 else:
-                    z_coord_branch_i, hopped = ingredients.harmonic_oscillator_hop(sim.model, z_coord=z_coord_branch[i],
-                                                                                   delta_z_coord=delta_z,
-                                                                                   ev_diff=ev_diff)
+                    z_coord_branch_i, hopped = ingredients.numerical_hop(z_coord=z_coord_branch[i],
+                                                                         delta_z_coord=delta_z, ev_diff=ev_diff)
 
                 if hopped:
                     act_surf_ind[i] = k

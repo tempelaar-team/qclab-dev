@@ -136,6 +136,7 @@ class SpinBosonModel(Model):
     h_c = ingredients.harmonic_oscillator_h_c
     dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
+    hop_function = ingredients.harmonic_oscillator_hop
 
     h_c_vectorized = ingredients.harmonic_oscillator_h_c_vectorized
     h_q_vectorized = ingredients.two_level_system_h_q_vectorized
