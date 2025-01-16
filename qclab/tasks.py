@@ -981,10 +981,9 @@ def update_active_surface_fssh(sim, state, **kwargs):
 
                 # Perform hopping using the model's hop function or the default harmonic oscillator hop function
                 if hasattr(sim.model, 'hop_function'):
-                    z_coord_branch_i, hopped = sim.model.hop_function(
-                        sim.model, z_coord_branch[i], delta_z, ev_diff)
+                    z_coord_branch_i, hopped = sim.model.hop_function(z_coord=z_coord_branch[i], delta_z_coord=delta_z, ev_diff=ev_diff)
                 else:
-                    z_coord_branch_i, hopped = ingredients.numerical_hop(sim.model, z_coord=z_coord_branch[i],
+                    z_coord_branch_i, hopped = ingredients.numerical_hop(z_coord=z_coord_branch[i],
                                                                          delta_z_coord=delta_z, ev_diff=ev_diff)
 
                 if hopped:
