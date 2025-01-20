@@ -1,11 +1,12 @@
 """
 This module contains the dynamics core.
 """
+
 import numpy as np
 from tqdm import tqdm
 
 
-def dynamics(sim, full_state, data):
+def dynamics(sim, parameter_vector, state_vector, data):
     """
     Run the dynamics of the simulation.
 
@@ -19,17 +20,23 @@ def dynamics(sim, full_state, data):
         Data: The Data object containing the results of the simulation.
     """
     # Execute initialization recipe
-    full_state = sim.algorithm.execute_initialization_recipe(sim, full_state)
+    parameter_vector, state_vector = sim.algorithm.execute_initialization_recipe(
+        sim, parameter_vector, state_vector
+    )
     # Iterate over each time step
-    for sim.t_ind in tqdm(sim.parameters.tdat_n):
+    for sim.t_ind in tqdm(sim.settings.tdat_n):
         # Detect output timesteps
-        if np.mod(sim.t_ind, sim.parameters.dt_output_n) == 0:
+        if np.mod(sim.t_ind, sim.settings.dt_output_n) == 0:
             # Calculate output variables
-            full_state = sim.algorithm.execute_output_recipe(sim, full_state)
+            parameter_vector, state_vector = sim.algorithm.execute_output_recipe(
+                sim, parameter_vector, state_vector
+            )
             # Collect output variables into a dictionary
-            full_state.collect_output_variables(sim.algorithm.output_variables)
+            state_vector.collect_output_variables(sim.algorithm.output_variables)
             # Collect totals in output dictionary
-            data.add_to_output_total_arrays(sim, full_state, sim.t_ind)
+            data.add_to_output_total_arrays(sim, state_vector, sim.t_ind)
         # Execute update recipe
-        full_state = sim.algorithm.execute_update_recipe(sim, full_state)
+        parameter_vector, state_vector = sim.algorithm.execute_update_recipe(
+            sim, parameter_vector, state_vector
+        )
     return data
