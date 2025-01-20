@@ -66,7 +66,7 @@ class SpinBosonModel(Model):
         return h_qc
     
 
-    def h_qc_vectorized_(self, constants, parameters, **kwargs):
+    def h_qc_vectorized(self, constants, parameters, **kwargs):
         z = kwargs.get('z_coord', parameters.z_coord)
         g = constants.g
         m = constants.mass
@@ -76,7 +76,7 @@ class SpinBosonModel(Model):
         h_qc[:, 1, 1] = -h_qc[:, 0, 0]
         return h_qc
 
-    def dh_qc_dzc_(self, constants, parameters, **kwargs):
+    def dh_qc_dzc(self, constants, parameters, **kwargs):
         m = constants.mass
         g = constants.g
         h = constants.pq_weight
@@ -85,22 +85,23 @@ class SpinBosonModel(Model):
         dh_qc_dzc[:, 1, 1] = -dh_qc_dzc[:, 0, 0]
         return dh_qc_dzc
 
-    def dh_qc_dzc_vectorized_(self, constants, parameters, **kwargs):
+    def dh_qc_dzc_vectorized(self, constants, parameters, **kwargs):
         m = constants.mass
         g = constants.g
         h = constants.pq_weight
-        dh_qc_dzc = np.zeros((len(z), constants.A, 2, 2), dtype=complex)
-        dh_qc_dzc[..., :, 0, 0] = (g * np.sqrt(1 / (2 * m * h)))[..., :]
-        dh_qc_dzc[..., :, 1, 1] = -dh_qc_dzc[..., :, 0, 0]
+        batch_size = parameters._size
+        dh_qc_dzc = np.zeros((batch_size, constants.A, 2, 2), dtype=complex)
+        dh_qc_dzc[:, :, 0, 0] = (g * np.sqrt(1 / (2 * m * h)))[..., :]
+        dh_qc_dzc[:, :, 1, 1] = -dh_qc_dzc[..., :, 0, 0]
         return dh_qc_dzc
 
     # Assigning functions from ingredients module
     h_q = ingredients.two_level_system_h_q
     h_c = ingredients.harmonic_oscillator_h_c
-    #dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
+    dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
     hop_function = ingredients.harmonic_oscillator_hop
 
-    #h_c_vectorized = ingredients.harmonic_oscillator_h_c_vectorized
-    #h_q_vectorized = ingredients.two_level_system_h_q_vectorized
-    #dh_c_dzc_vectorized = ingredients.harmonic_oscillator_dh_c_dzc_vectorized
+    h_c_vectorized = ingredients.harmonic_oscillator_h_c_vectorized
+    h_q_vectorized = ingredients.two_level_system_h_q_vectorized
+    dh_c_dzc_vectorized = ingredients.harmonic_oscillator_dh_c_dzc_vectorized
