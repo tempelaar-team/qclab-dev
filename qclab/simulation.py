@@ -2,23 +2,40 @@
 This file contains the Simulation, State, and Data classes. It also contains additional 
 functions for initializing and handling these objects.
 """
+
 import ctypes
 import numpy as np
 import h5py
-from qclab.parameter import Parameter
+from qclab.parameter import Constants
 
 
-def initialize_state_objects(sim, batch_seeds):
+def initialize_vector_objects(sim, batch_seeds):
     # Initialize state objects with batch seeds
     state_vector = VectorObject(len(batch_seeds), True)
-    state_vector.add('seed', batch_seeds)
+    state_vector.add("seed", batch_seeds)
     state_vector._element_list = state_vector.to_element_list()
     state_vector.make_consistent()
+
+    # add all initialized state variables to the state vector
     for n, _ in enumerate(batch_seeds):
         for name in sim.state._pointers.keys():
             state_vector._element_list[n].add(name, getattr(sim.state, name))
     state_vector.make_consistent()
-    return state_vector
+
+    # construct parameter vector
+    parameter_vector = VectorObject(len(batch_seeds), True)
+    parameter_vector._element_list = parameter_vector.to_element_list()
+    parameter_vector.make_consistent()
+
+    # add all initialized parameter variables to the parameter vector
+    for n, _ in enumerate(batch_seeds):
+        for name in sim.model.parameters._pointers.keys():
+            parameter_vector._element_list[n].add(
+                name, getattr(sim.model.parameters, name)
+            )
+    parameter_vector.make_consistent()
+
+    return parameter_vector, state_vector
 
 
 def check_vars(state_list, full_state):
@@ -34,9 +51,11 @@ def check_vars(state_list, full_state):
     """
     for name in full_state._pointers.keys():
         for n, state in enumerate(state_list):
-            if not (state.get(name).__array_interface__['data'][0] ==
-                    full_state.get(name)[n].__array_interface__['data'][0]):
-                raise MemoryError('Error, variable: ', name)
+            if not (
+                state.get(name).__array_interface__["data"][0]
+                == full_state.get(name)[n].__array_interface__["data"][0]
+            ):
+                raise MemoryError("Error, variable: ", name)
 
 
 class Data:
@@ -45,7 +64,7 @@ class Data:
     """
 
     def __init__(self):
-        self.data_dic = {'seed': np.array([], dtype=int)}
+        self.data_dic = {"seed": np.array([], dtype=int)}
 
     def initialize_output_total_arrays_(self, sim, full_state):
         """
@@ -55,10 +74,11 @@ class Data:
             sim: The simulation object.
             full_state: The full state object.
         """
-        self.data_dic['seed'] = np.copy(full_state.get('seed'))
+        self.data_dic["seed"] = np.copy(full_state.get("seed"))
         for key, val in full_state._output_dict.items():
             self.data_dic[key] = np.zeros(
-                (len(sim.parameters.tdat_output), *np.shape(val)[1:]), dtype=val.dtype)
+                (len(sim.settings.tdat_output), *np.shape(val)[1:]), dtype=val.dtype
+            )
 
     def add_to_output_total_arrays(self, sim, full_state, t_ind):
         """
@@ -72,14 +92,17 @@ class Data:
         for key, val in full_state._output_dict.items():
             if key in self.data_dic:
                 # fill an existing data storage array
-                self.data_dic[key][int(
-                    t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
+                self.data_dic[key][int(t_ind / sim.settings.dt_output_n)] = np.sum(
+                    val, axis=0
+                )
             else:
                 # initialize the data storage array and then fill it
                 self.data_dic[key] = np.zeros(
-                    (len(sim.parameters.tdat_output), *np.shape(val)[1:]), dtype=val.dtype)
-                self.data_dic[key][int(
-                    t_ind / sim.parameters.dt_output_n)] = np.sum(val, axis=0)
+                    (len(sim.settings.tdat_output), *np.shape(val)[1:]), dtype=val.dtype
+                )
+                self.data_dic[key][int(t_ind / sim.settings.dt_output_n)] = np.sum(
+                    val, axis=0
+                )
 
     def add_data(self, new_data):
         """
@@ -89,9 +112,10 @@ class Data:
             new_data: The new data object.
         """
         for key, val in new_data.data_dic.items():
-            if key == 'seed':
+            if key == "seed":
                 self.data_dic[key] = np.concatenate(
-                    (self.data_dic[key], val.flatten()), axis=0)
+                    (self.data_dic[key], val.flatten()), axis=0
+                )
             else:
                 if key in self.data_dic:
                     self.data_dic[key] += val
@@ -99,19 +123,19 @@ class Data:
                     self.data_dic[key] = val
 
     def save_as_h5(self, filename):
-        """ 
+        """
         Save the data as an h5 archive.
         """
-        with h5py.File(filename, 'w') as h5file:
-            self._recursive_save(h5file, '/', self.data_dic)
+        with h5py.File(filename, "w") as h5file:
+            self._recursive_save(h5file, "/", self.data_dic)
         return
 
     def load_from_h5(self, filename):
         """
         Load a data object from an h5 archive.
         """
-        with h5py.File(filename, 'r') as h5file:
-            self._recursive_load(h5file, '/', self.data_dic)
+        with h5py.File(filename, "r") as h5file:
+            self._recursive_load(h5file, "/", self.data_dic)
         return self
 
     def _recursive_save(self, h5file, path, dic):
@@ -128,7 +152,7 @@ class Data:
             if isinstance(item, (np.ndarray, np.int64, np.float64, str, bytes)):
                 h5file[path + key] = item
             elif isinstance(item, dict):
-                self._recursive_save(h5file, path + key + '/', item)
+                self._recursive_save(h5file, path + key + "/", item)
             elif isinstance(item, list):
                 h5file[path + key] = np.array(item)
             else:
@@ -148,7 +172,7 @@ class Data:
                 dic[key] = item[()]
             elif isinstance(item, h5py._hl.group.Group):
                 dic[key] = {}
-                self._recursive_load(h5file, path + key + '/', dic[key])
+                self._recursive_load(h5file, path + key + "/", dic[key])
 
 
 def get_ctypes_type(numpy_array):
@@ -165,23 +189,24 @@ def get_ctypes_type(numpy_array):
         KeyError: If there is no mapping for the given NumPy dtype.
     """
     mapping = {
-        'int8': ctypes.c_int8,
-        'int16': ctypes.c_int16,
-        'int32': ctypes.c_int32,
-        'int64': ctypes.c_int64,
-        'uint8': ctypes.c_uint8,
-        'uint16': ctypes.c_uint16,
-        'uint32': ctypes.c_uint32,
-        'uint64': ctypes.c_uint64,
-        'float32': ctypes.c_float,
-        'float64': ctypes.c_double,
-        'complex128': ctypes.c_double,
+        "int8": ctypes.c_int8,
+        "int16": ctypes.c_int16,
+        "int32": ctypes.c_int32,
+        "int64": ctypes.c_int64,
+        "uint8": ctypes.c_uint8,
+        "uint16": ctypes.c_uint16,
+        "uint32": ctypes.c_uint32,
+        "uint64": ctypes.c_uint64,
+        "float32": ctypes.c_float,
+        "float64": ctypes.c_double,
+        "complex128": ctypes.c_double,
+        "bool": ctypes.c_bool,
     }
 
     dtype = str(numpy_array.dtype)
     ctype = mapping.get(dtype, None)
     if ctype is None:
-        raise KeyError(f'Missing type mapping for Numpy dtype: {dtype}')
+        raise KeyError(f"Missing type mapping for Numpy dtype: {dtype}")
     return ctype
 
 
@@ -212,8 +237,7 @@ class VectorObject:
             if not isinstance(val, np.ndarray):
                 reshape_bool = True
                 val = np.array([val])
-        self._pointers[name] = val.ctypes.data_as(
-            ctypes.POINTER(get_ctypes_type(val)))
+        self._pointers[name] = val.ctypes.data_as(ctypes.POINTER(get_ctypes_type(val)))
         self._shapes[name] = np.shape(val)
         self._dtypes[name] = val.dtype
         self._reshape_bool[name] = reshape_bool
@@ -239,8 +263,9 @@ class VectorObject:
         dtype = self._dtypes[name]
         dtype_size = np.dtype(dtype).itemsize
         total_bytes = np.prod(shape, dtype=np.int64) * dtype_size
-        buffer = (ctypes.c_char *
-                  total_bytes).from_address(ctypes.addressof(ptr.contents))
+        buffer = (ctypes.c_char * total_bytes).from_address(
+            ctypes.addressof(ptr.contents)
+        )
         return np.frombuffer(buffer, dtype=dtype).reshape(shape)
 
     def modify(self, name, val):
@@ -250,8 +275,11 @@ class VectorObject:
             if not self._is_vectorized and self._reshape_bool[name]:
                 val = np.array([val])
             if val.dtype == self._dtypes[name] and np.shape(val) == self._shapes[name]:
-                ctypes.memmove(ctypes.addressof(self._pointers[name].contents),
-                               val.ctypes.data_as(ctypes.c_void_p), val.nbytes)
+                ctypes.memmove(
+                    ctypes.addressof(self._pointers[name].contents),
+                    val.ctypes.data_as(ctypes.c_void_p),
+                    val.nbytes,
+                )
                 if self._is_vectorized:
                     if self._reshape_bool[name]:
                         self.__dict__[name] = self.get(name).view()[..., 0]
@@ -268,7 +296,7 @@ class VectorObject:
             self.add(name, val)
 
     def __setattr__(self, name, val):
-        if name[0] == '_':
+        if name[0] == "_":
             super().__setattr__(name, val)
         else:
             self.modify(name, val)
@@ -294,17 +322,22 @@ class VectorObject:
 
     def from_element_list(self, element_list):
         assert self._size == len(element_list), ValueError(
-            f"Size mismatch: {self._size} != {len(element_list)}")
+            f"Size mismatch: {self._size} != {len(element_list)}"
+        )
         for name in element_list[0]._pointers:
-            self.add(name, np.array([getattr(element, name)
-                     for element in element_list]))
+            self.add(
+                name, np.array([getattr(element, name) for element in element_list])
+            )
         self._element_list = self.to_element_list()
         self._update_list = False
         self._update_vector = False
-        _ = [element.__setattr__('_update_vector', False)
-             for element in self._element_list]
-        _ = [element.__setattr__('_update_list', False)
-             for element in self._element_list]
+        _ = [
+            element.__setattr__("_update_vector", False)
+            for element in self._element_list
+        ]
+        _ = [
+            element.__setattr__("_update_list", False) for element in self._element_list
+        ]
 
     def make_consistent(self):
         assert self._is_vectorized, ValueError("Object is not vectorized")
@@ -313,7 +346,8 @@ class VectorObject:
         if self._update_vector:
             self.from_element_list(self._element_list)
         update_vector_list = np.array(
-            [element._update_vector for element in self._element_list])
+            [element._update_vector for element in self._element_list]
+        )
         if np.any(update_vector_list):
             self.from_element_list(self._element_list)
 
@@ -333,15 +367,16 @@ class Simulation:
     The simulation object represents the entire simulation process.
     """
 
-    def __init__(self, parameters=None):
-        if parameters is None:
-            parameters = {}
-        self.default_parameters = dict(
-            tmax=10, dt=0.01, dt_output=0.1, num_trajs=10, batch_size=1)
-        parameters = {**self.default_parameters, **parameters}
-        self.parameters = Parameter()
-        for key, val in parameters.items():
-            setattr(self.parameters, key, val)
+    def __init__(self, settings=None):
+        if settings is None:
+            settings = {}
+        self.default_settings = dict(
+            tmax=10, dt=0.01, dt_output=0.1, num_trajs=10, batch_size=1
+        )
+        settings = {**self.default_settings, **settings}
+        self.settings = Constants()
+        for key, val in settings.items():
+            setattr(self.settings, key, val)
         self.algorithm = None
         self.model = None
         self.state = VectorObject()
@@ -350,17 +385,23 @@ class Simulation:
         """
         Initialize the timesteps for the simulation based on the parameters.
         """
-        self.parameters.tmax_n = np.round(
-            self.parameters.tmax / self.parameters.dt, 1).astype(int)
-        self.parameters.dt_output_n = np.round(
-            self.parameters.dt_output / self.parameters.dt, 1).astype(int)
-        self.parameters.tdat = np.arange(
-            0, self.parameters.tmax_n + 1, 1) * self.parameters.dt
-        self.parameters.tdat_n = np.arange(0, self.parameters.tmax_n + 1, 1)
-        self.parameters.tdat_output = np.arange(0, self.parameters.tmax_n + 1,
-                                                self.parameters.dt_output_n) * self.parameters.dt
-        self.parameters.tdat_output_n = np.arange(
-            0, self.parameters.tmax_n + 1, self.parameters.dt_output_n)
+        self.settings.tmax_n = np.round(
+            self.settings.tmax / self.settings.dt, 1
+        ).astype(int)
+        self.settings.dt_output_n = np.round(
+            self.settings.dt_output / self.settings.dt, 1
+        ).astype(int)
+        self.settings.tdat = (
+            np.arange(0, self.settings.tmax_n + 1, 1) * self.settings.dt
+        )
+        self.settings.tdat_n = np.arange(0, self.settings.tmax_n + 1, 1)
+        self.settings.tdat_output = (
+            np.arange(0, self.settings.tmax_n + 1, self.settings.dt_output_n)
+            * self.settings.dt
+        )
+        self.settings.tdat_output_n = np.arange(
+            0, self.settings.tmax_n + 1, self.settings.dt_output_n
+        )
 
     def generate_seeds(self, data):
         """
@@ -372,9 +413,12 @@ class Simulation:
         Returns:
             new_seeds: Array of new seeds.
         """
-        if len(data.data_dic['seed']) > 1:
-            new_seeds = np.max(
-                data.data_dic['seed']) + np.arange(self.parameters.num_trajs, dtype=int) + 1
+        if len(data.data_dic["seed"]) > 1:
+            new_seeds = (
+                np.max(data.data_dic["seed"])
+                + np.arange(self.settings.num_trajs, dtype=int)
+                + 1
+            )
         else:
-            new_seeds = np.arange(self.parameters.num_trajs, dtype=int)
+            new_seeds = np.arange(self.settings.num_trajs, dtype=int)
         return new_seeds
