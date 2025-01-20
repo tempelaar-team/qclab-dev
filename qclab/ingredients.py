@@ -235,7 +235,7 @@ def harmonic_oscillator_hop(model, **kwargs):
     return z_coord, hopped
 
 
-def harmonic_oscillator_boltzmann_init_classical(model, **kwargs):
+def harmonic_oscillator_boltzmann_init_classical(model, constants, parameters, **kwargs):
     """
     Initialize classical coordinates according to Boltzmann statistics.
 
@@ -255,23 +255,19 @@ def harmonic_oscillator_boltzmann_init_classical(model, **kwargs):
         - :func:`harmonic_oscillator_wigner_init_classical`
     """
     seed = kwargs.get("seed", None)
+    kBT = constants.temp
+    m = constants.mass
+    h = constants.pq_weight
     np.random.seed(seed)
     q = np.random.normal(
         loc=0,
-        scale=np.sqrt(
-            model.parameters.temp
-            / (model.parameters.mass * (model.parameters.pq_weight**2))
-        ),
-        size=model.parameters.num_classical_coordinates,
-    )
+        scale=np.sqrt(kBT / (m * (h**2))),
+        size=constants.num_classical_coordinates)
     p = np.random.normal(
         loc=0,
-        scale=np.sqrt(model.parameters.temp),
-        size=model.parameters.num_classical_coordinates,
-    )
-    z = np.sqrt(model.parameters.pq_weight * model.parameters.mass / 2) * (
-        q + 1.0j * (p / (model.parameters.pq_weight * model.parameters.mass))
-    )
+        scale=np.sqrt(kBT),
+        size=constants.num_classical_coordinates)
+    z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
     return z
 
 def numerical_boltzmann_init_classical(model, **kwargs):
@@ -351,7 +347,7 @@ def harmonic_oscillator_wigner_init_classical(model, **kwargs):
     return z
 
 
-def harmonic_oscillator_h_c(model, **kwargs):
+def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     """
     Calculate the classical Hamiltonian.
 
@@ -368,7 +364,9 @@ def harmonic_oscillator_h_c(model, **kwargs):
         - :func:`harmonic_oscillator_h_c_vectorized`
     """
     z_coord = kwargs["z_coord"]
-    h_c = np.sum(model.parameters.pq_weight * np.conjugate(z_coord) * z_coord)
+    h = constants.pq_weight
+    z = kwargs.get('z_coord', parameters.z_coord)
+    h_c = np.sum(h * np.conjugate(z) * z)
     return h_c
 
 
@@ -393,7 +391,51 @@ def harmonic_oscillator_dh_c_dzc(model, **kwargs):
     return dh_c_dzc
 
 
-def two_level_system_h_q(model, **kwargs):
+def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
+    z_coord = kwargs["z_coord"]
+    # Approximate the gradient using finite differences
+    delta_z = 1e-6
+    offset_z_coord_re = z_coord[np.newaxis, :] + np.identity(len(z_coord)) * delta_z
+    offset_z_coord_im = (
+        z_coord[np.newaxis, :] + 1j * np.identity(len(z_coord)) * delta_z
+    )
+
+    h_c_0 = model.h_c(constants, parameters, z_coord=z_coord)
+    dh_c_dzc = np.zeros((len(z_coord), *np.shape(h_c_0)), dtype=complex)
+
+    for n in range(len(z_coord)):
+        h_c_offset_re = model.h_c(constants, parameters, z_coord=offset_z_coord_re[n])
+        diff_re = (h_c_offset_re - h_c_0) / delta_z
+        h_c_offset_im = model.h_c(constants, parameters, z_coord=offset_z_coord_im[n])
+        diff_im = (h_c_offset_im - h_c_0) / delta_z
+        dh_c_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
+    return dh_c_dzc
+
+def finite_differences_dh_c_dzc_vectorized(model, constants, parameters, **kwargs):
+    z_coord = kwargs["z_coord"]
+    delta_z = np.ones((len(z_coord),))
+
+def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
+    z_coord = kwargs["z_coord"]
+    # Approximate the gradient using finite differences
+    delta_z = 1e-6
+    offset_z_coord_re = z_coord[np.newaxis, :] + np.identity(len(z_coord)) * delta_z
+    offset_z_coord_im = (
+        z_coord[np.newaxis, :] + 1j * np.identity(len(z_coord)) * delta_z
+    )
+
+    h_qc_0 = model.h_qc(constants, parameters, z_coord=z_coord)
+    dh_qc_dzc = np.zeros((len(z_coord), *np.shape(h_qc_0)), dtype=complex)
+
+    for n in range(len(z_coord)):
+        h_qc_offset_re = model.h_qc(constants, parameters, z_coord=offset_z_coord_re[n])
+        diff_re = (h_qc_offset_re - h_qc_0) / delta_z
+        h_qc_offset_im = model.h_qc(constants, parameters, z_coord=offset_z_coord_im[n])
+        diff_im = (h_qc_offset_im - h_qc_0) / delta_z
+        dh_qc_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
+    return dh_qc_dzc
+
+def two_level_system_h_q(model, constants, parameters, **kwargs):
     """
     Calculate the quantum Hamiltonian for a two-level system.
 
@@ -411,14 +453,10 @@ def two_level_system_h_q(model, **kwargs):
     """
     del kwargs
     h_q = np.zeros((2, 2), dtype=complex)
-    h_q[0, 0] = model.parameters.two_level_system_a
-    h_q[1, 1] = model.parameters.two_level_system_b
-    h_q[0, 1] = (
-        model.parameters.two_level_system_c + 1j * model.parameters.two_level_system_d
-    )
-    h_q[1, 0] = (
-        model.parameters.two_level_system_c - 1j * model.parameters.two_level_system_d
-    )
+    h_q[0, 0] = constants.two_level_system_a
+    h_q[1, 1] = constants.two_level_system_b
+    h_q[0, 1] = (constants.two_level_system_c + 1j * constants.two_level_system_d)
+    h_q[1, 0] = (constants.two_level_system_c - 1j * constants.two_level_system_d)
     return h_q
 
 
