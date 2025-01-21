@@ -72,6 +72,7 @@ class SpinBosonModel(Model):
         m = constants.mass
         h = constants.pq_weight
         h_qc = np.zeros((len(z), 2, 2), dtype=complex)
+        print(np.shape(z))
         h_qc[:, 0, 0] = np.sum(g * np.sqrt(1 / (2 * m * h))[np.newaxis, :] * (z + np.conj(z)), axis=-1)
         h_qc[:, 1, 1] = -h_qc[:, 0, 0]
         return h_qc

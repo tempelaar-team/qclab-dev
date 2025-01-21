@@ -382,15 +382,15 @@ def update_h_quantum_vectorized(sim, parameters, state, **kwargs):
     parameters.z_coord = z_coord
     parameters.make_consistent()
     if hasattr(sim.model, "h_q_vectorized"):
-        h_q = sim.model.h_q_vectorized(sim.model.constants, parameters)
-        #h_q = apply_vectorized_ingredient_over_internal_axes(
-        #    sim,
-        #    sim.model.h_q_vectorized,
-        #    sim.model.constants,
-        #    parameters,
-        #    {"z_coord": z_coord},
-        #    np.shape(z_coord)[1:-1],
-        #)
+        #h_q = sim.model.h_q_vectorized(sim.model.constants, parameters)
+        h_q = apply_vectorized_ingredient_over_internal_axes(
+            sim,
+            sim.model.h_q_vectorized,
+            sim.model.constants,
+            parameters,
+            {"z_coord": z_coord},
+            np.shape(z_coord)[1:-1],
+        )
     else:
         warnings.warn(
             "h_q_vectorized not implemented for this model. Using non-vectorized method.",
@@ -405,22 +405,22 @@ def update_h_quantum_vectorized(sim, parameters, state, **kwargs):
     if hasattr(sim.model, "h_qc_vectorized"):
         init_shape = np.shape(z_coord)
         internal_shape = init_shape[1:-1]
-        #h_qc = apply_vectorized_ingredient_over_internal_axes(
-        #    sim,
-        #    sim.model.h_qc_vectorized,
-        #    sim.model.constants,
-        #    parameters,
-        #    {"z_coord": z_coord},
-        #    internal_shape,
+        h_qc = apply_vectorized_ingredient_over_internal_axes(
+            sim,
+            sim.model.h_qc_vectorized,
+            sim.model.constants,
+            parameters,
+            {"z_coord": z_coord},
+            internal_shape,
+        )
+        h_tot = h_q + h_qc
+        #h_tot = (
+        #    h_q
+        #    + sim.model.h_qc_vectorized(
+        #        sim.model.constants, parameters, z_coord=z_coord
+        #    )
+        #    + 0.0j
         #)
-        #h_tot = h_q + h_qc
-        h_tot = (
-            h_q
-            + sim.model.h_qc_vectorized(
-                sim.model.constants, parameters, z_coord=z_coord
-            )
-            + 0.0j
-         )
     else:
         warnings.warn(
             "h_qc_vectorized not implemented for this model. Using non-vectorized method.",
@@ -644,7 +644,7 @@ def diagonalize_matrix_vectorized(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-def analytic_der_couple_phase(sim, state, eigvals, eigvecs):
+def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
     der_couple_q_phase = np.ones(np.shape(eigvals), dtype=complex)
     der_couple_p_phase = np.ones(np.shape(eigvals), dtype=complex)
     for i in range(np.shape(eigvals)[-1] - 1):
@@ -674,10 +674,10 @@ def analytic_der_couple_phase(sim, state, eigvals, eigvecs):
             / ((ev_diff + plus)[..., np.newaxis])
         )
         der_couple_p = np.sqrt(
-            1 / (2 * sim.model.parameters.pq_weight * sim.model.parameters.mass)
+            1 / (2 * sim.model.constants.pq_weight * sim.model.constants.mass)
         )[..., :] * (der_couple_z - der_couple_zc)
         der_couple_q = np.sqrt(
-            sim.model.parameters.pq_weight * sim.model.parameters.mass / 2
+            sim.model.constants.pq_weight * sim.model.constants.mass / 2
         )[..., :] * (der_couple_z + der_couple_zc)
         der_couple_q_angle = np.angle(
             der_couple_q[
@@ -718,7 +718,7 @@ def gauge_fix_eigs_vectorized(sim, parameters, state, **kwargs):
         eigvecs = np.einsum("...ai,...i->...ai", eigvecs, phase)
     if kwargs["gauge_fixing"] >= 2:
         z_coord = kwargs["z_coord"]
-        update_dh_qc_dzc_vectorized(sim, state, z_coord=z_coord)
+        parameters, state = update_dh_qc_dzc_vectorized(sim, parameters, state, z_coord=z_coord)
         der_couple_q_phase, _ = analytic_der_couple_phase(sim, state, eigvals, eigvecs)
         eigvecs = np.einsum("...ai,...i->...ai", eigvecs, np.conj(der_couple_q_phase))
     if kwargs["gauge_fixing"] >= 0:
@@ -1023,10 +1023,10 @@ def update_active_surface_fssh(sim, state, **kwargs):
                     / ev_diff[..., np.newaxis]
                 )
                 dkj_p = np.sqrt(
-                    1 / (2 * sim.model.parameters.pq_weight * sim.model.parameters.mass)
+                    1 / (2 * sim.model.constants.pq_weight * sim.model.constants.mass)
                 ) * (dkj_z - dkj_zc)
                 dkj_q = np.sqrt(
-                    sim.model.parameters.pq_weight * sim.model.parameters.mass / 2
+                    sim.model.constants.pq_weight * sim.model.constants.mass / 2
                 ) * (dkj_z + dkj_zc)
 
                 max_pos_q = np.argmax(np.abs(dkj_q))
