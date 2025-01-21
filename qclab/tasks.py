@@ -68,14 +68,6 @@ def apply_vectorized_ingredient_over_internal_axes(
     if num_axes > 0:
         for name, val in arg_dict.items():
             init_shape = np.shape(val)
-            print(name, init_shape)
-            print(
-                (
-                    init_shape[0],
-                    np.prod(internal_shape),
-                    *init_shape[num_axes + 1 :],
-                )
-            )
             arg_dict[name] = val.reshape(
                 (
                     np.prod(init_shape[0]),
@@ -97,7 +89,6 @@ def apply_vectorized_ingredient_over_internal_axes(
                 ]
             ),
         )
-        print(1)
         return val_vec.reshape(
             (sim.settings.batch_size, *internal_shape, *np.shape(val_vec)[2:])
         )
@@ -147,7 +138,7 @@ def initialize_z_coord(sim, parameters, state, **kwargs):
         )
     return parameters, state
 
-def update_dh_c_dzc_vectorized_(sim, parameters, state, **kwargs):
+def update_dh_c_dzc_vectorized(sim, parameters, state, **kwargs):
     z_coord = kwargs['z_coord']
     if hasattr(sim.model, 'dh_c_dzc_vectorized'):
         ingredient = sim.model.dh_c_dzc_vectorized
@@ -161,7 +152,7 @@ def update_dh_c_dzc_vectorized_(sim, parameters, state, **kwargs):
     state.modify('dh_c_dzc', apply_ingredient_over_internal_axes(sim, ingredient, sim.model.constants, parameters, {'z_coord': z_coord}, np.shape(z_coord)[1:-1], vectorized))
     return parameters, state
 
-def update_dh_qc_dzc_vectorized_(sim, parameters, state, **kwargs):
+def update_dh_qc_dzc_vectorized(sim, parameters, state, **kwargs):
     z_coord = kwargs['z_coord']
     if hasattr(sim.model, 'dh_qc_dzc_vectorized'):
         ingredient = sim.model.dh_qc_dzc_vectorized
@@ -176,7 +167,7 @@ def update_dh_qc_dzc_vectorized_(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-def update_dh_c_dzc_vectorized(sim, parameters, state, **kwargs):
+def update_dh_c_dzc_vectorized_(sim, parameters, state, **kwargs):
     """
     Update the gradient of the classical Hamiltonian with respect to the z-coordinates (vectorized).
 
@@ -224,7 +215,7 @@ def update_dh_c_dzc_vectorized(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-def update_dh_qc_dzc_vectorized(sim, parameters, state, **kwargs):
+def update_dh_qc_dzc_vectorized_(sim, parameters, state, **kwargs):
     """
     Update the gradient of the quantum-classical Hamiltonian with respect to the z-coordinates (vectorized).
 
@@ -673,7 +664,7 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
             )
             / ((ev_diff + plus)[..., np.newaxis])
         )
-        der_couple_p = np.sqrt(
+        der_couple_p = 1.0j*np.sqrt(
             1 / (2 * sim.model.constants.pq_weight * sim.model.constants.mass)
         )[..., :] * (der_couple_z - der_couple_zc)
         der_couple_q = np.sqrt(
@@ -719,14 +710,14 @@ def gauge_fix_eigs_vectorized(sim, parameters, state, **kwargs):
     if kwargs["gauge_fixing"] >= 2:
         z_coord = kwargs["z_coord"]
         parameters, state = update_dh_qc_dzc_vectorized(sim, parameters, state, z_coord=z_coord)
-        der_couple_q_phase, _ = analytic_der_couple_phase(sim, state, eigvals, eigvecs)
+        der_couple_q_phase, _ = analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs)
         eigvecs = np.einsum("...ai,...i->...ai", eigvecs, np.conj(der_couple_q_phase))
     if kwargs["gauge_fixing"] >= 0:
         signs = np.sign(np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2))
         eigvecs = np.einsum("...ai,...i->...ai", eigvecs, signs)
     if kwargs["gauge_fixing"] == 2:
         der_couple_q_phase_new, der_couple_p_phase_new = analytic_der_couple_phase(
-            sim, state, eigvals, eigvecs
+            sim, parameters, state, eigvals, eigvecs
         )
         if (
             np.sum(
@@ -1022,7 +1013,7 @@ def update_active_surface_fssh(sim, state, **kwargs):
                     )
                     / ev_diff[..., np.newaxis]
                 )
-                dkj_p = np.sqrt(
+                dkj_p = 1.0j*np.sqrt(
                     1 / (2 * sim.model.constants.pq_weight * sim.model.constants.mass)
                 ) * (dkj_z - dkj_zc)
                 dkj_q = np.sqrt(
