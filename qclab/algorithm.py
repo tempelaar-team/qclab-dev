@@ -18,23 +18,23 @@ class Algorithm:
         output_variables (list): List of variables to be output.
     """
 
-    def __init__(self, default_parameters=None, parameters=None):
+    def __init__(self, default_settings=None, settings=None):
         """
         Initializes the AlgorithmClass with given parameters.
 
         Args:
             parameters (dict): A dictionary of parameters to initialize the algorithm.
         """
-        if parameters is None:
-            parameters = {}
-        if default_parameters is None:
-            default_parameters = {}
+        if settings is None:
+            settings = {}
+        if default_settings is None:
+            default_settings = {}
         # Add default parameters to the provided parameters if not already present
-        parameters = {**default_parameters, **parameters}
-        self.parameters = Constants(self.update_algorithm_parameters)
-        for key, val in parameters.items():
-            setattr(self.parameters, key, val)
-        self.parameters._init_complete = True
+        settings = {**default_settings, **settings}
+        self.settings = Constants(self.update_algorithm_parameters)
+        for key, val in settings.items():
+            setattr(self.settings, key, val)
+        self.settings._init_complete = True
         self.output_recipe_vectorized_bool = None
         self.update_recipe_vectorized_bool = None
         self.initialization_recipe_vectorized_bool = None
@@ -42,7 +42,7 @@ class Algorithm:
         self.update_recipe = []
         self.output_recipe = []
         self.output_variables = []
-        self.parameters._init_complete = True
+        self.settings._init_complete = True
         self.update_algorithm_parameters()
 
     def update_algorithm_parameters(self):

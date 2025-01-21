@@ -22,8 +22,6 @@ class MeanField(Algorithm):
         if settings is None:
             settings = {}
         self.default_settings = {}
-        # add default_params to params if not already in params
-
         super().__init__(self.default_settings, settings)
 
         self.initialization_recipe = [
@@ -42,7 +40,6 @@ class MeanField(Algorithm):
             tasks.update_wf_db_rk4_vectorized,
         ]
         self.output_recipe = [
-            #lambda sim, parameters, state: tasks.update_dm_db_mf_vectorized(sim=sim,parameters=parameters, state=state),
             tasks.update_dm_db_mf_vectorized,
             lambda sim, parameters, state: tasks.update_quantum_energy_mf_vectorized(
                 sim=sim, parameters=parameters, state=state, wf=state.wf_db),

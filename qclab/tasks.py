@@ -18,6 +18,106 @@ def apply_non_vectorized_ingredient(sim, ingredient, constants, parameters, arg_
     return val_vec
 
 
+def apply_nonvectorized_ingredient_over_internal_axes(
+    sim, ingredient, constants, parameters, arg_dict, internal_shape
+):
+    num_axes = len(internal_shape)
+    if num_axes > 0:
+        for name, val in arg_dict.items():
+            init_shape = np.shape(val)
+            arg_dict[name] = val.reshape(
+                (
+                    init_shape[0] * np.prod(internal_shape),
+                    *init_shape[num_axes + 1 :],
+                )
+            )
+        val_vec = np.array(
+            [
+                ingredient(
+                    constants,
+                    parameters._element_list(np.mod(n, sim.settings.batch_size)),
+                    **{name: val[n, ...] for name, val in arg_dict.items()},
+                )
+                for n in range(init_shape[0] * np.prod(internal_shape))
+            ]
+        )
+        return val_vec.reshape(
+            (sim.settings.batch_size, *internal_shape, *np.shape(val_vec)[1:])
+        )
+    else:
+        val_vec = np.array(
+            [
+                ingredient(
+                    constants,
+                    parameters._element_list[n],
+                    **{key: val[n] for key, val in arg_dict.items()},
+                )
+                for n in range(sim.settings.batch_size)
+            ]
+        )
+        return val_vec
+
+
+def apply_vectorized_ingredient_over_internal_axes(
+    sim, ingredient, constants, parameters, arg_dict, internal_shape
+):
+    # applies a vectorized ingredient over an argument that may have internal indices
+    # if num_axes = 1 the ingredient is applied over th
+    # assumes all arguments in arg_dict have the same internal dimensions.
+    num_axes = len(internal_shape)
+    if num_axes > 0:
+        for name, val in arg_dict.items():
+            init_shape = np.shape(val)
+            print(name, init_shape)
+            print(
+                (
+                    init_shape[0],
+                    np.prod(internal_shape),
+                    *init_shape[num_axes + 1 :],
+                )
+            )
+            arg_dict[name] = val.reshape(
+                (
+                    np.prod(init_shape[0]),
+                    np.prod(internal_shape),
+                    *init_shape[num_axes + 1 :],
+                )
+            )
+
+        val_vec = np.einsum(
+            "ij...->ji...",
+            np.array(
+                [
+                    ingredient(
+                        constants,
+                        parameters,
+                        **{name: val[:, n, ...] for name, val in arg_dict.items()},
+                    )
+                    for n in range(np.prod(internal_shape))
+                ]
+            ),
+        )
+        print(1)
+        return val_vec.reshape(
+            (sim.settings.batch_size, *internal_shape, *np.shape(val_vec)[2:])
+        )
+
+    else:
+        return ingredient(constants, parameters, **arg_dict)
+
+def apply_ingredient_over_internal_axes(
+    sim, ingredient, constants, parameters, arg_dict, internal_shape, vectorized
+):
+    if vectorized:
+        return  apply_vectorized_ingredient_over_internal_axes(
+            sim, ingredient, constants, parameters, arg_dict, internal_shape
+        )
+    else:
+        return apply_nonvectorized_ingredient_over_internal_axes(
+            sim, ingredient, constants, parameters, arg_dict, internal_shape
+        )
+
+
 def initialize_z_coord(sim, parameters, state, **kwargs):
     """
     Initialize the z-coordinate.
@@ -47,48 +147,32 @@ def initialize_z_coord(sim, parameters, state, **kwargs):
         )
     return parameters, state
 
-
-def update_dh_c_dzc(sim, parameters, state, **kwargs):
-    """
-    Update the gradient of the classical Hamiltonian with respect to the z-coordinates.
-
-    Args:
-        sim (Simulation): The simulation object.
-        state (State): The state object.
-        **kwargs: Additional keyword arguments.
-
-    Returns:
-        State: The updated state object.
-    """
-    z_coord = kwargs["z_coord"]
-    if hasattr(sim.model, "dh_c_dzc"):
-        # Use the model's built-in method if available
-        state.modify(
-            "dh_c_dzc",
-            sim.model.dh_c_dzc(sim.model.constants, parameters, z_coord=z_coord),
-        )
+def update_dh_c_dzc_vectorized_(sim, parameters, state, **kwargs):
+    z_coord = kwargs['z_coord']
+    if hasattr(sim.model, 'dh_c_dzc_vectorized'):
+        ingredient = sim.model.dh_c_dzc_vectorized
+        vectorized = True
+    elif hasattr(sim.model, 'dh_c_dzc'):
+        ingredient = sim.model.dh_c_dzc
+        vectorized = False
     else:
-        # Approximate the gradient using finite differences
-        delta_z = 1e-3
-        offset_z_coord_re = z_coord[np.newaxis, :] + np.identity(len(z_coord)) * delta_z
-        offset_z_coord_im = (
-            z_coord[np.newaxis, :] + 1j * np.identity(len(z_coord)) * delta_z
-        )
+        ingredient = ingredients.dh_c_dzc_finite_differences
+        vectorized = False 
+    state.modify('dh_c_dzc', apply_ingredient_over_internal_axes(sim, ingredient, sim.model.constants, parameters, {'z_coord': z_coord}, np.shape(z_coord)[1:-1], vectorized))
+    return parameters, state
 
-        h_c_0 = sim.model.h_c(sim.model.constants, parameters, z_coord=z_coord)
-        dh_c_dzc = np.zeros((len(z_coord), *np.shape(h_c_0)), dtype=complex)
-
-        for n in range(len(z_coord)):
-            h_c_offset_re = sim.model.h_c(
-                sim.model.constants, parameters, z_coord=offset_z_coord_re[n]
-            )
-            diff_re = (h_c_offset_re - h_c_0) / delta_z
-            h_c_offset_im = sim.model.h_c(
-                sim.model.constants, parameters, z_coord=offset_z_coord_im[n]
-            )
-            diff_im = (h_c_offset_im - h_c_0) / (1j * delta_z)
-            dh_c_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
-        state.modify("dh_c_dzc", dh_c_dzc)
+def update_dh_qc_dzc_vectorized_(sim, parameters, state, **kwargs):
+    z_coord = kwargs['z_coord']
+    if hasattr(sim.model, 'dh_qc_dzc_vectorized'):
+        ingredient = sim.model.dh_qc_dzc_vectorized
+        vectorized = True
+    elif hasattr(sim.model, 'dh_qc_dzc'):
+        ingredient = sim.model.dh_qc_dzc
+        vectorized = False
+    else:
+        ingredient = ingredients.dh_qc_dzc_finite_differences
+        vectorized = False 
+    state.modify('dh_qc_dzc', apply_ingredient_over_internal_axes(sim, ingredient, sim.model.constants, parameters, {'z_coord': z_coord}, np.shape(z_coord)[1:-1], vectorized))
     return parameters, state
 
 
@@ -108,10 +192,19 @@ def update_dh_c_dzc_vectorized(sim, parameters, state, **kwargs):
     if hasattr(sim.model, "dh_c_dzc_vectorized"):
         state.modify(
             "dh_c_dzc",
-            sim.model.dh_c_dzc_vectorized(
+            #apply_vectorized_ingredient_over_internal_axes(
+            #    sim,
+            #    sim.model.dh_c_dzc_vectorized,
+            #    sim.model.constants,
+            #    parameters,
+            #    {"z_coord": z_coord},
+            #    np.shape(z_coord)[1:-1],
+            #),
+             sim.model.dh_c_dzc_vectorized(
                 sim.model.constants, parameters, z_coord=z_coord
-            ),
+             ),
         )
+
     else:
         warnings.warn(
             "dh_c_dzc_vectorized not implemented for this model. Using non-vectorized method.",
@@ -273,7 +366,6 @@ def update_z_coord_rk4_vectorized(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-
 def update_h_quantum_vectorized(sim, parameters, state, **kwargs):
     """
     Update the quantum Hamiltonian (vectorized).
@@ -291,6 +383,14 @@ def update_h_quantum_vectorized(sim, parameters, state, **kwargs):
     parameters.make_consistent()
     if hasattr(sim.model, "h_q_vectorized"):
         h_q = sim.model.h_q_vectorized(sim.model.constants, parameters)
+        #h_q = apply_vectorized_ingredient_over_internal_axes(
+        #    sim,
+        #    sim.model.h_q_vectorized,
+        #    sim.model.constants,
+        #    parameters,
+        #    {"z_coord": z_coord},
+        #    np.shape(z_coord)[1:-1],
+        #)
     else:
         warnings.warn(
             "h_q_vectorized not implemented for this model. Using non-vectorized method.",
@@ -303,13 +403,24 @@ def update_h_quantum_vectorized(sim, parameters, state, **kwargs):
             ]
         )
     if hasattr(sim.model, "h_qc_vectorized"):
+        init_shape = np.shape(z_coord)
+        internal_shape = init_shape[1:-1]
+        #h_qc = apply_vectorized_ingredient_over_internal_axes(
+        #    sim,
+        #    sim.model.h_qc_vectorized,
+        #    sim.model.constants,
+        #    parameters,
+        #    {"z_coord": z_coord},
+        #    internal_shape,
+        #)
+        #h_tot = h_q + h_qc
         h_tot = (
             h_q
             + sim.model.h_qc_vectorized(
                 sim.model.constants, parameters, z_coord=z_coord
             )
             + 0.0j
-        )
+         )
     else:
         warnings.warn(
             "h_qc_vectorized not implemented for this model. Using non-vectorized method.",
@@ -330,8 +441,6 @@ def update_h_quantum_vectorized(sim, parameters, state, **kwargs):
         )
     state.modify("h_quantum", h_tot)
     return parameters, state
-
-
 
 
 @njit
@@ -373,7 +482,6 @@ def update_wf_db_rk4_vectorized(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-
 def update_dm_db_mf_vectorized(sim, parameters, state, **kwargs):
     """
     Update the density matrix in the mean-field approximation (vectorized).
@@ -390,7 +498,6 @@ def update_dm_db_mf_vectorized(sim, parameters, state, **kwargs):
     wf_db = state.wf_db
     state.modify("dm_db", np.einsum("...i,...j->...ij", wf_db, np.conj(wf_db)))
     return parameters, state
-
 
 
 def update_classical_energy_vectorized(sim, parameters, state, **kwargs):
@@ -515,18 +622,18 @@ def update_quantum_energy_fssh_vectorized(sim, state, **kwargs):
     return state
 
 
-def broadcast_var_to_branch_vectorized(sim, state, **kwargs):
+def broadcast_var_to_branch_vectorized(sim, parameters, state, **kwargs):
     name = kwargs["name"]
     val = kwargs["val"]
     out = (
-        np.zeros((len(val), sim.algorithm.parameters.num_branches, *np.shape(val)[1:]))
+        np.zeros((len(val), sim.algorithm.settings.num_branches, *np.shape(val)[1:]))
         + val[:, np.newaxis, ...]
     )
     state.modify(name, out)
-    return state
+    return parameters, state
 
 
-def diagonalize_matrix_vectorized(sim, state, **kwargs):
+def diagonalize_matrix_vectorized(sim, parameters, state, **kwargs):
     del sim
     matrix = kwargs["matrix"]
     eigvals_name = kwargs["eigvals_name"]
@@ -534,7 +641,7 @@ def diagonalize_matrix_vectorized(sim, state, **kwargs):
     eigvals, eigvecs = np.linalg.eigh(matrix + 0.0j)
     state.modify(eigvals_name, eigvals)
     state.modify(eigvecs_name, eigvecs)
-    return state
+    return parameters, state
 
 
 def analytic_der_couple_phase(sim, state, eigvals, eigvecs):
@@ -599,7 +706,7 @@ def analytic_der_couple_phase(sim, state, eigvals, eigvecs):
     return der_couple_q_phase, der_couple_p_phase
 
 
-def gauge_fix_eigs_vectorized(sim, state, **kwargs):
+def gauge_fix_eigs_vectorized(sim, parameters, state, **kwargs):
     eigvals = kwargs["eigvals"]
     eigvecs = kwargs["eigvecs"]
     eigvecs_previous = kwargs["eigvecs_previous"]
@@ -635,15 +742,15 @@ def gauge_fix_eigs_vectorized(sim, state, **kwargs):
             )
 
     state.modify(output_eigvecs_name, eigvecs)
-    return state
+    return parameters, state
 
 
-def copy_value_vectorized(sim, state, **kwargs):
+def copy_value_vectorized(sim, parameters, state, **kwargs):
     del sim
     name = kwargs["name"]
     val = kwargs["val"]
     state.modify(name, np.copy(val))
-    return state
+    return parameters, state
 
 
 def basis_transform_vec_vectorized(sim, state, **kwargs):

@@ -362,6 +362,10 @@ class VectorObject:
             self._output_dict[var] = self.get(var)
 
 
+
+
+
+
 class Simulation:
     """
     The simulation object represents the entire simulation process.

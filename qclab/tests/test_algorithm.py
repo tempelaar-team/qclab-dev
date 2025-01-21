@@ -21,8 +21,8 @@ def test_algorithm_initialization():
     """
     parameters = {'param1': 1, 'param2': 2}
     algorithm = Algorithm(parameters)
-    assert algorithm.parameters.param1 == 1
-    assert algorithm.parameters.param2 == 2
+    assert algorithm.settings.param1 == 1
+    assert algorithm.settings.param2 == 2
 
 
 def test_is_vectorized():
