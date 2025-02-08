@@ -147,4 +147,3 @@ def test_apply_nonvectorized_ingredient_over_internal_axes():
 
 if __name__ == "__main__":
     pytest.main()
-    #test_apply_vectorized_ingredient_over_internal_axes()
