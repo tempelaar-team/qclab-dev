@@ -149,16 +149,15 @@ def update_dh_c_dzc_vectorized(sim, parameters, state, **kwargs):
     z_coord = kwargs["z_coord"]
     ingredient = sim.model.dh_c_dzc
     vectorized = True
-    state.dh_c_dzc = \
-        apply_ingredient_over_internal_axes(
-            sim,
-            ingredient,
-            sim.model.constants,
-            parameters,
-            {"z_coord": z_coord},
-            np.shape(z_coord)[1:-1],
-            vectorized,
-        )
+    state.dh_c_dzc = apply_ingredient_over_internal_axes(
+        sim,
+        ingredient,
+        sim.model.constants,
+        parameters,
+        {"z_coord": z_coord},
+        np.shape(z_coord)[1:-1],
+        vectorized,
+    )
     return parameters, state
 
 
@@ -166,16 +165,15 @@ def update_dh_qc_dzc_vectorized(sim, parameters, state, **kwargs):
     z_coord = kwargs["z_coord"]
     ingredient = sim.model.dh_qc_dzc
     vectorized = True
-    state.dh_qc_dzc = \
-        apply_ingredient_over_internal_axes(
-            sim,
-            ingredient,
-            sim.model.constants,
-            parameters,
-            {"z_coord": z_coord},
-            np.shape(z_coord)[1:-1],
-            vectorized,
-        )
+    state.dh_qc_dzc = apply_ingredient_over_internal_axes(
+        sim,
+        ingredient,
+        sim.model.constants,
+        parameters,
+        {"z_coord": z_coord},
+        np.shape(z_coord)[1:-1],
+        vectorized,
+    )
     return parameters, state
 
 
@@ -274,7 +272,7 @@ def update_z_coord_rk4_vectorized(sim, parameters, state, **kwargs):
             sim, parameters, state, wf=wf, z_coord=z_coord_0 + dt * k3
         )
     k4 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
-    setattr(state,output_name, z_coord_0 + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
+    setattr(state, output_name, z_coord_0 + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
     return parameters, state
 
 
@@ -368,16 +366,15 @@ def update_classical_energy_vectorized(sim, parameters, state, **kwargs):
     z_coord = kwargs["z_coord"]
     ingredient = sim.model.h_c
     vectorized = True
-    state.classical_energy = \
-        apply_ingredient_over_internal_axes(
-            sim,
-            ingredient,
-            sim.model.constants,
-            parameters,
-            {"z_coord": z_coord},
-            np.shape(z_coord)[1:-1],
-            vectorized,
-        )
+    state.classical_energy = apply_ingredient_over_internal_axes(
+        sim,
+        ingredient,
+        sim.model.constants,
+        parameters,
+        {"z_coord": z_coord},
+        np.shape(z_coord)[1:-1],
+        vectorized,
+    )
     return parameters, state
 
 

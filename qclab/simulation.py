@@ -10,24 +10,30 @@ from qclab.parameter import Constants
 
 
 def initialize_vector_objects(sim, batch_seeds):
-    # this takes the numpy arrays inside the state and parameter objects 
-    # and creates a first index corresponding to the number of trajectories 
+    # this takes the numpy arrays inside the state and parameter objects
+    # and creates a first index corresponding to the number of trajectories
 
     state_vector = VectorObject()
     state_vector.seed = batch_seeds
     for name in sim.state.__dict__.keys():
         obj = getattr(sim.state, name)
-        if isinstance(obj, np.ndarray )and name[0] != "_":
+        if isinstance(obj, np.ndarray) and name[0] != "_":
             init_shape = np.shape(obj)
-            new_obj = np.zeros((len(batch_seeds), *init_shape), dtype=obj.dtype) + obj[np.newaxis]
-            setattr(state_vector,name, new_obj)
+            new_obj = (
+                np.zeros((len(batch_seeds), *init_shape), dtype=obj.dtype)
+                + obj[np.newaxis]
+            )
+            setattr(state_vector, name, new_obj)
     parameter_vector = VectorObject()
     parameter_vector.seed = batch_seeds
     for name in sim.model.parameters.__dict__.keys():
         obj = getattr(sim.model.parameters, name)
-        if isinstance(obj, np.ndarray )and name[0] != "_":
+        if isinstance(obj, np.ndarray) and name[0] != "_":
             init_shape = np.shape(obj)
-            new_obj = np.zeros((len(batch_seeds), *init_shape), dtype=obj.dtype) + obj[np.newaxis]
+            new_obj = (
+                np.zeros((len(batch_seeds), *init_shape), dtype=obj.dtype)
+                + obj[np.newaxis]
+            )
             setattr(parameter_vector, name, new_obj)
     return parameter_vector, state_vector
 
@@ -162,7 +168,6 @@ class VectorObject:
         """
         for var in output_variables:
             self._output_dict[var] = getattr(self, var)
-
 
 
 class Simulation:
