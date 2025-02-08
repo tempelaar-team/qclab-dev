@@ -75,7 +75,7 @@ def two_level_system_h_q_vectorized(model, constants, parameters, **kwargs):
         - :func:`two_level_system_h_q`
     """
     del kwargs
-    batch_size = parameters._size
+    batch_size = len(parameters.seed)
     h_q = np.zeros((batch_size, 2, 2), dtype=complex)
     h_q[:, 0, 0] = constants.two_level_system_a
     h_q[:, 1, 1] = constants.two_level_system_b
@@ -276,8 +276,44 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
         hopped = True
     return z_coord, hopped
 
-
 def harmonic_oscillator_boltzmann_init_classical(model, constants, parameters, **kwargs):
+    """
+    Now vectorized
+    Initialize classical coordinates according to Boltzmann statistics.
+
+    Model Ingredient:
+        - model.init_classical
+
+    Required keyword arguments:
+        - seed (int): The random seed.
+
+    Model parameters:
+        - constants.temp (float): Temperature.
+        - constants.mass (float): Mass.
+        - constants.pq_weight (np.ndarray): The weight parameters.
+        - constants.num_classical_coordinates (int): Number of classical coordinates.
+
+    Related functions:
+        - :func:`harmonic_oscillator_wigner_init_classical`
+    """
+    seed = kwargs.get("seed", None)
+    kBT = constants.temp
+
+    h = constants.pq_weight
+    w = constants.harmonic_oscillator_frequency
+    m = constants.harmonic_oscillator_mass
+    np.random.seed(seed)
+    q = np.random.normal(
+        loc=0,
+        scale=np.sqrt(kBT / (m * (w**2))),
+        size=(len(seed),constants.num_classical_coordinates))
+    p = np.random.normal(
+        loc=0,
+        scale=np.sqrt(kBT),
+        size=(len(seed),constants.num_classical_coordinates))
+    z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
+    return z
+def harmonic_oscillator_boltzmann_init_classical_(model, constants, parameters, **kwargs):
     """
     Initialize classical coordinates according to Boltzmann statistics.
 
@@ -298,8 +334,6 @@ def harmonic_oscillator_boltzmann_init_classical(model, constants, parameters, *
     """
     seed = kwargs.get("seed", None)
     kBT = constants.temp
-    #m = constants.mass
-    #h = constants.pq_weight
 
     h = constants.pq_weight
     w = constants.harmonic_oscillator_frequency

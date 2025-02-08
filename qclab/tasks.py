@@ -147,17 +147,9 @@ def initialize_z_coord(sim, parameters, state, **kwargs):
 
 def update_dh_c_dzc_vectorized(sim, parameters, state, **kwargs):
     z_coord = kwargs["z_coord"]
-    if hasattr(sim.model, "dh_c_dzc_vectorized"):
-        ingredient = sim.model.dh_c_dzc_vectorized
-        vectorized = True
-    elif hasattr(sim.model, "dh_c_dzc"):
-        ingredient = sim.model.dh_c_dzc
-        vectorized = False
-    else:
-        ingredient = ingredients.dh_c_dzc_finite_differences
-        vectorized = False
-    state.modify(
-        "dh_c_dzc",
+    ingredient = sim.model.dh_c_dzc
+    vectorized = True
+    state.dh_c_dzc = \
         apply_ingredient_over_internal_axes(
             sim,
             ingredient,
@@ -166,24 +158,15 @@ def update_dh_c_dzc_vectorized(sim, parameters, state, **kwargs):
             {"z_coord": z_coord},
             np.shape(z_coord)[1:-1],
             vectorized,
-        ),
-    )
+        )
     return parameters, state
 
 
 def update_dh_qc_dzc_vectorized(sim, parameters, state, **kwargs):
     z_coord = kwargs["z_coord"]
-    if hasattr(sim.model, "dh_qc_dzc_vectorized"):
-        ingredient = sim.model.dh_qc_dzc_vectorized
-        vectorized = True
-    elif hasattr(sim.model, "dh_qc_dzc"):
-        ingredient = sim.model.dh_qc_dzc
-        vectorized = False
-    else:
-        ingredient = ingredients.dh_qc_dzc_finite_differences
-        vectorized = False
-    state.modify(
-        "dh_qc_dzc",
+    ingredient = sim.model.dh_qc_dzc
+    vectorized = True
+    state.dh_qc_dzc = \
         apply_ingredient_over_internal_axes(
             sim,
             ingredient,
@@ -192,8 +175,7 @@ def update_dh_qc_dzc_vectorized(sim, parameters, state, **kwargs):
             {"z_coord": z_coord},
             np.shape(z_coord)[1:-1],
             vectorized,
-        ),
-    )
+        )
     return parameters, state
 
 
@@ -292,24 +274,15 @@ def update_z_coord_rk4_vectorized(sim, parameters, state, **kwargs):
             sim, parameters, state, wf=wf, z_coord=z_coord_0 + dt * k3
         )
     k4 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
-    state.modify(output_name, z_coord_0 + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
+    setattr(state,output_name, z_coord_0 + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
     return parameters, state
 
 
 def update_h_quantum_vectorized(sim, parameters, state, **kwargs):
     z_coord = kwargs.get("z_coord", state.z_coord)
     parameters.z_coord = z_coord
-    parameters.make_consistent()
-    if hasattr(sim.model, "h_q_vectorized"):
-        ingredient = sim.model.h_q_vectorized
-        vectorized = True
-    else:
-        warnings.warn(
-            "h_q_vectorized not implemented for this model. Using non-vectorized method.",
-            UserWarning,
-        )
-        ingredient = sim.model.h_q
-        vectorized = False
+    ingredient = sim.model.h_q
+    vectorized = True
     h_q = apply_ingredient_over_internal_axes(
         sim,
         ingredient,
@@ -319,16 +292,8 @@ def update_h_quantum_vectorized(sim, parameters, state, **kwargs):
         np.shape(z_coord)[1:-1],
         vectorized,
     )
-    if hasattr(sim.model, "h_qc_vectorized"):
-        ingredient = sim.model.h_qc_vectorized
-        vectorized = True
-    else:
-        warnings.warn(
-            "h_qc_vectorized not implemented for this model. Using non-vectorized method.",
-            UserWarning,
-        )
-        ingredient = sim.model.h_qc
-        vectorized = False
+    ingredient = sim.model.h_qc
+    vectorized = True
     h_qc = apply_ingredient_over_internal_axes(
         sim,
         ingredient,
@@ -401,20 +366,9 @@ def update_dm_db_mf_vectorized(sim, parameters, state, **kwargs):
 
 def update_classical_energy_vectorized(sim, parameters, state, **kwargs):
     z_coord = kwargs["z_coord"]
-    if hasattr(sim.model, "h_c_vectorized"):
-        ingredient = sim.model.h_c_vectorized
-        vectorized = True
-    elif hasattr(sim.model, "h_c"):
-        warnings.warn(
-            "h_c_vectorized not implemented for this model. Using non-vectorized method.",
-            UserWarning,
-        )
-        ingredient = sim.model.h_c
-        vectorized = False
-    else:
-        raise NotImplementedError
-    state.modify(
-        "classical_energy",
+    ingredient = sim.model.h_c
+    vectorized = True
+    state.classical_energy = \
         apply_ingredient_over_internal_axes(
             sim,
             ingredient,
@@ -423,8 +377,7 @@ def update_classical_energy_vectorized(sim, parameters, state, **kwargs):
             {"z_coord": z_coord},
             np.shape(z_coord)[1:-1],
             vectorized,
-        ),
-    )
+        )
     return parameters, state
 
 
