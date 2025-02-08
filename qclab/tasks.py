@@ -32,13 +32,18 @@ def apply_nonvectorized_ingredient_over_internal_axes(
                 )
             )
         indexing = (slice(None),) + (np.newaxis,) * num_axes
-        parameter_index = (np.arange(sim.settings.batch_size)[indexing]*np.ones((sim.settings.batch_size,*internal_shape))).astype(int)
-        parameter_index = parameter_index.reshape((sim.settings.batch_size*np.prod(internal_shape)))
+        parameter_index = (
+            np.arange(sim.settings.batch_size)[indexing]
+            * np.ones((sim.settings.batch_size, *internal_shape))
+        ).astype(int)
+        parameter_index = parameter_index.reshape(
+            (sim.settings.batch_size * np.prod(internal_shape))
+        )
         val_vec = np.array(
             [
                 ingredient(
                     constants,
-                    parameters._element_list[parameter_index[n]],#[np.mod(n, sim.settings.batch_size)],
+                    parameters._element_list[parameter_index[n]],
                     **{name: val[n, ...] for name, val in arg_dict.items()},
                 )
                 for n in range(sim.settings.batch_size * np.prod(internal_shape))
@@ -117,6 +122,12 @@ def apply_ingredient_over_internal_axes(
         )
 
 
+def apply_vectorized_ingredient_to_element(
+    sim, ingredient, constants, parameters, arg_dict
+):
+    assert parameters._is_vectorized == False
+
+
 def initialize_z_coord(sim, parameters, state, **kwargs):
     """
     Initialize the z-coordinate.
@@ -130,22 +141,7 @@ def initialize_z_coord(sim, parameters, state, **kwargs):
         State: The updated state object.
     """
     seed = kwargs["seed"]
-    if hasattr(sim.model, "init_classical"):
-        state.modify(
-            "z_coord",
-            sim.model.init_classical(sim.model.constants, parameters, seed=seed),
-        )
-    else:
-        warnings.warn(
-            "model.init_classical not specified, using numerical boltzmann.",
-            UserWarning,
-        )
-        state.modify(
-            "z_coord",
-            ingredients.numerical_boltzmann_init_classical(
-                sim.model.constnats, parameters, seed=state.seed
-            ),
-        )
+    state.z_coord = sim.model.init_classical(sim.model.constants, parameters, seed=seed)
     return parameters, state
 
 
@@ -217,7 +213,7 @@ def update_classical_forces_vectorized(sim, parameters, state, **kwargs):
     parameters, state = update_dh_c_dzc_vectorized(
         sim, parameters, state, z_coord=z_coord
     )
-    state.modify("classical_forces", state.dh_c_dzc)
+    state.classical_forces = state.dh_c_dzc
     return parameters, state
 
 
@@ -238,13 +234,10 @@ def update_quantum_classical_forces_vectorized(sim, parameters, state, **kwargs)
     parameters, state = update_dh_qc_dzc_vectorized(
         sim, parameters, state, z_coord=z_coord
     )
-    state.modify(
-        "quantum_classical_forces",
-        np.einsum(
-            "...nj,...j->...n",
-            np.einsum("...nji,...i->...nj", state.dh_qc_dzc, wf),
-            np.conj(wf),
-        ),
+    state.quantum_classical_forces = np.einsum(
+        "...nj,...j->...n",
+        np.einsum("...nji,...i->...nj", state.dh_qc_dzc, wf),
+        np.conj(wf),
     )
     return parameters, state
 
@@ -299,13 +292,6 @@ def update_z_coord_rk4_vectorized(sim, parameters, state, **kwargs):
             sim, parameters, state, wf=wf, z_coord=z_coord_0 + dt * k3
         )
     k4 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
-    if np.all(z_coord_0 < 1e6) and np.any(
-        z_coord_0 + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4) > 1e6
-    ):
-        print(
-            sim.t_ind, np.max(z_coord_0), np.max(k1), np.max(k2), np.max(k3), np.max(k4)
-        )
-        print("ALEEEEX", sim.t_ind)
     state.modify(output_name, z_coord_0 + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
     return parameters, state
 
@@ -352,8 +338,7 @@ def update_h_quantum_vectorized(sim, parameters, state, **kwargs):
         np.shape(z_coord)[1:-1],
         vectorized,
     )
-    h_tot = h_q + h_qc
-    state.modify("h_quantum", h_tot)
+    state.h_quantum = h_q + h_qc
     return parameters, state
 
 
@@ -392,7 +377,7 @@ def update_wf_db_rk4_vectorized(sim, parameters, state, **kwargs):
     k2 = -1j * mat_vec_branch(h_quantum, (wf_db + 0.5 * dt * k1))
     k3 = -1j * mat_vec_branch(h_quantum, (wf_db + 0.5 * dt * k2))
     k4 = -1j * mat_vec_branch(h_quantum, (wf_db + dt * k3))
-    state.modify("wf_db", wf_db + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
+    state.wf_db = wf_db + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return parameters, state
 
 
@@ -410,7 +395,7 @@ def update_dm_db_mf_vectorized(sim, parameters, state, **kwargs):
     """
     del sim, kwargs
     wf_db = state.wf_db
-    state.modify("dm_db", np.einsum("...i,...j->...ij", wf_db, np.conj(wf_db)))
+    state.dm_db = np.einsum("...i,...j->...ij", wf_db, np.conj(wf_db))
     return parameters, state
 
 
@@ -468,52 +453,19 @@ def update_classical_energy_fssh_vectorized(sim, parameters, state, **kwargs):
         vectorized = False
     else:
         raise NotImplementedError
-    state.modify(
-        "classical_energy",
-        np.sum(
-            apply_ingredient_over_internal_axes(
-                sim,
-                ingredient,
-                sim.model.constants,
-                parameters,
-                {"z_coord": z_coord},
-                np.shape(z_coord)[1:-1],
-                vectorized,
-            ),
-            axis=-1,
+    state.classical_energy = np.sum(
+        apply_ingredient_over_internal_axes(
+            sim,
+            ingredient,
+            sim.model.constants,
+            parameters,
+            {"z_coord": z_coord},
+            np.shape(z_coord)[1:-1],
+            vectorized,
         ),
+        axis=-1,
     )
     return parameters, state
-
-
-def update_classical_energy_fssh_vectorized_(sim, state, **kwargs):
-    """
-    Update the classical energy (vectorized).
-
-    Args:
-        sim (Simulation): The simulation object.
-        state (State): The state object.
-        **kwargs: Additional keyword arguments.
-
-    Returns:
-        State: The updated state object.
-    """
-    z_coord = kwargs["z_coord"]
-    if hasattr(sim.model, "h_c_vectorized"):
-        state.modify(
-            "classical_energy",
-            np.sum(sim.model.h_c_vectorized(z_coord=z_coord), axis=-1),
-        )
-    else:
-        state.modify(
-            "classical_energy",
-            vector_apply_all_but_last(lambda z: sim.model.h_c(z_coord=z), z_coord),
-        )
-        warnings.warn(
-            "h_c_vectorized not implemented for this model. Using non-vectorized method.",
-            UserWarning,
-        )
-    return state
 
 
 def update_quantum_energy_mf(sim, state, **kwargs):
@@ -530,9 +482,7 @@ def update_quantum_energy_mf(sim, state, **kwargs):
     """
     del sim
     wf = kwargs["wf"]
-    state.modify(
-        "quantum_energy", np.matmul(np.conj(wf), np.matmul(state.h_quantum, wf))
-    )
+    state.quantum_energy = np.matmul(np.conj(wf), np.matmul(state.h_quantum, wf))
     return state
 
 
@@ -550,23 +500,19 @@ def update_quantum_energy_mf_vectorized(sim, parameters, state, **kwargs):
     """
     del sim
     wf = kwargs["wf"]
-    state.modify(
-        "quantum_energy",
-        np.einsum("...i,...ij,...j->...", np.conj(wf), state.h_quantum, wf),
+    state.quantum_energy = np.einsum(
+        "...i,...ij,...j->...", np.conj(wf), state.h_quantum, wf
     )
     return parameters, state
 
 
 def update_quantum_energy_fssh_vectorized(sim, parameters, state, **kwargs):
     del sim, kwargs
-    state.modify(
-        "quantum_energy",
-        np.einsum(
-            "...bi,...bij,...bj->...",
-            np.conj(state.act_surf_wf),
-            state.h_quantum,
-            state.act_surf_wf,
-        ),
+    state.quantum_energy = np.einsum(
+        "...bi,...bij,...bj->...",
+        np.conj(state.act_surf_wf),
+        state.h_quantum,
+        state.act_surf_wf,
     )
     return parameters, state
 
@@ -590,7 +536,6 @@ def diagonalize_matrix_vectorized(sim, parameters, state, **kwargs):
     eigvals, eigvecs = np.linalg.eigh(matrix + 0.0j)
     state.modify(eigvals_name, eigvals)
     state.modify(eigvecs_name, eigvecs)
-    norm = np.einsum("tbij,tbij->tbj", np.conj(eigvecs), eigvecs)
     return parameters, state
 
 
@@ -605,8 +550,8 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
         eval_j = eigvals[..., j]
         ev_diff = eval_j - eval_i
         plus = np.zeros_like(ev_diff)
-        if np.any(np.abs(ev_diff) < 1e-12):
-            plus[np.where(np.abs(ev_diff) < 1e-12)] = 1
+        if np.any(np.abs(ev_diff) < 1e-10):
+            plus[np.where(np.abs(ev_diff) < 1e-10)] = 1
             warnings.warn("Degenerate eigenvalues detected.")
         der_couple_zc = np.ascontiguousarray(
             np.einsum(
@@ -765,35 +710,31 @@ def initialize_active_surface(sim, parameters, state, **kwargs):
             ][0]
         act_surf_ind_0 = np.sort(act_surf_ind_0)
     # initialize active surface and active surface index in each branch
-    state.modify("act_surf_ind_0", act_surf_ind_0.astype(int))
-    state.modify("act_surf_ind", act_surf_ind_0.astype(int))
+    state.act_surf_ind_0 = act_surf_ind_0.astype(int)
+    state.act_surf_ind = act_surf_ind_0.astype(int)
     act_surf = np.zeros((sim.algorithm.settings.num_branches, num_states), dtype=int)
     act_surf[
         np.arange(sim.algorithm.settings.num_branches, dtype=int), state.act_surf_ind
     ] = 1
-    state.modify(
-        "act_surf",
-        act_surf.reshape((sim.algorithm.settings.num_branches, num_states)).astype(int),
-    )
+    state.act_surf = act_surf.reshape(
+        (sim.algorithm.settings.num_branches, num_states)
+    ).astype(int)
     return parameters, state
 
 
 def initialize_random_values_fssh(sim, parameters, state, **kwargs):
     del kwargs
     np.random.seed(state.seed)
-    state.modify("hopping_probs_rand_vals", np.random.rand(len(sim.settings.tdat)))
-    state.modify(
-        "stochastic_sh_rand_vals", np.random.rand(sim.algorithm.settings.num_branches)
-    )
+    state.hopping_probs_rand_vals = np.random.rand(len(sim.settings.tdat))
+    state.stochastic_sh_rand_vals = np.random.rand(sim.algorithm.settings.num_branches)
     return parameters, state
 
 
 def initialize_dm_adb_0_fssh_vectorized(sim, parameters, state, **kwargs):
     del sim, kwargs
-    state.modify(
-        "dm_adb_0",
+    state.dm_adb_0 = (
         np.einsum("...i,...j->...ij", state.wf_adb_branch, np.conj(state.wf_adb_branch))
-        + 0.0j,
+        + 0.0j
     )
     return parameters, state
 
@@ -805,8 +746,7 @@ def update_act_surf_wf_vectorized(sim, parameters, state, **kwargs):
     evecs_flat = state.eigvecs.reshape(
         (np.prod(init_shape), *np.shape(state.eigvecs)[-2:])
     )[np.arange(len(act_surf_ind_flat)), :, act_surf_ind_flat]
-    act_surf_wf = evecs_flat.reshape((*init_shape, np.shape(state.eigvecs)[-1]))
-    state.modify("act_surf_wf", act_surf_wf)
+    state.act_surf_wf = evecs_flat.reshape((*init_shape, np.shape(state.eigvecs)[-1]))
     return parameters, state
 
 
@@ -829,7 +769,7 @@ def update_dm_db_fssh_vectorized(sim, parameters, state, **kwargs):
         )
     else:
         dm_adb_branch = dm_adb_branch / sim.algorithm.settings.num_branches
-    state.modify("dm_adb", np.sum(dm_adb_branch, axis=-3) + 0.0j)
+    state.dm_adb = np.sum(dm_adb_branch, axis=-3) + 0.0j
     parameters, state = basis_transform_mat_vectorized(
         sim,
         parameters,
@@ -838,7 +778,7 @@ def update_dm_db_fssh_vectorized(sim, parameters, state, **kwargs):
         basis=state.eigvecs,
         output_name="dm_db_branch",
     )
-    state.modify("dm_db", np.sum(state.dm_db_branch, axis=-3) + 0.0j)
+    state.dm_db = np.sum(state.dm_db_branch, axis=-3) + 0.0j
     return parameters, state
 
 
@@ -886,7 +826,8 @@ def initialize_timestep_index(sim, parameters, state, **kwargs):
         State: The updated state object.
     """
     del sim, kwargs
-    state.modify("t_ind", np.array([0]))
+    # state.modify("t_ind", np.array([0]))
+    state.t_ind = 0
     return parameters, state
 
 
@@ -905,7 +846,7 @@ def update_timestep_index(sim, parameters, state, **kwargs):
         State: The updated state object.
     """
     del sim, kwargs
-    state.modify("t_ind", state.t_ind + 1)
+    state.t_ind = state.t_ind + 1
     return parameters, state
 
 
@@ -937,7 +878,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
         State: The updated state object.
     """
     del kwargs
-    rand = state.hopping_probs_rand_vals[state.t_ind[0]]
+    rand = state.hopping_probs_rand_vals[state.t_ind]
     z_coord_branch = state.z_coord_branch
     act_surf_ind = state.act_surf_ind
     act_surf = state.act_surf
@@ -1043,8 +984,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                     act_surf[i][act_surf_ind[i]] = 1
                     z_coord_branch[i] = z_coord_branch_i
                 break
-
-    state.modify("act_surf_ind", act_surf_ind)
-    state.modify("act_surf", act_surf)
-    state.modify("z_coord_branch", z_coord_branch)
+    state.act_surf_ind = act_surf_ind
+    state.act_surf = act_surf
+    state.z_coord_branch = z_coord_branch
     return parameters, state
