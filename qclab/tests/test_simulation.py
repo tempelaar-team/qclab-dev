@@ -11,10 +11,10 @@ def test_simulation_initialization():
     """
     parameters = {'tmax': 20, 'dt': 0.02, 'dt_output': 0.2, 'num_trajs': 5}
     sim = Simulation(parameters)
-    assert sim.parameters.tmax == 20
-    assert sim.parameters.dt == 0.02
-    assert sim.parameters.dt_output == 0.2
-    assert sim.parameters.num_trajs == 5
+    assert sim.settings.tmax == 20
+    assert sim.settings.dt == 0.02
+    assert sim.settings.dt_output == 0.2
+    assert sim.settings.num_trajs == 5
     assert sim.algorithm is None
     assert sim.model is None
     assert isinstance(sim.state, State)
@@ -28,12 +28,12 @@ def test_initialize_timesteps():
     parameters = {'tmax': 10, 'dt': 0.01, 'dt_output': 0.1}
     sim = Simulation(parameters)
     sim.initialize_timesteps()
-    assert sim.parameters.tmax_n == 1000
-    assert sim.parameters.dt_output_n == 10
-    assert np.allclose(sim.parameters.tdat, np.arange(0, 10.01, 0.01))
-    assert np.allclose(sim.parameters.tdat_n, np.arange(0, 1001, 1))
-    assert np.allclose(sim.parameters.tdat_output, np.arange(0, 10.1, 0.1))
-    assert np.allclose(sim.parameters.tdat_output_n, np.arange(0, 1010, 10))
+    assert sim.settings.tmax_n == 1000
+    assert sim.settings.dt_output_n == 10
+    assert np.allclose(sim.settings.tdat, np.arange(0, 10.01, 0.01))
+    assert np.allclose(sim.settings.tdat_n, np.arange(0, 1001, 1))
+    assert np.allclose(sim.settings.tdat_output, np.arange(0, 10.1, 0.1))
+    assert np.allclose(sim.settings.tdat_output_n, np.arange(0, 1010, 10))
 
 def test_generate_seeds():
     """

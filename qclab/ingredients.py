@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 
 
-def harmonic_oscillator_h_c_vectorized(model, **kwargs):
+def harmonic_oscillator_h_c_vectorized(model, constants, parameters, **kwargs):
     """
     Harmonic oscillator classical Hamiltonian function.
 
@@ -16,19 +16,27 @@ def harmonic_oscillator_h_c_vectorized(model, **kwargs):
         - z_coord (np.ndarray): The z-coordinates.
 
     Model parameters:
-        - model.parameters.pq_weight (np.ndarray): The weight parameters.
+        - constants.pq_weight (np.ndarray): The weight parameters.
 
     Related functions:
         - :func:`harmonic_oscillator_h_c`
     """
-    z_coord = kwargs["z_coord"]
-    h_c = np.sum(
-        model.parameters.pq_weight[..., :] * np.conjugate(z_coord) * z_coord, axis=-1
-    )
+
+    z = kwargs.get('z_coord', parameters.z_coord)
+    h = constants.pq_weight[np.newaxis,:]
+    w = constants.harmonic_oscillator_frequency[np.newaxis,:]
+    m = constants.harmonic_oscillator_mass[np.newaxis,:]
+    q = np.sqrt(2/(m*h))*np.real(z)
+    p = np.sqrt(2*m*h)*np.imag(z)
+    h_c = np.sum((1/2)*(((p**2)/m) + m*(w**2)*(q**2)), axis=-1)
+    #z_coord = kwargs["z_coord"]
+    #h_c = np.sum(
+    #    constants.pq_weight[..., :] * np.conjugate(z_coord) * z_coord, axis=-1
+    #)
     return h_c
 
 
-def harmonic_oscillator_dh_c_dzc_vectorized(model, **kwargs):
+def harmonic_oscillator_dh_c_dzc_vectorized(model, constants, parameters, **kwargs):
     """
     Calculate the vectorized derivative of the classical Hamiltonian
     with respect to the z-coordinates.
@@ -40,17 +48,17 @@ def harmonic_oscillator_dh_c_dzc_vectorized(model, **kwargs):
         - z_coord (np.ndarray): The z-coordinates.
 
     Model parameters:
-        - model.parameters.pq_weight (np.ndarray): The weight parameters.
+        - constants.pq_weight (np.ndarray): The weight parameters.
 
     Related functions:
         - :func:`harmonic_oscillator_dh_c_dzc`
     """
     z_coord = kwargs["z_coord"]
-    dh_c_dzc = model.parameters.pq_weight[..., :] * z_coord + 0.0j
+    dh_c_dzc = constants.pq_weight[..., :] * z_coord + 0.0j
     return dh_c_dzc
 
 
-def two_level_system_h_q_vectorized(model, **kwargs):
+def two_level_system_h_q_vectorized(model, constants, parameters, **kwargs):
     """
     Calculate the vectorized quantum Hamiltonian for a two-level system.
 
@@ -58,28 +66,25 @@ def two_level_system_h_q_vectorized(model, **kwargs):
         - model.h_q_vectorized
 
     Model parameters:
-        - model.parameters.two_level_system_a (float): <0|H|0>
-        - model.parameters.two_level_system_b (float): <1|H|1>
-        - model.parameters.two_level_system_c (float): Re(<0|H|1>)
-        - model.parameters.two_level_system_d (float): Im(<0|H|1>)
+        - constants.two_level_system_a (float): <0|H|0>
+        - constants.two_level_system_b (float): <1|H|1>
+        - constants.two_level_system_c (float): Re(<0|H|1>)
+        - constants.two_level_system_d (float): Im(<0|H|1>)
 
     Related functions:
         - :func:`two_level_system_h_q`
     """
     del kwargs
-    h_q = np.zeros((2, 2), dtype=complex)
-    h_q[0, 0] = model.parameters.two_level_system_a
-    h_q[1, 1] = model.parameters.two_level_system_b
-    h_q[0, 1] = (
-        model.parameters.two_level_system_c + 1j * model.parameters.two_level_system_d
-    )
-    h_q[1, 0] = (
-        model.parameters.two_level_system_c - 1j * model.parameters.two_level_system_d
-    )
-    return h_q[np.newaxis, :, :]
+    batch_size = parameters._size
+    h_q = np.zeros((batch_size, 2, 2), dtype=complex)
+    h_q[:, 0, 0] = constants.two_level_system_a
+    h_q[:, 1, 1] = constants.two_level_system_b
+    h_q[:, 0, 1] = (constants.two_level_system_c + 1j * constants.two_level_system_d)
+    h_q[:, 1, 0] = (constants.two_level_system_c - 1j * constants.two_level_system_d)
+    return h_q
 
 
-def nearest_neighbor_lattice_h_q_vectorized(model, **kwargs):
+def nearest_neighbor_lattice_h_q_vectorized(model, constants, parameters, **kwargs):
     """
     Calculate the vectorized quantum Hamiltonian for a nearest-neighbor lattice.
 
@@ -87,18 +92,18 @@ def nearest_neighbor_lattice_h_q_vectorized(model, **kwargs):
         - model.h_q_vectorized
 
     Model parameters:
-        - model.parameters.nearest_neighbor_lattice_h_q_num_sites (int): Number of sites.
-        - model.parameters.nearest_neighbor_lattice_h_q_hopping_energy (complex): Hopping energy.
-        - model.parameters.nearest_neighbor_lattice_h_q_periodic_boundary (bool):
+        - constants.nearest_neighbor_lattice_h_q_num_sites (int): Number of sites.
+        - constants.nearest_neighbor_lattice_h_q_hopping_energy (complex): Hopping energy.
+        - constants.nearest_neighbor_lattice_h_q_periodic_boundary (bool):
           Periodic boundary condition.
 
     Related functions:
         - :func:`nearest_neighbor_lattice_h_q`
     """
     del kwargs
-    num_sites = model.parameters.nearest_neighbor_lattice_h_q_num_sites
-    hopping_energy = model.parameters.nearest_neighbor_lattice_h_q_hopping_energy
-    periodic_boundary = model.parameters.nearest_neighbor_lattice_h_q_periodic_boundary
+    num_sites = constants.nearest_neighbor_lattice_h_q_num_sites
+    hopping_energy = constants.nearest_neighbor_lattice_h_q_hopping_energy
+    periodic_boundary = constants.nearest_neighbor_lattice_h_q_periodic_boundary
     h_q = np.zeros((num_sites, num_sites), dtype=complex)
 
     # Fill the Hamiltonian matrix with hopping energies
@@ -114,7 +119,7 @@ def nearest_neighbor_lattice_h_q_vectorized(model, **kwargs):
     return h_q[..., :, :]
 
 
-def holstein_lattice_h_qc_vectorized(model, **kwargs):
+def holstein_lattice_h_qc_vectorized(model, constants, parameters, **kwargs):
     """
     Calculate the vectorized quantum-classical Hamiltonian for a Holstein lattice.
 
@@ -125,19 +130,19 @@ def holstein_lattice_h_qc_vectorized(model, **kwargs):
         - z_coord (np.ndarray): The z-coordinates.
 
     Model parameters:
-        - model.parameters.holstein_lattice_h_qc_num_sites (int): Number of sites.
-        - model.parameters.holstein_lattice_h_qc_oscillator_frequency (float): Oscillator frequency.
-        - model.parameters.holstein_lattice_h_qc_dimensionless_coupling
+        - constants.holstein_lattice_h_qc_num_sites (int): Number of sites.
+        - constants.holstein_lattice_h_qc_oscillator_frequency (float): Oscillator frequency.
+        - constants.holstein_lattice_h_qc_dimensionless_coupling
           (float): Dimensionless coupling.
 
     Related functions:
         - :func:`holstein_lattice_h_qc`
     """
     z_coord = kwargs["z_coord"]
-    num_sites = model.parameters.holstein_lattice_h_qc_num_sites
-    oscillator_frequency = model.parameters.holstein_lattice_h_qc_oscillator_frequency
+    num_sites = constants.holstein_lattice_h_qc_num_sites
+    oscillator_frequency = constants.holstein_lattice_h_qc_oscillator_frequency
     dimensionless_coupling = (
-        model.parameters.holstein_lattice_h_qc_dimensionless_coupling
+        constants.holstein_lattice_h_qc_dimensionless_coupling
     )
     h_qc = np.zeros(
         (*np.shape(z_coord)[:-1], num_sites, num_sites), dtype=complex)
@@ -147,7 +152,7 @@ def holstein_lattice_h_qc_vectorized(model, **kwargs):
     return h_qc
 
 
-def holstein_lattice_dh_qc_dzc_vectorized(model, **kwargs):
+def holstein_lattice_dh_qc_dzc_vectorized(model, constants, parameters, **kwargs):
     """
     Calculate the vectorized derivative of the quantum-classical Hamiltonian with
     respect to the z-coordinates.
@@ -159,19 +164,19 @@ def holstein_lattice_dh_qc_dzc_vectorized(model, **kwargs):
         - z_coord (np.ndarray): The z-coordinates.
 
     Model parameters:
-        - model.parameters.holstein_lattice_h_qc_num_sites (int): Number of sites.
-        - model.parameters.holstein_lattice_h_qc_oscillator_frequency (float): Oscillator frequency.
-        - model.parameters.holstein_lattice_h_qc_dimensionless_coupling (float):
+        - constants.holstein_lattice_h_qc_num_sites (int): Number of sites.
+        - constants.holstein_lattice_h_qc_oscillator_frequency (float): Oscillator frequency.
+        - constants.holstein_lattice_h_qc_dimensionless_coupling (float):
           Dimensionless coupling.
 
     Related functions:
         - :func:`holstein_lattice_dh_qc_dzc`
     """
     z_coord = kwargs["z_coord"]
-    num_sites = model.parameters.holstein_lattice_h_qc_num_sites
-    oscillator_frequency = model.parameters.holstein_lattice_h_qc_oscillator_frequency
+    num_sites = constants.holstein_lattice_h_qc_num_sites
+    oscillator_frequency = constants.holstein_lattice_h_qc_oscillator_frequency
     dimensionless_coupling = (
-        model.parameters.holstein_lattice_h_qc_dimensionless_coupling
+        constants.holstein_lattice_h_qc_dimensionless_coupling
     )
     dh_qc_dzc = np.zeros(
         (*np.shape(z_coord)[:-1], num_sites,
@@ -183,7 +188,44 @@ def holstein_lattice_dh_qc_dzc_vectorized(model, **kwargs):
     return dh_qc_dzc
 
 
-def harmonic_oscillator_hop(model, **kwargs):
+def numerical_fssh_hop(model, constants, parameters, **kwargs):
+    z_coord = kwargs["z_coord"]
+    delta_z_coord = kwargs["delta_z_coord"]
+    ev_diff = kwargs["ev_diff"]
+    hopped = False
+    delta_zc_coord = np.conj(delta_z_coord)
+    zc = np.conj(z_coord)
+    warnings.warn("Hop function excludes mass, check it", UserWarning)
+
+    gamma_range = constants.numerical_fssh_hop_gamma_range
+    num_iter = constants.numerical_fssh_hop_num_iter
+    num_points = constants.numerical_fssh_hop_num_points
+
+    init_energy = model.h_c(constants, parameters, z_coord=z_coord)
+
+    min_gamma = 0
+    for iter in range(num_iter):
+        gamma_list = np.linspace(min_gamma-gamma_range,min_gamma+gamma_range,num_points)
+        new_energies = np.abs(ev_diff - np.array([init_energy - model.h_c(constants,parameters,z_coord=z_coord-1.0j*gamma*delta_z_coord) for gamma in gamma_list]))
+        min_gamma = gamma_list[np.argmin(new_energies)]
+        min_energy = np.min(new_energies)
+        gamma_range = gamma_range/2
+
+    if min_energy > 1/num_points:
+        #print('rejected hop', min_energy)
+    
+        return z_coord, False 
+    else:
+        #print('accepted hop', min_energy)
+        return z_coord - 1.0j*min_gamma*delta_z_coord, True
+    
+
+
+
+    z_coord = z_coord - 1.0j * np.real(gamma) * delta_z_coord
+
+
+def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     """
     Perform a hopping operation for the harmonic oscillator.
 
@@ -196,7 +238,7 @@ def harmonic_oscillator_hop(model, **kwargs):
         - ev_diff (float): The energy difference.
 
     Model parameters:
-        - model.parameters.pq_weight (np.ndarray): The weight parameters.
+        - constants.pq_weight (np.ndarray): The weight parameters.
 
     Related functions:
         - :func:`harmonic_oscillator_boltzmann_init_classical`
@@ -209,12 +251,12 @@ def harmonic_oscillator_hop(model, **kwargs):
     delta_zc_coord = np.conj(delta_z_coord)
     zc = np.conj(z_coord)
     warnings.warn("Hop function excludes mass, check it", UserWarning)
-    akj_z = np.real(np.sum(model.parameters.pq_weight *
+    akj_z = np.real(np.sum(constants.pq_weight *
                     delta_zc_coord * delta_z_coord))
     bkj_z = np.real(
         np.sum(
             1j
-            * model.parameters.pq_weight
+            * constants.pq_weight
             * (zc * delta_z_coord - z_coord * delta_zc_coord)
         )
     )
@@ -235,7 +277,7 @@ def harmonic_oscillator_hop(model, **kwargs):
     return z_coord, hopped
 
 
-def harmonic_oscillator_boltzmann_init_classical(model, **kwargs):
+def harmonic_oscillator_boltzmann_init_classical(model, constants, parameters, **kwargs):
     """
     Initialize classical coordinates according to Boltzmann statistics.
 
@@ -246,61 +288,124 @@ def harmonic_oscillator_boltzmann_init_classical(model, **kwargs):
         - seed (int): The random seed.
 
     Model parameters:
-        - model.parameters.temp (float): Temperature.
-        - model.parameters.mass (float): Mass.
-        - model.parameters.pq_weight (np.ndarray): The weight parameters.
-        - model.parameters.num_classical_coordinates (int): Number of classical coordinates.
+        - constants.temp (float): Temperature.
+        - constants.mass (float): Mass.
+        - constants.pq_weight (np.ndarray): The weight parameters.
+        - constants.num_classical_coordinates (int): Number of classical coordinates.
 
     Related functions:
         - :func:`harmonic_oscillator_wigner_init_classical`
     """
     seed = kwargs.get("seed", None)
+    kBT = constants.temp
+    #m = constants.mass
+    #h = constants.pq_weight
+
+    h = constants.pq_weight
+    w = constants.harmonic_oscillator_frequency
+    m = constants.harmonic_oscillator_mass
     np.random.seed(seed)
     q = np.random.normal(
         loc=0,
-        scale=np.sqrt(
-            model.parameters.temp
-            / (model.parameters.mass * (model.parameters.pq_weight**2))
-        ),
-        size=model.parameters.num_classical_coordinates,
-    )
+        scale=np.sqrt(kBT / (m * (w**2))),
+        size=constants.num_classical_coordinates)
     p = np.random.normal(
         loc=0,
-        scale=np.sqrt(model.parameters.temp),
-        size=model.parameters.num_classical_coordinates,
-    )
-    z = np.sqrt(model.parameters.pq_weight * model.parameters.mass / 2) * (
-        q + 1.0j * (p / (model.parameters.pq_weight * model.parameters.mass))
-    )
+        scale=np.sqrt(kBT),
+        size=constants.num_classical_coordinates)
+    z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
     return z
 
-def numerical_boltzmann_init_classical(model, **kwargs):
+
+def numerical_boltzmann_init_classical(model, constants, parameters, **kwargs):
+    seed = kwargs.get("seed", None)
+    np.random.seed(seed)
+    rand_val = np.random.rand()
+    num_points = constants.numerical_boltzmann_init_classical_num_points
+    max_amplitude = constants.numerical_boltzmann_init_classical_max_amplitude
+    grid = 2*max_amplitude*(np.random.rand(num_points)-0.5)#np.linspace(-max_amplitude, max_amplitude, num_points)
+    kinetic_grid = 1.0j*grid
+    potential_grid = grid
+    z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
+
+    parameters.z_coord = np.zeros(constants.num_classical_coordinates) + 0.0j
+    for n in range(constants.num_classical_coordinates):
+        # construct grid for kinetic points
+        kinetic_points = np.zeros((num_points, constants.num_classical_coordinates), dtype=complex)
+        # construct grid for potential points
+        potential_points = np.zeros((num_points, constants.num_classical_coordinates), dtype=complex)
+        for p in range(num_points):
+            kinetic_points[p,n] = kinetic_grid[p]
+            potential_points[p,n] = potential_grid[p]
+        # calculate kinetic energies on the grid
+        kinetic_energies = np.array([model.h_c(constants, parameters, z_coord = kinetic_points[p]) for p in range(num_points)])
+        boltz_facs = np.exp(-kinetic_energies/constants.temp)
+        boltz_facs = boltz_facs/np.sum(boltz_facs)
+        # calculate cumulative distribution
+        tot = 0 
+        for k in range(num_points):
+            tot += boltz_facs[k]
+            if rand_val <= tot:
+                z_out[n] += kinetic_grid[k]
+                break
+        # calculate potential energies on the grid
+        potential_energies = np.array([model.h_c(constants, parameters, z_coord = potential_points[p]) for p in range(num_points)])
+        boltz_facs = np.exp(-potential_energies/constants.temp)
+        boltz_facs = boltz_facs/np.sum(boltz_facs)
+        # calculate cumulative distribution
+        tot = 0 
+        for p in range(num_points):
+            tot += boltz_facs[p]
+            if rand_val <= tot:
+                z_out[n] += potential_grid[p]
+                break
+    return z_out
+
+
+def numerical_boltzmann_init_classical_(model, constants, parameters, **kwargs):
     """
     This function samples a discrete probability distribution 
     approximating the Boltzmann distribution of the classical 
     Hamiltonian function.
     """
+    # TODO rigorously validate this function
+    warnings.warn('Using numerical boltzmann', UserWarning)
     seed = kwargs.get("seed", None)
     np.random.seed(seed)
     rand_val = np.random.rand()
-    num_points = 1000
-    amplitudes = 4*(np.random.rand(num_points, model.parameters.num_classical_coordinates)-0.5)
-    phases = np.exp(1.0j*2*np.pi*np.random.rand(num_points, model.parameters.num_classical_coordinates))
-    z_list = amplitudes * phases
-    classical_energies = np.zeros(num_points)
+    num_points = constants.numerical_boltzmann_init_classical_num_points
+    max_amplitude = constants.numerical_boltzmann_init_classical_max_amplitude
+    #amplitudes = max_amplitude*np.random.rand(num_points, constants.num_classical_coordinates)
+    #phases = np.exp(1.0j*2*np.pi*np.random.rand(num_points, constants.num_classical_coordinates))
+    #line = np.linspace(0, max_amplitude, num_points)
+    #angles = np.exp(1.0j*2*np.pi*np.linspace(0,1, num_points))
+    #z_list = (line[:,np.newaxis]*angles[np.newaxis,:]).flatten()
+    #print(z_list)
+    #q_list = np.linspace(-max_amplitude,max_amplitude,num_points)
+    #p_list = np.linspace(-max_amplitude,)
+    #z_list = amplitudes * phases
+    random_points = 2*max_amplitude*(np.random.rand(num_points, constants.num_classical_coordinates)-1)
+    im_points = 1.0j*random_points
+    re_points = random_points
+    kinetic_energies = np.zeros(num_points)
+    parameters.z_coord = np.zeros(constants.num_classical_coordinates) + 0.0j
     for n in range(num_points):
-        classical_energies[n] = np.real(model.h_c(z_coord = z_list[n]))
-    boltz_facs = np.exp(-classical_energies/model.parameters.temp)
+        kinetic_energies[n] = np.real(model.h_c(constants, parameters, z_coord = z_list[n]))
+    boltz_facs = np.exp(-classical_energies/constants.temp)
     boltz_facs = boltz_facs/np.sum(boltz_facs)
+    #import matplotlib.pyplot as plt
+    #plt.hist(boltz_facs,bins=100)
+    #plt.show()
     cumulant = 0
     for n in range(num_points):
         cumulant += boltz_facs[n]
         if cumulant >= rand_val:
-            z = z_list[n]
-            break
-    return z
+            return z_list[n]
+    #        z = z_list[n]
+    #        break
+    #return z
 
-def harmonic_oscillator_wigner_init_classical(model, **kwargs):
+def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kwargs):
     """
     Initialize classical coordinates according to the Wigner distribution
     of the ground state of a harmonic oscillator.
@@ -308,7 +413,7 @@ def harmonic_oscillator_wigner_init_classical(model, **kwargs):
     Model Ingredient:
         - model.init_classical
 
-    Required model.parameters attributes:
+    Required constants attributes:
         - pq_weight (float): The pq weight parameter.
         - mass (float): The mass of the harmonic oscillator.
         - temp (float): The temperature.
@@ -325,33 +430,33 @@ def harmonic_oscillator_wigner_init_classical(model, **kwargs):
         1
         / (
             2
-            * model.parameters.pq_weight
-            * model.parameters.mass
-            * np.tanh(model.parameters.pq_weight / (2 * model.parameters.temp))
+            * constants.pq_weight
+            * constants.mass
+            * np.tanh(constants.pq_weight / (2 * constants.temp))
         )
     )
     std_p = np.sqrt(
-        (model.parameters.mass * model.parameters.pq_weight)
-        / (2 * np.tanh(model.parameters.pq_weight / (2 * model.parameters.temp)))
+        (constants.mass * constants.pq_weight)
+        / (2 * np.tanh(constants.pq_weight / (2 * constants.temp)))
     )
 
     # Generate random q and p values
     q = np.random.normal(
-        loc=0, scale=std_q, size=model.parameters.num_classical_coordinates
+        loc=0, scale=std_q, size=constants.num_classical_coordinates
     )
     p = np.random.normal(
-        loc=0, scale=std_p, size=model.parameters.num_classical_coordinates
+        loc=0, scale=std_p, size=constants.num_classical_coordinates
     )
 
     # Calculate the classical coordinates z
-    z = np.sqrt(model.parameters.pq_weight * model.parameters.mass / 2) * (
-        q + 1.0j * (p / (model.parameters.pq_weight * model.parameters.mass))
+    z = np.sqrt(constants.pq_weight * constants.mass / 2) * (
+        q + 1.0j * (p / (constants.pq_weight * constants.mass))
     )
 
     return z
 
 
-def harmonic_oscillator_h_c(model, **kwargs):
+def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     """
     Calculate the classical Hamiltonian.
 
@@ -362,17 +467,23 @@ def harmonic_oscillator_h_c(model, **kwargs):
         - z_coord (np.ndarray): The z-coordinates.
 
     Model parameters:
-        - model.parameters.pq_weight (np.ndarray): The weight parameters.
+        - constants.pq_weight (np.ndarray): The weight parameters.
 
     Related functions:
         - :func:`harmonic_oscillator_h_c_vectorized`
     """
-    z_coord = kwargs["z_coord"]
-    h_c = np.sum(model.parameters.pq_weight * np.conjugate(z_coord) * z_coord)
+    z = kwargs.get('z_coord', parameters.z_coord)
+    h = constants.pq_weight
+    w = constants.harmonic_oscillator_frequency
+    m = constants.harmonic_oscillator_mass
+    q = np.sqrt(2/(m*h))*np.real(z)
+    p = np.sqrt(2*m*h)*np.imag(z)
+    h_c = np.sum((1/2)*(((p**2)/m) + m*(w**2)*(q**2)))
+    #h_c = np.sum(h * np.conjugate(z) * z)
     return h_c
 
 
-def harmonic_oscillator_dh_c_dzc(model, **kwargs):
+def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
     """
     Calculate the derivative of the classical Hamiltonian with respect to the z-coordinates.
 
@@ -383,17 +494,61 @@ def harmonic_oscillator_dh_c_dzc(model, **kwargs):
         - z_coord (np.ndarray): The z-coordinates.
 
     Model parameters:
-        - model.parameters.pq_weight (np.ndarray): The weight parameters.
+        - constants.pq_weight (np.ndarray): The weight parameters.
 
     Related functions:
         - :func:`harmonic_oscillator_dh_c_dzc_vectorized`
     """
     z_coord = kwargs["z_coord"]
-    dh_c_dzc = model.parameters.pq_weight * z_coord + 0.0j
+    dh_c_dzc = constants.pq_weight * z_coord + 0.0j
     return dh_c_dzc
 
 
-def two_level_system_h_q(model, **kwargs):
+def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
+    z_coord = kwargs["z_coord"]
+    # Approximate the gradient using finite differences
+    delta_z = 1e-6
+    offset_z_coord_re = z_coord[np.newaxis, :] + np.identity(len(z_coord)) * delta_z
+    offset_z_coord_im = (
+        z_coord[np.newaxis, :] + 1j * np.identity(len(z_coord)) * delta_z
+    )
+
+    h_c_0 = model.h_c(constants, parameters, z_coord=z_coord)
+    dh_c_dzc = np.zeros((len(z_coord), *np.shape(h_c_0)), dtype=complex)
+
+    for n in range(len(z_coord)):
+        h_c_offset_re = model.h_c(constants, parameters, z_coord=offset_z_coord_re[n])
+        diff_re = (h_c_offset_re - h_c_0) / delta_z
+        h_c_offset_im = model.h_c(constants, parameters, z_coord=offset_z_coord_im[n])
+        diff_im = (h_c_offset_im - h_c_0) / delta_z
+        dh_c_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
+    return dh_c_dzc
+
+def finite_differences_dh_c_dzc_vectorized(model, constants, parameters, **kwargs):
+    z_coord = kwargs["z_coord"]
+    delta_z = np.ones((len(z_coord),))
+
+def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
+    z_coord = kwargs["z_coord"]
+    # Approximate the gradient using finite differences
+    delta_z = 1e-6
+    offset_z_coord_re = z_coord[np.newaxis, :] + np.identity(len(z_coord)) * delta_z
+    offset_z_coord_im = (
+        z_coord[np.newaxis, :] + 1j * np.identity(len(z_coord)) * delta_z
+    )
+
+    h_qc_0 = model.h_qc(constants, parameters, z_coord=z_coord)
+    dh_qc_dzc = np.zeros((len(z_coord), *np.shape(h_qc_0)), dtype=complex)
+
+    for n in range(len(z_coord)):
+        h_qc_offset_re = model.h_qc(constants, parameters, z_coord=offset_z_coord_re[n])
+        diff_re = (h_qc_offset_re - h_qc_0) / delta_z
+        h_qc_offset_im = model.h_qc(constants, parameters, z_coord=offset_z_coord_im[n])
+        diff_im = (h_qc_offset_im - h_qc_0) / delta_z
+        dh_qc_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
+    return dh_qc_dzc
+
+def two_level_system_h_q(model, constants, parameters, **kwargs):
     """
     Calculate the quantum Hamiltonian for a two-level system.
 
@@ -401,28 +556,24 @@ def two_level_system_h_q(model, **kwargs):
         - model.h_q
 
     Model parameters:
-        - model.parameters.two_level_system_a (float): Parameter a.
-        - model.parameters.two_level_system_b (float): Parameter b.
-        - model.parameters.two_level_system_c (float): Parameter c.
-        - model.parameters.two_level_system_d (float): Parameter d.
+        - constants.two_level_system_a (float): Parameter a.
+        - constants.two_level_system_b (float): Parameter b.
+        - constants.two_level_system_c (float): Parameter c.
+        - constants.two_level_system_d (float): Parameter d.
 
     Related functions:
         - :func:`two_level_system_h_q_vectorized`
     """
     del kwargs
     h_q = np.zeros((2, 2), dtype=complex)
-    h_q[0, 0] = model.parameters.two_level_system_a
-    h_q[1, 1] = model.parameters.two_level_system_b
-    h_q[0, 1] = (
-        model.parameters.two_level_system_c + 1j * model.parameters.two_level_system_d
-    )
-    h_q[1, 0] = (
-        model.parameters.two_level_system_c - 1j * model.parameters.two_level_system_d
-    )
+    h_q[0, 0] = constants.two_level_system_a
+    h_q[1, 1] = constants.two_level_system_b
+    h_q[0, 1] = (constants.two_level_system_c + 1j * constants.two_level_system_d)
+    h_q[1, 0] = (constants.two_level_system_c - 1j * constants.two_level_system_d)
     return h_q
 
 
-def nearest_neighbor_lattice_h_q(model, **kwargs):
+def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     """
     Calculate the quantum Hamiltonian for a nearest-neighbor lattice.
 
@@ -430,18 +581,18 @@ def nearest_neighbor_lattice_h_q(model, **kwargs):
         - model.h_q
 
     Model parameters:
-        - model.parameters.nearest_neighbor_lattice_h_q_num_sites (int): Number of sites.
-        - model.parameters.nearest_neighbor_lattice_h_q_hopping_energy (complex): Hopping energy.
-        - model.parameters.nearest_neighbor_lattice_h_q_periodic_boundary (bool):
+        - constants.nearest_neighbor_lattice_h_q_num_sites (int): Number of sites.
+        - constants.nearest_neighbor_lattice_h_q_hopping_energy (complex): Hopping energy.
+        - constants.nearest_neighbor_lattice_h_q_periodic_boundary (bool):
           Periodic boundary condition.
 
     Related functions:
         - :func:`nearest_neighbor_lattice_h_q_vectorized`
     """
     del kwargs
-    num_sites = model.parameters.nearest_neighbor_lattice_h_q_num_sites
-    hopping_energy = model.parameters.nearest_neighbor_lattice_h_q_hopping_energy
-    periodic_boundary = model.parameters.nearest_neighbor_lattice_h_q_periodic_boundary
+    num_sites = constants.nearest_neighbor_lattice_h_q_num_sites
+    hopping_energy = constants.nearest_neighbor_lattice_h_q_hopping_energy
+    periodic_boundary = constants.nearest_neighbor_lattice_h_q_periodic_boundary
     h_q = np.zeros((num_sites, num_sites), dtype=complex)
 
     # Fill the Hamiltonian matrix with hopping energies
@@ -457,7 +608,7 @@ def nearest_neighbor_lattice_h_q(model, **kwargs):
     return h_q
 
 
-def holstein_lattice_h_qc(model, **kwargs):
+def holstein_lattice_h_qc(model, constants, parameters, **kwargs):
     """
     Calculate the quantum-classical Hamiltonian for a Holstein lattice.
 
@@ -468,17 +619,17 @@ def holstein_lattice_h_qc(model, **kwargs):
         - z_coord (np.ndarray): The z-coordinates.
 
     Model parameters:
-        - model.parameters.holstein_lattice_h_qc_oscillator_frequency (float): Oscillator frequency.
-        - model.parameters.holstein_lattice_h_qc_dimensionless_coupling (float): 
+        - constants.holstein_lattice_h_qc_oscillator_frequency (float): Oscillator frequency.
+        - constants.holstein_lattice_h_qc_dimensionless_coupling (float): 
         Dimensionless coupling.
 
     Related functions:
         - :func:`holstein_lattice_h_qc_vectorized`
     """
     z_coord = kwargs["z_coord"]
-    oscillator_frequency = model.parameters.holstein_lattice_h_qc_oscillator_frequency
+    oscillator_frequency = constants.holstein_lattice_h_qc_oscillator_frequency
     dimensionless_coupling = (
-        model.parameters.holstein_lattice_h_qc_dimensionless_coupling
+        constants.holstein_lattice_h_qc_dimensionless_coupling
     )
     h_qc = (
         np.diag(dimensionless_coupling * oscillator_frequency)
@@ -488,7 +639,7 @@ def holstein_lattice_h_qc(model, **kwargs):
     return h_qc
 
 
-def holstein_lattice_dh_qc_dzc(model, **kwargs):
+def holstein_lattice_dh_qc_dzc(model, constants, parameters, **kwargs):
     """
     Calculate the derivative of the quantum-classical Hamiltonian with respect to the z-coordinates.
 
@@ -499,19 +650,19 @@ def holstein_lattice_dh_qc_dzc(model, **kwargs):
         - z_coord (np.ndarray): The z-coordinates.
 
     Model parameters:
-        - model.parameters.holstein_lattice_h_qc_num_sites (int): Number of sites.
-        - model.parameters.holstein_lattice_h_qc_oscillator_frequency (float): Oscillator frequency.
-        - model.parameters.holstein_lattice_h_qc_dimensionless_coupling (float): 
+        - constants.holstein_lattice_h_qc_num_sites (int): Number of sites.
+        - constants.holstein_lattice_h_qc_oscillator_frequency (float): Oscillator frequency.
+        - constants.holstein_lattice_h_qc_dimensionless_coupling (float): 
         Dimensionless coupling.
 
     Related functions:
         - :func:`holstein_lattice_dh_qc_dzc_vectorized`
     """
     z_coord = kwargs["z_coord"]
-    num_sites = model.parameters.holstein_lattice_h_qc_num_sites
-    oscillator_frequency = model.parameters.holstein_lattice_h_qc_oscillator_frequency
+    num_sites = constants.holstein_lattice_h_qc_num_sites
+    oscillator_frequency = constants.holstein_lattice_h_qc_oscillator_frequency
     dimensionless_coupling = (
-        model.parameters.holstein_lattice_h_qc_dimensionless_coupling
+        constants.holstein_lattice_h_qc_dimensionless_coupling
     )
     dh_qc_dzc = np.zeros((num_sites, num_sites, num_sites), dtype=complex)
     np.einsum("iii->i", dh_qc_dzc)[...] = (

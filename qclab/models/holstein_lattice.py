@@ -18,19 +18,19 @@ class HolsteinLatticeModel(Model):
         }
         super().__init__(self.default_parameters, parameters)
 
-    def update_model_parameters(self):
-        self.parameters.w = self.parameters.w * np.ones(self.parameters.N)
-        self.parameters.g = self.parameters.g * np.ones(self.parameters.N)
-        self.parameters.mass = self.parameters.phonon_mass * np.ones(self.parameters.N)
-        self.parameters.num_classical_coordinates = self.parameters.N
-        self.parameters.pq_weight = self.parameters.w
-        self.parameters.nearest_neighbor_lattice_h_q_num_sites = self.parameters.N
-        self.parameters.nearest_neighbor_lattice_h_q_hopping_energy = self.parameters.j
-        self.parameters.nearest_neighbor_lattice_h_q_periodic_boundary = \
-            self.parameters.periodic_boundary
-        self.parameters.holstein_lattice_h_qc_num_sites = self.parameters.N
-        self.parameters.holstein_lattice_h_qc_oscillator_frequency = self.parameters.w
-        self.parameters.holstein_lattice_h_qc_dimensionless_coupling = self.parameters.g
+    def update_model_constants(self):
+        self.constants.w = self.constants.w * np.ones(self.constants.N)
+        self.constants.g = self.constants.g * np.ones(self.constants.N)
+        self.constants.mass = self.constants.phonon_mass * np.ones(self.constants.N)
+        self.constants.num_classical_coordinates = self.constants.N
+        self.constants.pq_weight = self.constants.w
+        self.constants.nearest_neighbor_lattice_h_q_num_sites = self.constants.N
+        self.constants.nearest_neighbor_lattice_h_q_hopping_energy = self.constants.j
+        self.constants.nearest_neighbor_lattice_h_q_periodic_boundary = \
+            self.constants.periodic_boundary
+        self.constants.holstein_lattice_h_qc_num_sites = self.constants.N
+        self.constants.holstein_lattice_h_qc_oscillator_frequency = self.constants.w
+        self.constants.holstein_lattice_h_qc_dimensionless_coupling = self.constants.g
 
 
     h_q_vectorized = ingredients.nearest_neighbor_lattice_h_q_vectorized

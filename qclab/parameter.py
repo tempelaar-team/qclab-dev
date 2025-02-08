@@ -1,17 +1,17 @@
 """
-This file contains the Parameter class, which is used to handle 
-parameters and trigger updates when parameters change.
+This file contains the Constants class, which is used to handle 
+constants and trigger updates automatically when constants change.
 """
 
-class Parameter:
+class Constants:
     """
-    Class to handle parameters and trigger updates when parameters change.
+    Class to handle constants and trigger updates when constants change.
 
     Attributes:
         _updating (bool): Flag to prevent recursion.
         _init_complete (bool): Flag to prevent running update_function until initialization 
             is complete.
-        _update_function (function): The function to call when parameters are updated.
+        _update_function (function): The function to call when constants are updated.
     """
 
     def __init__(self, update_function=None):
@@ -19,7 +19,7 @@ class Parameter:
         Initializes the ParameterClass with an update function.
 
         Args:
-            update_function (function): The function to call when parameters are updated.
+            update_function (function): The function to call when constants are updated.
         """
         # Flag to prevent recursion
         self._updating = False
