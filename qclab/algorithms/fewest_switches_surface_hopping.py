@@ -25,7 +25,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             lambda sim, parameters, state: tasks.initialize_z_coord(sim=sim, parameters=parameters, state=state, seed=state.seed),
             lambda sim, parameters, state: tasks.broadcast_var_to_branch_vectorized(sim=sim, parameters=parameters, state=state, val=state.z_coord,name='z_coord_branch'),
             lambda sim, parameters, state: tasks.broadcast_var_to_branch_vectorized(sim=sim, parameters=parameters, state=state, val=state.wf_db,name='wf_db_branch'),
-            lambda sim, parameters, state: tasks.update_h_quantum_vectorized(sim=sim, parameters=parameters, state=state, z_coord=state.z_coord_branch),
+            lambda sim, parameters, state: tasks.update_h_quantum(sim=sim, parameters=parameters, state=state, z_coord=state.z_coord_branch),
             lambda sim, parameters, state: tasks.diagonalize_matrix_vectorized(sim=sim, parameters=parameters, state=state, matrix=state.h_quantum,eigvals_name='eigvals', eigvecs_name='eigvecs'),
             lambda sim, parameters, state: tasks.gauge_fix_eigs_vectorized(sim=sim, parameters=parameters, state=state, eigvals=state.eigvals,eigvecs=state.eigvecs, eigvecs_previous=state.eigvecs,output_eigvecs_name='eigvecs', z_coord=state.z_coord_branch,gauge_fixing=2),
             lambda sim, parameters, state: tasks.copy_value_vectorized(sim=sim, parameters=parameters, state=state, val=state.eigvecs,name='eigvecs_previous'),
@@ -41,7 +41,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         self.update_recipe = [
             lambda sim, parameters, state: tasks.copy_value_vectorized(sim=sim, parameters=parameters, state=state, val=state.eigvecs,name='eigvecs_previous'),
             lambda sim, parameters, state: tasks.copy_value_vectorized(sim=sim, parameters=parameters, state=state, val=state.eigvals,name='eigvals_previous'),
-            lambda sim, parameters, state: tasks.update_z_coord_rk4_vectorized(sim=sim, parameters=parameters, state=state, wf=state.act_surf_wf,z_coord=state.z_coord_branch,output_name='z_coord_branch',update_quantum_classical_forces_bool=False),
+            lambda sim, parameters, state: tasks.update_z_coord_rk4(sim=sim, parameters=parameters, state=state, wf=state.act_surf_wf,z_coord=state.z_coord_branch,output_name='z_coord_branch',update_quantum_classical_forces_bool=False),
             lambda sim, parameters, state: tasks.update_wf_db_eigs_vectorized(
                 sim=sim, parameters=parameters, state=state,
                 wf_db=state.wf_db_branch,
@@ -49,7 +49,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
                 eigvecs=state.eigvecs,
                 adb_name='wf_adb_branch',
                 output_name='wf_db_branch'),
-            lambda sim, parameters, state: tasks.update_h_quantum_vectorized(sim=sim, parameters=parameters, state=state, z_coord=state.z_coord_branch),
+            lambda sim, parameters, state: tasks.update_h_quantum(sim=sim, parameters=parameters, state=state, z_coord=state.z_coord_branch),
             lambda sim, parameters, state: tasks.diagonalize_matrix_vectorized(sim=sim, parameters=parameters, state=state, matrix=state.h_quantum,eigvals_name='eigvals', eigvecs_name='eigvecs'),
             lambda sim, parameters, state: tasks.gauge_fix_eigs_vectorized(sim=sim, parameters=parameters, state=state, eigvals=state.eigvals,eigvecs=state.eigvecs,eigvecs_previous=state.eigvecs_previous,output_eigvecs_name='eigvecs', z_coord=state.z_coord_branch,gauge_fixing=sim.algorithm.settings.gauge_fixing),
             tasks.update_active_surface_fssh,

@@ -28,15 +28,15 @@ class MeanField(Algorithm):
             lambda sim, parameters, state: tasks.initialize_z_coord(
                 sim=sim, parameters=parameters, state=state, seed=state.seed
             ),
-            lambda sim, parameters, state: tasks.update_h_quantum_vectorized(
+            lambda sim, parameters, state: tasks.update_h_quantum(
                 sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
             ),
         ]
         self.update_recipe = [
-            lambda sim, parameters, state: tasks.update_h_quantum_vectorized(
+            lambda sim, parameters, state: tasks.update_h_quantum(
                 sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
             ),
-            lambda sim, parameters, state: tasks.update_z_coord_rk4_vectorized(
+            lambda sim, parameters, state: tasks.update_z_coord_rk4(
                 sim=sim,
                 parameters=parameters,
                 state=state,
@@ -45,14 +45,14 @@ class MeanField(Algorithm):
                 wf=state.wf_db,
                 update_quantum_classical_forces_bool=False,
             ),
-            tasks.update_wf_db_rk4_vectorized,
+            tasks.update_wf_db_rk4,
         ]
         self.output_recipe = [
-            tasks.update_dm_db_mf_vectorized,
-            lambda sim, parameters, state: tasks.update_quantum_energy_mf_vectorized(
+            tasks.update_dm_db_mf,
+            lambda sim, parameters, state: tasks.update_quantum_energy_mf(
                 sim=sim, parameters=parameters, state=state, wf=state.wf_db
             ),
-            lambda sim, parameters, state: tasks.update_classical_energy_vectorized(
+            lambda sim, parameters, state: tasks.update_classical_energy(
                 sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
             ),
         ]

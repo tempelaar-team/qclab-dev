@@ -222,7 +222,7 @@ def update_quantum_classical_forces_vectorized(sim, parameters, state, **kwargs)
     return parameters, state
 
 
-def update_z_coord_rk4_vectorized(sim, parameters, state, **kwargs):
+def update_z_coord_rk4(sim, parameters, state, **kwargs):
     """
     Update the z-coordinates using the 4th-order Runge-Kutta method (vectorized).
 
@@ -276,7 +276,7 @@ def update_z_coord_rk4_vectorized(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-def update_h_quantum_vectorized(sim, parameters, state, **kwargs):
+def update_h_quantum(sim, parameters, state, **kwargs):
     z_coord = kwargs.get("z_coord", state.z_coord)
     parameters.z_coord = z_coord
     ingredient = sim.model.h_q
@@ -320,7 +320,7 @@ def mat_vec_branch(mat, vec):
     return np.sum(mat * vec[:, np.newaxis, :], axis=-1)
 
 
-def update_wf_db_rk4_vectorized(sim, parameters, state, **kwargs):
+def update_wf_db_rk4(sim, parameters, state, **kwargs):
     """
     Update the wavefunction using the 4th-order Runge-Kutta method (vectorized).
 
@@ -344,7 +344,7 @@ def update_wf_db_rk4_vectorized(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-def update_dm_db_mf_vectorized(sim, parameters, state, **kwargs):
+def update_dm_db_mf(sim, parameters, state, **kwargs):
     """
     Update the density matrix in the mean-field approximation (vectorized).
 
@@ -362,7 +362,7 @@ def update_dm_db_mf_vectorized(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-def update_classical_energy_vectorized(sim, parameters, state, **kwargs):
+def update_classical_energy(sim, parameters, state, **kwargs):
     z_coord = kwargs["z_coord"]
     ingredient = sim.model.h_c
     vectorized = True
@@ -418,25 +418,7 @@ def update_classical_energy_fssh_vectorized(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-def update_quantum_energy_mf(sim, state, **kwargs):
-    """
-    Update the quantum energy.
-
-    Args:
-        sim (Simulation): The simulation object.
-        state (State): The state object.
-        **kwargs: Additional keyword arguments.
-
-    Returns:
-        State: The updated state object.
-    """
-    del sim
-    wf = kwargs["wf"]
-    state.quantum_energy = np.matmul(np.conj(wf), np.matmul(state.h_quantum, wf))
-    return state
-
-
-def update_quantum_energy_mf_vectorized(sim, parameters, state, **kwargs):
+def update_quantum_energy_mf(sim, parameters, state, **kwargs):
     """
     Update the quantum energy.
 
