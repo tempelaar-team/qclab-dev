@@ -21,10 +21,18 @@ def harmonic_oscillator_h_c_vectorized(model, constants, parameters, **kwargs):
     Related functions:
         - :func:`harmonic_oscillator_h_c`
     """
-    z_coord = kwargs["z_coord"]
-    h_c = np.sum(
-        constants.pq_weight[..., :] * np.conjugate(z_coord) * z_coord, axis=-1
-    )
+
+    z = kwargs.get('z_coord', parameters.z_coord)
+    h = constants.pq_weight[np.newaxis,:]
+    w = constants.harmonic_oscillator_frequency[np.newaxis,:]
+    m = constants.harmonic_oscillator_mass[np.newaxis,:]
+    q = np.sqrt(2/(m*h))*np.real(z)
+    p = np.sqrt(2*m*h)*np.imag(z)
+    h_c = np.sum((1/2)*(((p**2)/m) + m*(w**2)*(q**2)), axis=-1)
+    #z_coord = kwargs["z_coord"]
+    #h_c = np.sum(
+    #    constants.pq_weight[..., :] * np.conjugate(z_coord) * z_coord, axis=-1
+    #)
     return h_c
 
 
@@ -180,6 +188,43 @@ def holstein_lattice_dh_qc_dzc_vectorized(model, constants, parameters, **kwargs
     return dh_qc_dzc
 
 
+def numerical_fssh_hop(model, constants, parameters, **kwargs):
+    z_coord = kwargs["z_coord"]
+    delta_z_coord = kwargs["delta_z_coord"]
+    ev_diff = kwargs["ev_diff"]
+    hopped = False
+    delta_zc_coord = np.conj(delta_z_coord)
+    zc = np.conj(z_coord)
+    warnings.warn("Hop function excludes mass, check it", UserWarning)
+
+    gamma_range = constants.numerical_fssh_hop_gamma_range
+    num_iter = constants.numerical_fssh_hop_num_iter
+    num_points = constants.numerical_fssh_hop_num_points
+
+    init_energy = model.h_c(constants, parameters, z_coord=z_coord)
+
+    min_gamma = 0
+    for iter in range(num_iter):
+        gamma_list = np.linspace(min_gamma-gamma_range,min_gamma+gamma_range,num_points)
+        new_energies = np.abs(ev_diff - np.array([init_energy - model.h_c(constants,parameters,z_coord=z_coord-1.0j*gamma*delta_z_coord) for gamma in gamma_list]))
+        min_gamma = gamma_list[np.argmin(new_energies)]
+        min_energy = np.min(new_energies)
+        gamma_range = gamma_range/2
+
+    if min_energy > 1/num_points:
+        #print('rejected hop', min_energy)
+    
+        return z_coord, False 
+    else:
+        #print('accepted hop', min_energy)
+        return z_coord - 1.0j*min_gamma*delta_z_coord, True
+    
+
+
+
+    z_coord = z_coord - 1.0j * np.real(gamma) * delta_z_coord
+
+
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     """
     Perform a hopping operation for the harmonic oscillator.
@@ -253,12 +298,16 @@ def harmonic_oscillator_boltzmann_init_classical(model, constants, parameters, *
     """
     seed = kwargs.get("seed", None)
     kBT = constants.temp
-    m = constants.mass
+    #m = constants.mass
+    #h = constants.pq_weight
+
     h = constants.pq_weight
+    w = constants.harmonic_oscillator_frequency
+    m = constants.harmonic_oscillator_mass
     np.random.seed(seed)
     q = np.random.normal(
         loc=0,
-        scale=np.sqrt(kBT / (m * (h**2))),
+        scale=np.sqrt(kBT / (m * (w**2))),
         size=constants.num_classical_coordinates)
     p = np.random.normal(
         loc=0,
@@ -267,31 +316,94 @@ def harmonic_oscillator_boltzmann_init_classical(model, constants, parameters, *
     z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
     return z
 
+
 def numerical_boltzmann_init_classical(model, constants, parameters, **kwargs):
+    seed = kwargs.get("seed", None)
+    np.random.seed(seed)
+    rand_val = np.random.rand()
+    num_points = constants.numerical_boltzmann_init_classical_num_points
+    max_amplitude = constants.numerical_boltzmann_init_classical_max_amplitude
+    grid = 2*max_amplitude*(np.random.rand(num_points)-0.5)#np.linspace(-max_amplitude, max_amplitude, num_points)
+    kinetic_grid = 1.0j*grid
+    potential_grid = grid
+    z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
+
+    parameters.z_coord = np.zeros(constants.num_classical_coordinates) + 0.0j
+    for n in range(constants.num_classical_coordinates):
+        # construct grid for kinetic points
+        kinetic_points = np.zeros((num_points, constants.num_classical_coordinates), dtype=complex)
+        # construct grid for potential points
+        potential_points = np.zeros((num_points, constants.num_classical_coordinates), dtype=complex)
+        for p in range(num_points):
+            kinetic_points[p,n] = kinetic_grid[p]
+            potential_points[p,n] = potential_grid[p]
+        # calculate kinetic energies on the grid
+        kinetic_energies = np.array([model.h_c(constants, parameters, z_coord = kinetic_points[p]) for p in range(num_points)])
+        boltz_facs = np.exp(-kinetic_energies/constants.temp)
+        boltz_facs = boltz_facs/np.sum(boltz_facs)
+        # calculate cumulative distribution
+        tot = 0 
+        for k in range(num_points):
+            tot += boltz_facs[k]
+            if rand_val <= tot:
+                z_out[n] += kinetic_grid[k]
+                break
+        # calculate potential energies on the grid
+        potential_energies = np.array([model.h_c(constants, parameters, z_coord = potential_points[p]) for p in range(num_points)])
+        boltz_facs = np.exp(-potential_energies/constants.temp)
+        boltz_facs = boltz_facs/np.sum(boltz_facs)
+        # calculate cumulative distribution
+        tot = 0 
+        for p in range(num_points):
+            tot += boltz_facs[p]
+            if rand_val <= tot:
+                z_out[n] += potential_grid[p]
+                break
+    return z_out
+
+
+def numerical_boltzmann_init_classical_(model, constants, parameters, **kwargs):
     """
     This function samples a discrete probability distribution 
     approximating the Boltzmann distribution of the classical 
     Hamiltonian function.
     """
+    # TODO rigorously validate this function
+    warnings.warn('Using numerical boltzmann', UserWarning)
     seed = kwargs.get("seed", None)
     np.random.seed(seed)
     rand_val = np.random.rand()
-    num_points = 1000
-    amplitudes = 4*(np.random.rand(num_points, constants.num_classical_coordinates)-0.5)
-    phases = np.exp(1.0j*2*np.pi*np.random.rand(num_points, constants.num_classical_coordinates))
-    z_list = amplitudes * phases
-    classical_energies = np.zeros(num_points)
+    num_points = constants.numerical_boltzmann_init_classical_num_points
+    max_amplitude = constants.numerical_boltzmann_init_classical_max_amplitude
+    #amplitudes = max_amplitude*np.random.rand(num_points, constants.num_classical_coordinates)
+    #phases = np.exp(1.0j*2*np.pi*np.random.rand(num_points, constants.num_classical_coordinates))
+    #line = np.linspace(0, max_amplitude, num_points)
+    #angles = np.exp(1.0j*2*np.pi*np.linspace(0,1, num_points))
+    #z_list = (line[:,np.newaxis]*angles[np.newaxis,:]).flatten()
+    #print(z_list)
+    #q_list = np.linspace(-max_amplitude,max_amplitude,num_points)
+    #p_list = np.linspace(-max_amplitude,)
+    #z_list = amplitudes * phases
+    random_points = 2*max_amplitude*(np.random.rand(num_points, constants.num_classical_coordinates)-1)
+    im_points = 1.0j*random_points
+    re_points = random_points
+    kinetic_energies = np.zeros(num_points)
+    parameters.z_coord = np.zeros(constants.num_classical_coordinates) + 0.0j
     for n in range(num_points):
-        classical_energies[n] = np.real(model.h_c(z_coord = z_list[n]))
+        kinetic_energies[n] = np.real(model.h_c(constants, parameters, z_coord = z_list[n]))
     boltz_facs = np.exp(-classical_energies/constants.temp)
     boltz_facs = boltz_facs/np.sum(boltz_facs)
+    #import matplotlib.pyplot as plt
+    #plt.hist(boltz_facs,bins=100)
+    #plt.show()
     cumulant = 0
     for n in range(num_points):
         cumulant += boltz_facs[n]
         if cumulant >= rand_val:
-            z = z_list[n]
-            break
-    return z
+            return z_list[n]
+    #        z = z_list[n]
+    #        break
+    #return z
 
 def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kwargs):
     """
@@ -360,10 +472,14 @@ def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     Related functions:
         - :func:`harmonic_oscillator_h_c_vectorized`
     """
-    z_coord = kwargs["z_coord"]
-    h = constants.pq_weight
     z = kwargs.get('z_coord', parameters.z_coord)
-    h_c = np.sum(h * np.conjugate(z) * z)
+    h = constants.pq_weight
+    w = constants.harmonic_oscillator_frequency
+    m = constants.harmonic_oscillator_mass
+    q = np.sqrt(2/(m*h))*np.real(z)
+    p = np.sqrt(2*m*h)*np.imag(z)
+    h_c = np.sum((1/2)*(((p**2)/m) + m*(w**2)*(q**2)))
+    #h_c = np.sum(h * np.conjugate(z) * z)
     return h_c
 
 
