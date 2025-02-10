@@ -184,6 +184,7 @@ def holstein_lattice_dh_qc_dzc_vectorized(model, constants, parameters, **kwargs
 
 
 def numerical_fssh_hop(model, constants, parameters, **kwargs):
+    # TODO vectorize this?
     z_coord = kwargs["z_coord"]
     delta_z_coord = kwargs["delta_z_coord"]
     ev_diff = kwargs["ev_diff"]
@@ -233,6 +234,7 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
 
 
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
+    # TODO vectorize this?
     """
     Perform a hopping operation for the harmonic oscillator.
 
@@ -309,17 +311,20 @@ def harmonic_oscillator_boltzmann_init_classical(
     h = constants.pq_weight
     w = constants.harmonic_oscillator_frequency
     m = constants.harmonic_oscillator_mass
-    np.random.seed(seed)
-    q = np.random.normal(
-        loc=0,
-        scale=np.sqrt(kBT / (m * (w**2))),
-        size=(len(seed), constants.num_classical_coordinates),
-    )
-    p = np.random.normal(
-        loc=0, scale=np.sqrt(kBT), size=(len(seed), constants.num_classical_coordinates)
-    )
-    z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
-    return z
+    out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
+    for s in range(len(seed)):
+        np.random.seed(seed[s])
+        q = np.random.normal(
+            loc=0,
+            scale=np.sqrt(kBT / (m * (w**2))),
+            size=(constants.num_classical_coordinates),
+        )
+        p = np.random.normal(
+            loc=0, scale=np.sqrt(kBT), size=(constants.num_classical_coordinates)
+        )
+        z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
+        out[s] = z
+    return out
 
 
 def harmonic_oscillator_boltzmann_init_classical_(
