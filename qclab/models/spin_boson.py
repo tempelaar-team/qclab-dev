@@ -103,6 +103,6 @@ class SpinBosonModel(Model):
     # Assigning functions from ingredients module
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
     hop_function = ingredients.harmonic_oscillator_hop
-    h_c = ingredients.harmonic_oscillator_h_c_vectorized
-    h_q = ingredients.two_level_system_h_q_vectorized
-    dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc_vectorized
+    h_c = ingredients.harmonic_oscillator_h_c
+    h_q = ingredients.two_level_system_h_q
+    dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
