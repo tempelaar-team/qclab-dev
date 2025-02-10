@@ -96,7 +96,7 @@ def apply_vectorized_ingredient_over_internal_axes(
                     for n in range(np.prod(internal_shape))
                 ]
             ),
-        )
+        optimize="greedy")
         val_vec = np.array(
             [
                 val_vec[n].reshape((*internal_shape, *np.shape(val_vec)[2:]))
@@ -206,9 +206,9 @@ def update_quantum_classical_forces(sim, parameters, state, **kwargs):
     parameters, state = update_dh_qc_dzc(sim, parameters, state, z_coord=z_coord)
     state.quantum_classical_forces = np.einsum(
         "...nj,...j->...n",
-        np.einsum("...nji,...i->...nj", state.dh_qc_dzc, wf),
+        np.einsum("...nji,...i->...nj", state.dh_qc_dzc, wf, optimize='greedy'),
         np.conj(wf),
-    )
+    optimize='greedy')
     return parameters, state
 
 
@@ -348,7 +348,7 @@ def update_dm_db_mf(sim, parameters, state, **kwargs):
     """
     del sim, kwargs
     wf_db = state.wf_db
-    state.dm_db = np.einsum("...i,...j->...ij", wf_db, np.conj(wf_db))
+    state.dm_db = np.einsum("...i,...j->...ij", wf_db, np.conj(wf_db), optimize='greedy')
     return parameters, state
 
 
@@ -413,8 +413,8 @@ def update_quantum_energy_mf(sim, parameters, state, **kwargs):
     del sim
     wf = kwargs["wf"]
     state.quantum_energy = np.einsum(
-        "...i,...ij,...j->...", np.conj(wf), state.h_quantum, wf
-    )
+        "...i,...ij,...j->...", np.conj(wf), state.h_quantum, wf,
+        optimize='greedy')
     return parameters, state
 
 
@@ -425,7 +425,7 @@ def update_quantum_energy_fssh(sim, parameters, state, **kwargs):
         np.conj(state.act_surf_wf),
         state.h_quantum,
         state.act_surf_wf,
-    )
+    optimize='greedy')
     return parameters, state
 
 
@@ -469,7 +469,7 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
         der_couple_zc = np.ascontiguousarray(
             np.einsum(
                 "...i,...nij,...j->...n", np.conj(evec_i), state.dh_qc_dzc, evec_j
-            )
+            ,optimize='greedy')
             / ((ev_diff + plus)[..., np.newaxis])
         )
         der_couple_z = np.ascontiguousarray(
@@ -478,7 +478,7 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
                 np.conj(evec_i),
                 np.einsum("...nij->...nji", state.dh_qc_dzc).conj(),
                 evec_j,
-            )
+            optimize='greedy')
             / ((ev_diff + plus)[..., np.newaxis])
         )
         der_couple_p = (
@@ -527,7 +527,7 @@ def gauge_fix_eigs(sim, parameters, state, **kwargs):
         phase = np.exp(
             -1.0j * np.angle(np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2))
         )
-        eigvecs = np.einsum("...ai,...i->...ai", eigvecs, phase)
+        eigvecs = np.einsum("...ai,...i->...ai", eigvecs, phase, optimize='greedy')
 
     if kwargs["gauge_fixing"] >= 2:
         z_coord = kwargs["z_coord"]
@@ -535,10 +535,10 @@ def gauge_fix_eigs(sim, parameters, state, **kwargs):
         der_couple_q_phase, _ = analytic_der_couple_phase(
             sim, parameters, state, eigvals, eigvecs
         )
-        eigvecs = np.einsum("...ai,...i->...ai", eigvecs, np.conj(der_couple_q_phase))
+        eigvecs = np.einsum("...ai,...i->...ai", eigvecs, np.conj(der_couple_q_phase), optimize='greedy')
     if kwargs["gauge_fixing"] >= 0:
         signs = np.sign(np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2))
-        eigvecs = np.einsum("...ai,...i->...ai", eigvecs, signs)
+        eigvecs = np.einsum("...ai,...i->...ai", eigvecs, signs, optimize='greedy')
     if kwargs["gauge_fixing"] == 2:
         der_couple_q_phase_new, der_couple_p_phase_new = analytic_der_couple_phase(
             sim, parameters, state, eigvals, eigvecs
@@ -693,7 +693,7 @@ def initialize_random_values_fssh(sim, parameters, state, **kwargs):
 def initialize_dm_adb_0_fssh(sim, parameters, state, **kwargs):
     del sim, kwargs
     state.dm_adb_0 = (
-        np.einsum("...i,...j->...ij", state.wf_adb_branch, np.conj(state.wf_adb_branch))
+        np.einsum("...i,...j->...ij", state.wf_adb_branch, np.conj(state.wf_adb_branch), optimize='greedy')
         + 0.0j
     )
     return parameters, state
@@ -870,8 +870,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
         np.conj(state.eigvecs[traj_ind, branch_ind, :, act_surf_ind_flat]),
         state.eigvecs_previous.reshape(
             (num_trajs * num_branches, num_states, num_states)
-        ),
-    )
+        ), optimize='greedy')
     hop_prob = -2 * np.real(
         prod
         * state.wf_adb_branch.reshape((num_trajs * num_branches, num_states))
@@ -924,7 +923,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                     np.conj(evec_k),
                     np.einsum("...nij->...nji", dh_qc_dzc[traj_ind]).conj(),
                     evec_j,
-                )
+                optimize='greedy')
                 / ev_diff[..., np.newaxis]
             )
             dkj_zc = (
@@ -933,7 +932,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                     np.conj(evec_k),
                     dh_qc_dzc[traj_ind],
                     evec_j,
-                )
+                optimize='greedy')
                 / ev_diff[..., np.newaxis]
             )
             dkj_p = (
@@ -1058,7 +1057,7 @@ def update_active_surface_fssh_(sim, parameters, state, **kwargs):
                         np.conj(evec_k),
                         np.einsum("...nij->...nji", state.dh_qc_dzc[i]).conj(),
                         evec_j,
-                    )
+                    optimize='greedy')
                     / ev_diff[..., np.newaxis]
                 )
                 dkj_zc = (
@@ -1067,7 +1066,7 @@ def update_active_surface_fssh_(sim, parameters, state, **kwargs):
                         np.conj(evec_k),
                         state.dh_qc_dzc[i],
                         evec_j,
-                    )
+                    optimize='greedy')
                     / ev_diff[..., np.newaxis]
                 )
                 dkj_p = (

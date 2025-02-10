@@ -184,7 +184,7 @@ def holstein_lattice_dh_qc_dzc_vectorized(model, constants, parameters, **kwargs
 
 
 def numerical_fssh_hop(model, constants, parameters, **kwargs):
-    # TODO vectorize this?
+    # TODO vectorize this? no...
     z_coord = kwargs["z_coord"]
     delta_z_coord = kwargs["delta_z_coord"]
     ev_diff = kwargs["ev_diff"]
@@ -234,7 +234,7 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
 
 
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
-    # TODO vectorize this?
+    # TODO vectorize this? no...
     """
     Perform a hopping operation for the harmonic oscillator.
 

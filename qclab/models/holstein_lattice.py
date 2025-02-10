@@ -33,14 +33,9 @@ class HolsteinLatticeModel(Model):
         self.constants.holstein_lattice_h_qc_dimensionless_coupling = self.constants.g
 
 
-    h_q_vectorized = ingredients.nearest_neighbor_lattice_h_q_vectorized
-    h_q = ingredients.nearest_neighbor_lattice_h_q
-    h_c = ingredients.harmonic_oscillator_h_c
-    dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
-    dh_c_dzc_vectorized = ingredients.harmonic_oscillator_dh_c_dzc_vectorized
-    h_c_vectorized = ingredients.harmonic_oscillator_h_c_vectorized
-    h_qc = ingredients.holstein_lattice_h_qc
-    h_qc_vectorized = ingredients.holstein_lattice_h_qc_vectorized
-    dh_qc_dzc = ingredients.holstein_lattice_dh_qc_dzc
-    dh_qc_dzc_vectorized = ingredients.holstein_lattice_dh_qc_dzc_vectorized
+    h_q = ingredients.nearest_neighbor_lattice_h_q_vectorized
+    dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc_vectorized
+    h_c = ingredients.harmonic_oscillator_h_c_vectorized
+    h_qc = ingredients.holstein_lattice_h_qc_vectorized
+    dh_qc_dzc = ingredients.holstein_lattice_dh_qc_dzc_vectorized
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
