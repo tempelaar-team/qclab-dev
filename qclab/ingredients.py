@@ -4,7 +4,7 @@ This file contains ingredient functions for use in Model classes.
 
 import warnings
 import numpy as np
-
+from tqdm import tqdm
 
 def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     """
@@ -101,8 +101,7 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
     return dh_qc_dzc
 
 
-def numerical_fssh_hop(model, constants, parameters, **kwargs):
-    # TODO vectorize this? no...
+def default_numerical_fssh_hop(model, constants, parameters, **kwargs):
     z_coord = kwargs["z_coord"]
     delta_z_coord = kwargs["delta_z_coord"]
     ev_diff = kwargs["ev_diff"]
@@ -149,7 +148,6 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
         return z_coord - 1.0j * min_gamma * delta_z_coord, True
 
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
-    # TODO vectorize this? no...
     """
     Perform a hopping operation for the harmonic oscillator.
 
@@ -241,67 +239,121 @@ def harmonic_oscillator_boltzmann_init_classical(
         out[s] = z
     return out
 
-
-
-def numerical_boltzmann_init_classical(model, constants, parameters, **kwargs):
+def default_numerical_boltzmann_init_classical_(model, constants, parameters, **kwargs):
     seed = kwargs.get("seed", None)
-    np.random.seed(seed)
-    rand_val = np.random.rand()
-    num_points = constants.numerical_boltzmann_init_classical_num_points
-    max_amplitude = constants.numerical_boltzmann_init_classical_max_amplitude
-    grid = (
-        2 * max_amplitude * (np.random.rand(num_points) - 0.5)
-    )  # np.linspace(-max_amplitude, max_amplitude, num_points)
-    kinetic_grid = 1.0j * grid
-    potential_grid = grid
-    z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
+    out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
+    for s, seed_value in enumerate(seed):
+        np.random.seed(seed_value)
+        rand_val = np.random.rand()
+        num_points = constants.numerical_boltzmann_init_classical_num_points
+        max_amplitude = constants.numerical_boltzmann_init_classical_max_amplitude
+        grid = 2 * max_amplitude * (np.random.rand(num_points) - 0.5)
+        kinetic_grid = 1.0j * grid
+        potential_grid = grid
+        z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
 
-    parameters.z_coord = np.zeros(constants.num_classical_coordinates) + 0.0j
-    for n in range(constants.num_classical_coordinates):
-        # construct grid for kinetic points
-        kinetic_points = np.zeros(
-            (num_points, constants.num_classical_coordinates), dtype=complex
-        )
-        # construct grid for potential points
-        potential_points = np.zeros(
-            (num_points, constants.num_classical_coordinates), dtype=complex
-        )
-        for p in range(num_points):
-            kinetic_points[p, n] = kinetic_grid[p]
-            potential_points[p, n] = potential_grid[p]
-        # calculate kinetic energies on the grid
-        kinetic_energies = np.array(
-            [
+        parameters.z_coord = np.zeros(constants.num_classical_coordinates) + 0.0j
+        for n in range(constants.num_classical_coordinates):
+            kinetic_points = np.zeros((num_points, constants.num_classical_coordinates), dtype=complex)
+            potential_points = np.zeros((num_points, constants.num_classical_coordinates), dtype=complex)
+            for p in range(num_points):
+                kinetic_points[p, n] = kinetic_grid[p]
+                potential_points[p, n] = potential_grid[p]
+
+            kinetic_energies = np.array([
                 model.h_c(constants, parameters, z_coord=kinetic_points[p])
                 for p in range(num_points)
-            ]
-        )
-        boltz_facs = np.exp(-kinetic_energies / constants.temp)
-        boltz_facs = boltz_facs / np.sum(boltz_facs)
-        # calculate cumulative distribution
-        tot = 0
-        for k in range(num_points):
-            tot += boltz_facs[k]
-            if rand_val <= tot:
-                z_out[n] += kinetic_grid[k]
-                break
-        # calculate potential energies on the grid
-        potential_energies = np.array(
-            [
+            ])
+            boltz_facs = np.exp(-kinetic_energies / constants.temp)
+            boltz_facs /= np.sum(boltz_facs)
+
+            tot = 0
+            for k, boltz_fac in enumerate(boltz_facs):
+                tot += boltz_fac
+                if rand_val <= tot:
+                    z_out[n] += kinetic_grid[k]
+                    break
+
+            potential_energies = np.array([
                 model.h_c(constants, parameters, z_coord=potential_points[p])
                 for p in range(num_points)
-            ]
-        )
-        boltz_facs = np.exp(-potential_energies / constants.temp)
-        boltz_facs = boltz_facs / np.sum(boltz_facs)
-        # calculate cumulative distribution
-        tot = 0
-        for p in range(num_points):
-            tot += boltz_facs[p]
-            if rand_val <= tot:
-                z_out[n] += potential_grid[p]
-                break
-    return z_out
+            ])
+            boltz_facs = np.exp(-potential_energies / constants.temp)
+            boltz_facs /= np.sum(boltz_facs)
+
+            tot = 0
+            for p, boltz_fac in enumerate(boltz_facs):
+                tot += boltz_fac
+                if rand_val <= tot:
+                    z_out[n] += potential_grid[p]
+                    break
+
+        out[s] = z_out
+    return out
+
+def default_numerical_boltzmann_init_classical(model, constants, parameters, **kwargs):
+    seed = kwargs.get("seed", None)
+    out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
+    for s in tqdm(range(len(seed))):
+        np.random.seed(seed[s])
+        rand_val = np.random.rand()
+        num_points = constants.numerical_boltzmann_init_classical_num_points
+        max_amplitude = constants.numerical_boltzmann_init_classical_max_amplitude
+        
+        z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
+
+        parameters.z_coord = np.zeros(constants.num_classical_coordinates) + 0.0j
+        for n in range(constants.num_classical_coordinates):
+            grid = (
+            2 * max_amplitude * (np.random.rand(num_points) - 0.5)
+            )  # np.linspace(-max_amplitude, max_amplitude, num_points)
+            kinetic_grid = 1.0j * grid
+            potential_grid = grid
+            # construct grid for kinetic points
+            kinetic_points = np.zeros(
+                (num_points, constants.num_classical_coordinates), dtype=complex
+            )
+            # construct grid for potential points
+            potential_points = np.zeros(
+                (num_points, constants.num_classical_coordinates), dtype=complex
+            )
+            for p in range(num_points):
+                kinetic_points[p, n] = kinetic_grid[p]
+                potential_points[p, n] = potential_grid[p]
+            # calculate kinetic energies on the grid
+            kinetic_energies = np.array(
+                [
+                    model.h_c(constants, parameters, z_coord=kinetic_points[p])
+                    for p in range(num_points)
+                ]
+            )
+            boltz_facs = np.exp(-kinetic_energies / constants.temp)
+            boltz_facs = boltz_facs / np.sum(boltz_facs)
+            # calculate cumulative distribution
+            tot = 0
+            for k in range(num_points):
+                tot += boltz_facs[k]
+                if rand_val <= tot:
+                    z_out[n] += kinetic_grid[k]
+                    break
+            # calculate potential energies on the grid
+            potential_energies = np.array(
+                [
+                    model.h_c(constants, parameters, z_coord=potential_points[p])
+                    for p in range(num_points)
+                ]
+            )
+            boltz_facs = np.exp(-potential_energies / constants.temp)
+            boltz_facs = boltz_facs / np.sum(boltz_facs)
+            # calculate cumulative distribution
+            tot = 0
+            for p in range(num_points):
+                tot += boltz_facs[p]
+                if rand_val <= tot:
+                    z_out[n] += potential_grid[p]
+                    break
+        out[s] = z_out
+    return out
 
 
 
