@@ -42,3 +42,4 @@ class HolsteinLatticeModel(Model):
     h_qc = ingredients.holstein_coupling_h_qc
     dh_qc_dzc = ingredients.holstein_coupling_dh_qc_dzc
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
+    hop_function = ingredients.harmonic_oscillator_hop
