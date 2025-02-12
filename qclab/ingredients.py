@@ -88,14 +88,20 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
     Calculate the derivative of the Holstein coupling Hamiltonian with
     respect to the z-coordinates.
     """
+    if 'dh_qc_dzc' in kwargs:
+        if kwargs['dh_qc_dzc'] is not None:
+            return kwargs['dh_qc_dzc']
     z_coord = kwargs["z_coord"]
     num_sites = constants.holstein_coupling_num_sites
     oscillator_frequency = constants.holstein_coupling_oscillator_frequency
     dimensionless_coupling = constants.holstein_coupling_dimensionless_coupling
+
     dh_qc_dzc = np.zeros(
-        (*np.shape(z_coord)[:-1], num_sites, num_sites, num_sites), dtype=complex
+        (len(z_coord), num_sites, num_sites, num_sites), dtype=complex
     )
-    np.einsum("...iii->...i", dh_qc_dzc)[...] = (
+
+
+    np.einsum("tiii->ti", dh_qc_dzc, optimize='greedy')[...] = (
         dimensionless_coupling * oscillator_frequency
     )[..., :] * (np.ones_like(z_coord)) + 0.0j
     return dh_qc_dzc
