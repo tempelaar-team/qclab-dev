@@ -19,7 +19,8 @@ class Model:
         if constants is None:
             constants = {}
 
-        internal_defaults = {'temp': 1,'classical_mass':1,'classical_frequency':1,'num_classical_coordinates':1,
+        internal_defaults = {'temp': 1,'classical_mass':1,'classical_frequency':1,
+                             'num_classical_coordinates':1,
                                  'numerical_boltzmann_init_classical_num_points':100,
                                  'numerical_boltzmann_init_classical_max_amplitude':5,
                                  'numerical_fssh_hop_gamma_range':5,
@@ -72,7 +73,7 @@ class Model:
     h_c = ingredients.harmonic_oscillator_h_c
     dh_c_dzc = ingredients.dh_c_dzc_finite_differences
     dh_qc_dzc = ingredients.dh_qc_dzc_finite_differences
-    #init_classical = ingredients.numerical_boltzmann_init_classical
-    init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
-    hop_function = ingredients.numerical_fssh_hop
+    init_classical = ingredients.default_numerical_boltzmann_init_classical
+    #init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
+    #hop_function = ingredients.default_numerical_fssh_hop
     

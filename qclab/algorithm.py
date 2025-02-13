@@ -72,66 +72,21 @@ class Algorithm:
 
     def execute_initialization_recipe(self, sim, parameter_vector, state_vector):
         for ind, func in enumerate(sim.algorithm.initialization_recipe):
-            if sim.algorithm.initialization_recipe_vectorized_bool[ind]:
-                parameter_vector, state_vector = func(
+            parameter_vector, state_vector = func(
                     sim, parameter_vector, state_vector
                 )
-                parameter_vector.make_consistent()
-                state_vector.make_consistent()
-            else:
-                for traj_ind in range(sim.settings.batch_size):
-                    (
-                        parameter_vector._element_list[traj_ind],
-                        state_vector._element_list[traj_ind],
-                    ) = func(
-                        sim,
-                        parameter_vector._element_list[traj_ind],
-                        state_vector._element_list[traj_ind],
-                    )
-                parameter_vector.make_consistent()
-                state_vector.make_consistent()
         return parameter_vector, state_vector
 
     def execute_update_recipe(self, sim, parameter_vector, state_vector):
         for ind, func in enumerate(sim.algorithm.update_recipe):
-            if sim.algorithm.update_recipe_vectorized_bool[ind]:
-                parameter_vector, state_vector = func(
-                    sim, parameter_vector, state_vector
-                )
-                parameter_vector.make_consistent()
-                state_vector.make_consistent()
-            else:
-                for traj_ind in range(sim.settings.batch_size):
-                    (
-                        parameter_vector._element_list[traj_ind],
-                        state_vector._element_list[traj_ind],
-                    ) = func(
-                        sim,
-                        parameter_vector._element_list[traj_ind],
-                        state_vector._element_list[traj_ind],
-                    )
-                parameter_vector.make_consistent()
-                state_vector.make_consistent()
+            parameter_vector, state_vector = func(
+                sim, parameter_vector, state_vector
+            )
         return parameter_vector, state_vector
 
     def execute_output_recipe(self, sim, parameter_vector, state_vector):
         for ind, func in enumerate(sim.algorithm.output_recipe):
-            if sim.algorithm.output_recipe_vectorized_bool[ind]:
-                parameter_vector, state_vector = func(
-                    sim, parameter_vector, state_vector
-                )
-                parameter_vector.make_consistent()
-                state_vector.make_consistent()
-            else:
-                for traj_ind in range(sim.settings.batch_size):
-                    (
-                        parameter_vector._element_list[traj_ind],
-                        state_vector._element_list[traj_ind],
-                    ) = func(
-                        sim,
-                        parameter_vector._element_list[traj_ind],
-                        state_vector._element_list[traj_ind],
-                    )
-                parameter_vector.make_consistent()
-                state_vector.make_consistent()
+            parameter_vector, state_vector = func(
+                sim, parameter_vector, state_vector
+            )
         return parameter_vector, state_vector
