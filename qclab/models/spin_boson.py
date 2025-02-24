@@ -35,54 +35,57 @@ class SpinBosonModel(Model):
         }
         super().__init__(self.default_constants, constants)
 
-    def update_model_constants(self):
-        """
-        Update model constants based on the current constant values.
-        """
+    def initialize_constants_model(self):
+        self.constants.num_classical_coordinates = self.constants.A
+        self.constants.num_quantum_states = 2
         self.constants.w = self.constants.W * np.tan(
             ((np.arange(self.constants.A) + 1) - 0.5) * np.pi / (2 * self.constants.A)
-        )  # Classical oscillator frequency
+        )
+        self.constants.classical_coordinate_weight = self.constants.w
+        self.constants.classical_coordinate_mass = self.constants.boson_mass * np.ones(
+            self.constants.A
+        )
+
+    def initialize_constants_h_c(self):
+        self.constants.harmonic_oscillator_frequency = self.constants.w
+
+    def initialize_constants_h_qc(self):
         self.constants.g = self.constants.w * np.sqrt(
             2 * self.constants.l_reorg / self.constants.A
         )  # Electron-phonon coupling
-        # Diagonal energy of state 0
+
+    def initialize_constants_h_q(self):
         self.constants.two_level_system_a = self.constants.E
-        # Diagonal energy of state 1
         self.constants.two_level_system_b = -self.constants.E
-        # Real part of the off-diagonal coupling
         self.constants.two_level_system_c = self.constants.V
-        # Imaginary part of the off-diagonal coupling
         self.constants.two_level_system_d = 0
-        self.constants.pq_weight = self.constants.w
-        self.constants.num_classical_coordinates = self.constants.A
-        self.constants.mass = np.ones(self.constants.A) * self.constants.boson_mass
-        self.constants.harmonic_oscillator_frequency = self.constants.w
-        self.constants.harmonic_oscillator_mass = self.constants.mass
 
-    def h_qc_unvectorized(self, constants, parameters, **kwargs):
-        z = kwargs.get("z_coord", parameters.z_coord)
-        g = constants.g
-        m = constants.mass
-        h = constants.pq_weight
-        h_qc = np.zeros((2, 2), dtype=complex)
-        h_qc[0, 0] = np.sum(g * np.sqrt(1 / (2 * m * h)) * (z + np.conj(z)))
-        h_qc[1, 1] = -h_qc[0, 0]
-        return h_qc
+    # @ingredients.vectorize_ingredient
+    # def h_qc(self, constants, parameters, **kwargs):
+    #     z = kwargs.get("z_coord", parameters.z_coord)
+    #     g = constants.g
+    #     m = constants.classical_coordinate_mass
+    #     h = constants.classical_coordinate_weight
+    #     h_qc = np.zeros((2, 2), dtype=complex)
+    #     h_qc[0, 0] = np.sum(g * np.sqrt(1 / (2 * m * h)) * (z + np.conj(z)))
+    #     h_qc[1, 1] = -h_qc[0, 0]
+    #     return h_qc
 
-    def dh_qc_dzc_unvectorized(self, constants, parameters, **kwargs):
-        m = constants.mass
-        g = constants.g
-        h = constants.pq_weight
-        dh_qc_dzc = np.zeros((constants.A, 2, 2), dtype=complex)
-        dh_qc_dzc[:, 0, 0] = g * np.sqrt(1 / (2 * m * h))
-        dh_qc_dzc[:, 1, 1] = -dh_qc_dzc[:, 0, 0]
-        return dh_qc_dzc
+    # @ingredients.vectorize_ingredient
+    # def dh_qc_dzc(self, constants, parameters, **kwargs):
+    #     m = constants.classical_coordinate_mass
+    #     g = constants.g
+    #     h = constants.classical_coordinate_weight
+    #     dh_qc_dzc = np.zeros((constants.A, 2, 2), dtype=complex)
+    #     dh_qc_dzc[:, 0, 0] = g * np.sqrt(1 / (2 * m * h))
+    #     dh_qc_dzc[:, 1, 1] = -dh_qc_dzc[:, 0, 0]
+    #     return dh_qc_dzc
 
     def h_qc(self, constants, parameters, **kwargs):
         z = kwargs.get("z_coord", parameters.z_coord)
         g = constants.g
-        m = constants.mass
-        h = constants.pq_weight
+        m = constants.classical_coordinate_mass
+        h = constants.classical_coordinate_weight
         h_qc = np.zeros((len(z), 2, 2), dtype=complex)
         h_qc[:, 0, 0] = np.sum(
             g * np.sqrt(1 / (2 * m * h))[np.newaxis, :] * (z + np.conj(z)), axis=-1
@@ -91,9 +94,9 @@ class SpinBosonModel(Model):
         return h_qc
 
     def dh_qc_dzc(self, constants, parameters, **kwargs):
-        m = constants.mass
+        m = constants.classical_coordinate_mass
         g = constants.g
-        h = constants.pq_weight
+        h = constants.classical_coordinate_weight
         batch_size = len(parameters.seed)
         dh_qc_dzc = np.zeros((batch_size, constants.A, 2, 2), dtype=complex)
         dh_qc_dzc[:, :, 0, 0] = (g * np.sqrt(1 / (2 * m * h)))[..., :]
@@ -106,3 +109,9 @@ class SpinBosonModel(Model):
     h_c = ingredients.harmonic_oscillator_h_c
     h_q = ingredients.two_level_system_h_q
     dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
+    initialization_functions = [
+        initialize_constants_model,
+        initialize_constants_h_c,
+        initialize_constants_h_qc,
+        initialize_constants_h_q,
+    ]
