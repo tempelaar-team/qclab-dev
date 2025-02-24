@@ -18,23 +18,22 @@ class HolsteinLatticeModel(Model):
         }
         super().__init__(self.default_parameters, parameters)
 
-    def update_model_constants(self):
-        self.constants.w = self.constants.w * np.ones(self.constants.N)
-        self.constants.g = self.constants.g * np.ones(self.constants.N)
-        self.constants.mass = self.constants.phonon_mass * np.ones(self.constants.N)
+    def initialize_constants_model(self):
+        self.constants.num_quantum_states = self.constants.N
         self.constants.num_classical_coordinates = self.constants.N
-        self.constants.pq_weight = self.constants.w
-        self.constants.nearest_neighbor_lattice_num_sites = self.constants.N
-        self.constants.nearest_neighbor_lattice_hopping_energy = self.constants.j
-        self.constants.nearest_neighbor_lattice_periodic_boundary = \
-            self.constants.periodic_boundary
-        self.constants.holstein_coupling_num_sites = self.constants.N
-        self.constants.holstein_coupling_oscillator_frequency = self.constants.w
-        self.constants.holstein_coupling_dimensionless_coupling = self.constants.g
-        self.constants.harmonic_oscillator_frequency = self.constants.w
-        self.constants.harmonic_oscillator_mass = self.constants.mass
+        self.constants.classical_coordinate_weight = self.constants.w * np.ones(self.constants.N)
+        self.constants.classical_coordinate_mass = self.constants.phonon_mass * np.ones(self.constants.N)
 
+    def initialize_constants_h_q(self):
+        self.constants.nearest_neighbor_lattice_hopping_energy = self.constants.j 
+        self.constants.nearest_neighbor_lattice_periodic_boundary = self.constants.periodic_boundary
 
+    def initialize_constants_h_qc(self):
+        self.constants.holstein_coupling_oscillator_frequency = self.constants.w * np.ones(self.constants.N)
+        self.constants.holstein_coupling_dimensionless_coupling = self.constants.g * np.ones(self.constants.N)
+
+    def initialize_constants_h_c(self):
+        self.constants.harmonic_oscillator_frequency = self.constants.w * np.ones(self.constants.N)
 
     h_q = ingredients.nearest_neighbor_lattice_h_q
     dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
@@ -43,3 +42,9 @@ class HolsteinLatticeModel(Model):
     dh_qc_dzc = ingredients.holstein_coupling_dh_qc_dzc
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
     hop_function = ingredients.harmonic_oscillator_hop
+    initialization_functions = [
+        initialize_constants_model,
+        initialize_constants_h_c,
+        initialize_constants_h_qc,
+        initialize_constants_h_q,
+    ]

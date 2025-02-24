@@ -5,6 +5,38 @@ This file contains ingredient functions for use in Model classes.
 import warnings
 import numpy as np
 from tqdm import tqdm
+import functools
+
+
+def vectorize_ingredient(ingredient):
+    """
+    Vectorize an ingredient function.
+    assumes any kwarg that is a np.ndarray is vectorized over its firts index. 
+    non np.ndarray kwargs are assumed to not be vectorized.
+
+    Args:
+        ingredient (function): The ingredient function to vectorize.
+
+    Returns:
+        function: The vectorized ingredient function.
+    """
+    @functools.wraps(ingredient)
+    def vectorized_ingredient(*args, **kwargs):
+        (model, constants, parameters) = args
+        batch_size = len(parameters.seed)
+        keys = kwargs.keys()
+        kwargs_list = []
+        for n in range(batch_size):
+            kwargs_n = {}
+            for key in keys:
+                if isinstance(kwargs[key], np.ndarray):
+                    kwargs_n[key] = kwargs[key][n]
+                else:
+                    kwargs_n[key] = kwargs[key]
+            kwargs_list.append(kwargs_n)
+        out = np.array([ingredient(model, constants, parameters, **kwargs_list[n]) for n in range(batch_size)])
+        return out
+    return vectorized_ingredient
 
 def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     """
@@ -12,9 +44,9 @@ def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     """
 
     z = kwargs.get("z_coord", parameters.z_coord)
-    h = constants.pq_weight[np.newaxis, :]
+    h = constants.classical_coordinate_weight[np.newaxis, :]
     w = constants.harmonic_oscillator_frequency[np.newaxis, :]
-    m = constants.harmonic_oscillator_mass[np.newaxis, :]
+    m = constants.classical_coordinate_mass[np.newaxis, :]
     q = np.sqrt(2 / (m * h)) * np.real(z)
     p = np.sqrt(2 * m * h) * np.imag(z)
     h_c = np.sum((1 / 2) * (((p**2) / m) + m * (w**2) * (q**2)), axis=-1)
@@ -27,7 +59,7 @@ def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
     with respect to the z-coordinates.
     """
     z_coord = kwargs["z_coord"]
-    dh_c_dzc = constants.pq_weight[..., :] * z_coord + 0.0j
+    dh_c_dzc = constants.classical_coordinate_weight[..., :] * z_coord + 0.0j
     return dh_c_dzc
 
 
@@ -50,7 +82,7 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     Calculate the quantum Hamiltonian for a nearest-neighbor lattice.
     """
     del kwargs
-    num_sites = constants.nearest_neighbor_lattice_num_sites
+    num_sites = constants.num_quantum_states
     hopping_energy = constants.nearest_neighbor_lattice_hopping_energy
     periodic_boundary = constants.nearest_neighbor_lattice_periodic_boundary
     h_q = np.zeros((num_sites, num_sites), dtype=complex)
@@ -65,7 +97,7 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
         h_q[0, num_sites - 1] += -hopping_energy
         h_q[num_sites - 1, 0] += np.conj(h_q[0, num_sites - 1])
 
-    return h_q[np.newaxis, :, :] * np.ones((len(parameters.seed), num_sites, num_sites)).astype(complex)
+    return h_q[np.newaxis, :, :] + np.zeros((len(parameters.seed), num_sites, num_sites), dtype=complex)
 
 
 def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
@@ -73,7 +105,7 @@ def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
     Calculate the Holstein coupling Hamiltonian.
     """
     z_coord = kwargs["z_coord"]
-    num_sites = constants.holstein_coupling_num_sites
+    num_sites = constants.num_quantum_states
     oscillator_frequency = constants.holstein_coupling_oscillator_frequency
     dimensionless_coupling = constants.holstein_coupling_dimensionless_coupling
     h_qc = np.zeros((*np.shape(z_coord)[:-1], num_sites, num_sites), dtype=complex)
@@ -88,11 +120,8 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
     Calculate the derivative of the Holstein coupling Hamiltonian with
     respect to the z-coordinates.
     """
-    if 'dh_qc_dzc' in kwargs:
-        if kwargs['dh_qc_dzc'] is not None:
-            return kwargs['dh_qc_dzc']
     z_coord = kwargs["z_coord"]
-    num_sites = constants.holstein_coupling_num_sites
+    num_sites = constants.num_quantum_states
     oscillator_frequency = constants.holstein_coupling_oscillator_frequency
     dimensionless_coupling = constants.holstein_coupling_dimensionless_coupling
 
@@ -147,7 +176,6 @@ def default_numerical_fssh_hop(model, constants, parameters, **kwargs):
 
     if min_energy > 1 / num_points:
         # print('rejected hop', min_energy)
-
         return z_coord, False
     else:
         # print('accepted hop', min_energy)
@@ -156,21 +184,6 @@ def default_numerical_fssh_hop(model, constants, parameters, **kwargs):
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     """
     Perform a hopping operation for the harmonic oscillator.
-
-    Model Ingredient:
-        - model.hop
-
-    Required keyword arguments:
-        - z_coord (np.ndarray): The z-coordinates.
-        - delta_z_coord (np.ndarray): The change in z-coordinates.
-        - ev_diff (float): The energy difference.
-
-    Model parameters:
-        - constants.pq_weight (np.ndarray): The weight parameters.
-
-    Related functions:
-        - :func:`harmonic_oscillator_boltzmann_init_classical`
-        - :func:`harmonic_oscillator_wigner_init_classical`
     """
     z_coord = kwargs["z_coord"]
     delta_z_coord = kwargs["delta_z_coord"]
@@ -179,10 +192,10 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     delta_zc_coord = np.conj(delta_z_coord)
     zc = np.conj(z_coord)
     warnings.warn("Hop function excludes mass, check it", UserWarning)
-    akj_z = np.real(np.sum(constants.pq_weight * delta_zc_coord * delta_z_coord))
+    akj_z = np.real(np.sum(constants.classical_coordinate_weight * delta_zc_coord * delta_z_coord))
     bkj_z = np.real(
         np.sum(
-            1j * constants.pq_weight * (zc * delta_z_coord - z_coord * delta_zc_coord)
+            1j * constants.classical_coordinate_weight * (zc * delta_z_coord - z_coord * delta_zc_coord)
         )
     )
     ckj_z = ev_diff
@@ -218,7 +231,7 @@ def harmonic_oscillator_boltzmann_init_classical(
     Model parameters:
         - constants.temp (float): Temperature.
         - constants.mass (float): Mass.
-        - constants.pq_weight (np.ndarray): The weight parameters.
+        - constants.classical_coordinate_weight (np.ndarray): The weight parameters.
         - constants.num_classical_coordinates (int): Number of classical coordinates.
 
     Related functions:
@@ -227,9 +240,9 @@ def harmonic_oscillator_boltzmann_init_classical(
     seed = kwargs.get("seed", None)
     kBT = constants.temp
 
-    h = constants.pq_weight
+    h = constants.classical_coordinate_weight
     w = constants.harmonic_oscillator_frequency
-    m = constants.harmonic_oscillator_mass
+    m = constants.classical_coordinate_mass
     out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
     for s in range(len(seed)):
         np.random.seed(seed[s])
@@ -372,7 +385,7 @@ def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kw
         - model.init_classical
 
     Required constants attributes:
-        - pq_weight (float): The pq weight parameter.
+        - classical_coordinate_weight (float): The pq weight parameter.
         - mass (float): The mass of the harmonic oscillator.
         - temp (float): The temperature.
         - num_classical_coordinates (int): The number of classical coordinates.
@@ -388,14 +401,14 @@ def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kw
         1
         / (
             2
-            * constants.pq_weight
+            * constants.classical_coordinate_weight
             * constants.mass
-            * np.tanh(constants.pq_weight / (2 * constants.temp))
+            * np.tanh(constants.classical_coordinate_weight / (2 * constants.temp))
         )
     )
     std_p = np.sqrt(
-        (constants.mass * constants.pq_weight)
-        / (2 * np.tanh(constants.pq_weight / (2 * constants.temp)))
+        (constants.mass * constants.classical_coordinate_weight)
+        / (2 * np.tanh(constants.classical_coordinate_weight / (2 * constants.temp)))
     )
 
     # Generate random q and p values
@@ -403,8 +416,8 @@ def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kw
     p = np.random.normal(loc=0, scale=std_p, size=constants.num_classical_coordinates)
 
     # Calculate the classical coordinates z
-    z = np.sqrt(constants.pq_weight * constants.mass / 2) * (
-        q + 1.0j * (p / (constants.pq_weight * constants.mass))
+    z = np.sqrt(constants.classical_coordinate_weight * constants.mass / 2) * (
+        q + 1.0j * (p / (constants.classical_coordinate_weight * constants.mass))
     )
 
     return z

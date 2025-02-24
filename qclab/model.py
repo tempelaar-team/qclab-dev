@@ -28,20 +28,16 @@ class Model:
                                  'numerical_fssh_hop_num_points':100}
         # Add default constants to the provided constants if not already present
         constants = {**internal_defaults, **default_constants, **constants}
-        self.constants = Constants(self.update_model_constants)
+        self.constants = Constants(self.initialize_constants)
         for key, val in constants.items():
             setattr(self.constants, key, val)
         self.constants._init_complete = True
-        self.update_model_constants()
+        self.initialize_constants()
         self.parameters = VectorObject()
 
-    def update_model_constants(self):
-        """
-        Update model parameters. This method should be overridden by subclasses.
-        """
-        self.constants.harmonic_oscillator_mass = self.constants.classical_mass * np.ones(self.constants.num_classical_coordinates)
-        self.constants.harmonic_oscillator_frequency = self.constants.classical_frequency * np.ones(self.constants.num_classical_coordinates)
-        self.constants.pq_weight = self.constants.harmonic_oscillator_frequency
+    def initialize_constants(self):
+        for func in self.initialization_functions:
+            func(self)
 
 
     def h_q(self):
@@ -76,4 +72,4 @@ class Model:
     init_classical = ingredients.default_numerical_boltzmann_init_classical
     #init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
     #hop_function = ingredients.default_numerical_fssh_hop
-    
+    initialization_functions = []

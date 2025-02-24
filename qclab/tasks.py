@@ -142,17 +142,17 @@ def initialize_z_coord(sim, parameters, state, **kwargs):
 
 def update_dh_c_dzc(sim, parameters, state, **kwargs):
     z_coord = kwargs["z_coord"]
-    state.dh_c_dzc = sim.model.dh_c_dzc(sim.model.constants, parameters, z_coord=z_coord)
+    state.dh_c_dzc = sim.model.dh_c_dzc(
+        sim.model.constants, parameters, z_coord=z_coord
+    )
     return parameters, state
 
 
 def update_dh_qc_dzc(sim, parameters, state, **kwargs):
     z_coord = kwargs["z_coord"]
-    if hasattr(state, "dh_qc_dzc"):
-        dh_qc_dzc_exists = state.dh_qc_dzc
-    else:
-        dh_qc_dzc_exists = None
-    state.dh_qc_dzc = sim.model.dh_qc_dzc(sim.model.constants, parameters, z_coord=z_coord, dh_qc_dzc=dh_qc_dzc_exists)
+    state.dh_qc_dzc = sim.model.dh_qc_dzc(
+        sim.model.constants, parameters, z_coord=z_coord
+    )
     return parameters, state
 
 
@@ -314,15 +314,15 @@ def update_dm_db_mf(sim, parameters, state, **kwargs):
     """
     del sim, kwargs
     wf_db = state.wf_db
-    state.dm_db = np.einsum(
-        "ti,tj->tij", wf_db, np.conj(wf_db), optimize="greedy"
-    )
+    state.dm_db = np.einsum("ti,tj->tij", wf_db, np.conj(wf_db), optimize="greedy")
     return parameters, state
 
 
 def update_classical_energy(sim, parameters, state, **kwargs):
     z_coord = kwargs["z_coord"]
-    state.classical_energy = sim.model.h_c(sim.model.constants, parameters, z_coord=z_coord)
+    state.classical_energy = sim.model.h_c(
+        sim.model.constants, parameters, z_coord=z_coord
+    )
     return parameters, state
 
 
@@ -342,7 +342,9 @@ def update_classical_energy_fssh(sim, parameters, state, **kwargs):
     state.classical_energy = 0
     for branch_ind in range(sim.algorithm.settings.num_branches):
         z_coord_branch = z_coord[state.z_coord_branch_branch_ind == branch_ind]
-        state.classical_energy = state.classical_energy + sim.model.h_c(sim.model.constants, parameters, z_coord=z_coord_branch)
+        state.classical_energy = state.classical_energy + sim.model.h_c(
+            sim.model.constants, parameters, z_coord=z_coord_branch
+        )
     return parameters, state
 
 
@@ -364,6 +366,7 @@ def update_quantum_energy_mf(sim, parameters, state, **kwargs):
         "ti,tij,tj->t", np.conj(wf), state.h_quantum, wf, optimize="greedy"
     )
     return parameters, state
+
 
 def update_quantum_energy_fssh(sim, parameters, state, **kwargs):
     del sim, kwargs
@@ -430,9 +433,27 @@ def diagonalize_matrix(sim, parameters, state, **kwargs):
 
 def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
     # TODO vectorize this??
-    eigvals = eigvals.reshape((sim.settings.batch_size, sim.algorithm.settings.num_branches, *np.shape(eigvals)[1:]))
-    eigvecs = eigvecs.reshape((sim.settings.batch_size, sim.algorithm.settings.num_branches, *np.shape(eigvecs)[1:]))
-    dh_qc_dzc = state.dh_qc_dzc.reshape((sim.settings.batch_size, sim.algorithm.settings.num_branches, *np.shape(state.dh_qc_dzc)[1:]))
+    eigvals = eigvals.reshape(
+        (
+            sim.settings.batch_size,
+            sim.algorithm.settings.num_branches,
+            *np.shape(eigvals)[1:],
+        )
+    )
+    eigvecs = eigvecs.reshape(
+        (
+            sim.settings.batch_size,
+            sim.algorithm.settings.num_branches,
+            *np.shape(eigvecs)[1:],
+        )
+    )
+    dh_qc_dzc = state.dh_qc_dzc.reshape(
+        (
+            sim.settings.batch_size,
+            sim.algorithm.settings.num_branches,
+            *np.shape(state.dh_qc_dzc)[1:],
+        )
+    )
     der_couple_q_phase = np.ones(np.shape(eigvals), dtype=complex)
     der_couple_p_phase = np.ones(np.shape(eigvals), dtype=complex)
     for i in range(np.shape(eigvals)[-1] - 1):
@@ -469,12 +490,19 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
         der_couple_p = (
             1.0j
             * np.sqrt(
-                1 / (2 * sim.model.constants.pq_weight * sim.model.constants.mass)
+                1
+                / (
+                    2
+                    * sim.model.constants.classical_coordinate_weight
+                    * sim.model.constants.classical_coordinate_mass
+                )
             )[..., :]
             * (der_couple_z - der_couple_zc)
         )
         der_couple_q = np.sqrt(
-            sim.model.constants.pq_weight * sim.model.constants.mass / 2
+            sim.model.constants.classical_coordinate_weight
+            * sim.model.constants.classical_coordinate_mass
+            / 2
         )[..., :] * (der_couple_z + der_couple_zc)
         der_couple_q_angle = np.angle(
             der_couple_q[
@@ -500,8 +528,17 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
             np.exp(1.0j * der_couple_p_angle[..., np.newaxis])
             * der_couple_p_phase[..., i + 1 :]
         )
-    return der_couple_q_phase.reshape((sim.settings.batch_size*sim.algorithm.settings.num_branches,*np.shape(der_couple_q_phase)[2:])), \
-            der_couple_p_phase.reshape((sim.settings.batch_size*sim.algorithm.settings.num_branches,*np.shape(der_couple_p_phase)[2:]))
+    return der_couple_q_phase.reshape(
+        (
+            sim.settings.batch_size * sim.algorithm.settings.num_branches,
+            *np.shape(der_couple_q_phase)[2:],
+        )
+    ), der_couple_p_phase.reshape(
+        (
+            sim.settings.batch_size * sim.algorithm.settings.num_branches,
+            *np.shape(der_couple_p_phase)[2:],
+        )
+    )
 
 
 def gauge_fix_eigs(sim, parameters, state, **kwargs):
@@ -586,6 +623,7 @@ def basis_transform_mat_(sim, parameters, state, **kwargs):
     )
     return parameters, state
 
+
 def basis_transform_mat(sim, parameters, state, **kwargs):
     del sim
     # default is adb to db
@@ -595,22 +633,19 @@ def basis_transform_mat(sim, parameters, state, **kwargs):
     setattr(
         state,
         output_name,
-        np.einsum('tij,tjl->til',
-        basis,
         np.einsum(
-            "tjk,tlk->tjl",
-            input_mat,
-            np.conj(basis),
-            optimize='greedy'
+            "tij,tjl->til",
+            basis,
+            np.einsum("tjk,tlk->tjl", input_mat, np.conj(basis), optimize="greedy"),
+            optimize="greedy",
         ),
-        optimize='greedy')
     )
     return parameters, state
 
 
 def initialize_active_surface(sim, parameters, state, **kwargs):
     del kwargs
-    num_states = np.shape(state.wf_db)[-1] # TODO this should be a global variable
+    num_states = sim.model.constants.num_quantum_states
     num_branches = sim.algorithm.settings.num_branches
     num_trajs = sim.settings.batch_size
     if sim.algorithm.settings.fssh_deterministic:
@@ -622,7 +657,15 @@ def initialize_active_surface(sim, parameters, state, **kwargs):
             np.newaxis, :
         ] + np.zeros((num_trajs, num_branches)).astype(int)
     else:
-        intervals = np.cumsum(np.real(np.abs(state.wf_adb_branch.reshape((num_trajs, num_branches, num_states))) ** 2), axis=-1)
+        intervals = np.cumsum(
+            np.real(
+                np.abs(
+                    state.wf_adb_branch.reshape((num_trajs, num_branches, num_states))
+                )
+                ** 2
+            ),
+            axis=-1,
+        )
         bool_mat = intervals > state.stochastic_sh_rand_vals[:, :, np.newaxis]
         act_surf_ind_0 = np.argmax(bool_mat, axis=-1).astype(int)
     state.act_surf_ind_0 = np.copy(act_surf_ind_0)
@@ -646,7 +689,7 @@ def initialize_active_surface(sim, parameters, state, **kwargs):
 def initialize_active_surface__(sim, parameters, state, **kwargs):
     # TODO vectorize this
     del kwargs
-    num_states = np.shape(state.wf_db)[-1]
+    num_states = sim.model.constants.num_quantum_states
     if sim.algorithm.settings.fssh_deterministic:
         if sim.algorithm.settings.num_branches != num_states:
             raise ValueError(
@@ -686,7 +729,7 @@ def initialize_random_values_fssh(sim, parameters, state, **kwargs):
     state.stochastic_sh_rand_vals = np.zeros(
         (sim.settings.batch_size, sim.algorithm.settings.num_branches)
     )
-    # this for loop is important so each seed is used 
+    # this for loop is important so each seed is used
     for nt in range(sim.settings.batch_size):
         np.random.seed(state.seed[nt])
         state.hopping_probs_rand_vals[nt] = np.random.rand(len(sim.settings.tdat))
@@ -714,7 +757,11 @@ def update_act_surf_wf(sim, parameters, state, **kwargs):
     del kwargs
     num_trajs = sim.settings.batch_size
     num_branches = sim.algorithm.settings.num_branches
-    act_surf_wf = state.eigvecs[np.arange(num_trajs*num_branches,dtype=int), :, state.act_surf_ind.flatten().astype(int)]
+    act_surf_wf = state.eigvecs[
+        np.arange(num_trajs * num_branches, dtype=int),
+        :,
+        state.act_surf_ind.flatten().astype(int),
+    ]
     state.act_surf_wf = act_surf_wf
     return parameters, state
 
@@ -727,7 +774,14 @@ def update_dm_db_fssh(sim, parameters, state, **kwargs):
         np.conj(state.wf_adb_branch),
         optimize="greedy",
     )
-    dm_adb_branch = dm_adb_branch.reshape((sim.settings.batch_size, sim.algorithm.settings.num_branches, *np.shape(dm_adb_branch)[1:]))
+    dm_adb_branch = dm_adb_branch.reshape(
+        (
+            sim.settings.batch_size,
+            sim.algorithm.settings.num_branches,
+            sim.model.constants.num_quantum_states,
+            sim.model.constants.num_quantum_states,
+        )
+    )
     for nt in range(len(dm_adb_branch)):
         np.einsum("...jj->...j", dm_adb_branch[nt])[...] = state.act_surf[nt]
     if sim.algorithm.settings.fssh_deterministic:
@@ -744,11 +798,31 @@ def update_dm_db_fssh(sim, parameters, state, **kwargs):
         sim,
         parameters,
         state,
-        input_mat=dm_adb_branch.reshape((sim.settings.batch_size * sim.algorithm.settings.num_branches, *np.shape(dm_adb_branch)[2:])),
+        input_mat=dm_adb_branch.reshape(
+            (
+                sim.settings.batch_size * sim.algorithm.settings.num_branches,
+                sim.model.constants.num_quantum_states,
+                sim.model.constants.num_quantum_states,
+            )
+        ),
         basis=state.eigvecs,
         output_name="dm_db_branch",
     )
-    state.dm_db = np.sum(state.dm_db_branch, axis=-3) + 0.0j
+    print(np.shape(state.dm_db_branch))
+    state.dm_db = (
+        np.sum(
+            state.dm_db_branch.reshape(
+                (
+                    sim.settings.batch_size,
+                    sim.algorithm.settings.num_branches,
+                    sim.model.constants.num_quantum_states,
+                    sim.model.constants.num_quantum_states,
+                )
+            ),
+            axis=-3,
+        )
+        + 0.0j
+    )
     return parameters, state
 
 
@@ -839,9 +913,9 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
     act_surf_ind = state.act_surf_ind
     act_surf = state.act_surf
     act_surf_ind_flat = act_surf_ind.flatten().astype(int)
-    num_trajs = np.shape(act_surf)[0]
-    num_branches = np.shape(act_surf)[1]
-    num_states = np.shape(act_surf)[2]
+    num_trajs = sim.settings.batch_size
+    num_branches = sim.algorithm.settings.num_branches
+    num_states = sim.model.constants.num_quantum_states
     traj_ind = (
         (np.arange(num_trajs)[:, np.newaxis] * np.ones((num_trajs, num_branches)))
         .flatten()
@@ -855,14 +929,20 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
 
     prod = np.einsum(
         "bn,bni->bi",
-        np.conj(state.eigvecs[np.arange(num_trajs*num_branches,dtype=int), :, act_surf_ind_flat]),
+        np.conj(
+            state.eigvecs[
+                np.arange(num_trajs * num_branches, dtype=int), :, act_surf_ind_flat
+            ]
+        ),
         state.eigvecs_previous,
         optimize="greedy",
     )
     hop_prob = -2 * np.real(
         prod
         * state.wf_adb_branch
-        / state.wf_adb_branch[np.arange(num_trajs * num_branches), act_surf_ind_flat][:, np.newaxis]
+        / state.wf_adb_branch[np.arange(num_trajs * num_branches), act_surf_ind_flat][
+            :, np.newaxis
+        ]
     )
     hop_prob[np.arange(num_branches * num_trajs), act_surf_ind_flat] *= 0
     cumulative_probs = np.cumsum(
@@ -873,28 +953,30 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
         np.sum((cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1) > 0
     )[0]
     if len(traj_hop_ind) > 0:
-        #init_shape = np.shape(state.dh_qc_dzc)
-        #print(init_shape)
-        dh_qc_dzc = state.dh_qc_dzc#.reshape((num_trajs * num_branches, *init_shape[2:]))
-        #init_shape = np.shape(state.eigvecs)
-        eigvecs_flat = state.eigvecs#.reshape(
+        # init_shape = np.shape(state.dh_qc_dzc)
+        # print(init_shape)
+        dh_qc_dzc = (
+            state.dh_qc_dzc
+        )  # .reshape((num_trajs * num_branches, *init_shape[2:]))
+        # init_shape = np.shape(state.eigvecs)
+        eigvecs_flat = state.eigvecs  # .reshape(
         #    (num_trajs * num_branches, *init_shape[2:])
-        #)
-        #init_shape = np.shape(state.eigvals)
-        eigvals_flat = state.eigvals#.reshape(
+        # )
+        # init_shape = np.shape(state.eigvals)
+        eigvals_flat = state.eigvals  # .reshape(
         #    (num_trajs * num_branches, *init_shape[2:])
-        #)
-        #init_shape = np.shape(state.z_coord_branch)
-        z_coord_branch_flat = state.z_coord_branch#.reshape(
+        # )
+        # init_shape = np.shape(state.z_coord_branch)
+        z_coord_branch_flat = state.z_coord_branch  # .reshape(
         #    (num_trajs * num_branches, *init_shape[2:])
-        #)
+        # )
         init_shape = np.shape(state.act_surf)
         act_surf_flat = state.act_surf.reshape(
             (num_trajs * num_branches, *init_shape[2:])
         )
-        #return parameters, state
+        # return parameters, state
         for traj_ind in traj_hop_ind:
-            #print(traj_ind)
+            # print(traj_ind)
             k = np.argmax(
                 (cumulative_probs[traj_ind] > rand_branch[traj_ind]).astype(int)
             )
@@ -927,12 +1009,19 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
             dkj_p = (
                 1.0j
                 * np.sqrt(
-                    1 / (2 * sim.model.constants.pq_weight * sim.model.constants.mass)
+                    1
+                    / (
+                        2
+                        * sim.model.constants.classical_coordinate_weight
+                        * sim.model.constants.classical_coordinate_mass
+                    )
                 )
                 * (dkj_z - dkj_zc)
             )
             dkj_q = np.sqrt(
-                sim.model.constants.pq_weight * sim.model.constants.mass / 2
+                sim.model.constants.classical_coordinate_weight
+                * sim.model.constants.classical_coordinate_mass
+                / 2
             ) * (dkj_z + dkj_zc)
 
             max_pos_q = np.argmax(np.abs(dkj_q))
@@ -986,8 +1075,6 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                 state.act_surf = np.copy(
                     act_surf_flat.reshape((num_trajs, num_branches, num_states))
                 )
-                state.z_coord_branch = np.copy(
-                    z_coord_branch_flat
-                )
+                state.z_coord_branch = np.copy(z_coord_branch_flat)
 
     return parameters, state
