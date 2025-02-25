@@ -953,23 +953,10 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
         np.sum((cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1) > 0
     )[0]
     if len(traj_hop_ind) > 0:
-        # init_shape = np.shape(state.dh_qc_dzc)
-        # print(init_shape)
-        dh_qc_dzc = (
-            state.dh_qc_dzc
-        )  # .reshape((num_trajs * num_branches, *init_shape[2:]))
-        # init_shape = np.shape(state.eigvecs)
-        eigvecs_flat = state.eigvecs  # .reshape(
-        #    (num_trajs * num_branches, *init_shape[2:])
-        # )
-        # init_shape = np.shape(state.eigvals)
-        eigvals_flat = state.eigvals  # .reshape(
-        #    (num_trajs * num_branches, *init_shape[2:])
-        # )
-        # init_shape = np.shape(state.z_coord_branch)
-        z_coord_branch_flat = state.z_coord_branch  # .reshape(
-        #    (num_trajs * num_branches, *init_shape[2:])
-        # )
+        dh_qc_dzc = state.dh_qc_dzc
+        eigvecs_flat = state.eigvecs
+        eigvals_flat = state.eigvals
+        z_coord_branch_flat = state.z_coord_branch
         init_shape = np.shape(state.act_surf)
         act_surf_flat = state.act_surf.reshape(
             (num_trajs * num_branches, *init_shape[2:])
