@@ -49,7 +49,7 @@ class MeanField(Algorithm):
         ]
         self.output_recipe = [
             tasks.update_dm_db_mf,
-            lambda sim, parameters, state: tasks.update_quantum_energy_mf(
+            lambda sim, parameters, state: tasks.update_quantum_energy(
                 sim=sim, parameters=parameters, state=state, wf=state.wf_db
             ),
             lambda sim, parameters, state: tasks.update_classical_energy(
