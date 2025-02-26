@@ -43,13 +43,12 @@ class MeanField(Algorithm):
                 z_coord=state.z_coord,
                 output_name="z_coord",
                 wf=state.wf_db,
-                update_quantum_classical_forces_bool=False,
             ),
             tasks.update_wf_db_rk4,
         ]
         self.output_recipe = [
             tasks.update_dm_db_mf,
-            lambda sim, parameters, state: tasks.update_quantum_energy_mf(
+            lambda sim, parameters, state: tasks.update_quantum_energy(
                 sim=sim, parameters=parameters, state=state, wf=state.wf_db
             ),
             lambda sim, parameters, state: tasks.update_classical_energy(

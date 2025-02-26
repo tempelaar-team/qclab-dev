@@ -43,7 +43,7 @@ def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     Harmonic oscillator classical Hamiltonian function.
     """
 
-    z = kwargs.get("z_coord", parameters.z_coord)
+    z = kwargs.get("z_coord")
     h = constants.classical_coordinate_weight[np.newaxis, :]
     w = constants.harmonic_oscillator_frequency[np.newaxis, :]
     m = constants.classical_coordinate_mass[np.newaxis, :]
@@ -258,58 +258,6 @@ def harmonic_oscillator_boltzmann_init_classical(
         out[s] = z
     return out
 
-def default_numerical_boltzmann_init_classical_(model, constants, parameters, **kwargs):
-    seed = kwargs.get("seed", None)
-    out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
-    for s, seed_value in enumerate(seed):
-        np.random.seed(seed_value)
-        rand_val = np.random.rand()
-        num_points = constants.numerical_boltzmann_init_classical_num_points
-        max_amplitude = constants.numerical_boltzmann_init_classical_max_amplitude
-        grid = 2 * max_amplitude * (np.random.rand(num_points) - 0.5)
-        kinetic_grid = 1.0j * grid
-        potential_grid = grid
-        z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
-
-        parameters.z_coord = np.zeros(constants.num_classical_coordinates) + 0.0j
-        for n in range(constants.num_classical_coordinates):
-            kinetic_points = np.zeros((num_points, constants.num_classical_coordinates), dtype=complex)
-            potential_points = np.zeros((num_points, constants.num_classical_coordinates), dtype=complex)
-            for p in range(num_points):
-                kinetic_points[p, n] = kinetic_grid[p]
-                potential_points[p, n] = potential_grid[p]
-
-            kinetic_energies = np.array([
-                model.h_c(constants, parameters, z_coord=kinetic_points[p])
-                for p in range(num_points)
-            ])
-            boltz_facs = np.exp(-kinetic_energies / constants.temp)
-            boltz_facs /= np.sum(boltz_facs)
-
-            tot = 0
-            for k, boltz_fac in enumerate(boltz_facs):
-                tot += boltz_fac
-                if rand_val <= tot:
-                    z_out[n] += kinetic_grid[k]
-                    break
-
-            potential_energies = np.array([
-                model.h_c(constants, parameters, z_coord=potential_points[p])
-                for p in range(num_points)
-            ])
-            boltz_facs = np.exp(-potential_energies / constants.temp)
-            boltz_facs /= np.sum(boltz_facs)
-
-            tot = 0
-            for p, boltz_fac in enumerate(boltz_facs):
-                tot += boltz_fac
-                if rand_val <= tot:
-                    z_out[n] += potential_grid[p]
-                    break
-
-        out[s] = z_out
-    return out
-
 def default_numerical_boltzmann_init_classical(model, constants, parameters, **kwargs):
     seed = kwargs.get("seed", None)
     out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
@@ -321,7 +269,6 @@ def default_numerical_boltzmann_init_classical(model, constants, parameters, **k
         
         z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
 
-        parameters.z_coord = np.zeros(constants.num_classical_coordinates) + 0.0j
         for n in range(constants.num_classical_coordinates):
             grid = (
             2 * max_amplitude * (np.random.rand(num_points) - 0.5)
