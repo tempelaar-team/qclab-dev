@@ -308,6 +308,9 @@ def diagonalize_matrix(sim, parameters, state, **kwargs):
 
 
 def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
+    """
+    Calculates the phase change needed to fix the gauge using analytic derivative couplings.
+    """
     eigvals = eigvals.reshape(
         (
             sim.settings.batch_size,
@@ -417,6 +420,19 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
 
 
 def gauge_fix_eigs(sim, parameters, state, **kwargs):
+    """
+    Fixes the gauge of the eigenvectors as specified by the gauge_fixing parameter. 
+
+    if gauge_fixing >= 0:
+        Only the sign of the eigenvector is changed
+
+    if gauge_fixing >= 1:
+        The phase of the eigenvector is determined from its overlap with the previous eigenvector and the phase is fixed.
+    
+    if gauge_fixing >= 2:
+        The phase of the eigenvector is determined by calculating the derivative couplings. 
+    
+    """
     eigvals = kwargs["eigvals"]
     eigvecs = kwargs["eigvecs"]
     eigvecs_previous = kwargs["eigvecs_previous"]
@@ -568,46 +584,10 @@ def initialize_active_surface(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-def initialize_active_surface__(sim, parameters, state, **kwargs):
-    # TODO vectorize this
-    del kwargs
-    num_states = sim.model.constants.num_quantum_states
-    if sim.algorithm.settings.fssh_deterministic:
-        if sim.algorithm.settings.num_branches != num_states:
-            raise ValueError(
-                "num_branches must be equal to the quantum dimension for deterministic FSSH."
-            )
-        act_surf_ind_0 = np.arange(
-            sim.algorithm.settings.num_branches, dtype=int)
-    else:
-        intervals = np.zeros(num_states)
-        for state_n in range(num_states):
-            intervals[state_n] = np.real(
-                np.sum((np.abs(state.wf_adb_branch[0]) ** 2)[0: state_n + 1])
-            )
-        act_surf_ind_0 = np.zeros(
-            (sim.algorithm.settings.num_branches), dtype=int)
-        for branch_n in range(sim.algorithm.settings.num_branches):
-            act_surf_ind_0[branch_n] = np.arange(num_states, dtype=int)[
-                intervals > state.stochastic_sh_rand_vals[branch_n]
-            ][0]
-        act_surf_ind_0 = np.sort(act_surf_ind_0)
-    # initialize active surface and active surface index in each branch
-    state.act_surf_ind_0 = act_surf_ind_0.astype(int)
-    state.act_surf_ind = act_surf_ind_0.astype(int)
-    act_surf = np.zeros(
-        (sim.algorithm.settings.num_branches, num_states), dtype=int)
-    act_surf[
-        np.arange(sim.algorithm.settings.num_branches,
-                  dtype=int), state.act_surf_ind
-    ] = 1
-    state.act_surf = act_surf.reshape(
-        (sim.algorithm.settings.num_branches, num_states)
-    ).astype(int)
-    return parameters, state
-
-
 def initialize_random_values_fssh(sim, parameters, state, **kwargs):
+    """
+    Initialize a set of random variables using the trajectory seeds for FSSH.
+    """
     del kwargs
     state.hopping_probs_rand_vals = np.zeros(
         (sim.settings.batch_size, len(sim.settings.tdat))
@@ -627,6 +607,9 @@ def initialize_random_values_fssh(sim, parameters, state, **kwargs):
 
 
 def initialize_dm_adb_0_fssh(sim, parameters, state, **kwargs):
+    """
+    Initialize the initial adiabatic density matrix for FSSH.
+    """
     del sim, kwargs
     state.dm_adb_0 = (
         np.einsum(
@@ -641,6 +624,9 @@ def initialize_dm_adb_0_fssh(sim, parameters, state, **kwargs):
 
 
 def update_act_surf_wf(sim, parameters, state, **kwargs):
+    """
+    Update the wavefunction corresponding to the active surface.
+    """
     del kwargs
     num_trajs = sim.settings.batch_size
     num_branches = sim.algorithm.settings.num_branches
@@ -654,6 +640,9 @@ def update_act_surf_wf(sim, parameters, state, **kwargs):
 
 
 def update_dm_db_fssh(sim, parameters, state, **kwargs):
+    """
+    Update the diabatic density matrix for FSSH.
+    """
     del kwargs
     dm_adb_branch = np.einsum(
         "...i,...j->...ij",
@@ -661,14 +650,6 @@ def update_dm_db_fssh(sim, parameters, state, **kwargs):
         np.conj(state.wf_adb_branch),
         optimize="greedy",
     )
-    # dm_adb_branch = dm_adb_branch.reshape(
-    #     (
-    #         sim.settings.batch_size,
-    #         sim.algorithm.settings.num_branches,
-    #         sim.model.constants.num_quantum_states,
-    #         sim.model.constants.num_quantum_states,
-    #     )
-    # )
     batch_size = sim.settings.batch_size
     num_branches = sim.algorithm.settings.num_branches
     num_states = sim.model.constants.num_quantum_states
@@ -714,6 +695,9 @@ def update_dm_db_fssh(sim, parameters, state, **kwargs):
 
 
 def update_wf_db_eigs(sim, parameters, state, **kwargs):
+    """
+    Evolve the diabatic wavefunction using the electronic eigenbasis.
+    """
     wf_db = kwargs["wf_db"]
     adb_name = kwargs["adb_name"]
     output_name = kwargs["output_name"]
@@ -740,29 +724,6 @@ def update_wf_db_eigs(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-def initialize_timestep_index(sim, parameters, state, **kwargs):
-    # TODO vectorize this
-    """
-    Initialize the timestep index for the simulation.
-
-    This function sets the timestep index (`t_ind`) in the state object to an array with a single element [0].
-    """
-    del sim, kwargs
-    state.t_ind = 0
-    return parameters, state
-
-
-def update_timestep_index(sim, parameters, state, **kwargs):
-    """
-    Update the timestep index for the simulation.
-
-    This function increments the timestep index (`t_ind`) in the state object.
-    """
-    del sim, kwargs
-    state.t_ind = state.t_ind + 1
-    return parameters, state
-
-
 @njit
 def nan_num(num):
     """
@@ -779,22 +740,18 @@ def nan_num(num):
 
 
 def update_active_surface_fssh(sim, parameters, state, **kwargs):
+    """
+    Update the active surface in FSSH. If a hopping function is not specified in the model 
+    class a numerical hopping procedure is used instead. 
+    """
     del kwargs
-    rand = state.hopping_probs_rand_vals[:, state.t_ind]
+    rand = state.hopping_probs_rand_vals[:, sim.t_ind]
     act_surf_ind = state.act_surf_ind
-    act_surf = state.act_surf
     act_surf_ind_flat = act_surf_ind.flatten().astype(int)
     num_trajs = sim.settings.batch_size
     num_branches = sim.algorithm.settings.num_branches
-    num_states = sim.model.constants.num_quantum_states
     traj_ind = (
         (np.arange(num_trajs)[:, np.newaxis]
-         * np.ones((num_trajs, num_branches)))
-        .flatten()
-        .astype(int)
-    )
-    branch_ind = (
-        (np.arange(num_branches)[np.newaxis, :]
          * np.ones((num_trajs, num_branches)))
         .flatten()
         .astype(int)
@@ -832,13 +789,8 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
         eigvecs_flat = state.eigvecs
         eigvals_flat = state.eigvals
         z_coord_branch_flat = state.z_coord
-        #init_shape = np.shape(state.act_surf)
-        act_surf_flat = state.act_surf#.reshape(
-        #    (num_trajs * num_branches, *init_shape[2:])
-        #)
-        # return parameters, state
+        act_surf_flat = state.act_surf
         for traj_ind in traj_hop_ind:
-            # print(traj_ind)
             k = np.argmax(
                 (cumulative_probs[traj_ind] >
                  rand_branch[traj_ind]).astype(int)
@@ -926,7 +878,6 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                     delta_z_coord=delta_z,
                     ev_diff=ev_diff,
                 )
-
             if hopped:
                 act_surf_ind_flat[traj_ind] = k
                 act_surf_flat[traj_ind] = np.zeros_like(
