@@ -105,7 +105,6 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             lambda sim, parameters, state: tasks.update_quantum_energy(
                 sim=sim, parameters=parameters, state=state, wf=state.act_surf_wf
             ),
-            tasks.initialize_timestep_index,
         ]
         self.update_recipe = [
             lambda sim, parameters, state: tasks.assign_to_state(
@@ -167,7 +166,6 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             ),
             tasks.update_active_surface_fssh,
             tasks.update_act_surf_wf,
-            tasks.update_timestep_index,
         ]
         self.output_recipe = [
             tasks.update_dm_db_fssh,
