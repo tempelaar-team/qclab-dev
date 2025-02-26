@@ -43,7 +43,6 @@ class MeanField(Algorithm):
                 z_coord=state.z_coord,
                 output_name="z_coord",
                 wf=state.wf_db,
-                update_quantum_classical_forces_bool=False,
             ),
             tasks.update_wf_db_rk4,
         ]
