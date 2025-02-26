@@ -11,16 +11,11 @@ class SpinBosonModel(Model):
     """
     Spin-Boson model class for the simulation framework.
 
-    Attributes:
-        constants (ParameterClass): The constants of the model.
     """
 
     def __init__(self, constants=None):
         """
         Initializes the SpinBosonModel with given constants.
-
-        Args:
-            constants (dict): A dictionary of constants to initialize the model.
         """
         if constants is None:
             constants = {}
@@ -62,7 +57,7 @@ class SpinBosonModel(Model):
 
     # @ingredients.vectorize_ingredient
     # def h_qc(self, constants, parameters, **kwargs):
-    #     z = kwargs.get("z_coord", parameters.z_coord)
+    #     z = kwargs.get("z_coord")
     #     g = constants.g
     #     m = constants.classical_coordinate_mass
     #     h = constants.classical_coordinate_weight
@@ -82,7 +77,7 @@ class SpinBosonModel(Model):
     #     return dh_qc_dzc
 
     def h_qc(self, constants, parameters, **kwargs):
-        z = kwargs.get("z_coord", parameters.z_coord)
+        z = kwargs.get("z_coord")
         g = constants.g
         m = constants.classical_coordinate_mass
         h = constants.classical_coordinate_weight
@@ -109,6 +104,7 @@ class SpinBosonModel(Model):
     h_c = ingredients.harmonic_oscillator_h_c
     h_q = ingredients.two_level_system_h_q
     dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
+    linear_h_qc = True
     initialization_functions = [
         initialize_constants_model,
         initialize_constants_h_c,
