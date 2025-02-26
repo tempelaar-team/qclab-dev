@@ -7,7 +7,7 @@ import ctypes
 import numpy as np
 import h5py
 from qclab.parameter import Constants
-
+import warnings
 
 def initialize_vector_objects(sim, batch_seeds):
     # this takes the numpy arrays inside the state and parameter objects
@@ -158,6 +158,16 @@ class Data:
 class VectorObject:
     def __init__(self):
         self._output_dict = {}
+
+    def __getattr__(self, name):
+        """ 
+        If an attribute is not in the VectorObject it returns None rather than throwing an error.
+        """
+        if name in self.__dict__:
+            return self.__dict__[name]
+        else:
+            warnings.warn(f"Attribute {name} not found in VectorObject.", UserWarning)
+            return None
 
     def collect_output_variables(self, output_variables):
         """
