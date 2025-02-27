@@ -7,6 +7,8 @@ from qclab import ingredients
 def initialize_z_coord(sim, parameters, state, **kwargs):
     """
     Initialize the classical coordinate by using the init_classical function from the model object.
+
+    
     """
     seed = kwargs["seed"]
     state.z_coord = sim.model.init_classical(
