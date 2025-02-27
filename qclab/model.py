@@ -2,7 +2,7 @@
 This file contains the Model class, which is the base class for Model objects in QC Lab.
 """
 
-from qclab.parameter import Constants
+from qclab.constants import Constants
 from qclab.simulation import VectorObject
 import qclab.ingredients as ingredients
 import numpy as np

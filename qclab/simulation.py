@@ -6,7 +6,7 @@ functions for initializing and handling these objects.
 import ctypes
 import numpy as np
 import h5py
-from qclab.parameter import Constants
+from qclab.constants import Constants
 import warnings
 
 def initialize_vector_objects(sim, batch_seeds):

@@ -3,7 +3,7 @@ This module contains the Algorithm class, which is the base class for Algorithm 
 """
 
 import inspect
-from qclab.parameter import Constants
+from qclab.constants import Constants
 
 
 class Algorithm:
