@@ -41,8 +41,24 @@ def vectorize_ingredient(ingredient):
 def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     """
     Harmonic oscillator classical Hamiltonian function.
-    """
 
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The classical Hamiltonian values.
+
+    Required attributes of constants:
+        - classical_coordinate_weight
+        - harmonic_oscillator_frequency
+        - classical_coordinate_mass
+
+    Required attributes of parameters:
+        - seed
+    """
     z = kwargs.get("z_coord")
     h = constants.classical_coordinate_weight[np.newaxis, :]
     w = constants.harmonic_oscillator_frequency[np.newaxis, :]
@@ -57,6 +73,21 @@ def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
     """
     Calculate the derivative of the classical harmonic oscillator Hamiltonian
     with respect to the z-coordinates.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The derivative of the classical Hamiltonian.
+
+    Required attributes of constants:
+        - classical_coordinate_weight
+
+    Required attributes of parameters:
+        - None
     """
     z_coord = kwargs["z_coord"]
     dh_c_dzc = constants.classical_coordinate_weight[..., :] * z_coord + 0.0j
@@ -66,6 +97,24 @@ def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
 def two_level_system_h_q(model, constants, parameters, **kwargs):
     """
     Calculate the quantum Hamiltonian for a two-level system.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The quantum Hamiltonian.
+
+    Required attributes of constants:
+        - two_level_system_a
+        - two_level_system_b
+        - two_level_system_c
+        - two_level_system_d
+
+    Required attributes of parameters:
+        - seed
     """
     del kwargs
     batch_size = len(parameters.seed)
@@ -80,6 +129,23 @@ def two_level_system_h_q(model, constants, parameters, **kwargs):
 def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     """
     Calculate the quantum Hamiltonian for a nearest-neighbor lattice.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The quantum Hamiltonian.
+
+    Required attributes of constants:
+        - num_quantum_states
+        - nearest_neighbor_lattice_hopping_energy
+        - nearest_neighbor_lattice_periodic_boundary
+
+    Required attributes of parameters:
+        - seed
     """
     del kwargs
     num_sites = constants.num_quantum_states
@@ -103,6 +169,23 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
 def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
     """
     Calculate the Holstein coupling Hamiltonian.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The Holstein coupling Hamiltonian.
+
+    Required attributes of constants:
+        - holstein_coupling_oscillator_frequency
+        - holstein_coupling_dimensionless_coupling
+        - num_quantum_states
+
+    Required attributes of parameters:
+        - None
     """
     z_coord = kwargs["z_coord"]
     num_sites = constants.num_quantum_states
@@ -119,31 +202,72 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
     """
     Calculate the derivative of the Holstein coupling Hamiltonian with
     respect to the z-coordinates.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The derivative of the Holstein coupling Hamiltonian.
+
+    Required attributes of constants:
+        - holstein_coupling_oscillator_frequency
+        - holstein_coupling_dimensionless_coupling
+        - num_quantum_states
+
+    Required attributes of parameters:
+        - None
     """
-    z_coord = kwargs["z_coord"]
-    num_sites = constants.num_quantum_states
-    oscillator_frequency = constants.holstein_coupling_oscillator_frequency
-    dimensionless_coupling = constants.holstein_coupling_dimensionless_coupling
 
-    dh_qc_dzc = np.zeros(
-        (len(z_coord), num_sites, num_sites, num_sites), dtype=complex
-    )
+    if hasattr(model, 'dh_qc_dzc_mels') and hasattr(model, 'dh_qc_dzc_inds'):
+        return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels
+    else:
+        z_coord = kwargs["z_coord"]
+        num_sites = constants.num_quantum_states
+        oscillator_frequency = constants.holstein_coupling_oscillator_frequency
+        dimensionless_coupling = constants.holstein_coupling_dimensionless_coupling
+
+        dh_qc_dzc = np.zeros(
+            (len(z_coord), num_sites, num_sites, num_sites), dtype=complex
+        )
 
 
-    np.einsum("tiii->ti", dh_qc_dzc, optimize='greedy')[...] = (
-        dimensionless_coupling * oscillator_frequency
-    )[..., :] * (np.ones_like(z_coord)) + 0.0j
-    return dh_qc_dzc
+        np.einsum("tiii->ti", dh_qc_dzc, optimize='greedy')[...] = (
+            dimensionless_coupling * oscillator_frequency
+        )[..., :] * (np.ones_like(z_coord)) + 0.0j
+        inds = np.where(dh_qc_dzc != 0)
+        mels = dh_qc_dzc[inds]
+        model.dh_qc_dzc_inds = inds
+        model.dh_qc_dzc_mels = dh_qc_dzc[inds]
+        return inds, mels
 
 
 def default_numerical_fssh_hop(model, constants, parameters, **kwargs):
+    """
+    Determines the coordinate rescaling in FSSH numerically.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        tuple: The updated z-coordinates and a boolean indicating if the hop was accepted.
+
+    Required attributes of constants:
+        - numerical_fssh_hop_gamma_range
+        - numerical_fssh_hop_num_iter
+        - numerical_fssh_hop_num_points
+
+    Required attributes of parameters:
+        - None
+    """
     z_coord = kwargs["z_coord"]
     delta_z_coord = kwargs["delta_z_coord"]
     ev_diff = kwargs["ev_diff"]
-    hopped = False
-    delta_zc_coord = np.conj(delta_z_coord)
-    zc = np.conj(z_coord)
-    warnings.warn("Hop function excludes mass, check it", UserWarning)
 
     gamma_range = constants.numerical_fssh_hop_gamma_range
     num_iter = constants.numerical_fssh_hop_num_iter
@@ -178,27 +302,46 @@ def default_numerical_fssh_hop(model, constants, parameters, **kwargs):
         # print('rejected hop', min_energy)
         return z_coord, False
     else:
-        # print('accepted hop', min_energy)
+        # print('accepted hop', min_gamma)
         return z_coord - 1.0j * min_gamma * delta_z_coord, True
 
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     """
     Perform a hopping operation for the harmonic oscillator.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        tuple: The updated z-coordinates and a boolean indicating if the hop was accepted.
+
+    Required attributes of constants:
+        - harmonic_oscillator_frequency
+        - classical_coordinate_weight
+
+    Required attributes of parameters:
+        - None
     """
     z_coord = kwargs["z_coord"]
     delta_z_coord = kwargs["delta_z_coord"]
     ev_diff = kwargs["ev_diff"]
     hopped = False
     delta_zc_coord = np.conj(delta_z_coord)
-    zc = np.conj(z_coord)
-    warnings.warn("Hop function excludes mass, check it", UserWarning)
-    akj_z = np.real(np.sum(constants.classical_coordinate_weight * delta_zc_coord * delta_z_coord))
-    bkj_z = np.real(
-        np.sum(
-            1j * constants.classical_coordinate_weight * (zc * delta_z_coord - z_coord * delta_zc_coord)
-        )
-    )
+    zc_coord = np.conj(z_coord)
+
+    a_const = (1/4) * (((constants.harmonic_oscillator_frequency**2) /  constants.classical_coordinate_weight) - \
+                      constants.classical_coordinate_weight)
+    
+    b_const = (1/4) * (((constants.harmonic_oscillator_frequency**2) /  constants.classical_coordinate_weight) + \
+                      constants.classical_coordinate_weight)
+    
+    akj_z = np.sum(2*delta_zc_coord * delta_z_coord * b_const - a_const*(delta_z_coord**2 + delta_zc_coord**2))
+    bkj_z = 2j*np.sum((z_coord*delta_z_coord - delta_zc_coord*zc_coord)*a_const + (delta_z_coord*zc_coord - delta_zc_coord*z_coord)*b_const)
     ckj_z = ev_diff
+
     disc = bkj_z**2 - 4 * akj_z * ckj_z
     if disc >= 0:
         if bkj_z < 0:
@@ -219,23 +362,26 @@ def harmonic_oscillator_boltzmann_init_classical(
     model, constants, parameters, **kwargs
 ):
     """
-    Now vectorized
-    Initialize classical coordinates according to Boltzmann statistics.
+    Initialize classical coordinates according to Boltzmann statistics for the Harmonic oscillator.
 
-    Model Ingredient:
-        - model.init_classical
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
 
-    Required keyword arguments:
-        - seed (int): The random seed.
+    Returns:
+        np.ndarray: The initialized classical coordinates.
 
-    Model parameters:
-        - constants.temp (float): Temperature.
-        - constants.mass (float): Mass.
-        - constants.classical_coordinate_weight (np.ndarray): The weight parameters.
-        - constants.num_classical_coordinates (int): Number of classical coordinates.
+    Required attributes of constants:
+        - temp
+        - classical_coordinate_weight
+        - harmonic_oscillator_frequency
+        - classical_coordinate_mass
+        - num_classical_coordinates
 
-    Related functions:
-        - :func:`harmonic_oscillator_wigner_init_classical`
+    Required attributes of parameters:
+        - seed
     """
     seed = kwargs.get("seed", None)
     kBT = constants.temp
@@ -259,6 +405,27 @@ def harmonic_oscillator_boltzmann_init_classical(
     return out
 
 def default_numerical_boltzmann_init_classical(model, constants, parameters, **kwargs):
+    """
+    Initialize classical coordinates according to Boltzmann statistics using a numerical method.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The initialized classical coordinates.
+
+    Required attributes of constants:
+        - numerical_boltzmann_init_classical_num_points
+        - numerical_boltzmann_init_classical_max_amplitude
+        - temp
+        - num_classical_coordinates
+
+    Required attributes of parameters:
+        - seed
+    """
     seed = kwargs.get("seed", None)
     out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
     for s in tqdm(range(len(seed))):
@@ -328,17 +495,23 @@ def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kw
     Initialize classical coordinates according to the Wigner distribution
     of the ground state of a harmonic oscillator.
 
-    Model Ingredient:
-        - model.init_classical
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
 
-    Required constants attributes:
-        - classical_coordinate_weight (float): The pq weight parameter.
-        - mass (float): The mass of the harmonic oscillator.
-        - temp (float): The temperature.
-        - num_classical_coordinates (int): The number of classical coordinates.
+    Returns:
+        np.ndarray: The initialized classical coordinates.
 
-    Related functions:
-        - :func:`harmonic_oscillator_boltzmann_init_classical`
+    Required attributes of constants:
+        - classical_coordinate_weight
+        - mass
+        - temp
+        - num_classical_coordinates
+
+    Required attributes of parameters:
+        - seed
     """
     seed = kwargs.get("seed", None)
     np.random.seed(seed)
@@ -371,6 +544,27 @@ def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kw
 
 
 def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
+    """
+    Calculate the gradient of the classical Hamiltonian using finite differences.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The gradient of the classical Hamiltonian.
+
+    Required attributes of constants:
+        - None
+
+    Required attributes of parameters:
+        - seed
+
+    Required model ingredients:
+        - h_c
+    """
     z_coord = kwargs["z_coord"]
     # Approximate the gradient using finite differences
     delta_z = 1e-6
@@ -391,12 +585,28 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
     return dh_c_dzc
 
 
-def finite_differences_dh_c_dzc_vectorized(model, constants, parameters, **kwargs):
-    z_coord = kwargs["z_coord"]
-    delta_z = np.ones((len(z_coord),))
-
-
 def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
+    """
+    Calculate the gradient of the quantum-classical Hamiltonian using finite differences.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The gradient of the quantum-classical Hamiltonian.
+
+    Required attributes of constants:
+        - None
+
+    Required attributes of parameters:
+        - seed
+
+    Required model ingredients:
+        - h_qc
+    """
     z_coord = kwargs["z_coord"]
     # Approximate the gradient using finite differences
     delta_z = 1e-6

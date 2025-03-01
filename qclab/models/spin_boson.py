@@ -89,14 +89,46 @@ class SpinBosonModel(Model):
         return h_qc
 
     def dh_qc_dzc(self, constants, parameters, **kwargs):
+        if hasattr(self, 'dh_qc_dzc_inds') and hasattr(self, 'dh_qc_dzc_mels'):
+            inds = self.dh_qc_dzc_inds
+            mels = self.dh_qc_dzc_mels
+            return inds, mels
+        else:
+            m = constants.classical_coordinate_mass
+            g = constants.g
+            h = constants.classical_coordinate_weight
+            batch_size = len(parameters.seed)
+            dh_qc_dzc = np.zeros((batch_size, constants.A, 2, 2), dtype=complex)
+            dh_qc_dzc[:, :, 0, 0] = (g * np.sqrt(1 / (2 * m * h)))[..., :]
+            dh_qc_dzc[:, :, 1, 1] = -dh_qc_dzc[..., :, 0, 0]
+            inds = np.where(dh_qc_dzc != 0)
+            mels = dh_qc_dzc[inds]
+            self.dh_qc_dzc_inds = inds
+            self.dh_qc_dzc_mels = dh_qc_dzc[inds]
+            return inds, mels
+    
+
+
+
+
+
+    def dh_qc_dzc_(self, constants, parameters, **kwargs):
         m = constants.classical_coordinate_mass
         g = constants.g
         h = constants.classical_coordinate_weight
         batch_size = len(parameters.seed)
-        dh_qc_dzc = np.zeros((batch_size, constants.A, 2, 2), dtype=complex)
-        dh_qc_dzc[:, :, 0, 0] = (g * np.sqrt(1 / (2 * m * h)))[..., :]
-        dh_qc_dzc[:, :, 1, 1] = -dh_qc_dzc[..., :, 0, 0]
-        return dh_qc_dzc
+        batch_inds = (np.arange(batch_size)[:,np.newaxis] * np.ones((batch_size, constants.A), dtype=int)).flatten()
+        osc_inds = (np.arange(constants.A)[np.newaxis,:] * np.ones((batch_size, constants.A), dtype=int)).flatten()
+        zero_inds = np.zeros((batch_size*constants.A), dtype=int)
+        one_inds = np.ones((batch_size*constants.A), dtype=int)
+        zero_mels = ((g * np.sqrt(1 / (2 * m * h)))[np.newaxis, :] * np.ones((batch_size, constants.A), dtype=complex)).flatten()
+        one_mels = -zero_mels
+        full_inds = np.array([batch_inds, osc_inds, zero_inds, zero_inds]).T
+        full_inds = np.concatenate((full_inds, np.array([batch_inds, osc_inds, one_inds, one_inds]).T))
+        full_mels = np.concatenate((zero_mels, one_mels))
+
+        return full_inds, full_mels
+
 
     # Assigning functions from ingredients module
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical

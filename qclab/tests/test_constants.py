@@ -1,7 +1,7 @@
 import pytest
 from qclab import Constants
 
-def test_parameter_class():
+def test_constants_class():
     """
     Test the ParameterClass functionality.
 
@@ -27,27 +27,27 @@ def test_parameter_class():
     default_parameters = {'p1': 1, 'p2': 2}
 
     def update_function():
-        parameters.p1 *= 2
+        constants.p1 *= 2
 
-    parameters = Constants(update_function)
+    constants = Constants(update_function)
     for key, val in default_parameters.items():
-        setattr(parameters, key, val)
-    parameters._init_complete = True
+        setattr(constants, key, val)
+    constants._init_complete = True
 
     # Verify initial parameter values
-    assert parameters.p1 == 1
-    assert parameters.p2 == 2
+    assert constants.p1 == 1
+    assert constants.p2 == 2
 
     # Change parameter and verify update function is triggered
-    parameters.p1 = 10
-    assert parameters.p1 == 20
+    constants.p1 = 10
+    assert constants.p1 == 20
 
     # Change another parameter and verify update function is not triggered
-    parameters.p2 = 10
-    assert parameters.p2 == 10
+    constants.p2 = 10
+    assert constants.p2 == 10
 
     # Verify update function is triggered again
-    assert parameters.p1 == 40
+    assert constants.p1 == 40
 
 if __name__ == "__main__":
     pytest.main()
