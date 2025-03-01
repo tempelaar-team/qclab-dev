@@ -7,8 +7,6 @@ from qclab import ingredients
 def initialize_z_coord(sim, parameters, state, **kwargs):
     """
     Initialize the classical coordinate by using the init_classical function from the model object.
-
-
     """
     seed = kwargs["seed"]
     state.z_coord = sim.model.init_classical(sim.model.constants, parameters, seed=seed)
@@ -65,14 +63,14 @@ def update_quantum_classical_forces(sim, parameters, state, **kwargs):
     wf = kwargs["wf"]
     parameters, state = update_dh_qc_dzc(sim, parameters, state, z_coord=z_coord)
     inds, mels = state.dh_qc_dzc
-    state.quantum_classical_forces = np.zeros( # TODO this should not need len(z_coord)
+    state.quantum_classical_forces = np.zeros(  # TODO this should not need len(z_coord)
         (len(z_coord), sim.model.constants.num_classical_coordinates),
         dtype=complex,
     )
-    np.add.at(state.quantum_classical_forces, (inds[0], inds[1]),
-        np.conj(wf)[inds[0], inds[2]]
-        * mels
-        * wf[inds[0], inds[3]]
+    np.add.at(
+        state.quantum_classical_forces,
+        (inds[0], inds[1]),
+        np.conj(wf)[inds[0], inds[2]] * mels * wf[inds[0], inds[3]],
     )
 
     # state.quantum_classical_forces = np.einsum(
@@ -343,8 +341,20 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
     """
     Calculates the phase change needed to fix the gauge using analytic derivative couplings.
     """
-    der_couple_q_phase = np.ones((sim.settings.batch_size*sim.algorithm.settings.num_branches, sim.model.constants.num_quantum_states), dtype=complex)
-    der_couple_p_phase = np.ones((sim.settings.batch_size*sim.algorithm.settings.num_branches, sim.model.constants.num_quantum_states), dtype=complex)
+    der_couple_q_phase = np.ones(
+        (
+            sim.settings.batch_size * sim.algorithm.settings.num_branches,
+            sim.model.constants.num_quantum_states,
+        ),
+        dtype=complex,
+    )
+    der_couple_p_phase = np.ones(
+        (
+            sim.settings.batch_size * sim.algorithm.settings.num_branches,
+            sim.model.constants.num_quantum_states,
+        ),
+        dtype=complex,
+    )
     for i in range(sim.model.constants.num_quantum_states - 1):
         j = i + 1
         evec_i = eigvecs[..., i]
@@ -356,15 +366,37 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
         if np.any(np.abs(ev_diff) < 1e-10):
             plus[np.where(np.abs(ev_diff) < 1e-10)] = 1
             warnings.warn("Degenerate eigenvalues detected.")
-        der_couple_zc = np.zeros((sim.settings.batch_size * sim.algorithm.settings.num_branches, sim.model.constants.num_classical_coordinates), dtype=complex)
-        der_couple_z = np.zeros((sim.settings.batch_size * sim.algorithm.settings.num_branches, sim.model.constants.num_classical_coordinates), dtype=complex)
+        der_couple_zc = np.zeros(
+            (
+                sim.settings.batch_size * sim.algorithm.settings.num_branches,
+                sim.model.constants.num_classical_coordinates,
+            ),
+            dtype=complex,
+        )
+        der_couple_z = np.zeros(
+            (
+                sim.settings.batch_size * sim.algorithm.settings.num_branches,
+                sim.model.constants.num_classical_coordinates,
+            ),
+            dtype=complex,
+        )
         inds, mels = state.dh_qc_dzc
-        np.add.at(der_couple_zc,
-                  (inds[0], inds[1]), 
-                  np.conj(evec_i)[inds[0], inds[2]]*mels*evec_j[inds[0], inds[3]]/((ev_diff + plus)[inds[0]]))
-        np.add.at(der_couple_z,
-                  (inds[0], inds[1]),
-                 np.conj(evec_i)[inds[0], inds[3]]*np.conj(mels)*evec_j[inds[0], inds[2]]/((ev_diff + plus)[inds[0]]))
+        np.add.at(
+            der_couple_zc,
+            (inds[0], inds[1]),
+            np.conj(evec_i)[inds[0], inds[2]]
+            * mels
+            * evec_j[inds[0], inds[3]]
+            / ((ev_diff + plus)[inds[0]]),
+        )
+        np.add.at(
+            der_couple_z,
+            (inds[0], inds[1]),
+            np.conj(evec_i)[inds[0], inds[3]]
+            * np.conj(mels)
+            * evec_j[inds[0], inds[2]]
+            / ((ev_diff + plus)[inds[0]]),
+        )
         der_couple_p = (
             1.0j
             * np.sqrt(
@@ -405,119 +437,6 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
             * der_couple_p_phase[..., i + 1 :]
         )
     return der_couple_q_phase, der_couple_p_phase
-
-
-def analytic_der_couple_phase_(sim, parameters, state, eigvals, eigvecs):
-    """
-    Calculates the phase change needed to fix the gauge using analytic derivative couplings.
-    """
-    eigvals = eigvals.reshape(
-        (
-            sim.settings.batch_size,
-            sim.algorithm.settings.num_branches,
-            *np.shape(eigvals)[1:],
-        )
-    )
-    eigvecs = eigvecs.reshape(
-        (
-            sim.settings.batch_size,
-            sim.algorithm.settings.num_branches,
-            *np.shape(eigvecs)[1:],
-        )
-    )
-    dh_qc_dzc = state.dh_qc_dzc.reshape(
-        (
-            sim.settings.batch_size,
-            sim.algorithm.settings.num_branches,
-            *np.shape(state.dh_qc_dzc)[1:],
-        )
-    )
-    der_couple_q_phase = np.ones(np.shape(eigvals), dtype=complex)
-    der_couple_p_phase = np.ones(np.shape(eigvals), dtype=complex)
-    for i in range(np.shape(eigvals)[-1] - 1):
-        j = i + 1
-        evec_i = eigvecs[..., i]
-        evec_j = eigvecs[..., j]
-        eval_i = eigvals[..., i]
-        eval_j = eigvals[..., j]
-        ev_diff = eval_j - eval_i
-        plus = np.zeros_like(ev_diff)
-        if np.any(np.abs(ev_diff) < 1e-10):
-            plus[np.where(np.abs(ev_diff) < 1e-10)] = 1
-            warnings.warn("Degenerate eigenvalues detected.")
-
-        der_couple_zc = np.ascontiguousarray(
-            np.einsum(
-                "tbi,tbnij,tbj->tbn",
-                np.conj(evec_i),
-                dh_qc_dzc,
-                evec_j,
-                optimize="greedy",
-            )
-            / ((ev_diff + plus)[..., np.newaxis])
-        )
-        der_couple_z = np.ascontiguousarray(
-            np.einsum(
-                "tbi,tbnij,tbj->tbn",
-                np.conj(evec_i),
-                np.einsum("tbnij->tbnji", dh_qc_dzc).conj(),
-                evec_j,
-                optimize="greedy",
-            )
-            / ((ev_diff + plus)[..., np.newaxis])
-        )
-        der_couple_p = (
-            1.0j
-            * np.sqrt(
-                1
-                / (
-                    2
-                    * sim.model.constants.classical_coordinate_weight
-                    * sim.model.constants.classical_coordinate_mass
-                )
-            )[..., :]
-            * (der_couple_z - der_couple_zc)
-        )
-        der_couple_q = np.sqrt(
-            sim.model.constants.classical_coordinate_weight
-            * sim.model.constants.classical_coordinate_mass
-            / 2
-        )[..., :] * (der_couple_z + der_couple_zc)
-        der_couple_q_angle = np.angle(
-            der_couple_q[
-                np.arange(der_couple_q.shape[0])[:, None],
-                np.arange(der_couple_q.shape[1]),
-                np.argmax(np.abs(der_couple_q), axis=-1),
-            ]
-        )
-        der_couple_p_angle = np.angle(
-            der_couple_p[
-                np.arange(der_couple_p.shape[0])[:, None],
-                np.arange(der_couple_p.shape[1]),
-                np.argmax(np.abs(der_couple_p), axis=-1),
-            ]
-        )
-        der_couple_q_angle[np.where(np.abs(der_couple_q_angle) < 1e-12)] = 0
-        der_couple_p_angle[np.where(np.abs(der_couple_p_angle) < 1e-12)] = 0
-        der_couple_q_phase[..., i + 1 :] = (
-            np.exp(1.0j * der_couple_q_angle[..., np.newaxis])
-            * der_couple_q_phase[..., i + 1 :]
-        )
-        der_couple_p_phase[..., i + 1 :] = (
-            np.exp(1.0j * der_couple_p_angle[..., np.newaxis])
-            * der_couple_p_phase[..., i + 1 :]
-        )
-    return der_couple_q_phase.reshape(
-        (
-            sim.settings.batch_size * sim.algorithm.settings.num_branches,
-            *np.shape(der_couple_q_phase)[2:],
-        )
-    ), der_couple_p_phase.reshape(
-        (
-            sim.settings.batch_size * sim.algorithm.settings.num_branches,
-            *np.shape(der_couple_p_phase)[2:],
-        )
-    )
 
 
 def gauge_fix_eigs(sim, parameters, state, **kwargs):
@@ -898,37 +817,35 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
             eval_k = eigvals_flat[traj_ind][j]
             eval_j = eigvals_flat[traj_ind][k]
             ev_diff = eval_j - eval_k
-            inds_traj_ind = (inds[0][inds[0] == traj_ind],
-                             inds[1][inds[0] == traj_ind],
-                             inds[2][inds[0] == traj_ind],
-                             inds[3][inds[0] == traj_ind])
+            inds_traj_ind = (
+                inds[0][inds[0] == traj_ind],
+                inds[1][inds[0] == traj_ind],
+                inds[2][inds[0] == traj_ind],
+                inds[3][inds[0] == traj_ind],
+            )
             mels_traj_ind = mels[inds[0] == traj_ind]
-            dkj_z = np.zeros((sim.model.constants.num_classical_coordinates), dtype=complex)
-            dkj_zc = np.zeros((sim.model.constants.num_classical_coordinates), dtype=complex)
-            np.add.at(dkj_z, (inds_traj_ind[1]), 
-                      np.conj(evec_k)[inds_traj_ind[2]]*mels_traj_ind*evec_j[inds_traj_ind[3]]/ev_diff)
-            np.add.at(dkj_zc, (inds_traj_ind[1]), 
-                      np.conj(evec_k)[inds_traj_ind[3]]*np.conj(mels_traj_ind)*evec_j[inds_traj_ind[2]]/ev_diff)
-            # dkj_z = (
-            #     np.einsum(
-            #         "i,nij,j->n",
-            #         np.conj(evec_k),
-            #         np.einsum("nij->nji", dh_qc_dzc[traj_ind]).conj(),
-            #         evec_j,
-            #         optimize="greedy",
-            #     )
-            #     / ev_diff[..., np.newaxis]
-            # )
-            # dkj_zc = (
-            #     np.einsum(
-            #         "i,nij,j->n",
-            #         np.conj(evec_k),
-            #         dh_qc_dzc[traj_ind],
-            #         evec_j,
-            #         optimize="greedy",
-            #     )
-            #     / ev_diff[..., np.newaxis]
-            # )
+            dkj_z = np.zeros(
+                (sim.model.constants.num_classical_coordinates), dtype=complex
+            )
+            dkj_zc = np.zeros(
+                (sim.model.constants.num_classical_coordinates), dtype=complex
+            )
+            np.add.at(
+                dkj_z,
+                (inds_traj_ind[1]),
+                np.conj(evec_k)[inds_traj_ind[2]]
+                * mels_traj_ind
+                * evec_j[inds_traj_ind[3]]
+                / ev_diff,
+            )
+            np.add.at(
+                dkj_zc,
+                (inds_traj_ind[1]),
+                np.conj(evec_k)[inds_traj_ind[3]]
+                * np.conj(mels_traj_ind)
+                * evec_j[inds_traj_ind[2]]
+                / ev_diff,
+            )
             dkj_p = (
                 1.0j
                 * np.sqrt(

@@ -66,6 +66,7 @@ class SpinBosonModel(Model):
     #     h_qc[1, 1] = -h_qc[0, 0]
     #     return h_qc
 
+    # @ingredients.make_ingredient_sparse
     # @ingredients.vectorize_ingredient
     # def dh_qc_dzc(self, constants, parameters, **kwargs):
     #     m = constants.classical_coordinate_mass

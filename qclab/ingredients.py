@@ -8,6 +8,19 @@ from tqdm import tqdm
 import functools
 
 
+def make_ingredient_sparse(ingredient):
+    """
+    Converts a vectorized ingredient output to a sparse format 
+    """
+    @functools.wraps(ingredient)
+    def sparse_ingredient(*args, **kwargs):
+        (model, constants, parameters) = args
+        out = ingredient(model, constants, parameters, **kwargs)
+        inds = np.where(out != 0)
+        mels = out[inds]
+        return inds, mels 
+    return sparse_ingredient
+
 def vectorize_ingredient(ingredient):
     """
     Vectorize an ingredient function.
