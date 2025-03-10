@@ -1,7 +1,7 @@
 import warnings
 import numpy as np
 from numba import njit
-from qclab import ingredients
+from qc_lab import ingredients
 
 
 def initialize_z_coord(sim, parameters, state, **kwargs):

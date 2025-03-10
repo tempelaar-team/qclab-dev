@@ -2,9 +2,9 @@
 This file contains the Model class, which is the base class for Model objects in QC Lab.
 """
 
-from qclab.constants import Constants
-from qclab.simulation import VectorObject
-import qclab.ingredients as ingredients
+from qc_lab.constants import Constants
+from qc_lab.vector import Vector
+import qc_lab.ingredients as ingredients
 import numpy as np
 
 
@@ -34,7 +34,7 @@ class Model:
             setattr(self.constants, key, val)
         self.constants._init_complete = True
         self.initialize_constants()
-        self.parameters = VectorObject()
+        self.parameters = Vector()
 
     def initialize_constants(self):
         for func in self.initialization_functions:

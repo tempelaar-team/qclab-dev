@@ -1,4 +1,4 @@
-from qclab import Data
+from qc_lab import Data
 from glob import glob
 import sys 
 

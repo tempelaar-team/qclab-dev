@@ -1,12 +1,11 @@
 import os
 import numpy as np
-import qclab.simulation as simulation
-import qclab.dynamics as dynamics
-import qclab.dynamics.serial_driver as serial_driver
+from qc_lab.data import Data
+import qc_lab.dynamics.serial_driver as serial_driver
 
 def slurm_driver(sim, seeds=None, num_tasks=1, data=None):
     if data is None:
-        data = simulation.Data()  # Create a new Data object if none is provided
+        data = Data()  # Create a new Data object if none is provided
     if seeds is None:
         seeds = sim.generate_seeds(data)  # Generate seeds if none are provided
         num_trajs = sim.parameters.num_trajs

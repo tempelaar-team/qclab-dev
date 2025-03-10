@@ -2,13 +2,14 @@
 This module contains the serial driver for the dynamics core.
 """
 
-import qclab.simulation as simulation
-import qclab.dynamics.dynamics as dynamics
+from qc_lab.data import Data
+from qc_lab.vector import initialize_vector_objects
+import qc_lab.dynamics.dynamics as dynamics
 
 
 def serial_driver(sim, seeds=None, data=None):
     if data is None:
-        data = simulation.Data()  # Create a new Data object if none is provided
+        data = Data()  # Create a new Data object if none is provided
     if seeds is None:
         seeds = sim.generate_seeds(data)  # Generate seeds if none are provided
         num_trajs = sim.settings.num_trajs
@@ -25,8 +26,8 @@ def serial_driver(sim, seeds=None, data=None):
         if len(batch_seeds) == 0:
             break  # Exit the loop if there are no more seeds to process
         sim.initialize_timesteps()  # Initialize the timesteps for the simulation
-        parameters, state = simulation.initialize_vector_objects(sim, batch_seeds)
-        new_data = simulation.Data()  # Create a new Data object for this batch
+        parameters, state = initialize_vector_objects(sim, batch_seeds)
+        new_data = Data()  # Create a new Data object for this batch
         new_data.data_dic["seed"] = batch_seeds  # add seeds from the batch
         new_data = dynamics.dynamics(sim, parameters, state, new_data)
         data.add_data(new_data)  # Add the collected data to the main Data object

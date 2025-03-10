@@ -3,8 +3,8 @@ This file contains the spin-boson model class.
 """
 
 import numpy as np
-from qclab.model import Model
-import qclab.ingredients as ingredients
+from qc_lab.model import Model
+import qc_lab.ingredients as ingredients
 
 
 class SpinBosonModel(Model):

@@ -4,8 +4,8 @@ Tests for functions in the Algorithm class.
 
 import pytest
 import numpy as np
-from qclab import Algorithm
-import qclab.simulation as simulation
+from qc_lab import Algorithm
+import qc_lab.simulation as simulation
 
 
 def test_algorithm_initialization():

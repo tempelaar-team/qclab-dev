@@ -1,9 +1,9 @@
 import os
 import numpy as np
-from qclab import Simulation, Data
-from qclab.models import SpinBosonModel
-from qclab.algorithms import MeanField
-from qclab.dynamics import slurm_driver 
+from qc_lab import Simulation, Data
+from qc_lab.models import SpinBosonModel
+from qc_lab.algorithms import MeanField
+from qc_lab.dynamics import slurm_driver 
 
 
 

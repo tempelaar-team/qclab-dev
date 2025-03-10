@@ -1,5 +1,5 @@
 import pytest
-from qclab import Constants
+from qc_lab import Constants
 
 def test_constants_class():
     """

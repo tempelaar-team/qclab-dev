@@ -2,8 +2,8 @@
 This module contains the MF algorithm class.
 """
 
-from qclab.algorithm import Algorithm
-import qclab.tasks as tasks
+from qc_lab.algorithm import Algorithm
+import qc_lab.tasks as tasks
 
 
 class MeanField(Algorithm):

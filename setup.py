@@ -21,7 +21,7 @@ setup(
     install_requires=['numpy', 'numba', 'tqdm',
                       'scipy>=0.16', 'dill', 'pyscf', 'h5py'],
     keywords=['surface hopping', 'mixed quantum-classical dynamics',
-              'theoretical chemistry', 'ehrenfest', 'python', 'first package'],
+              'theoretical chemistry', 'ehrenfest', 'python', 'quantum-classical'],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Education",

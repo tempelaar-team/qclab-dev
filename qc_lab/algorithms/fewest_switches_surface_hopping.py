@@ -3,8 +3,8 @@ This module contains the FSSH algorithm class.
 """
 
 import numpy as np
-from qclab.algorithm import Algorithm
-from qclab import tasks
+from qc_lab.algorithm import Algorithm
+from qc_lab import tasks
 
 
 class FewestSwitchesSurfaceHopping(Algorithm):

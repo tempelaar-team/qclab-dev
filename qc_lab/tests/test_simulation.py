@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from qclab import Simulation, VectorObject, Data
+from qc_lab import Simulation, Vector, Data
 
 def test_simulation_initialization():
     """
@@ -17,7 +17,7 @@ def test_simulation_initialization():
     assert sim.settings.num_trajs == 5
     assert sim.algorithm is None
     assert sim.model is None
-    assert isinstance(sim.state, VectorObject)
+    assert isinstance(sim.state, Vector)
 
 def test_initialize_timesteps():
     """
