@@ -18,7 +18,7 @@ class HolsteinLatticeModel(Model):
             "g": 0.5,
             "w": 0.5,
             "N": 10,
-            "t": 1,
+            "j": 1,
             "phonon_mass": 1,
             "periodic_boundary": True,
         }
