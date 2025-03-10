@@ -24,39 +24,39 @@ class MeanField(Algorithm):
         self.default_settings = {}
         super().__init__(self.default_settings, settings)
 
-        self.initialization_recipe = [
-            lambda sim, parameters, state: tasks.initialize_z_coord(
-                sim=sim, parameters=parameters, state=state, seed=state.seed
-            ),
-            lambda sim, parameters, state: tasks.update_h_quantum(
-                sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
-            ),
-        ]
-        self.update_recipe = [
-            lambda sim, parameters, state: tasks.update_h_quantum(
-                sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
-            ),
-            lambda sim, parameters, state: tasks.update_z_coord_rk4(
-                sim=sim,
-                parameters=parameters,
-                state=state,
-                z_coord=state.z_coord,
-                output_name="z_coord",
-                wf=state.wf_db,
-            ),
-            tasks.update_wf_db_rk4,
-        ]
-        self.output_recipe = [
-            tasks.update_dm_db_mf,
-            lambda sim, parameters, state: tasks.update_quantum_energy(
-                sim=sim, parameters=parameters, state=state, wf=state.wf_db
-            ),
-            lambda sim, parameters, state: tasks.update_classical_energy(
-                sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
-            ),
-        ]
-        self.output_variables = [
-            "dm_db",
-            "classical_energy",
-            "quantum_energy",
-        ]
+    initialization_recipe = [
+        lambda sim, parameters, state: tasks.initialize_z_coord(
+            sim=sim, parameters=parameters, state=state, seed=state.seed
+        ),
+        lambda sim, parameters, state: tasks.update_h_quantum(
+            sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
+        ),
+    ]
+    update_recipe = [
+        lambda sim, parameters, state: tasks.update_h_quantum(
+            sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
+        ),
+        lambda sim, parameters, state: tasks.update_z_coord_rk4(
+            sim=sim,
+            parameters=parameters,
+            state=state,
+            z_coord=state.z_coord,
+            output_name="z_coord",
+            wf=state.wf_db,
+        ),
+        tasks.update_wf_db_rk4,
+    ]
+    output_recipe = [
+        tasks.update_dm_db_mf,
+        lambda sim, parameters, state: tasks.update_quantum_energy(
+            sim=sim, parameters=parameters, state=state, wf=state.wf_db
+        ),
+        lambda sim, parameters, state: tasks.update_classical_energy(
+            sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
+        ),
+    ]
+    output_variables = [
+        "dm_db",
+        "classical_energy",
+        "quantum_energy",
+    ]

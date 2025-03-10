@@ -33,10 +33,6 @@ class Algorithm:
         self.settings = Constants(self.update_algorithm_parameters)
         for key, val in settings.items():
             setattr(self.settings, key, val)
-        self.initialization_recipe = []
-        self.update_recipe = []
-        self.output_recipe = []
-        self.output_variables = []
         self.settings._init_complete = True
         self.update_algorithm_parameters()
 
@@ -44,6 +40,12 @@ class Algorithm:
         """
         Update algorithm parameters. This method should be overridden by subclasses.
         """
+        pass
+
+    initialization_recipe = []
+    update_recipe = []
+    output_recipe = []
+    output_variables = []
 
     def execute_initialization_recipe(self, sim, parameter_vector, state_vector):
         """
