@@ -14,6 +14,21 @@ Questions to discuss:
 
 """
 
+def initialize_branch_seeds(sim, parameters, state, **kwargs):
+    """
+    Initialize the seeds in each branch
+    """
+    orig_seeds = parameters.seed
+    num_branches = sim.algorithm.settings.num_branches
+    print(orig_seeds)
+    print(num_branches)
+    new_seeds = np.floor_divide(orig_seeds, num_branches)
+    print(new_seeds)
+    parameters.seed = new_seeds
+    return parameters, state
+
+
+
 def initialize_z_coord(sim, parameters, state, **kwargs):
     """
     Initialize the classical coordinate by using the init_classical function from the model object.

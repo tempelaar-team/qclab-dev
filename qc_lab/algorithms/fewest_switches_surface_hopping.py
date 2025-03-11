@@ -31,6 +31,9 @@ class FewestSwitchesSurfaceHopping(Algorithm):
                 "FSSH is using stochastic sampling, setting num_branches to 1.", UserWarning)
 
     initialization_recipe = [
+
+        tasks.initialize_branch_seeds,
+
         lambda sim, parameters, state: tasks.broadcast_var_to_branch(
             sim=sim,
             parameters=parameters,
