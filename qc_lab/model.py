@@ -85,8 +85,8 @@ class Model:
         )
 
     h_c = ingredients.harmonic_oscillator_h_c
-    dh_c_dzc = ingredients.dh_c_dzc_finite_differences
-    dh_qc_dzc = ingredients.dh_qc_dzc_finite_differences
+    # dh_c_dzc = ingredients.dh_c_dzc_finite_differences
+    # dh_qc_dzc = ingredients.dh_qc_dzc_finite_differences
     init_classical = ingredients.default_numerical_boltzmann_init_classical
     hop_function = ingredients.default_numerical_fssh_hop
     linear_h_qc = False
