@@ -3,6 +3,16 @@ import numpy as np
 from numba import njit
 from qc_lab import ingredients
 
+"""
+Task functions should...
+    1. Avoid using len() to determine ranges... instead they should use settings or constants in the sim object.
+    2. 
+
+
+Questions to discuss:
+    When a quantity is broadcasted to branches or some other internal index, should the batch_size be updated? 
+
+"""
 
 def initialize_z_coord(sim, parameters, state, **kwargs):
     """
@@ -63,6 +73,7 @@ def update_quantum_classical_forces(sim, parameters, state, **kwargs):
     wf = kwargs["wf"]
     parameters, state = update_dh_qc_dzc(sim, parameters, state, z_coord=z_coord)
     inds, mels = state.dh_qc_dzc
+
     state.quantum_classical_forces = np.zeros(  # TODO this should not need len(z_coord)
         (len(z_coord), sim.model.constants.num_classical_coordinates),
         dtype=complex,
@@ -80,6 +91,7 @@ def update_quantum_classical_forces(sim, parameters, state, **kwargs):
     #    optimize="greedy",
     # )
     return parameters, state
+
 
 
 def update_z_coord_rk4(sim, parameters, state, **kwargs):
