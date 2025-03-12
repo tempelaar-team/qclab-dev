@@ -48,23 +48,3 @@ class Simulation:
         self.settings.tdat_output_n = np.arange(
             0, self.settings.tmax_n + 1, self.settings.dt_output_n
         )
-
-    def generate_seeds(self, data):
-        """
-        Generate new seeds for the simulation.
-
-        Args:
-            data: The data object containing existing seeds.
-
-        Returns:
-            new_seeds: Array of new seeds.
-        """
-        if len(data.data_dic["seed"]) > 1:
-            new_seeds = (
-                np.max(data.data_dic["seed"])
-                + np.arange(self.settings.num_trajs, dtype=int)
-                + 1
-            )
-        else:
-            new_seeds = np.arange(self.settings.num_trajs, dtype=int)
-        return new_seeds
