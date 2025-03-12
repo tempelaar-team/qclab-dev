@@ -18,7 +18,10 @@ def initialize_branch_seeds(sim, parameters, state, **kwargs):
             UserWarning,
         )
     num_prev_trajs = min_seed * num_branches
-    state.branch_ind = (np.zeros((batch_size // num_branches, num_branches), dtype=int) + np.arange(num_branches)[np.newaxis, :]).flatten()
+    state.branch_ind = (
+        np.zeros((batch_size // num_branches, num_branches), dtype=int)
+        + np.arange(num_branches)[np.newaxis, :]
+    ).flatten()
     new_seeds = (num_prev_trajs + np.arange(len(orig_seeds))) // num_branches
     parameters.seed = new_seeds
     state.seed = new_seeds
@@ -44,14 +47,158 @@ def assign_to_parameters(sim, parameters, state, **kwargs):
     return parameters, state
 
 
+def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
+    """
+    Calculate the gradient of the classical Hamiltonian using finite differences.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The gradient of the classical Hamiltonian.
+
+    Required attributes of constants:
+        - None
+
+    Required attributes of parameters:
+        - seed
+
+    Required model ingredients:
+        - h_c
+    """
+    z_coord = kwargs["z_coord"]
+    # Approximate the gradient using finite differences
+    delta_z = 1e-6
+    offset_z_coord_re = z_coord[np.newaxis, :] + np.identity(len(z_coord)) * delta_z
+    offset_z_coord_im = (
+        z_coord[np.newaxis, :] + 1j * np.identity(len(z_coord)) * delta_z
+    )
+
+    h_c_0 = model.h_c(constants, parameters, z_coord=z_coord)
+    dh_c_dzc = np.zeros((len(z_coord), *np.shape(h_c_0)), dtype=complex)
+
+    for n in range(len(z_coord)):
+        h_c_offset_re = model.h_c(constants, parameters, z_coord=offset_z_coord_re[n])
+        diff_re = (h_c_offset_re - h_c_0) / delta_z
+        h_c_offset_im = model.h_c(constants, parameters, z_coord=offset_z_coord_im[n])
+        diff_im = (h_c_offset_im - h_c_0) / delta_z
+        dh_c_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
+    return dh_c_dzc
+
+def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
+    z_coord = kwargs["z_coord"]
+    delta_z = 1e-6
+    batch_size = len(parameters.seed)
+    num_classical_coordinates = model.constants.num_classical_coordinates
+    num_quantum_states = model.constants.num_quantum_states
+    offset_z_coord_re = (
+        z_coord[:, np.newaxis, :]
+        + np.identity(num_classical_coordinates)[np.newaxis, :, :]
+        * delta_z
+    ).reshape(
+        (
+            batch_size * num_classical_coordinates,
+            num_classical_coordinates,
+        )
+    )
+    offset_z_coord_im = (
+        z_coord[:, np.newaxis, :]
+        + 1.0j
+        * np.identity(num_classical_coordinates)[np.newaxis, :, :]
+        * delta_z
+    ).reshape(
+        (
+            batch_size * num_classical_coordinates,
+            num_classical_coordinates,
+        )
+    )
+    h_c_0 = model.h_c(constants, parameters, z_coord=z_coord)
+    h_c_offset_re = model.h_c(
+        constants, parameters, z_coord=offset_z_coord_re
+    ).reshape(
+        batch_size,
+        num_classical_coordinates
+    )
+    h_c_offset_im = model.h_c(
+        constants, parameters, z_coord=offset_z_coord_im
+    ).reshape(
+        batch_size,
+        num_classical_coordinates
+    )
+    diff_re = (h_c_offset_re - h_c_0[:, np.newaxis]) / delta_z
+    diff_im = (h_c_offset_im - h_c_0[:, np.newaxis]) / delta_z
+    dh_c_dzc = 0.5 * (diff_re + 1.0j * diff_im)
+    return dh_c_dzc
+
+
+def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
+    z_coord = kwargs["z_coord"]
+    delta_z = 1e-6
+    batch_size = len(parameters.seed)
+    num_classical_coordinates = model.constants.num_classical_coordinates
+    num_quantum_states = model.constants.num_quantum_states
+    offset_z_coord_re = (
+        z_coord[:, np.newaxis, :]
+        + np.identity(num_classical_coordinates)[np.newaxis, :, :]
+        * delta_z
+    ).reshape(
+        (
+            batch_size * num_classical_coordinates,
+            num_classical_coordinates,
+        )
+    )
+    offset_z_coord_im = (
+        z_coord[:, np.newaxis, :]
+        + 1.0j
+        * np.identity(num_classical_coordinates)[np.newaxis, :, :]
+        * delta_z
+    ).reshape(
+        (
+            batch_size * num_classical_coordinates,
+            num_classical_coordinates,
+        )
+    )
+    h_qc_0 = model.h_qc(constants, parameters, z_coord=z_coord)
+    h_qc_offset_re = model.h_qc(
+        constants, parameters, z_coord=offset_z_coord_re
+    ).reshape(
+        batch_size,
+        num_classical_coordinates,
+        num_quantum_states,
+        num_quantum_states,
+    )
+    h_qc_offset_im = model.h_qc(
+        constants, parameters, z_coord=offset_z_coord_im
+    ).reshape(
+        batch_size,
+        num_classical_coordinates,
+        num_quantum_states,
+        num_quantum_states,
+    )
+    diff_re = (h_qc_offset_re - h_qc_0[:, np.newaxis, :, :]) / delta_z
+    diff_im = (h_qc_offset_im - h_qc_0[:, np.newaxis, :, :]) / delta_z
+    dh_qc_dzc = 0.5 * (diff_re + 1.0j * diff_im)
+    inds = np.where(dh_qc_dzc != 0)
+    mels = dh_qc_dzc[inds]
+    return inds, mels
+
+
 def update_dh_c_dzc(sim, parameters, state, **kwargs):
     """
     Update the gradient of the classical Hamiltonian w.r.t the conjugate classical coordinate.
     """
     z_coord = kwargs["z_coord"]
-    state.dh_c_dzc = sim.model.dh_c_dzc(
-        sim.model.constants, parameters, z_coord=z_coord
-    )
+    if hasattr(sim.model, "dh_c_dzc"):
+        state.dh_c_dzc = sim.model.dh_c_dzc(
+            sim.model.constants, parameters, z_coord=z_coord
+        )
+    else:
+        state.dh_c_dzc = dh_c_dzc_finite_differences(
+            sim.model, sim.model.constants, parameters, z_coord=z_coord
+        )
     return parameters, state
 
 
@@ -60,9 +207,15 @@ def update_dh_qc_dzc(sim, parameters, state, **kwargs):
     Update the gradient of the quantum-classical Hamiltonian w.r.t the conjugate classical coordinate.
     """
     z_coord = kwargs["z_coord"]
-    state.dh_qc_dzc = sim.model.dh_qc_dzc(
-        sim.model.constants, parameters, z_coord=z_coord
-    )
+    if hasattr(sim.model, "dh_qc_dzc"):
+        state.dh_qc_dzc = sim.model.dh_qc_dzc(
+            sim.model.constants, parameters, z_coord=z_coord
+        )
+    else:
+        state.dh_qc_dzc = dh_qc_dzc_finite_differences(
+            sim.model, sim.model.constants, parameters, z_coord=z_coord
+        )
+
     return parameters, state
 
 
@@ -251,9 +404,7 @@ def update_classical_energy_fssh(sim, parameters, state, **kwargs):
             state.classical_energy = state.classical_energy + sim.model.h_c(
                 sim.model.constants, parameters, z_coord=z_coord_branch
             )
-        state.classical_energy = (
-            state.classical_energy / num_branches
-        )
+        state.classical_energy = state.classical_energy / num_branches
     return parameters, state
 
 
@@ -593,10 +744,7 @@ def initialize_active_surface(sim, parameters, state, **kwargs):
     else:
         intervals = np.cumsum(
             np.real(
-                np.abs(
-                    state.wf_adb.reshape((num_trajs, num_branches, num_states))
-                )
-                ** 2
+                np.abs(state.wf_adb.reshape((num_trajs, num_branches, num_states))) ** 2
             ),
             axis=-1,
         )
@@ -629,19 +777,13 @@ def initialize_random_values_fssh(sim, parameters, state, **kwargs):
     del kwargs
     num_branches = sim.algorithm.settings.num_branches
     batch_size = sim.settings.batch_size // num_branches
-    state.hopping_probs_rand_vals = np.zeros(
-        (batch_size, len(sim.settings.tdat))
-    )
-    state.stochastic_sh_rand_vals = np.zeros(
-        (batch_size, num_branches)
-    )
+    state.hopping_probs_rand_vals = np.zeros((batch_size, len(sim.settings.tdat)))
+    state.stochastic_sh_rand_vals = np.zeros((batch_size, num_branches))
     # this for loop is important so each seed is used
     for nt in range(batch_size):
         np.random.seed(state.seed[nt])
         state.hopping_probs_rand_vals[nt] = np.random.rand(len(sim.settings.tdat))
-        state.stochastic_sh_rand_vals[nt] = np.random.rand(
-            num_branches
-        )
+        state.stochastic_sh_rand_vals[nt] = np.random.rand(num_branches)
     return parameters, state
 
 
@@ -936,163 +1078,5 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                 )
                 state.act_surf = np.copy(act_surf_flat)
                 state.z_coord_branch = np.copy(z_coord)
-
-    return parameters, state
-
-
-def update_active_surface_fssh_(sim, parameters, state, **kwargs):
-    """
-    Update the active surface in FSSH. If a hopping function is not specified in the model
-    class a numerical hopping procedure is used instead.
-    """
-    del kwargs
-    rand = state.hopping_probs_rand_vals[:, sim.t_ind]
-    act_surf_ind = state.act_surf_ind
-    act_surf_ind_flat = act_surf_ind.flatten().astype(int)
-    num_branches = sim.algorithm.settings.num_branches
-    num_trajs = sim.settings.batch_size // num_branches
-    traj_ind = (
-        (np.arange(num_trajs)[:, np.newaxis] * np.ones((num_trajs, num_branches)))
-        .flatten()
-        .astype(int)
-    )
-
-    prod = np.einsum(
-        "bn,bni->bi",
-        np.conj(
-            state.eigvecs[
-                np.arange(num_trajs * num_branches, dtype=int), :, act_surf_ind_flat
-            ]
-        ),
-        state.eigvecs_previous,
-        optimize="greedy",
-    )
-    hop_prob = -2 * np.real(
-        prod
-        * state.wf_adb
-        / state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind_flat][
-            :, np.newaxis
-        ]
-    )
-    hop_prob[np.arange(num_branches * num_trajs), act_surf_ind_flat] *= 0
-    cumulative_probs = np.cumsum(
-        np.nan_to_num(hop_prob, nan=0, posinf=100e100, neginf=-100e100), axis=1
-    )
-    rand_branch = (rand[:, np.newaxis] * np.ones((num_trajs, num_branches))).flatten()
-    traj_hop_ind = np.where(
-        np.sum((cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1) > 0
-    )[0]
-    if len(traj_hop_ind) > 0:
-        inds, mels = state.dh_qc_dzc
-        eigvecs_flat = state.eigvecs
-        eigvals_flat = state.eigvals
-        z_coord_branch_flat = state.z_coord
-        act_surf_flat = state.act_surf
-        for traj_ind in traj_hop_ind:
-            k = np.argmax(
-                (cumulative_probs[traj_ind] > rand_branch[traj_ind]).astype(int)
-            )
-            j = act_surf_ind_flat[traj_ind]
-            evec_k = eigvecs_flat[traj_ind][:, j]
-            evec_j = eigvecs_flat[traj_ind][:, k]
-            eval_k = eigvals_flat[traj_ind][j]
-            eval_j = eigvals_flat[traj_ind][k]
-            ev_diff = eval_j - eval_k
-            inds_traj_ind = (
-                inds[0][inds[0] == traj_ind],
-                inds[1][inds[0] == traj_ind],
-                inds[2][inds[0] == traj_ind],
-                inds[3][inds[0] == traj_ind],
-            )
-            mels_traj_ind = mels[inds[0] == traj_ind]
-            dkj_z = np.zeros(
-                (sim.model.constants.num_classical_coordinates), dtype=complex
-            )
-            dkj_zc = np.zeros(
-                (sim.model.constants.num_classical_coordinates), dtype=complex
-            )
-            np.add.at(
-                dkj_z,
-                (inds_traj_ind[1]),
-                np.conj(evec_k)[inds_traj_ind[2]]
-                * mels_traj_ind
-                * evec_j[inds_traj_ind[3]]
-                / ev_diff,
-            )
-            np.add.at(
-                dkj_zc,
-                (inds_traj_ind[1]),
-                np.conj(evec_k)[inds_traj_ind[3]]
-                * np.conj(mels_traj_ind)
-                * evec_j[inds_traj_ind[2]]
-                / ev_diff,
-            )
-            dkj_p = (
-                1.0j
-                * np.sqrt(
-                    1
-                    / (
-                        2
-                        * sim.model.constants.classical_coordinate_weight
-                        * sim.model.constants.classical_coordinate_mass
-                    )
-                )
-                * (dkj_z - dkj_zc)
-            )
-            dkj_q = np.sqrt(
-                sim.model.constants.classical_coordinate_weight
-                * sim.model.constants.classical_coordinate_mass
-                / 2
-            ) * (dkj_z + dkj_zc)
-
-            max_pos_q = np.argmax(np.abs(dkj_q))
-            max_pos_p = np.argmax(np.abs(dkj_p))
-            # Check for complex nonadiabatic couplings
-            if (
-                np.abs(dkj_q[max_pos_q]) > 1e-8
-                and np.abs(np.sin(np.angle(dkj_q[max_pos_q]))) > 1e-2
-            ):
-                warnings.warn(
-                    "dkj_q Nonadiabatic coupling is complex, needs gauge fixing!",
-                    UserWarning,
-                )
-            if (
-                np.abs(dkj_p[max_pos_p]) > 1e-8
-                and np.abs(np.sin(np.angle(dkj_p[max_pos_p]))) > 1e-2
-            ):
-                warnings.warn(
-                    "dkj_p Nonadiabatic coupling is complex, needs gauge fixing!",
-                    UserWarning,
-                )
-            delta_z = dkj_zc
-
-            # Perform hopping using the model's hop function or the default harmonic oscillator hop function
-            if hasattr(sim.model, "hop_function"):
-                z_coord_branch_out, hopped = sim.model.hop_function(
-                    sim.model.constants,
-                    parameters,
-                    z_coord=z_coord_branch_flat[traj_ind],
-                    delta_z_coord=delta_z,
-                    ev_diff=ev_diff,
-                )
-            else:
-                z_coord_branch_out, hopped = ingredients.numerical_fssh_hop(
-                    sim.model,
-                    sim.model.constants,
-                    parameters,
-                    z_coord=z_coord_branch_flat[traj_ind],
-                    delta_z_coord=delta_z,
-                    ev_diff=ev_diff,
-                )
-            if hopped:
-                act_surf_ind_flat[traj_ind] = k
-                act_surf_flat[traj_ind] = np.zeros_like(act_surf_flat[traj_ind])
-                act_surf_flat[traj_ind][k] = 1
-                z_coord_branch_flat[traj_ind] = z_coord_branch_out
-                state.act_surf_ind = np.copy(
-                    act_surf_ind_flat.reshape((num_trajs, num_branches))
-                )
-                state.act_surf = np.copy(act_surf_flat)
-                state.z_coord_branch = np.copy(z_coord_branch_flat)
 
     return parameters, state

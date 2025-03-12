@@ -89,7 +89,7 @@ class SpinBosonModel(Model):
         h_qc[:, 1, 1] = -h_qc[:, 0, 0]
         return h_qc
 
-    def dh_qc_dzc(self, constants, parameters, **kwargs):
+    def dh_qc_dzc_(self, constants, parameters, **kwargs):
         if hasattr(self, 'dh_qc_dzc_inds') and hasattr(self, 'dh_qc_dzc_mels'):
             inds = self.dh_qc_dzc_inds
             mels = self.dh_qc_dzc_mels
@@ -112,31 +112,12 @@ class SpinBosonModel(Model):
 
 
 
-
-    def dh_qc_dzc_(self, constants, parameters, **kwargs):
-        m = constants.classical_coordinate_mass
-        g = constants.g
-        h = constants.classical_coordinate_weight
-        batch_size = len(parameters.seed)
-        batch_inds = (np.arange(batch_size)[:,np.newaxis] * np.ones((batch_size, constants.A), dtype=int)).flatten()
-        osc_inds = (np.arange(constants.A)[np.newaxis,:] * np.ones((batch_size, constants.A), dtype=int)).flatten()
-        zero_inds = np.zeros((batch_size*constants.A), dtype=int)
-        one_inds = np.ones((batch_size*constants.A), dtype=int)
-        zero_mels = ((g * np.sqrt(1 / (2 * m * h)))[np.newaxis, :] * np.ones((batch_size, constants.A), dtype=complex)).flatten()
-        one_mels = -zero_mels
-        full_inds = np.array([batch_inds, osc_inds, zero_inds, zero_inds]).T
-        full_inds = np.concatenate((full_inds, np.array([batch_inds, osc_inds, one_inds, one_inds]).T))
-        full_mels = np.concatenate((zero_mels, one_mels))
-
-        return full_inds, full_mels
-
-
     # Assigning functions from ingredients module
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
     hop_function = ingredients.harmonic_oscillator_hop
     h_c = ingredients.harmonic_oscillator_h_c
     h_q = ingredients.two_level_system_h_q
-    dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
+    #dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
     linear_h_qc = True
     initialization_functions = [
         initialize_constants_model,

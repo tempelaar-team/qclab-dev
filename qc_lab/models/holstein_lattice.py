@@ -9,7 +9,6 @@ class HolsteinLatticeModel(Model):
     with Holstein-type electron-phonon coupling with a
     single optical mode.
     """
-
     def __init__(self, parameters=None):
         if parameters is None:
             parameters = {}

@@ -8,7 +8,6 @@ from qc_lab.vector import initialize_vector_objects
 import qc_lab.dynamics.dynamics as dynamics
 
 
-
 def serial_driver(sim, seeds=None, data=None):
     if data is None:
         data = Data()

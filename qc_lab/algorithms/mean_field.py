@@ -25,6 +25,9 @@ class MeanField(Algorithm):
         super().__init__(self.default_settings, settings)
 
     initialization_recipe = [
+        lambda sim, parameters, state: tasks.assign_to_parameters(
+            sim, parameters, state, name="seed", val=state.seed
+        ),
         lambda sim, parameters, state: tasks.initialize_z_coord(
             sim=sim, parameters=parameters, state=state, seed=state.seed
         ),

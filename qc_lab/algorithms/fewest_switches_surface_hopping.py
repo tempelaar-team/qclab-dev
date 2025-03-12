@@ -7,7 +7,6 @@ from qc_lab.algorithm import Algorithm
 from qc_lab import tasks
 import warnings
 
-#warnings.filterwarnings("always")
 
 class FewestSwitchesSurfaceHopping(Algorithm):
     """
