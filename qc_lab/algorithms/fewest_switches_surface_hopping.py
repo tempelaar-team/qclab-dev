@@ -24,7 +24,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         # add default_params to params if not already in params
         super().__init__(self.default_settings, settings)
 
-    def update_algorithm_parameters(self):
+    def update_algorithm_settings(self):
         if not (self.settings.fssh_deterministic):
             self.settings.num_branches = 1
             warnings.warn(
