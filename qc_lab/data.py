@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 
+
 class Data:
     """
     The data object handles the collection of data from the dynamics driver.

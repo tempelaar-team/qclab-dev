@@ -19,8 +19,7 @@ class Model:
     def __init__(self, default_constants=None, constants=None):
         if constants is None:
             constants = {}
-        internal_defaults = {
-        }
+        internal_defaults = {}
         # Add default constants to the provided constants if not already present
         constants = {**internal_defaults, **default_constants, **constants}
         self.constants = Constants(self.initialize_constants)
@@ -45,7 +44,7 @@ class Model:
         Quantum-classical Hamiltonian function. This method should be overridden by subclasses.
         """
         return
-    
+
     def h_c(self):
         """
         Classical Hamiltonian function. This method should be overridden by subclasses.

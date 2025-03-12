@@ -87,6 +87,7 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
         dh_c_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
     return dh_c_dzc
 
+
 def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
     z_coord = kwargs["z_coord"]
     delta_z = 1e-6
@@ -95,8 +96,7 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
     num_quantum_states = model.constants.num_quantum_states
     offset_z_coord_re = (
         z_coord[:, np.newaxis, :]
-        + np.identity(num_classical_coordinates)[np.newaxis, :, :]
-        * delta_z
+        + np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
     ).reshape(
         (
             batch_size * num_classical_coordinates,
@@ -105,9 +105,7 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
     )
     offset_z_coord_im = (
         z_coord[:, np.newaxis, :]
-        + 1.0j
-        * np.identity(num_classical_coordinates)[np.newaxis, :, :]
-        * delta_z
+        + 1.0j * np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
     ).reshape(
         (
             batch_size * num_classical_coordinates,
@@ -115,17 +113,11 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
         )
     )
     h_c_0 = model.h_c(constants, parameters, z_coord=z_coord)
-    h_c_offset_re = model.h_c(
-        constants, parameters, z_coord=offset_z_coord_re
-    ).reshape(
-        batch_size,
-        num_classical_coordinates
+    h_c_offset_re = model.h_c(constants, parameters, z_coord=offset_z_coord_re).reshape(
+        batch_size, num_classical_coordinates
     )
-    h_c_offset_im = model.h_c(
-        constants, parameters, z_coord=offset_z_coord_im
-    ).reshape(
-        batch_size,
-        num_classical_coordinates
+    h_c_offset_im = model.h_c(constants, parameters, z_coord=offset_z_coord_im).reshape(
+        batch_size, num_classical_coordinates
     )
     diff_re = (h_c_offset_re - h_c_0[:, np.newaxis]) / delta_z
     diff_im = (h_c_offset_im - h_c_0[:, np.newaxis]) / delta_z
@@ -141,8 +133,7 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
     num_quantum_states = model.constants.num_quantum_states
     offset_z_coord_re = (
         z_coord[:, np.newaxis, :]
-        + np.identity(num_classical_coordinates)[np.newaxis, :, :]
-        * delta_z
+        + np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
     ).reshape(
         (
             batch_size * num_classical_coordinates,
@@ -151,9 +142,7 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
     )
     offset_z_coord_im = (
         z_coord[:, np.newaxis, :]
-        + 1.0j
-        * np.identity(num_classical_coordinates)[np.newaxis, :, :]
-        * delta_z
+        + 1.0j * np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
     ).reshape(
         (
             batch_size * num_classical_coordinates,
@@ -1141,5 +1130,3 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                 state.z_coord_branch = np.copy(z_coord)
 
     return parameters, state
-
-

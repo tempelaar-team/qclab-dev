@@ -9,21 +9,24 @@ import functools
 
 def make_ingredient_sparse(ingredient):
     """
-    Converts a vectorized ingredient output to a sparse format 
+    Converts a vectorized ingredient output to a sparse format
     """
+
     @functools.wraps(ingredient)
     def sparse_ingredient(*args, **kwargs):
         (model, constants, parameters) = args
         out = ingredient(model, constants, parameters, **kwargs)
         inds = np.where(out != 0)
         mels = out[inds]
-        return inds, mels 
+        return inds, mels
+
     return sparse_ingredient
+
 
 def vectorize_ingredient(ingredient):
     """
     Vectorize an ingredient function.
-    assumes any kwarg that is a np.ndarray is vectorized over its firts index. 
+    assumes any kwarg that is a np.ndarray is vectorized over its firts index.
     non np.ndarray kwargs are assumed to not be vectorized.
 
     Args:
@@ -32,6 +35,7 @@ def vectorize_ingredient(ingredient):
     Returns:
         function: The vectorized ingredient function.
     """
+
     @functools.wraps(ingredient)
     def vectorized_ingredient(*args, **kwargs):
         (model, constants, parameters) = args
@@ -46,9 +50,16 @@ def vectorize_ingredient(ingredient):
                 else:
                     kwargs_n[key] = kwargs[key]
             kwargs_list.append(kwargs_n)
-        out = np.array([ingredient(model, constants, parameters, **kwargs_list[n]) for n in range(batch_size)])
+        out = np.array(
+            [
+                ingredient(model, constants, parameters, **kwargs_list[n])
+                for n in range(batch_size)
+            ]
+        )
         return out
+
     return vectorized_ingredient
+
 
 def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     """
@@ -175,7 +186,9 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
         h_q[0, num_sites - 1] += -hopping_energy
         h_q[num_sites - 1, 0] += np.conj(h_q[0, num_sites - 1])
 
-    return h_q[np.newaxis, :, :] + np.zeros((len(parameters.seed), num_sites, num_sites), dtype=complex)
+    return h_q[np.newaxis, :, :] + np.zeros(
+        (len(parameters.seed), num_sites, num_sites), dtype=complex
+    )
 
 
 def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
@@ -233,7 +246,7 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
         - None
     """
 
-    if hasattr(model, 'dh_qc_dzc_mels') and hasattr(model, 'dh_qc_dzc_inds'):
+    if hasattr(model, "dh_qc_dzc_mels") and hasattr(model, "dh_qc_dzc_inds"):
         return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels
     else:
         z_coord = kwargs["z_coord"]
@@ -245,8 +258,7 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
             (len(z_coord), num_sites, num_sites, num_sites), dtype=complex
         )
 
-
-        np.einsum("tiii->ti", dh_qc_dzc, optimize='greedy')[...] = (
+        np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (
             dimensionless_coupling * oscillator_frequency
         )[..., :] * (np.ones_like(z_coord)) + 0.0j
         inds = np.where(dh_qc_dzc != 0)
@@ -254,7 +266,6 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
         model.dh_qc_dzc_inds = inds
         model.dh_qc_dzc_mels = dh_qc_dzc[inds]
         return inds, mels
-
 
 
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
@@ -284,14 +295,30 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     delta_zc_coord = np.conj(delta_z_coord)
     zc_coord = np.conj(z_coord)
 
-    a_const = (1/4) * (((constants.harmonic_oscillator_frequency**2) /  constants.classical_coordinate_weight) - \
-                      constants.classical_coordinate_weight)
-    
-    b_const = (1/4) * (((constants.harmonic_oscillator_frequency**2) /  constants.classical_coordinate_weight) + \
-                      constants.classical_coordinate_weight)
-    
-    akj_z = np.sum(2*delta_zc_coord * delta_z_coord * b_const - a_const*(delta_z_coord**2 + delta_zc_coord**2))
-    bkj_z = 2j*np.sum((z_coord*delta_z_coord - delta_zc_coord*zc_coord)*a_const + (delta_z_coord*zc_coord - delta_zc_coord*z_coord)*b_const)
+    a_const = (1 / 4) * (
+        (
+            (constants.harmonic_oscillator_frequency**2)
+            / constants.classical_coordinate_weight
+        )
+        - constants.classical_coordinate_weight
+    )
+
+    b_const = (1 / 4) * (
+        (
+            (constants.harmonic_oscillator_frequency**2)
+            / constants.classical_coordinate_weight
+        )
+        + constants.classical_coordinate_weight
+    )
+
+    akj_z = np.sum(
+        2 * delta_zc_coord * delta_z_coord * b_const
+        - a_const * (delta_z_coord**2 + delta_zc_coord**2)
+    )
+    bkj_z = 2j * np.sum(
+        (z_coord * delta_z_coord - delta_zc_coord * zc_coord) * a_const
+        + (delta_z_coord * zc_coord - delta_zc_coord * z_coord) * b_const
+    )
     ckj_z = ev_diff
 
     disc = bkj_z**2 - 4 * akj_z * ckj_z
@@ -356,6 +383,7 @@ def harmonic_oscillator_boltzmann_init_classical(
         out[s] = z
     return out
 
+
 def default_numerical_boltzmann_init_classical(model, constants, parameters, **kwargs):
     """
     Initialize classical coordinates according to Boltzmann statistics using a numerical method.
@@ -385,12 +413,12 @@ def default_numerical_boltzmann_init_classical(model, constants, parameters, **k
         rand_val = np.random.rand()
         num_points = constants.numerical_boltzmann_init_classical_num_points
         max_amplitude = constants.numerical_boltzmann_init_classical_max_amplitude
-        
+
         z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
 
         for n in range(constants.num_classical_coordinates):
             grid = (
-            2 * max_amplitude * (np.random.rand(num_points) - 0.5)
+                2 * max_amplitude * (np.random.rand(num_points) - 0.5)
             )  # np.linspace(-max_amplitude, max_amplitude, num_points)
             kinetic_grid = 1.0j * grid
             potential_grid = grid
@@ -439,7 +467,6 @@ def default_numerical_boltzmann_init_classical(model, constants, parameters, **k
                     break
         out[s] = z_out
     return out
-
 
 
 def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kwargs):

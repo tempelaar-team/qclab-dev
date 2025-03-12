@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 import warnings
 
 
@@ -7,7 +7,7 @@ class Vector:
         self._output_dict = {}
 
     def __getattr__(self, name):
-        """ 
+        """
         If an attribute is not in the VectorObject it returns None rather than throwing an error.
         """
         if name in self.__dict__:
@@ -25,7 +25,6 @@ class Vector:
         """
         for var in output_variables:
             self._output_dict[var] = getattr(self, var)
-
 
 
 def initialize_vector_objects(sim, batch_seeds):

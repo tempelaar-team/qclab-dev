@@ -1,6 +1,7 @@
 """
 This module contains the serial driver for the dynamics core.
 """
+
 import numpy as np
 import warnings
 from qc_lab.data import Data
@@ -12,30 +13,34 @@ def serial_driver(sim, seeds=None, data=None):
     if data is None:
         data = Data()
     if seeds is None:
-        if len(data.data_dic['seed']) > 0:
-            offset = np.max(data.data_dic['seed']) + 1
+        if len(data.data_dic["seed"]) > 0:
+            offset = np.max(data.data_dic["seed"]) + 1
         else:
             offset = 0
-        seeds = offset + np.arange(
-            sim.settings.num_trajs, dtype=int
-        )
+        seeds = offset + np.arange(sim.settings.num_trajs, dtype=int)
         num_trajs = sim.settings.num_trajs
     else:
         num_trajs = len(seeds)
-        warnings.warn('Setting sim.settings.num_trajs to the number of provided seeds.', UserWarning)
+        warnings.warn(
+            "Setting sim.settings.num_trajs to the number of provided seeds.",
+            UserWarning,
+        )
         sim.settings.num_trajs = num_trajs
     if sim.settings.num_trajs % sim.settings.batch_size != 0:
         # The reason we enforce this is because it is possible for a simulation to generate
         # intermediate quantities that are dependent on the batch size. To avoid an error
-        # we require that all simulations are run with the same batch size. 
+        # we require that all simulations are run with the same batch size.
         warnings.warn(
             "The number of trajectories is not divisible by the batch size.\n \
             Setting num_trajs to the lower multiple of batch_size.",
             UserWarning,
         )
-        sim.settings.num_trajs = int(sim.settings.num_trajs / sim.settings.batch_size) * sim.settings.batch_size
-        seeds = seeds[:sim.settings.num_trajs]
-    
+        sim.settings.num_trajs = (
+            int(sim.settings.num_trajs / sim.settings.batch_size)
+            * sim.settings.batch_size
+        )
+        seeds = seeds[: sim.settings.num_trajs]
+
     num_sims = int(num_trajs / sim.settings.batch_size) + 1
     for n in range(num_sims):
         batch_seeds = seeds[

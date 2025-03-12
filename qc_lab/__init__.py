@@ -8,6 +8,6 @@ from qc_lab.data import Data
 from qc_lab.model import Model
 from qc_lab.algorithm import Algorithm
 from qc_lab.constants import Constants
-import warnings 
+import warnings
 
 warnings.filterwarnings("always")

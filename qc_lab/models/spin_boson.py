@@ -90,7 +90,7 @@ class SpinBosonModel(Model):
         return h_qc
 
     def dh_qc_dzc_(self, constants, parameters, **kwargs):
-        if hasattr(self, 'dh_qc_dzc_inds') and hasattr(self, 'dh_qc_dzc_mels'):
+        if hasattr(self, "dh_qc_dzc_inds") and hasattr(self, "dh_qc_dzc_mels"):
             inds = self.dh_qc_dzc_inds
             mels = self.dh_qc_dzc_mels
             return inds, mels
@@ -107,17 +107,13 @@ class SpinBosonModel(Model):
             self.dh_qc_dzc_inds = inds
             self.dh_qc_dzc_mels = dh_qc_dzc[inds]
             return inds, mels
-    
-
-
-
 
     # Assigning functions from ingredients module
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
     hop_function = ingredients.harmonic_oscillator_hop
     h_c = ingredients.harmonic_oscillator_h_c
     h_q = ingredients.two_level_system_h_q
-    #dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
+    # dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc
     linear_h_qc = True
     initialization_functions = [
         initialize_constants_model,
