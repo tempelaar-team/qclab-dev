@@ -1,7 +1,6 @@
 import warnings
 import numpy as np
 from numba import njit
-from qc_lab import ingredients
 
 
 def initialize_branch_seeds(sim, parameters, state, **kwargs):
