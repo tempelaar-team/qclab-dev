@@ -33,7 +33,7 @@ def initialize_vector_objects(sim, batch_seeds):
     # and creates a first index corresponding to the number of trajectories
 
     state_vector = Vector()
-    #state_vector.seed = batch_seeds
+    state_vector.seed = batch_seeds
     for name in sim.state.__dict__.keys():
         obj = getattr(sim.state, name)
         if isinstance(obj, np.ndarray) and name[0] != "_":
@@ -44,7 +44,6 @@ def initialize_vector_objects(sim, batch_seeds):
             )
             setattr(state_vector, name, new_obj)
     parameter_vector = Vector()
-    #parameter_vector.seed = batch_seeds
     for name in sim.model.parameters.__dict__.keys():
         obj = getattr(sim.model.parameters, name)
         if isinstance(obj, np.ndarray) and name[0] != "_":
