@@ -7,6 +7,7 @@ from qc_lab.algorithm import Algorithm
 from qc_lab import tasks
 import warnings
 
+#warnings.filterwarnings("always")
 
 class FewestSwitchesSurfaceHopping(Algorithm):
     """
@@ -25,38 +26,17 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         super().__init__(self.default_settings, settings)
 
     def update_algorithm_parameters(self):
-        if not(self.settings.fssh_deterministic):
+        if not (self.settings.fssh_deterministic):
             self.settings.num_branches = 1
             warnings.warn(
-                "FSSH is using stochastic sampling, setting num_branches to 1.", UserWarning)
+                "FSSH is using stochastic sampling, setting num_branches to 1.",
+                UserWarning,
+            )
 
     initialization_recipe = [
-        lambda sim, parameters, state: tasks.broadcast_var_to_branch(
-            sim=sim,
-            parameters=parameters,
-            state=state,
-            val = parameters.seed,
-            name="seed",
-        ),
-
-        lambda sim, parameters, state: tasks.assign_to_parameters(
-            sim = sim,
-            parameters = parameters,
-            state = state,
-            val = state.seed,
-            name = "seed",
-        ),
-
+        tasks.initialize_branch_seeds,
         lambda sim, parameters, state: tasks.initialize_z_coord(
             sim=sim, parameters=parameters, state=state, seed=state.seed
-        ),
-
-        lambda sim, parameters, state: tasks.broadcast_var_to_branch(
-            sim=sim,
-            parameters=parameters,
-            state=state,
-            val=state.wf_db,
-            name="wf_db_branch",
         ),
         lambda sim, parameters, state: tasks.update_h_quantum(
             sim=sim,
@@ -101,9 +81,9 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             sim=sim,
             parameters=parameters,
             state=state,
-            input_vec=state.wf_db_branch,
+            input_vec=state.wf_db,
             basis=np.einsum("...ij->...ji", state.eigvecs).conj(),
-            output_name="wf_adb_branch",
+            output_name="wf_adb",
         ),
         tasks.initialize_random_values_fssh,
         tasks.initialize_active_surface,
@@ -140,11 +120,11 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             sim=sim,
             parameters=parameters,
             state=state,
-            wf_db=state.wf_db_branch,
+            wf_db=state.wf_db,
             eigvals=state.eigvals,
             eigvecs=state.eigvecs,
-            adb_name="wf_adb_branch",
-            output_name="wf_db_branch",
+            adb_name="wf_adb",
+            output_name="wf_db",
         ),
         lambda sim, parameters, state: tasks.update_h_quantum(
             sim=sim,
@@ -177,9 +157,9 @@ class FewestSwitchesSurfaceHopping(Algorithm):
     output_recipe = [
         tasks.update_dm_db_fssh,
         lambda sim, parameters, state: tasks.update_quantum_energy_fssh(
-            sim=sim, 
-            parameters=parameters, 
-            state=state, 
+            sim=sim,
+            parameters=parameters,
+            state=state,
             wf=state.act_surf_wf,
         ),
         lambda sim, parameters, state: tasks.update_classical_energy_fssh(
