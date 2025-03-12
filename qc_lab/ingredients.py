@@ -256,66 +256,6 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
         return inds, mels
 
 
-def default_numerical_fssh_hop(model, constants, parameters, **kwargs):
-    """
-    Determines the coordinate rescaling in FSSH numerically.
-
-    Args:
-        model: The model object.
-        constants: The constants object.
-        parameters: The parameters object.
-        **kwargs: Additional keyword arguments.
-
-    Returns:
-        tuple: The updated z-coordinates and a boolean indicating if the hop was accepted.
-
-    Required attributes of constants:
-        - numerical_fssh_hop_gamma_range
-        - numerical_fssh_hop_num_iter
-        - numerical_fssh_hop_num_points
-
-    Required attributes of parameters:
-        - None
-    """
-    z_coord = kwargs["z_coord"]
-    delta_z_coord = kwargs["delta_z_coord"]
-    ev_diff = kwargs["ev_diff"]
-
-    gamma_range = constants.numerical_fssh_hop_gamma_range
-    num_iter = constants.numerical_fssh_hop_num_iter
-    num_points = constants.numerical_fssh_hop_num_points
-
-    init_energy = model.h_c(constants, parameters, z_coord=z_coord)
-
-    min_gamma = 0
-    for iter in range(num_iter):
-        gamma_list = np.linspace(
-            min_gamma - gamma_range, min_gamma + gamma_range, num_points
-        )
-        new_energies = np.abs(
-            ev_diff
-            - np.array(
-                [
-                    init_energy
-                    - model.h_c(
-                        constants,
-                        parameters,
-                        z_coord=z_coord - 1.0j * gamma * delta_z_coord,
-                    )
-                    for gamma in gamma_list
-                ]
-            )
-        )
-        min_gamma = gamma_list[np.argmin(new_energies)]
-        min_energy = np.min(new_energies)
-        gamma_range = gamma_range / 2
-
-    if min_energy > 1 / num_points:
-        # print('rejected hop', min_energy)
-        return z_coord, False
-    else:
-        # print('accepted hop', min_gamma)
-        return z_coord - 1.0j * min_gamma * delta_z_coord, True
 
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     """
