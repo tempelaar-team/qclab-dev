@@ -60,9 +60,7 @@ class SpinBosonModel(Model):
         num_bosons = self.constants.get("A", self.default_constants.get("A"))
         w = self.constants.get("w", self.default_constants.get("w"))
         l_reorg = self.constants.get("l_reorg", self.default_constants.get("l_reorg"))
-        self.constants.g = w * np.sqrt(
-            2 * l_reorg / num_bosons
-        )
+        self.constants.g = w * np.sqrt(2 * l_reorg / num_bosons)
 
     def initialize_constants_h_q(self):
         """
@@ -79,7 +77,7 @@ class SpinBosonModel(Model):
         )
         self.constants.two_level_system_d = 0
 
-# @ingredients.vectorize_ingredient
+    # @ingredients.vectorize_ingredient
     # def h_qc(self, constants, parameters, **kwargs):
     #     z = kwargs.get("z_coord")
     #     g = constants.g
@@ -103,7 +101,7 @@ class SpinBosonModel(Model):
 
     # @ingredients.vectorize_ingredient
     # def h_qc(self, constants, parameters, **kwargs):
-        #     z = kwargs.get("z_coord")
+    #     z = kwargs.get("z_coord")
     #     g = constants.g
     #     m = constants.classical_coordinate_mass
     #     h = constants.classical_coordinate_weight
@@ -122,7 +120,6 @@ class SpinBosonModel(Model):
     #     dh_qc_dzc[:, 0, 0] = g * np.sqrt(1 / (2 * m * h))
     #     dh_qc_dzc[:, 1, 1] = -dh_qc_dzc[:, 0, 0]
     #     return dh_qc_dzc
-
 
     def h_qc(self, constants, parameters, **kwargs):
         z = kwargs.get("z_coord")

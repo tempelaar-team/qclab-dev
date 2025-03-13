@@ -1,6 +1,7 @@
 """
 This module contains the task functions used to build algorithms in QC Lab.
 """
+
 import warnings
 import numpy as np
 from numba import njit
@@ -652,7 +653,7 @@ def basis_transform_vec(sim, parameters, state, **kwargs):
 
 def basis_transform_mat(sim, parameters, state, **kwargs):
     """
-    Transforms a matrix "input_mat" to a new basis 
+    Transforms a matrix "input_mat" to a new basis
     defined by "basis" and stores it in the state object
     with name "output_name".
     """
@@ -676,17 +677,17 @@ def basis_transform_mat(sim, parameters, state, **kwargs):
 
 def initialize_active_surface(sim, parameters, state, **kwargs):
     """
-    Initializes the active surface (act_surf), active surface index 
+    Initializes the active surface (act_surf), active surface index
     (act_surf_ind) and initial active surface index (act_surf_ind_0)
     for FSSH.
 
-    If fssh_deterministic is true it will set act_surf_ind_0 to be the same as 
+    If fssh_deterministic is true it will set act_surf_ind_0 to be the same as
     the branch index and assert that the number of branches (num_branches)
     is equal to the number of quantum states (num_states).
 
-    If fssh_deterministic is false it will stochastically sample the active 
+    If fssh_deterministic is false it will stochastically sample the active
     surface from the density specified by the initial quantum wavefunction in the
-    adiabatic basis. 
+    adiabatic basis.
     """
     del kwargs
     num_states = sim.model.constants.num_quantum_states
@@ -806,7 +807,7 @@ def update_dm_db_fssh(sim, parameters, state, **kwargs):
         )
     else:
         dm_adb_branch = dm_adb_branch / num_branches
-    state.dm_adb = np.sum(dm_adb_branch, axis=-3).astype(complex) # TODO is this right?
+    state.dm_adb = np.sum(dm_adb_branch, axis=-3).astype(complex)  # TODO is this right?
     parameters, state = basis_transform_mat(
         sim,
         parameters,
@@ -1072,9 +1073,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                 )
             if hopped:
                 act_surf_ind_flat[traj_ind] = k
-                act_surf_flat[traj_ind] = np.zeros_like(
-                    act_surf_flat[traj_ind]
-                    )
+                act_surf_flat[traj_ind] = np.zeros_like(act_surf_flat[traj_ind])
                 act_surf_flat[traj_ind][k] = 1
                 z_coord[traj_ind] = z_coord_branch_out
                 state.act_surf_ind = np.copy(

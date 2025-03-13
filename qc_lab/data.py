@@ -30,12 +30,10 @@ class Data:
         """
         for key, val in full_state.output_dict.items():
             if key in self.data_dic:
-                # fill an existing data storage array
                 self.data_dic[key][int(t_ind / sim.settings.dt_output_n)] = np.sum(
                     val, axis=0
                 )
             else:
-                # initialize the data storage array and then fill it
                 self.data_dic[key] = np.zeros(
                     (len(sim.settings.tdat_output), *np.shape(val)[1:]), dtype=val.dtype
                 )
