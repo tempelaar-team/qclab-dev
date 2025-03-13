@@ -79,7 +79,7 @@ def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
     del model
     del parameters
     z_coord = kwargs["z_coord"]
-    dh_c_dzc = constants.classical_coordinate_weight[..., :] * z_coord + 0.0j
+    dh_c_dzc = constants.classical_coordinate_weight[..., :] * z_coord
     return dh_c_dzc
 
 
@@ -137,7 +137,7 @@ def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
     h_qc = np.zeros((*np.shape(z_coord)[:-1], num_sites, num_sites), dtype=complex)
     np.einsum("...ii->...i", h_qc)[...] = (
         dimensionless_coupling * oscillator_frequency
-    )[..., :] * (z_coord + np.conj(z_coord)) + 0.0j
+    )[..., :] * (z_coord + np.conj(z_coord))
     return h_qc
 
 
@@ -161,7 +161,7 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
 
         np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (
             dimensionless_coupling * oscillator_frequency
-        )[..., :] * (np.ones_like(z_coord)) + 0.0j
+        )[..., :] * (np.ones_like(z_coord, dtype=complex))
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]
         model.dh_qc_dzc_inds = inds

@@ -460,7 +460,7 @@ def diagonalize_matrix(sim, parameters, state, **kwargs):
     matrix = kwargs["matrix"]
     eigvals_name = kwargs["eigvals_name"]
     eigvecs_name = kwargs["eigvecs_name"]
-    eigvals, eigvecs = np.linalg.eigh(matrix + 0.0j)
+    eigvals, eigvecs = np.linalg.eigh(matrix)
     setattr(state, eigvals_name, eigvals)
     setattr(state, eigvecs_name, eigvecs)
     return parameters, state
@@ -759,7 +759,6 @@ def initialize_dm_adb_0_fssh(sim, parameters, state, **kwargs):
             np.conj(state.wf_adb),
             optimize="greedy",
         )
-        + 0.0j
     )
     return parameters, state
 
@@ -834,7 +833,6 @@ def update_dm_db_fssh(sim, parameters, state, **kwargs):
             ),
             axis=-3,
         )
-        + 0.0j
     )
     return parameters, state
 
