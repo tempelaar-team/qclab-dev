@@ -15,7 +15,6 @@ class Model:
         if constants is None:
             constants = {}
         internal_defaults = {}
-        # Add default constants to the provided constants if not already present
         constants = {**internal_defaults, **default_constants, **constants}
         self.constants = Constants(self.initialize_constants)
         for key, val in constants.items():

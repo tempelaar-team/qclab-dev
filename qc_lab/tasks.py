@@ -658,7 +658,7 @@ def basis_transform_mat(sim, parameters, state, **kwargs):
     with name "output_name".
     """
     del sim
-    # default is adiabatic to diabatic.
+    # Default transformation is adiabatic to diabatic.
     input_mat = kwargs["input_mat"]
     basis = kwargs["basis"]
     output_name = kwargs["output_name"]
@@ -739,7 +739,6 @@ def initialize_random_values_fssh(sim, parameters, state, **kwargs):
     batch_size = sim.settings.batch_size // num_branches
     state.hopping_probs_rand_vals = np.zeros((batch_size, len(sim.settings.tdat)))
     state.stochastic_sh_rand_vals = np.zeros((batch_size, num_branches))
-    # this for loop is important so each seed is used
     for nt in range(batch_size):
         np.random.seed(state.seed[nt])
         state.hopping_probs_rand_vals[nt] = np.random.rand(len(sim.settings.tdat))
