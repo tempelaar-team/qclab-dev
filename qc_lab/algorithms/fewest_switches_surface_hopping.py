@@ -25,11 +25,12 @@ class FewestSwitchesSurfaceHopping(Algorithm):
 
     def update_algorithm_settings(self):
         if not self.settings.get("fssh_deterministic", False):
-            self.settings.num_branches = 1
-            warnings.warn(
-                "FSSH is using stochastic sampling, setting num_branches to 1.",
-                UserWarning,
-            )
+            if self.settings.num_branches != 1:
+                self.settings.num_branches = 1
+                warnings.warn(
+                    "FSSH is using stochastic sampling, setting num_branches to 1.",
+                    UserWarning,
+                )
 
     initialization_recipe = [
         tasks.initialize_branch_seeds,
