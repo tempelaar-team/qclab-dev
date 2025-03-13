@@ -6,7 +6,7 @@ import warnings
 import numpy as np
 from qc_lab.data import Data
 from qc_lab.vector import initialize_vector_objects
-import qclab.dynamics as dynamics
+import qc_lab.dynamics as dynamics
 
 
 def serial_driver(sim, seeds=None, data=None):
