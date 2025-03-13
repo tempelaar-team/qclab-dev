@@ -5,7 +5,7 @@ This module contains the slurm driver for the dynamics core.
 import os
 import numpy as np
 from qc_lab.data import Data
-from qc_lab.dynamics import serial_driver
+from qc_lab.dynamics.serial_driver import serial_driver
 
 
 def slurm_driver(sim, seeds=None, num_tasks=1, data=None):
@@ -31,5 +31,5 @@ def slurm_driver(sim, seeds=None, num_tasks=1, data=None):
     num_trajs_per_task = int(num_trajs / num_tasks)
     seeds = seeds.reshape((num_tasks, num_trajs_per_task))
     task_seeds = seeds[idx]
-    data = serial_driver(sim, task_seeds, data=data)
+    data = erial_driver(sim, task_seeds, data=data)
     return data, idx
