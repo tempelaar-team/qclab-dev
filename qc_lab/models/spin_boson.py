@@ -4,7 +4,7 @@ This file contains the spin-boson model class.
 
 import numpy as np
 from qc_lab.model import Model
-import qc_lab.ingredients as ingredients
+from qc_lab import ingredients
 
 
 class SpinBosonModel(Model):
@@ -156,11 +156,7 @@ class SpinBosonModel(Model):
             tuple: Indices and values of the non-zero elements of the derivative.
         """
         del kwargs
-        if hasattr(self, "dh_qc_dzc_inds") and hasattr(self, "dh_qc_dzc_mels"):
-            inds = self.dh_qc_dzc_inds
-            mels = self.dh_qc_dzc_mels
-            return inds, mels
-        else:
+        if self.dh_qc_dzc_inds is None or self.dh_qc_dzc_mels is None:
             m = constants.classical_coordinate_mass
             g = constants.g
             h = constants.classical_coordinate_weight
@@ -172,7 +168,10 @@ class SpinBosonModel(Model):
             mels = dh_qc_dzc[inds]
             self.dh_qc_dzc_inds = inds
             self.dh_qc_dzc_mels = dh_qc_dzc[inds]
-            return inds, mels
+        else:
+            inds = self.dh_qc_dzc_inds
+            mels = self.dh_qc_dzc_mels
+        return inds, mels
 
     # Assigning functions from ingredients module
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical

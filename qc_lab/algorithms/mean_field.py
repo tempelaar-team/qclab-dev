@@ -3,7 +3,7 @@ This module contains the MF algorithm class.
 """
 
 from qc_lab.algorithm import Algorithm
-import qc_lab.tasks as tasks
+from qc_lab import tasks
 
 
 class MeanField(Algorithm):

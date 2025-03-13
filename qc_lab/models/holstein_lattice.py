@@ -4,7 +4,7 @@ Holstein Lattice model
 
 import numpy as np
 from qc_lab.model import Model
-import qc_lab.ingredients as ingredients
+from qc_lab import ingredients
 
 
 class HolsteinLatticeModel(Model):

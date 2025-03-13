@@ -32,7 +32,7 @@ class Model:
         Initialize the constants for the model and ingredients.
         """
         for func in self.initialization_functions:
-            func()
+            func(self)
 
     def h_q(self, constants, parameters, **kwargs):
         """

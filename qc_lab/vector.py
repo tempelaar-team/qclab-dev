@@ -1,10 +1,17 @@
-import numpy as np
+"""
+This file defines the Vector class.
+"""
 import warnings
+import numpy as np
 
 
 class Vector:
+    """
+    The Vector object defines a vehicle in which quantities can be placed, retrieved, and collected.
+    """
     def __init__(self):
         self.output_dict = {}
+        self.seed = None
 
     def __getattr__(self, name):
         """
@@ -28,9 +35,10 @@ class Vector:
 
 
 def initialize_vector_objects(sim, batch_seeds):
-    # this takes the numpy arrays inside the state and parameter objects
-    # and creates a first index corresponding to the number of trajectories
-
+    """
+    This takes the numpy arrays inside the state and parameter objects
+    and creates a first index corresponding to the number of trajectories
+    """
     state_vector = Vector()
     state_vector.seed = batch_seeds
     for name in sim.state.__dict__.keys():
