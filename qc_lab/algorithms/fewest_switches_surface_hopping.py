@@ -1,5 +1,5 @@
 """
-This module contains the FSSH algorithm class.
+This file contains the FSSH algorithm class.
 """
 
 import warnings
@@ -21,7 +21,6 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             "num_branches": 1,
             "gauge_fixing": 0,
         }
-        # add default_params to params if not already in params
         super().__init__(self.default_settings, settings)
 
     def update_algorithm_settings(self):

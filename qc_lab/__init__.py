@@ -1,5 +1,5 @@
 """
-qclab package initialization.
+QC Lab package initialization.
 """
 
 import warnings

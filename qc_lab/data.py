@@ -17,10 +17,6 @@ class Data:
     def initialize_output_total_arrays_(self, sim, state):
         """
         Initialize the output total arrays for data collection.
-
-        Args:
-            sim: The simulation object.
-            full_state: The full state object.
         """
         self.data_dic["seed"] = np.copy(state.get("seed"))
         for key, val in state.output_dict.items():
@@ -31,11 +27,6 @@ class Data:
     def add_to_output_total_arrays(self, sim, full_state, t_ind):
         """
         Add data to the output total arrays.
-
-        Args:
-            sim: The simulation object.
-            full_state: The full state object.
-            t_ind: Time index.
         """
         for key, val in full_state.output_dict.items():
             if key in self.data_dic:
@@ -55,9 +46,6 @@ class Data:
     def add_data(self, new_data):
         """
         Add new data to the existing data dictionary.
-
-        Args:
-            new_data: The new data object.
         """
         for key, val in new_data.data_dic.items():
             if key == "seed":
@@ -88,13 +76,7 @@ class Data:
 
     def _recursive_save(self, h5file, path, dic):
         """
-
         Recursively saves dictionary contents to an HDF5 group.
-
-        Args:
-            h5file (h5py.File): The HDF5 file object.
-            path (str): The path to the group in the HDF5 file.
-            dic (dict): The dictionary to save.
         """
         for key, item in dic.items():
             if isinstance(item, (np.ndarray, np.int64, np.float64, str, bytes)):
@@ -109,11 +91,6 @@ class Data:
     def _recursive_load(self, h5file, path, dic):
         """
         Recursively loads dictionary contents from an HDF5 group.
-
-        Args:
-            h5file (h5py.File): The HDF5 file object.
-            path (str): The path to the group in the HDF5 file.
-            dic (dict): The dictionary to load the data into.
         """
         for key, item in h5file[path].items():
             if isinstance(item, h5py._hl.dataset.Dataset):

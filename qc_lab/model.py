@@ -9,9 +9,6 @@ from qc_lab.vector import Vector
 class Model:
     """
     Base class for models in the simulation framework.
-
-    Attributes:
-        parameters (ParameterClass): The parameters of the model.
     """
 
     def __init__(self, default_constants=None, constants=None):

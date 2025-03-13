@@ -1,5 +1,5 @@
 """ 
-This file contains the spin-boson model class.
+This file contains the spin-boson Model class.
 """
 
 import numpy as np
@@ -13,12 +13,6 @@ class SpinBosonModel(Model):
     """
 
     def __init__(self, constants=None):
-        """
-        Initializes the SpinBosonModel with given constants.
-
-        Args:
-            constants (dict, optional): A dictionary of constants for the model.
-        """
         if constants is None:
             constants = {}
         self.default_constants = {
@@ -68,7 +62,7 @@ class SpinBosonModel(Model):
         l_reorg = self.constants.get("l_reorg", self.default_constants.get("l_reorg"))
         self.constants.g = w * np.sqrt(
             2 * l_reorg / num_bosons
-        )  # Electron-phonon coupling
+        )
 
     def initialize_constants_h_q(self):
         """
@@ -146,14 +140,6 @@ class SpinBosonModel(Model):
         """
         Calculate the derivative of the quantum-classical coupling Hamiltonian
         with respect to the z-coordinates.
-
-        Args:
-            constants: The constants object.
-            parameters: The parameters object.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            tuple: Indices and values of the non-zero elements of the derivative.
         """
         del kwargs
         if self.dh_qc_dzc_inds is None or self.dh_qc_dzc_mels is None:
@@ -173,7 +159,6 @@ class SpinBosonModel(Model):
             mels = self.dh_qc_dzc_mels
         return inds, mels
 
-    # Assigning functions from ingredients module
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
     hop_function = ingredients.harmonic_oscillator_hop
     h_c = ingredients.harmonic_oscillator_h_c

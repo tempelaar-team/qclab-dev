@@ -1,5 +1,5 @@
 """
-This module contains the MF algorithm class.
+This file contains the MF algorithm class.
 """
 
 from qc_lab.algorithm import Algorithm
@@ -9,13 +9,6 @@ from qc_lab import tasks
 class MeanField(Algorithm):
     """
     Mean-field dynamics algorithm class.
-
-    The algorithm class has a set of parameters that define
-    the algorithm Some of these parameters depends on the
-    model i.e. num_branches is always the same as the number
-    of quantum states in the model for deterministic surface
-    hopping methods.
-
     """
 
     def __init__(self, settings=None):

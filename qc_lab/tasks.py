@@ -615,10 +615,6 @@ def gauge_fix_eigs(sim, parameters, state, **kwargs):
             )
             > 1e-10
         ):
-            # this error will indicate that symmetries of the
-            # Hamiltonian have been broken by the representation
-            # and/or that the Hamiltonian is not suitable for
-            # SH methods without additional gauge fixing.
             warnings.warn(
                 "Phase error encountered when fixing gauge analytically.", UserWarning
             )
@@ -642,7 +638,7 @@ def basis_transform_vec(sim, parameters, state, **kwargs):
     Transforms a vector "input_vec" to a new basis defined by "basis".
     """
     del sim
-    # default is adb to db
+    # Default transformation is adiabatic to diabatic.
     input_vec = kwargs["input_vec"]
     basis = kwargs["basis"]
     output_name = kwargs["output_name"]
@@ -661,7 +657,7 @@ def basis_transform_mat(sim, parameters, state, **kwargs):
     with name "output_name".
     """
     del sim
-    # default is adb to db
+    # default is adiabatic to diabatic.
     input_mat = kwargs["input_mat"]
     basis = kwargs["basis"]
     output_name = kwargs["output_name"]
@@ -688,10 +684,9 @@ def initialize_active_surface(sim, parameters, state, **kwargs):
     the branch index and assert that the number of branches (num_branches)
     is equal to the number of quantum states (num_states).
 
-    If fssh_deterministic is fasle it will stochastically sample the active 
+    If fssh_deterministic is false it will stochastically sample the active 
     surface from the density specified by the initial quantum wavefunction in the
-    adiabatic basis. This implementation is capable of stochastically sampling 
-    an arbitrary number of branches.
+    adiabatic basis. 
     """
     del kwargs
     num_states = sim.model.constants.num_quantum_states
@@ -811,7 +806,7 @@ def update_dm_db_fssh(sim, parameters, state, **kwargs):
         )
     else:
         dm_adb_branch = dm_adb_branch / num_branches
-    state.dm_adb = np.sum(dm_adb_branch, axis=-3) + 0.0j  # this is wrong....
+    state.dm_adb = np.sum(dm_adb_branch, axis=-3).astype(complex) # TODO is this right?
     parameters, state = basis_transform_mat(
         sim,
         parameters,
@@ -876,7 +871,7 @@ def update_wf_db_eigs(sim, parameters, state, **kwargs):
 @njit
 def nan_num(num):
     """
-    converts nan to a large or small number using numba acceleration
+    Converts nan to a large or small number using numba acceleration.
     """
     if np.isnan(num):
         return 0.0
@@ -891,23 +886,6 @@ def nan_num(num):
 def numerical_fssh_hop(model, constants, parameters, **kwargs):
     """
     Determines the coordinate rescaling in FSSH numerically.
-
-    Args:
-        model: The model object.
-        constants: The constants object.
-        parameters: The parameters object.
-        **kwargs: Additional keyword arguments.
-
-    Returns:
-        tuple: The updated z-coordinates and a boolean indicating if the hop was accepted.
-
-    Required attributes of constants:
-        - numerical_fssh_hop_gamma_range
-        - numerical_fssh_hop_num_iter
-        - numerical_fssh_hop_num_points
-
-    Required attributes of parameters:
-        - None
     """
     z_coord = kwargs["z_coord"]
     delta_z_coord = kwargs["delta_z_coord"]
@@ -943,10 +921,8 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
         gamma_range = gamma_range / 2
 
     if min_energy > 1 / num_points:
-        # print('rejected hop', min_energy)
         return z_coord, False
     else:
-        # print('accepted hop', min_gamma)
         return z_coord - 1.0j * min_gamma * delta_z_coord, True
 
 
@@ -1076,7 +1052,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                 )
             delta_z = dkj_zc
             # Perform hopping using the model's hop function
-            # or the default harmonic oscillator hop function
+            # or the default numerical hop function
             if hasattr(sim.model, "hop_function"):
                 z_coord_branch_out, hopped = sim.model.hop_function(
                     sim.model.constants,

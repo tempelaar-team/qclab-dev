@@ -1,5 +1,5 @@
 """
-This module contains the serial driver for the dynamics core.
+This file contains the serial driver for the dynamics core.
 """
 
 import warnings

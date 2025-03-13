@@ -1,5 +1,5 @@
 """
-Holstein Lattice model
+This file contains the Holstein lattice Model class.
 """
 
 import numpy as np

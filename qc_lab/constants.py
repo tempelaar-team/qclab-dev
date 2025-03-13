@@ -7,24 +7,10 @@ constants and trigger updates automatically when constants change.
 class Constants:
     """
     Class to handle constants and trigger updates when constants change.
-
-    Attributes:
-        _updating (bool): Flag to prevent recursion.
-        _init_complete (bool): Flag to prevent running update_function until initialization
-            is complete.
-        _update_function (function): The function to call when constants are updated.
     """
 
     def __init__(self, update_function=None):
-        """
-        Initializes the ParameterClass with an update function.
-
-        Args:
-            update_function (function): The function to call when constants are updated.
-        """
-        # Flag to prevent recursion
         self._updating = False
-        # Flag to prevent running update_function until initialization is complete
         self._init_complete = False
         self._update_function = update_function
 
@@ -32,10 +18,6 @@ class Constants:
         """
         Overrides attribute setting to call the update function after the attribute is changed,
         preventing recursion.
-
-        Args:
-            name (str): The name of the attribute.
-            value: The value to assign to the attribute.
         """
         # Set the attribute
         super().__setattr__(name, value)
@@ -54,13 +36,6 @@ class Constants:
     def get(self, name, default=None):
         """
         Get the value of a constant.
-
-        Args:
-            name (str): The name of the constant.
-            default: The default value to return if the constant does not exist.
-
-        Returns:
-            The value of the constant or the default value.
         """
         return getattr(self, name, default)
     

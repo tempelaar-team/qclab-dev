@@ -1,5 +1,5 @@
 """
-Directory for algorithms in QC Lab
+Directory for algorithms in QC Lab.
 """
 
 from qc_lab.algorithms.mean_field import MeanField
