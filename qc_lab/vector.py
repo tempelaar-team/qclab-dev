@@ -4,7 +4,7 @@ import warnings
 
 class Vector:
     def __init__(self):
-        self._output_dict = {}
+        self.output_dict = {}
 
     def __getattr__(self, name):
         """
@@ -24,7 +24,7 @@ class Vector:
             output_variables: List of output variable names.
         """
         for var in output_variables:
-            self._output_dict[var] = getattr(self, var)
+            self.output_dict[var] = getattr(self, var)
 
 
 def initialize_vector_objects(sim, batch_seeds):

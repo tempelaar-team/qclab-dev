@@ -31,19 +31,17 @@ class Simulation:
         """
         Initialize the timesteps for the simulation based on the parameters.
         """
-        self.settings.tmax_n = np.round(
-            self.settings.tmax / self.settings.dt, 1
-        ).astype(int)
-        self.settings.dt_output_n = np.round(
-            self.settings.dt_output / self.settings.dt, 1
-        ).astype(int)
-        self.settings.tdat = (
-            np.arange(0, self.settings.tmax_n + 1, 1) * self.settings.dt
+        tmax = self.settings.get("tmax", self.default_settings.get("tmax"))
+        dt = self.settings.get("dt", self.default_settings.get("dt"))
+        dt_output = self.settings.get(
+            "dt_output", self.default_settings.get("dt_output")
         )
+        self.settings.tmax_n = np.round(tmax / dt, 1).astype(int)
+        self.settings.dt_output_n = np.round(dt_output / dt, 1).astype(int)
+        self.settings.tdat = np.arange(0, self.settings.tmax_n + 1, 1) * dt
         self.settings.tdat_n = np.arange(0, self.settings.tmax_n + 1, 1)
         self.settings.tdat_output = (
-            np.arange(0, self.settings.tmax_n + 1, self.settings.dt_output_n)
-            * self.settings.dt
+            np.arange(0, self.settings.tmax_n + 1, self.settings.dt_output_n) * dt
         )
         self.settings.tdat_output_n = np.arange(
             0, self.settings.tmax_n + 1, self.settings.dt_output_n

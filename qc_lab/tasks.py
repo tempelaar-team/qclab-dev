@@ -1,3 +1,6 @@
+"""
+This module contains the task functions used to build algorithms in QC Lab.
+"""
 import warnings
 import numpy as np
 from numba import njit
@@ -7,6 +10,7 @@ def initialize_branch_seeds(sim, parameters, state, **kwargs):
     """
     Initialize the seeds in each branch
     """
+    del kwargs
     num_branches = sim.algorithm.settings.num_branches
     batch_size = sim.settings.batch_size
     orig_seeds = state.seed
@@ -40,6 +44,7 @@ def assign_to_parameters(sim, parameters, state, **kwargs):
     """
     Assign the value of the variable "val" to the parameters object with the name "name".
     """
+    del sim
     name = kwargs["name"]
     val = kwargs["val"]
     setattr(parameters, name, val)
@@ -49,51 +54,11 @@ def assign_to_parameters(sim, parameters, state, **kwargs):
 def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
     """
     Calculate the gradient of the classical Hamiltonian using finite differences.
-
-    Args:
-        model: The model object.
-        constants: The constants object.
-        parameters: The parameters object.
-        **kwargs: Additional keyword arguments.
-
-    Returns:
-        np.ndarray: The gradient of the classical Hamiltonian.
-
-    Required attributes of constants:
-        - None
-
-    Required attributes of parameters:
-        - seed
-
-    Required model ingredients:
-        - h_c
     """
-    z_coord = kwargs["z_coord"]
-    # Approximate the gradient using finite differences
-    delta_z = 1e-6
-    offset_z_coord_re = z_coord[np.newaxis, :] + np.identity(len(z_coord)) * delta_z
-    offset_z_coord_im = (
-        z_coord[np.newaxis, :] + 1j * np.identity(len(z_coord)) * delta_z
-    )
-
-    h_c_0 = model.h_c(constants, parameters, z_coord=z_coord)
-    dh_c_dzc = np.zeros((len(z_coord), *np.shape(h_c_0)), dtype=complex)
-
-    for n in range(len(z_coord)):
-        h_c_offset_re = model.h_c(constants, parameters, z_coord=offset_z_coord_re[n])
-        diff_re = (h_c_offset_re - h_c_0) / delta_z
-        h_c_offset_im = model.h_c(constants, parameters, z_coord=offset_z_coord_im[n])
-        diff_im = (h_c_offset_im - h_c_0) / delta_z
-        dh_c_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
-    return dh_c_dzc
-
-
-def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
     z_coord = kwargs["z_coord"]
     delta_z = 1e-6
     batch_size = len(parameters.seed)
     num_classical_coordinates = model.constants.num_classical_coordinates
-    num_quantum_states = model.constants.num_quantum_states
     offset_z_coord_re = (
         z_coord[:, np.newaxis, :]
         + np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
@@ -126,6 +91,9 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
 
 
 def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
+    """
+    Calculate the gradient of the quantum-classical Hamiltonian using finite differences.
+    """
     z_coord = kwargs["z_coord"]
     delta_z = 1e-6
     batch_size = len(parameters.seed)
@@ -176,7 +144,8 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
 
 def update_dh_c_dzc(sim, parameters, state, **kwargs):
     """
-    Update the gradient of the classical Hamiltonian w.r.t the conjugate classical coordinate.
+    Update the gradient of the classical Hamiltonian
+    w.r.t the conjugate classical coordinate.
     """
     z_coord = kwargs["z_coord"]
     if hasattr(sim.model, "dh_c_dzc"):
@@ -192,7 +161,8 @@ def update_dh_c_dzc(sim, parameters, state, **kwargs):
 
 def update_dh_qc_dzc(sim, parameters, state, **kwargs):
     """
-    Update the gradient of the quantum-classical Hamiltonian w.r.t the conjugate classical coordinate.
+    Update the gradient of the quantum-classical Hamiltonian
+    w.r.t the conjugate classical coordinate.
     """
     z_coord = kwargs["z_coord"]
     if hasattr(sim.model, "dh_qc_dzc"):
@@ -226,7 +196,7 @@ def update_quantum_classical_forces(sim, parameters, state, **kwargs):
     parameters, state = update_dh_qc_dzc(sim, parameters, state, z_coord=z_coord)
     inds, mels = state.dh_qc_dzc
 
-    state.quantum_classical_forces = np.zeros(  # TODO this should not need len(z_coord)
+    state.quantum_classical_forces = np.zeros(
         (sim.settings.batch_size, sim.model.constants.num_classical_coordinates),
         dtype=complex,
     )
@@ -235,13 +205,6 @@ def update_quantum_classical_forces(sim, parameters, state, **kwargs):
         (inds[0], inds[1]),
         np.conj(wf)[inds[0], inds[2]] * mels * wf[inds[0], inds[3]],
     )
-
-    # state.quantum_classical_forces = np.einsum(
-    #    "tnj,tj->tn",
-    #    np.einsum("tnji,ti->tnj", state.dh_qc_dzc, wf, optimize="greedy"),
-    #    np.conj(wf),
-    #    optimize="greedy",
-    # )
     return parameters, state
 
 
@@ -254,7 +217,7 @@ def update_z_coord_rk4(sim, parameters, state, **kwargs):
     dt = sim.settings.dt
     wf = kwargs["wf"]
     if hasattr(sim.model, "linear_h_qc"):
-        update_quantum_classical_forces_bool = not (sim.model.linear_h_qc)
+        update_quantum_classical_forces_bool = not sim.model.linear_h_qc
     else:
         update_quantum_classical_forces_bool = True
     z_coord_0 = kwargs["z_coord"]
@@ -298,6 +261,7 @@ def update_z_coord_parameter(sim, parameters, state, **kwargs):
     """
     Put the current z-coordinate into the parameters object.
     """
+    del sim
     z_coord = kwargs.get("z_coord", state.z_coord)
     parameters.z_coord = z_coord
     return parameters, state
@@ -400,6 +364,7 @@ def update_quantum_energy(sim, parameters, state, **kwargs):
     """
     Update the quantum energy w.r.t the wavefunction specified by wf.
     """
+    del sim
     wf = kwargs["wf"]
     state.quantum_energy = np.einsum(
         "ti,tij,tj->t", np.conj(wf), state.h_quantum, wf, optimize="greedy"
@@ -440,8 +405,10 @@ def update_quantum_energy_fssh(sim, parameters, state, **kwargs):
 
 def broadcast_var_to_branch(sim, parameters, state, **kwargs):
     """
-    Broadcasts a variable to an equivalent with a new internal "branch" index. Each branch will be identical.
-    Also generates a new set of indices named "var_branch_ind" and "var_traj_ind" which can be used to index the new variable.
+    Broadcasts a variable to an equivalent with a new internal "branch" index.
+    Each branch will be identical.
+    Also generates a new set of indices named "var_branch_ind" and "var_traj_ind"
+      which can be used to index the new variable.
     The shape will be (batch_size * num_branches, *var.shape[1:])
     """
     name = kwargs["name"]
@@ -502,6 +469,7 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
     """
     Calculates the phase change needed to fix the gauge using analytic derivative couplings.
     """
+    del parameters
     der_couple_q_phase = np.ones(
         (
             sim.settings.batch_size,
@@ -608,7 +576,8 @@ def gauge_fix_eigs(sim, parameters, state, **kwargs):
         Only the sign of the eigenvector is changed
 
     if gauge_fixing >= 1:
-        The phase of the eigenvector is determined from its overlap with the previous eigenvector and the phase is fixed.
+        The phase of the eigenvector is determined from its overlap
+        with the previous eigenvector and the phase is fixed.
 
     if gauge_fixing >= 2:
         The phase of the eigenvector is determined by calculating the derivative couplings.
@@ -646,8 +615,10 @@ def gauge_fix_eigs(sim, parameters, state, **kwargs):
             )
             > 1e-10
         ):
-            # this error will indicate that symmetries of the Hamiltonian have been broken by the representation
-            # and/or that the Hamiltonian is not suitable for SH methods without additional gauge fixing.
+            # this error will indicate that symmetries of the
+            # Hamiltonian have been broken by the representation
+            # and/or that the Hamiltonian is not suitable for
+            # SH methods without additional gauge fixing.
             warnings.warn(
                 "Phase error encountered when fixing gauge analytically.", UserWarning
             )
@@ -685,7 +656,8 @@ def basis_transform_vec(sim, parameters, state, **kwargs):
 
 def basis_transform_mat(sim, parameters, state, **kwargs):
     """
-    Transforms a matrix "input_mat" to a new basis defined by "basis" and stores it in the state object
+    Transforms a matrix "input_mat" to a new basis 
+    defined by "basis" and stores it in the state object
     with name "output_name".
     """
     del sim
@@ -708,14 +680,18 @@ def basis_transform_mat(sim, parameters, state, **kwargs):
 
 def initialize_active_surface(sim, parameters, state, **kwargs):
     """
-    Initializes the active surface (act_surf), active surface index (act_surf_ind) and initial active surface index (act_surf_ind_0)
+    Initializes the active surface (act_surf), active surface index 
+    (act_surf_ind) and initial active surface index (act_surf_ind_0)
     for FSSH.
 
-    If fssh_deterministic is true it will set act_surf_ind_0 to be the same as the branch index and assert that the number of branches (num_branches)
+    If fssh_deterministic is true it will set act_surf_ind_0 to be the same as 
+    the branch index and assert that the number of branches (num_branches)
     is equal to the number of quantum states (num_states).
 
-    If fssh_deterministic is fasle it will stochastically sample the active surface from the density specified by the initial quantum wavefunction in the
-    adiabatic basis. This implementation is capable of stochastically sampling an arbitrary number of branches.
+    If fssh_deterministic is fasle it will stochastically sample the active 
+    surface from the density specified by the initial quantum wavefunction in the
+    adiabatic basis. This implementation is capable of stochastically sampling 
+    an arbitrary number of branches.
     """
     del kwargs
     num_states = sim.model.constants.num_quantum_states
@@ -821,7 +797,7 @@ def update_dm_db_fssh(sim, parameters, state, **kwargs):
     num_branches = sim.algorithm.settings.num_branches
     batch_size = sim.settings.batch_size // num_branches
     num_quantum_states = sim.model.constants.num_quantum_states
-    for nt in range(len(dm_adb_branch)):
+    for nt, _ in enumerate(dm_adb_branch):
         np.einsum("...jj->...j", dm_adb_branch[nt])[...] = state.act_surf[nt]
     if sim.algorithm.settings.fssh_deterministic:
         dm_adb_branch = (
@@ -944,7 +920,7 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
     init_energy = model.h_c(constants, parameters, z_coord=z_coord)
 
     min_gamma = 0
-    for iter in range(num_iter):
+    for _ in range(num_iter):
         gamma_list = np.linspace(
             min_gamma - gamma_range, min_gamma + gamma_range, num_points
         )
@@ -1099,8 +1075,8 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                     UserWarning,
                 )
             delta_z = dkj_zc
-
-            # Perform hopping using the model's hop function or the default harmonic oscillator hop function
+            # Perform hopping using the model's hop function
+            # or the default harmonic oscillator hop function
             if hasattr(sim.model, "hop_function"):
                 z_coord_branch_out, hopped = sim.model.hop_function(
                     sim.model.constants,
@@ -1120,7 +1096,9 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                 )
             if hopped:
                 act_surf_ind_flat[traj_ind] = k
-                act_surf_flat[traj_ind] = np.zeros_like(act_surf_flat[traj_ind])
+                act_surf_flat[traj_ind] = np.zeros_like(
+                    act_surf_flat[traj_ind]
+                    )
                 act_surf_flat[traj_ind][k] = 1
                 z_coord[traj_ind] = z_coord_branch_out
                 state.act_surf_ind = np.copy(

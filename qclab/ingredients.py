@@ -2,31 +2,15 @@
 This file contains ingredient functions for use in Model classes.
 """
 
-import functools
 import numpy as np
 from tqdm import tqdm
-
-
-def make_ingredient_sparse(ingredient):
-    """
-    Converts a vectorized ingredient output to a sparse format
-    """
-
-    @functools.wraps(ingredient)
-    def sparse_ingredient(*args, **kwargs):
-        (model, constants, parameters) = args
-        out = ingredient(model, constants, parameters, **kwargs)
-        inds = np.where(out != 0)
-        mels = out[inds]
-        return inds, mels
-
-    return sparse_ingredient
+import functools
 
 
 def vectorize_ingredient(ingredient):
     """
     Vectorize an ingredient function.
-    assumes any kwarg that is a np.ndarray is vectorized over its firts index.
+    assumes any kwarg that is a np.ndarray is vectorized over its firts index. 
     non np.ndarray kwargs are assumed to not be vectorized.
 
     Args:
@@ -35,7 +19,6 @@ def vectorize_ingredient(ingredient):
     Returns:
         function: The vectorized ingredient function.
     """
-
     @functools.wraps(ingredient)
     def vectorized_ingredient(*args, **kwargs):
         (model, constants, parameters) = args
@@ -50,16 +33,9 @@ def vectorize_ingredient(ingredient):
                 else:
                     kwargs_n[key] = kwargs[key]
             kwargs_list.append(kwargs_n)
-        out = np.array(
-            [
-                ingredient(model, constants, parameters, **kwargs_list[n])
-                for n in range(batch_size)
-            ]
-        )
+        out = np.array([ingredient(model, constants, parameters, **kwargs_list[n]) for n in range(batch_size)])
         return out
-
     return vectorized_ingredient
-
 
 def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     """
@@ -192,9 +168,7 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
         h_q[0, num_sites - 1] += -hopping_energy
         h_q[num_sites - 1, 0] += np.conj(h_q[0, num_sites - 1])
 
-    return h_q[np.newaxis, :, :] + np.zeros(
-        (len(parameters.seed), num_sites, num_sites), dtype=complex
-    )
+    return h_q[np.newaxis, :, :] + np.zeros((len(parameters.seed), num_sites, num_sites), dtype=complex)
 
 
 def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
@@ -254,7 +228,7 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
         - None
     """
     del parameters
-    if hasattr(model, "dh_qc_dzc_mels") and hasattr(model, "dh_qc_dzc_inds"):
+    if hasattr(model, 'dh_qc_dzc_mels') and hasattr(model, 'dh_qc_dzc_inds'):
         return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels
     else:
         z_coord = kwargs["z_coord"]
@@ -266,7 +240,8 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
             (len(z_coord), num_sites, num_sites, num_sites), dtype=complex
         )
 
-        np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (
+
+        np.einsum("tiii->ti", dh_qc_dzc, optimize='greedy')[...] = (
             dimensionless_coupling * oscillator_frequency
         )[..., :] * (np.ones_like(z_coord)) + 0.0j
         inds = np.where(dh_qc_dzc != 0)
@@ -275,6 +250,67 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
         model.dh_qc_dzc_mels = dh_qc_dzc[inds]
         return inds, mels
 
+
+def default_numerical_fssh_hop(model, constants, parameters, **kwargs):
+    """
+    Determines the coordinate rescaling in FSSH numerically.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        tuple: The updated z-coordinates and a boolean indicating if the hop was accepted.
+
+    Required attributes of constants:
+        - numerical_fssh_hop_gamma_range
+        - numerical_fssh_hop_num_iter
+        - numerical_fssh_hop_num_points
+
+    Required attributes of parameters:
+        - None
+    """
+    z_coord = kwargs["z_coord"]
+    delta_z_coord = kwargs["delta_z_coord"]
+    ev_diff = kwargs["ev_diff"]
+
+    gamma_range = constants.numerical_fssh_hop_gamma_range
+    num_iter = constants.numerical_fssh_hop_num_iter
+    num_points = constants.numerical_fssh_hop_num_points
+
+    init_energy = model.h_c(constants, parameters, z_coord=z_coord)
+
+    min_gamma = 0
+    for _ in range(num_iter):
+        gamma_list = np.linspace(
+            min_gamma - gamma_range, min_gamma + gamma_range, num_points
+        )
+        new_energies = np.abs(
+            ev_diff
+            - np.array(
+                [
+                    init_energy
+                    - model.h_c(
+                        constants,
+                        parameters,
+                        z_coord=z_coord - 1.0j * gamma * delta_z_coord,
+                    )
+                    for gamma in gamma_list
+                ]
+            )
+        )
+        min_gamma = gamma_list[np.argmin(new_energies)]
+        min_energy = np.min(new_energies)
+        gamma_range = gamma_range / 2
+
+    if min_energy > 1 / num_points:
+        # print('rejected hop', min_energy)
+        return z_coord, False
+    else:
+        # print('accepted hop', min_gamma)
+        return z_coord - 1.0j * min_gamma * delta_z_coord, True
 
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     """
@@ -305,30 +341,14 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     delta_zc_coord = np.conj(delta_z_coord)
     zc_coord = np.conj(z_coord)
 
-    a_const = (1 / 4) * (
-        (
-            (constants.harmonic_oscillator_frequency**2)
-            / constants.classical_coordinate_weight
-        )
-        - constants.classical_coordinate_weight
-    )
-
-    b_const = (1 / 4) * (
-        (
-            (constants.harmonic_oscillator_frequency**2)
-            / constants.classical_coordinate_weight
-        )
-        + constants.classical_coordinate_weight
-    )
-
-    akj_z = np.sum(
-        2 * delta_zc_coord * delta_z_coord * b_const
-        - a_const * (delta_z_coord**2 + delta_zc_coord**2)
-    )
-    bkj_z = 2j * np.sum(
-        (z_coord * delta_z_coord - delta_zc_coord * zc_coord) * a_const
-        + (delta_z_coord * zc_coord - delta_zc_coord * z_coord) * b_const
-    )
+    a_const = (1/4) * (((constants.harmonic_oscillator_frequency**2) /  constants.classical_coordinate_weight) - \
+                      constants.classical_coordinate_weight)
+    
+    b_const = (1/4) * (((constants.harmonic_oscillator_frequency**2) /  constants.classical_coordinate_weight) + \
+                      constants.classical_coordinate_weight)
+    
+    akj_z = np.sum(2*delta_zc_coord * delta_z_coord * b_const - a_const*(delta_z_coord**2 + delta_zc_coord**2))
+    bkj_z = 2j*np.sum((z_coord*delta_z_coord - delta_zc_coord*zc_coord)*a_const + (delta_z_coord*zc_coord - delta_zc_coord*z_coord)*b_const)
     ckj_z = ev_diff
 
     disc = bkj_z**2 - 4 * akj_z * ckj_z
@@ -375,26 +395,25 @@ def harmonic_oscillator_boltzmann_init_classical(
     del model
     del parameters
     seed = kwargs.get("seed", None)
-    kbt = constants.temp
+    kBT = constants.temp
 
     h = constants.classical_coordinate_weight
     w = constants.harmonic_oscillator_frequency
     m = constants.classical_coordinate_mass
     out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
-    for s, seed_value in enumerate(seed):
-        np.random.seed(seed_value)
+    for s in range(len(seed)):
+        np.random.seed(seed[s])
         q = np.random.normal(
             loc=0,
-            scale=np.sqrt(kbt / (m * (w**2))),
+            scale=np.sqrt(kBT / (m * (w**2))),
             size=(constants.num_classical_coordinates),
         )
         p = np.random.normal(
-            loc=0, scale=np.sqrt(kbt), size=(constants.num_classical_coordinates)
+            loc=0, scale=np.sqrt(kBT), size=(constants.num_classical_coordinates)
         )
         z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
         out[s] = z
     return out
-
 
 def default_numerical_boltzmann_init_classical(model, constants, parameters, **kwargs):
     """
@@ -425,12 +444,12 @@ def default_numerical_boltzmann_init_classical(model, constants, parameters, **k
         rand_val = np.random.rand()
         num_points = constants.numerical_boltzmann_init_classical_num_points
         max_amplitude = constants.numerical_boltzmann_init_classical_max_amplitude
-
+        
         z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
 
         for n in range(constants.num_classical_coordinates):
             grid = (
-                2 * max_amplitude * (np.random.rand(num_points) - 0.5)
+            2 * max_amplitude * (np.random.rand(num_points) - 0.5)
             )  # np.linspace(-max_amplitude, max_amplitude, num_points)
             kinetic_grid = 1.0j * grid
             potential_grid = grid
@@ -481,6 +500,7 @@ def default_numerical_boltzmann_init_classical(model, constants, parameters, **k
     return out
 
 
+
 def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kwargs):
     """
     Initialize classical coordinates according to the Wigner distribution
@@ -504,8 +524,6 @@ def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kw
     Required attributes of parameters:
         - seed
     """
-    del model
-    del parameters
     seed = kwargs.get("seed", None)
     np.random.seed(seed)
 
@@ -534,3 +552,89 @@ def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kw
     )
 
     return z
+
+
+def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
+    """
+    Calculate the gradient of the classical Hamiltonian using finite differences.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The gradient of the classical Hamiltonian.
+
+    Required attributes of constants:
+        - None
+
+    Required attributes of parameters:
+        - seed
+
+    Required model ingredients:
+        - h_c
+    """
+    z_coord = kwargs["z_coord"]
+    # Approximate the gradient using finite differences
+    delta_z = 1e-6
+    offset_z_coord_re = z_coord[np.newaxis, :] + np.identity(len(z_coord)) * delta_z
+    offset_z_coord_im = (
+        z_coord[np.newaxis, :] + 1j * np.identity(len(z_coord)) * delta_z
+    )
+
+    h_c_0 = model.h_c(constants, parameters, z_coord=z_coord)
+    dh_c_dzc = np.zeros((len(z_coord), *np.shape(h_c_0)), dtype=complex)
+
+    for n in range(len(z_coord)):
+        h_c_offset_re = model.h_c(constants, parameters, z_coord=offset_z_coord_re[n])
+        diff_re = (h_c_offset_re - h_c_0) / delta_z
+        h_c_offset_im = model.h_c(constants, parameters, z_coord=offset_z_coord_im[n])
+        diff_im = (h_c_offset_im - h_c_0) / delta_z
+        dh_c_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
+    return dh_c_dzc
+
+
+def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
+    """
+    Calculate the gradient of the quantum-classical Hamiltonian using finite differences.
+
+    Args:
+        model: The model object.
+        constants: The constants object.
+        parameters: The parameters object.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        np.ndarray: The gradient of the quantum-classical Hamiltonian.
+
+    Required attributes of constants:
+        - None
+
+    Required attributes of parameters:
+        - seed
+
+    Required model ingredients:
+        - h_qc
+    """
+    z_coord = kwargs["z_coord"]
+    # Approximate the gradient using finite differences
+    delta_z = 1e-6
+    offset_z_coord_re = z_coord[np.newaxis, :] + np.identity(len(z_coord)) * delta_z
+    offset_z_coord_im = (
+        z_coord[np.newaxis, :] + 1j * np.identity(len(z_coord)) * delta_z
+    )
+
+    h_qc_0 = model.h_qc(constants, parameters, z_coord=z_coord)
+    dh_qc_dzc = np.zeros((len(z_coord), *np.shape(h_qc_0)), dtype=complex)
+
+    for n in range(len(z_coord)):
+        h_qc_offset_re = model.h_qc(constants, parameters, z_coord=offset_z_coord_re[n])
+        diff_re = (h_qc_offset_re - h_qc_0) / delta_z
+        h_qc_offset_im = model.h_qc(constants, parameters, z_coord=offset_z_coord_im[n])
+        diff_im = (h_qc_offset_im - h_qc_0) / delta_z
+        dh_qc_dzc[n] = 0.5 * (diff_re + 1j * diff_im)
+    return dh_qc_dzc
+
+

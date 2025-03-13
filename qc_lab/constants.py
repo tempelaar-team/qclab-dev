@@ -50,3 +50,17 @@ class Constants:
                 if self._update_function is not None:
                     self._update_function()  # Call the update function
                 self._updating = False  # Reset the flag
+
+    def get(self, name, default=None):
+        """
+        Get the value of a constant.
+
+        Args:
+            name (str): The name of the constant.
+            default: The default value to return if the constant does not exist.
+
+        Returns:
+            The value of the constant or the default value.
+        """
+        return getattr(self, name, default)
+    

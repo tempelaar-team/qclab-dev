@@ -1,3 +1,7 @@
+"""
+Holstein Lattice model
+"""
+
 import numpy as np
 from qc_lab.model import Model
 import qc_lab.ingredients as ingredients
@@ -25,33 +29,35 @@ class HolsteinLatticeModel(Model):
         super().__init__(self.default_parameters, parameters)
 
     def initialize_constants_model(self):
-        self.constants.num_quantum_states = self.constants.N
-        self.constants.num_classical_coordinates = self.constants.N
-        self.constants.classical_coordinate_weight = self.constants.w * np.ones(
-            self.constants.N
+        num_sites = self.constants.get("N", self.default_parameters.get("N"))
+        w = self.constants.get("w", self.default_parameters.get("w"))
+        phonon_mass = self.constants.get(
+            "phonon_mass", self.default_parameters.get("phonon_mass")
         )
-        self.constants.classical_coordinate_mass = self.constants.phonon_mass * np.ones(
-            self.constants.N
-        )
+        self.constants.num_quantum_states = num_sites
+        self.constants.num_classical_coordinates = num_sites
+        self.constants.classical_coordinate_weight = w * np.ones(num_sites)
+        self.constants.classical_coordinate_mass = phonon_mass * np.ones(num_sites)
 
     def initialize_constants_h_q(self):
-        self.constants.nearest_neighbor_lattice_hopping_energy = self.constants.j
-        self.constants.nearest_neighbor_lattice_periodic_boundary = (
-            self.constants.periodic_boundary
+        j = self.constants.get("j", self.default_parameters.get("j"))
+        periodic_boundary = self.constants.get(
+            "periodic_boundary", self.default_parameters.get("periodic_boundary")
         )
+        self.constants.nearest_neighbor_lattice_hopping_energy = j
+        self.constants.nearest_neighbor_lattice_periodic_boundary = periodic_boundary
 
     def initialize_constants_h_qc(self):
-        self.constants.holstein_coupling_oscillator_frequency = (
-            self.constants.w * np.ones(self.constants.N)
-        )
-        self.constants.holstein_coupling_dimensionless_coupling = (
-            self.constants.g * np.ones(self.constants.N)
-        )
+        num_sites = self.constants.get("N", self.default_parameters.get("N"))
+        w = self.constants.get("w", self.default_parameters.get("w"))
+        g = self.constants.get("g", self.default_parameters.get("g"))
+        self.constants.holstein_coupling_oscillator_frequency = w * np.ones(num_sites)
+        self.constants.holstein_coupling_dimensionless_coupling = g * np.ones(num_sites)
 
     def initialize_constants_h_c(self):
-        self.constants.harmonic_oscillator_frequency = self.constants.w * np.ones(
-            self.constants.N
-        )
+        num_sites = self.constants.get("N", self.default_parameters.get("N"))
+        w = self.constants.get("w", self.default_parameters.get("w"))
+        self.constants.harmonic_oscillator_frequency = w * np.ones(num_sites)
 
     h_q = ingredients.nearest_neighbor_lattice_h_q
     dh_c_dzc = ingredients.harmonic_oscillator_dh_c_dzc

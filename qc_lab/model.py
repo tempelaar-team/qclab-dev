@@ -4,8 +4,6 @@ This file contains the Model class, which is the base class for Model objects in
 
 from qc_lab.constants import Constants
 from qc_lab.vector import Vector
-import qc_lab.ingredients as ingredients
-import numpy as np
 
 
 class Model:
@@ -30,38 +28,52 @@ class Model:
         self.parameters = Vector()
 
     def initialize_constants(self):
+        """
+        Initialize the constants for the model and ingredients.
+        """
         for func in self.initialization_functions:
-            func(self)
+            func()
 
-    def h_q(self):
+    def h_q(self, constants, parameters, **kwargs):
         """
         Quantum Hamiltonian function. This method should be overridden by subclasses.
         """
+        del constants, parameters, kwargs
         return
 
-    def h_qc(self):
+    def h_qc(self, constants, parameters, **kwargs):
         """
         Quantum-classical Hamiltonian function. This method should be overridden by subclasses.
         """
+        del constants, parameters, kwargs
         return
 
-    def h_c(self):
+    def h_c(self, constants, parameters, **kwargs):
         """
         Classical Hamiltonian function. This method should be overridden by subclasses.
         """
+        del constants, parameters, kwargs
         return
 
     def initialize_constants_h_c(self):
-        pass
+        """
+        Initialize the constants for the classical Hamiltonian.
+        """
 
     def initialize_constants_h_qc(self):
-        pass
+        """
+        Initialize the constants for the quantum-classical Hamiltonian.
+        """
 
     def initialize_constants_h_q(self):
-        pass
+        """
+        Initialize the constants for the quantum Hamiltonian.
+        """
 
     def initialize_constants_model(self):
-        pass
+        """
+        Initialize the constants for the model.
+        """
 
     initialization_functions = [
         initialize_constants_model,

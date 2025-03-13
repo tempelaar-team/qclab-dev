@@ -31,7 +31,6 @@ class Algorithm:
         """
         Update algorithm settings. This method should be overridden by subclasses.
         """
-        pass
 
     initialization_recipe = []
     update_recipe = []

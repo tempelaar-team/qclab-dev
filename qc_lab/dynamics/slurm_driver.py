@@ -1,3 +1,7 @@
+"""
+This module contains the slurm driver for the dynamics core.
+"""
+
 import os
 import numpy as np
 from qc_lab.data import Data
@@ -5,6 +9,9 @@ import qc_lab.dynamics.serial_driver as serial_driver
 
 
 def slurm_driver(sim, seeds=None, num_tasks=1, data=None):
+    """
+    Slurm driver for the dynamics core.
+    """
     if data is None:
         data = Data()  # Create a new Data object if none is provided
     if seeds is None:

@@ -2,14 +2,17 @@
 This module contains the serial driver for the dynamics core.
 """
 
-import numpy as np
 import warnings
+import numpy as np
 from qc_lab.data import Data
 from qc_lab.vector import initialize_vector_objects
 import qc_lab.dynamics.dynamics as dynamics
 
 
 def serial_driver(sim, seeds=None, data=None):
+    """
+    Serial driver for the dynamics core.
+    """
     if data is None:
         data = Data()
     if seeds is None:

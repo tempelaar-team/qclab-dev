@@ -1,3 +1,7 @@
+"""
+Module defining the Data class.
+"""
+
 import numpy as np
 import h5py
 
@@ -10,7 +14,7 @@ class Data:
     def __init__(self):
         self.data_dic = {"seed": np.array([], dtype=int)}
 
-    def initialize_output_total_arrays_(self, sim, full_state):
+    def initialize_output_total_arrays_(self, sim, state):
         """
         Initialize the output total arrays for data collection.
 
@@ -18,8 +22,8 @@ class Data:
             sim: The simulation object.
             full_state: The full state object.
         """
-        self.data_dic["seed"] = np.copy(full_state.get("seed"))
-        for key, val in full_state._output_dict.items():
+        self.data_dic["seed"] = np.copy(state.get("seed"))
+        for key, val in state.output_dict.items():
             self.data_dic[key] = np.zeros(
                 (len(sim.settings.tdat_output), *np.shape(val)[1:]), dtype=val.dtype
             )
@@ -33,7 +37,7 @@ class Data:
             full_state: The full state object.
             t_ind: Time index.
         """
-        for key, val in full_state._output_dict.items():
+        for key, val in full_state.output_dict.items():
             if key in self.data_dic:
                 # fill an existing data storage array
                 self.data_dic[key][int(t_ind / sim.settings.dt_output_n)] = np.sum(

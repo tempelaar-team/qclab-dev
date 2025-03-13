@@ -2,10 +2,10 @@
 This module contains the FSSH algorithm class.
 """
 
+import warnings
 import numpy as np
 from qc_lab.algorithm import Algorithm
 from qc_lab import tasks
-import warnings
 
 
 class FewestSwitchesSurfaceHopping(Algorithm):
@@ -25,7 +25,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         super().__init__(self.default_settings, settings)
 
     def update_algorithm_settings(self):
-        if not (self.settings.fssh_deterministic):
+        if not self.settings.get("fssh_deterministic", False):
             self.settings.num_branches = 1
             warnings.warn(
                 "FSSH is using stochastic sampling, setting num_branches to 1.",
