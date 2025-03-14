@@ -10,4 +10,4 @@
 ulimit -c 0
 ulimit -s unlimited
 
-mpirun -n 100 python qclab_mpi.py
+mpirun -n 100 python mpi_example.py
