@@ -10,7 +10,8 @@ import numpy as np
 from qc_lab.vector import initialize_vector_objects
 from mpi4py import MPI
 
-def parallel_driver_mpi(sim, seeds=None, data = None, num_tasks=None):
+
+def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     """
     Parallel driver for the dynamics core using the mpi4py library.
     """
@@ -44,7 +45,7 @@ def parallel_driver_mpi(sim, seeds=None, data = None, num_tasks=None):
             * sim.settings.batch_size
         )
         seeds = seeds[: sim.settings.num_trajs]
-        
+
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     if num_tasks is None:
@@ -57,17 +58,30 @@ def parallel_driver_mpi(sim, seeds=None, data = None, num_tasks=None):
         warnings.warn(
             "The number of batches to run is not divisible by the number of processors.\n \
             Setting the number of batches to the lower multiple of size.\n"
-            + " running " + str((num_sims // size) * size * sim.settings.batch_size) + " trajectories.",
+            + " running "
+            + str((num_sims // size) * size * sim.settings.batch_size)
+            + " trajectories.",
             UserWarning,
         )
         num_sims = (num_sims // size) * size
-        seeds = seeds[:num_sims * sim.settings.batch_size]
+        seeds = seeds[: num_sims * sim.settings.batch_size]
     if rank == 0:
-        print('running ', num_sims * sim.settings.batch_size, 'trajectories in batches of', sim.settings.batch_size, 'on', size, 'tasks.')
+        print(
+            "running ",
+            num_sims * sim.settings.batch_size,
+            "trajectories in batches of",
+            sim.settings.batch_size,
+            "on",
+            size,
+            "tasks.",
+        )
     batch_seeds_list = seeds.reshape((num_sims, sim.settings.batch_size))
     chunk_size = num_sims // size
     sim.initialize_timesteps()
-    input_data = [(sim, *initialize_vector_objects(sim, batch_seeds_list[n]), Data()) for n in range(num_sims)]
+    input_data = [
+        (sim, *initialize_vector_objects(sim, batch_seeds_list[n]), Data())
+        for n in range(num_sims)
+    ]
     start = rank * chunk_size
     end = (rank + 1) * chunk_size
     local_input_data = input_data[start:end]
@@ -79,8 +93,8 @@ def parallel_driver_mpi(sim, seeds=None, data = None, num_tasks=None):
         final_results = [item for sublist in all_results for item in sublist]
         for result in final_results:
             data.add_data(result)
-        data.data_dic['seed'] = seeds
-    
+        data.data_dic["seed"] = seeds
+
     return data
 
 
@@ -118,10 +132,10 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
             * sim.settings.batch_size
         )
         seeds = seeds[: sim.settings.num_trajs]
-        
-    #comm = MPI.COMM_WORLD
-    #rank = comm.Get_rank()
-    #size = comm.Get_size()
+
+    # comm = MPI.COMM_WORLD
+    # rank = comm.Get_rank()
+    # size = comm.Get_size()
     if num_tasks is None:
         size = multiprocessing.cpu_count()
     else:
@@ -131,18 +145,31 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
         warnings.warn(
             "The number of batches to run is not divisible by the number of processors.\n \
             Setting the number of batches to the lower multiple of size.\n"
-            + " running " + str((num_sims // size) * size * sim.settings.batch_size) + " trajectories.",
+            + " running "
+            + str((num_sims // size) * size * sim.settings.batch_size)
+            + " trajectories.",
             UserWarning,
         )
         num_sims = (num_sims // size) * size
-        seeds = seeds[:num_sims * sim.settings.batch_size]
-    print('running ', num_sims * sim.settings.batch_size, 'trajectories in batches of', sim.settings.batch_size, 'on', size, 'tasks.')
+        seeds = seeds[: num_sims * sim.settings.batch_size]
+    print(
+        "running ",
+        num_sims * sim.settings.batch_size,
+        "trajectories in batches of",
+        sim.settings.batch_size,
+        "on",
+        size,
+        "tasks.",
+    )
     batch_seeds_list = seeds.reshape((num_sims, sim.settings.batch_size))
     sim.initialize_timesteps()
-    input_data = [(sim, *initialize_vector_objects(sim, batch_seeds_list[n]), Data()) for n in range(num_sims)]
+    input_data = [
+        (sim, *initialize_vector_objects(sim, batch_seeds_list[n]), Data())
+        for n in range(num_sims)
+    ]
     with multiprocessing.Pool(processes=size) as pool:
         results = pool.starmap(dynamics.dynamics, input_data)
     for result in results:
         data.add_data(result)
-    data.data_dic['seed'] = seeds
+    data.data_dic["seed"] = seeds
     return data
