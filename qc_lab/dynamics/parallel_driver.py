@@ -4,11 +4,11 @@ This file contains the parallel driver for the dynamics simulation in QC Lab.
 
 import multiprocessing
 import warnings
+import numpy as np
+from mpi4py import MPI
 import qc_lab.dynamics as dynamics
 from qc_lab.data import Data
-import numpy as np
 from qc_lab.vector import initialize_vector_objects
-from mpi4py import MPI
 
 
 def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
