@@ -28,6 +28,8 @@ class Model:
         Initialize the constants for the model and ingredients.
         """
         for func in self.initialization_functions:
+            # Here, self is needed because the initialization functions are
+            # defined in the subclass.
             func(self)
 
     def h_q(self, constants, parameters, **kwargs):
