@@ -21,9 +21,8 @@ class Vector:
         """
         if name in self.__dict__:
             return self.__dict__[name]
-        else:
-            warnings.warn(f"Attribute {name} not found in Vector object.", UserWarning)
-            return None
+        warnings.warn(f"Attribute {name} not found in Vector object.", UserWarning)
+        return None
 
     def collect_output_variables(self, output_variables):
         """

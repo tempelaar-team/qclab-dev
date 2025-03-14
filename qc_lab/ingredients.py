@@ -59,8 +59,7 @@ def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     """
     Harmonic oscillator classical Hamiltonian function.
     """
-    del model
-    del parameters
+    del model, parameters
     z = kwargs.get("z_coord")
     h = constants.classical_coordinate_weight[np.newaxis, :]
     w = constants.harmonic_oscillator_frequency[np.newaxis, :]
@@ -76,8 +75,7 @@ def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
     Calculate the derivative of the classical harmonic oscillator Hamiltonian
     with respect to the z-coordinates.
     """
-    del model
-    del parameters
+    del model, parameters
     z_coord = kwargs["z_coord"]
     dh_c_dzc = constants.classical_coordinate_weight[..., :] * z_coord
     return dh_c_dzc
@@ -87,8 +85,7 @@ def two_level_system_h_q(model, constants, parameters, **kwargs):
     """
     Calculate the quantum Hamiltonian for a two-level system.
     """
-    del model
-    del kwargs
+    del model, kwargs
     batch_size = len(parameters.seed)
     h_q = np.zeros((batch_size, 2, 2), dtype=complex)
     h_q[:, 0, 0] = constants.two_level_system_a
@@ -102,8 +99,7 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     """
     Calculate the quantum Hamiltonian for a nearest-neighbor lattice.
     """
-    del model
-    del kwargs
+    del model, kwargs
     num_sites = constants.num_quantum_states
     hopping_energy = constants.nearest_neighbor_lattice_hopping_energy
     periodic_boundary = constants.nearest_neighbor_lattice_periodic_boundary
@@ -128,8 +124,7 @@ def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
     """
     Calculate the Holstein coupling Hamiltonian.
     """
-    del model
-    del parameters
+    del model, parameters
     z_coord = kwargs["z_coord"]
     num_sites = constants.num_quantum_states
     oscillator_frequency = constants.holstein_coupling_oscillator_frequency
@@ -149,32 +144,30 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
     del parameters
     if hasattr(model, "dh_qc_dzc_mels") and hasattr(model, "dh_qc_dzc_inds"):
         return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels
-    else:
-        z_coord = kwargs["z_coord"]
-        num_sites = constants.num_quantum_states
-        oscillator_frequency = constants.holstein_coupling_oscillator_frequency
-        dimensionless_coupling = constants.holstein_coupling_dimensionless_coupling
+    z_coord = kwargs["z_coord"]
+    num_sites = constants.num_quantum_states
+    oscillator_frequency = constants.holstein_coupling_oscillator_frequency
+    dimensionless_coupling = constants.holstein_coupling_dimensionless_coupling
 
-        dh_qc_dzc = np.zeros(
-            (len(z_coord), num_sites, num_sites, num_sites), dtype=complex
-        )
+    dh_qc_dzc = np.zeros(
+        (len(z_coord), num_sites, num_sites, num_sites), dtype=complex
+    )
 
-        np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (
-            dimensionless_coupling * oscillator_frequency
-        )[..., :] * (np.ones_like(z_coord, dtype=complex))
-        inds = np.where(dh_qc_dzc != 0)
-        mels = dh_qc_dzc[inds]
-        model.dh_qc_dzc_inds = inds
-        model.dh_qc_dzc_mels = dh_qc_dzc[inds]
-        return inds, mels
+    np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (
+        dimensionless_coupling * oscillator_frequency
+    )[..., :] * (np.ones_like(z_coord, dtype=complex))
+    inds = np.where(dh_qc_dzc != 0)
+    mels = dh_qc_dzc[inds]
+    model.dh_qc_dzc_inds = inds
+    model.dh_qc_dzc_mels = dh_qc_dzc[inds]
+    return inds, mels
 
 
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     """
     Perform a hopping operation for the harmonic oscillator.
     """
-    del model
-    del parameters
+    del model, parameters
     z_coord = kwargs["z_coord"]
     delta_z_coord = kwargs["delta_z_coord"]
     ev_diff = kwargs["ev_diff"]
@@ -230,8 +223,7 @@ def harmonic_oscillator_boltzmann_init_classical(
     """
     Initialize classical coordinates according to Boltzmann statistics for the Harmonic oscillator.
     """
-    del model
-    del parameters
+    del model, parameters
     seed = kwargs.get("seed", None)
     kbt = constants.temp
 
@@ -326,8 +318,7 @@ def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kw
     Initialize classical coordinates according to the Wigner distribution
     of the ground state of a harmonic oscillator.
     """
-    del model
-    del parameters
+    del model, parameters
     seed = kwargs.get("seed", None)
     np.random.seed(seed)
 

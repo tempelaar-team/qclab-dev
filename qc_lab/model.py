@@ -37,21 +37,18 @@ class Model:
         Quantum Hamiltonian function. This method should be overridden by subclasses.
         """
         del constants, parameters, kwargs
-        return
 
     def h_qc(self, constants, parameters, **kwargs):
         """
         Quantum-classical Hamiltonian function. This method should be overridden by subclasses.
         """
         del constants, parameters, kwargs
-        return
 
     def h_c(self, constants, parameters, **kwargs):
         """
         Classical Hamiltonian function. This method should be overridden by subclasses.
         """
         del constants, parameters, kwargs
-        return
 
     def initialize_constants_h_c(self):
         """

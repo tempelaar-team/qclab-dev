@@ -62,7 +62,6 @@ class Data:
         """
         with h5py.File(filename, "w") as h5file:
             self._recursive_save(h5file, "/", self.data_dic)
-        return
 
     def load_from_h5(self, filename):
         """

@@ -879,8 +879,7 @@ def nan_num(num):
         return 100e100
     if num == -np.inf:
         return -100e100
-    else:
-        return num
+    return num
 
 
 def numerical_fssh_hop(model, constants, parameters, **kwargs):
@@ -922,8 +921,7 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
 
     if min_energy > 1 / num_points:
         return z_coord, False
-    else:
-        return z_coord - 1.0j * min_gamma * delta_z_coord, True
+    return z_coord - 1.0j * min_gamma * delta_z_coord, True
 
 
 def update_active_surface_fssh(sim, parameters, state, **kwargs):
