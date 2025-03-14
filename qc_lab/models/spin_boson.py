@@ -38,11 +38,11 @@ class SpinBosonModel(Model):
         boson_mass = self.constants.get(
             "boson_mass", self.default_constants.get("boson_mass")
         )
-        self.constants.num_classical_coordinates = num_bosons
-        self.constants.num_quantum_states = 2
         self.constants.w = char_freq * np.tan(
             ((np.arange(num_bosons) + 1) - 0.5) * np.pi / (2 * num_bosons)
         )
+        self.constants.num_classical_coordinates = num_bosons
+        self.constants.num_quantum_states = 2
         self.constants.classical_coordinate_weight = w
         self.constants.classical_coordinate_mass = boson_mass * np.ones(num_bosons)
 
