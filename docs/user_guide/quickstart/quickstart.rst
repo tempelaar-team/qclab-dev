@@ -38,7 +38,7 @@ Passing a dictionary to the simulation object when instantiating it will overrid
 
 Alternatively, you can directly modify the simulation parameters by assigning new values to the parameters attribute of the simulation object. Here we change the number
 of trajectories that the simulation will run, and how many trajectories are run at a time (the batch size). We also change the total time of each trajectory (tmax) and the 
-timestep used for propagation (dt). 
+timestep used for propagation (dt). Importantly, QC Lab expects that `num_trajs` is an integer multiple of `batch_size`. If not, it will use the lower integer multiple (which could be zero!).
 
 ::
 
@@ -77,16 +77,16 @@ Before using the dynamics driver to run the simulation, it is necessary to provi
 dependent on both the model and algorithm. For mean-field dynamics, we require a diabatic wavefunction called "wf_db". Because we are using a spin-boson model,
 this wavefunction should have dimension 2. 
 
-The initial state is stored in `sim.state` which must be accessed with a particular "modify" function as follows,
+The initial state is stored in `sim.state` which can be accessed as follows,
 
 ::
 
-    sim.state.modify('wf_db', np.array([0, 1], dtype=np.complex128))
+    sim.state.wf_db= np.array([0, 1], dtype=complex)
 
 Running the Simulation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Finally, we run the simulation using the dynamics driver.
+Finally, we run the simulation using the dynamics driver. Here, we are using the serial driver. QC Lab comes with several different types of parallel drivers which are discussed elsewhere.
 
 ::
 
@@ -103,7 +103,8 @@ to the names of the observables that were requested to be recorded during the si
     print('calculated quantities:', data.data_dic.keys())
     # calculated quantities: dict_keys(['seed', 'dm_db', 'classical_energy', 'quantum_energy'])
 
-Each of the calculated quantities must be normalized with respect to the number of trajectories,
+Each of the calculated quantities must be normalized with respect to the number of trajectories. In mean-field dynamics this is equivalent 
+to the number of seeds.
 
 ::
     
@@ -112,11 +113,11 @@ Each of the calculated quantities must be normalized with respect to the number 
     quantum_energy = data.data_dic['quantum_energy'] / num_trajs
     populations = np.real(np.einsum('tii->ti', data.data_dic['dm_db'] / num_trajs))
 
-The time axis can be retrieved from the simulation object
+The time axis can be retrieved from the simulation object through its settings
 
 ::
 
-    time = sim.parameters.time 
+    time = sim.settings.tdat_output 
 
 Plotting Results
 ~~~~~~~~~~~~~~~~
@@ -151,3 +152,18 @@ We can verify that the total energy of the simulation was conserved by inspectin
 .. image:: quickstart_energies.png
     :alt: Change in energy.
     :align: center
+
+Changing the Algorithm
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to do a surface hopping calculation rather than a mean-field one, QC Lab makes it very easy to do so. 
+Simply import the relevant Algorithm class and set `sim.algorithm` to it and rerun the calculation: 
+
+
+::
+
+    from qc_lab.algorithms import FewestSwitchesSurfaceHopping
+
+    sim.algorithm = FewestSwitchesSurfaceHopping()
+
+    data = serial_driver(sim)
