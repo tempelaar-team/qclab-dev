@@ -318,9 +318,9 @@ def update_classical_energy(sim, parameters, state, **kwargs):
     Update the classical energy.
     """
     z_coord = kwargs["z_coord"]
-    state.classical_energy = sim.model.h_c(
+    state.classical_energy = np.real(sim.model.h_c(
         sim.model.constants, parameters, z_coord=z_coord
-    )
+    ))
     return parameters, state
 
 
@@ -358,6 +358,7 @@ def update_classical_energy_fssh(sim, parameters, state, **kwargs):
                 sim.model.constants, parameters, z_coord=z_coord_branch
             )
         state.classical_energy = state.classical_energy / num_branches
+    state.classical_energy = np.real(state.classical_energy)
     return parameters, state
 
 
@@ -367,9 +368,9 @@ def update_quantum_energy(sim, parameters, state, **kwargs):
     """
     del sim
     wf = kwargs["wf"]
-    state.quantum_energy = np.einsum(
+    state.quantum_energy = np.real(np.einsum(
         "ti,tij,tj->t", np.conj(wf), state.h_quantum, wf, optimize="greedy"
-    )
+    ))
     return parameters, state
 
 
@@ -401,6 +402,7 @@ def update_quantum_energy_fssh(sim, parameters, state, **kwargs):
         state.quantum_energy = (
             state.quantum_energy / sim.algorithm.settings.num_branches
         )
+    state.quantum_energy = np.real(state.quantum_energy)
     return parameters, state
 
 
