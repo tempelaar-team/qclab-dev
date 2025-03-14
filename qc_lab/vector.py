@@ -2,7 +2,6 @@
 This file defines the Vector class.
 """
 
-import pickle
 import warnings
 import numpy as np
 
