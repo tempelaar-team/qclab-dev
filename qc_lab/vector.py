@@ -1,6 +1,8 @@
 """
 This file defines the Vector class.
 """
+
+import pickle
 import warnings
 import numpy as np
 
@@ -9,6 +11,7 @@ class Vector:
     """
     The Vector object defines a vehicle in which quantities can be placed, retrieved, and collected.
     """
+
     def __init__(self):
         self.output_dict = {}
         self.seed = None
@@ -32,6 +35,15 @@ class Vector:
         """
         for var in output_variables:
             self.output_dict[var] = getattr(self, var)
+
+    def __getstate__(self):
+        """Called when pickling the object."""
+        state = self.__dict__.copy()  # Create a copy of the object's dictionary
+        # Remove unpickleable attributes or transform them
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
 
 def initialize_vector_objects(sim, batch_seeds):
