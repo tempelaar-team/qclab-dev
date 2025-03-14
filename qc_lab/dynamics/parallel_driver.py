@@ -45,14 +45,12 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
             * sim.settings.batch_size
         )
         seeds = seeds[: sim.settings.num_trajs]
-
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     if num_tasks is None:
         size = comm.Get_size()
     else:
         size = num_tasks
-
     num_sims = sim.settings.num_trajs // sim.settings.batch_size
     if num_sims % size != 0 and rank == 0:
         warnings.warn(
@@ -132,10 +130,6 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
             * sim.settings.batch_size
         )
         seeds = seeds[: sim.settings.num_trajs]
-
-    # comm = MPI.COMM_WORLD
-    # rank = comm.Get_rank()
-    # size = comm.Get_size()
     if num_tasks is None:
         size = multiprocessing.cpu_count()
     else:
