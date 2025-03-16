@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpi4py import MPI
 from qc_lab import Simulation 
-from qc_lab.models import SpinBosonModel
+from qc_lab.models import SpinBoson
 from qc_lab.algorithms import MeanField 
 from qc_lab.dynamics import parallel_driver_mpi
 
@@ -16,7 +16,7 @@ sim.settings.tmax = 10
 sim.settings.dt = 0.001
 
 # instantiate a model 
-sim.model = SpinBosonModel()
+sim.model = SpinBoson()
 # instantiate an algorithm 
 sim.algorithm = MeanField()
 # define an initial diabatic wavefunction 

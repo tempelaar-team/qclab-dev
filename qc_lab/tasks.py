@@ -32,12 +32,86 @@ def initialize_branch_seeds(sim, parameters, state, **kwargs):
     return parameters, state
 
 
+def default_numerical_boltzmann_init_classical(model, constants, parameters, **kwargs):
+    """
+    Initialize classical coordinates according to Boltzmann statistics using a numerical method.
+    """
+    seed = kwargs.get("seed", None)
+    out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
+    for s, seed_s in enumerate(seed):
+        np.random.seed(seed_s)
+        rand_val = np.random.rand()
+        num_points = constants.get("numerical_boltzmann_init_classical_num_points", 100)
+        max_amplitude = constants.get("numerical_boltzmann_init_classical_max_amplitude", 10)
+
+        z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
+
+        for n in range(constants.num_classical_coordinates):
+            grid = (
+                2 * max_amplitude * (np.random.rand(num_points) - 0.5)
+            )  # np.linspace(-max_amplitude, max_amplitude, num_points)
+            kinetic_grid = 1.0j * grid
+            potential_grid = grid
+            # Construct grid for kinetic points.
+            kinetic_points = np.zeros(
+                (num_points, constants.num_classical_coordinates), dtype=complex
+            )
+            # Construct grid for potential points.
+            potential_points = np.zeros(
+                (num_points, constants.num_classical_coordinates), dtype=complex
+            )
+            for p in range(num_points):
+                kinetic_points[p, n] = kinetic_grid[p]
+                potential_points[p, n] = potential_grid[p]
+            # Calculate kinetic energies on the grid.
+            kinetic_energies = np.array(
+                [
+                    model.h_c(constants, parameters, z_coord=np.array([kinetic_points[p]]), batch_size = 1)[0]
+                    for p in range(num_points)
+                ]
+            )
+            boltz_facs = np.exp(-kinetic_energies / constants.temp)
+            boltz_facs = boltz_facs / np.sum(boltz_facs)
+            # Calculate cumulative distribution.
+            tot = 0
+            for k in range(num_points):
+                tot += boltz_facs[k]
+                if rand_val <= tot:
+                    z_out[n] += kinetic_grid[k]
+                    break
+            # Calculate potential energies on the grid.
+            potential_energies = np.array(
+                [
+                    model.h_c(constants, parameters, z_coord=np.array([potential_points[p]]), batch_size = 1)[0]
+                    for p in range(num_points)
+                ]
+            )
+            boltz_facs = np.exp(-potential_energies / constants.temp)
+            boltz_facs = boltz_facs / np.sum(boltz_facs)
+            # calculate cumulative distribution
+            tot = 0
+            for p in range(num_points):
+                tot += boltz_facs[p]
+                if rand_val <= tot:
+                    z_out[n] += potential_grid[p]
+                    break
+        out[s] = z_out
+    return out
+
+
 def initialize_z_coord(sim, parameters, state, **kwargs):
     """
     Initialize the classical coordinate by using the init_classical function from the model object.
     """
     seed = kwargs["seed"]
-    state.z_coord = sim.model.init_classical(sim.model.constants, parameters, seed=seed)
+    if hasattr(sim.model, "init_classical"):
+        state.z_coord = sim.model.init_classical(
+            sim.model.constants, parameters, seed=seed
+        )
+    else:
+        state.z_coord = default_numerical_boltzmann_init_classical(
+            sim.model, sim.model.constants, parameters, seed=seed
+        )
     return parameters, state
 
 
@@ -79,10 +153,10 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
         )
     )
     h_c_0 = model.h_c(constants, parameters, z_coord=z_coord)
-    h_c_offset_re = model.h_c(constants, parameters, z_coord=offset_z_coord_re).reshape(
+    h_c_offset_re = model.h_c(constants, parameters, z_coord=offset_z_coord_re, batch_size = batch_size * num_classical_coordinates).reshape(
         batch_size, num_classical_coordinates
     )
-    h_c_offset_im = model.h_c(constants, parameters, z_coord=offset_z_coord_im).reshape(
+    h_c_offset_im = model.h_c(constants, parameters, z_coord=offset_z_coord_im, batch_size = batch_size * num_classical_coordinates).reshape(
         batch_size, num_classical_coordinates
     )
     diff_re = (h_c_offset_re - h_c_0[:, np.newaxis]) / delta_z
@@ -120,7 +194,7 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
     )
     h_qc_0 = model.h_qc(constants, parameters, z_coord=z_coord)
     h_qc_offset_re = model.h_qc(
-        constants, parameters, z_coord=offset_z_coord_re
+        constants, parameters, z_coord=offset_z_coord_re, batch_size = batch_size * num_classical_coordinates
     ).reshape(
         batch_size,
         num_classical_coordinates,
@@ -128,7 +202,7 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
         num_quantum_states,
     )
     h_qc_offset_im = model.h_qc(
-        constants, parameters, z_coord=offset_z_coord_im
+        constants, parameters, z_coord=offset_z_coord_im, batch_size = batch_size * num_classical_coordinates
     ).reshape(
         batch_size,
         num_classical_coordinates,
@@ -140,7 +214,8 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
     dh_qc_dzc = 0.5 * (diff_re + 1.0j * diff_im)
     inds = np.where(dh_qc_dzc != 0)
     mels = dh_qc_dzc[inds]
-    return inds, mels
+    shape = np.shape(dh_qc_dzc)
+    return inds, mels, shape
 
 
 def update_dh_c_dzc(sim, parameters, state, **kwargs):
@@ -195,10 +270,10 @@ def update_quantum_classical_forces(sim, parameters, state, **kwargs):
     z_coord = kwargs["z_coord"]
     wf = kwargs["wf"]
     parameters, state = update_dh_qc_dzc(sim, parameters, state, z_coord=z_coord)
-    inds, mels = state.dh_qc_dzc
+    inds, mels, shape = state.dh_qc_dzc
 
     state.quantum_classical_forces = np.zeros(
-        (sim.settings.batch_size, sim.model.constants.num_classical_coordinates),
+        shape[:2],
         dtype=complex,
     )
     np.add.at(
@@ -318,9 +393,9 @@ def update_classical_energy(sim, parameters, state, **kwargs):
     Update the classical energy.
     """
     z_coord = kwargs["z_coord"]
-    state.classical_energy = np.real(sim.model.h_c(
-        sim.model.constants, parameters, z_coord=z_coord
-    ))
+    state.classical_energy = np.real(
+        sim.model.h_c(sim.model.constants, parameters, z_coord=z_coord)
+    )
     return parameters, state
 
 
@@ -368,9 +443,9 @@ def update_quantum_energy(sim, parameters, state, **kwargs):
     """
     del sim
     wf = kwargs["wf"]
-    state.quantum_energy = np.real(np.einsum(
-        "ti,tij,tj->t", np.conj(wf), state.h_quantum, wf, optimize="greedy"
-    ))
+    state.quantum_energy = np.real(
+        np.einsum("ti,tij,tj->t", np.conj(wf), state.h_quantum, wf, optimize="greedy")
+    )
     return parameters, state
 
 
@@ -512,7 +587,7 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
             ),
             dtype=complex,
         )
-        inds, mels = state.dh_qc_dzc
+        inds, mels, _ = state.dh_qc_dzc
         np.add.at(
             der_couple_zc,
             (inds[0], inds[1]),
@@ -753,13 +828,11 @@ def initialize_dm_adb_0_fssh(sim, parameters, state, **kwargs):
     Initialize the initial adiabatic density matrix for FSSH.
     """
     del sim, kwargs
-    state.dm_adb_0 = (
-        np.einsum(
-            "...i,...j->...ij",
-            state.wf_adb,
-            np.conj(state.wf_adb),
-            optimize="greedy",
-        )
+    state.dm_adb_0 = np.einsum(
+        "...i,...j->...ij",
+        state.wf_adb,
+        np.conj(state.wf_adb),
+        optimize="greedy",
     )
     return parameters, state
 
@@ -822,18 +895,16 @@ def update_dm_db_fssh(sim, parameters, state, **kwargs):
         basis=state.eigvecs,
         output_name="dm_db_branch",
     )
-    state.dm_db = (
-        np.sum(
-            state.dm_db_branch.reshape(
-                (
-                    batch_size,
-                    num_branches,
-                    num_quantum_states,
-                    num_quantum_states,
-                )
-            ),
-            axis=-3,
-        )
+    state.dm_db = np.sum(
+        state.dm_db_branch.reshape(
+            (
+                batch_size,
+                num_branches,
+                num_quantum_states,
+                num_quantum_states,
+            )
+        ),
+        axis=-3,
     )
     return parameters, state
 
@@ -890,11 +961,11 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
     delta_z_coord = kwargs["delta_z_coord"]
     ev_diff = kwargs["ev_diff"]
 
-    gamma_range = constants.numerical_fssh_hop_gamma_range
-    num_iter = constants.numerical_fssh_hop_num_iter
-    num_points = constants.numerical_fssh_hop_num_points
+    gamma_range = constants.get("numerical_fssh_hop_gamma_range", 5)
+    num_iter = constants.get("numerical_fssh_hop_num_iter", 10)
+    num_points = constants.get("numerical_fssh_hop_num_points", 10)
 
-    init_energy = model.h_c(constants, parameters, z_coord=z_coord)
+    init_energy = model.h_c(constants, parameters, z_coord=np.array([z_coord]),batch_size=1)[0]
 
     min_gamma = 0
     for _ in range(num_iter):
@@ -909,8 +980,9 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
                     - model.h_c(
                         constants,
                         parameters,
-                        z_coord=z_coord - 1.0j * gamma * delta_z_coord,
-                    )
+                        z_coord=np.array([z_coord - 1.0j * gamma * delta_z_coord]),
+                        batch_size=1,
+                    )[0]
                     for gamma in gamma_list
                 ]
             )
@@ -967,7 +1039,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
         np.sum((cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1) > 0
     )[0]
     if len(traj_hop_ind) > 0:
-        inds, mels = state.dh_qc_dzc
+        inds, mels, _ = state.dh_qc_dzc
         eigvecs_flat = state.eigvecs
         eigvals_flat = state.eigvals
         z_coord = state.z_coord

@@ -7,7 +7,7 @@ from qc_lab.model import Model
 from qc_lab import ingredients
 
 
-class HolsteinLatticeModel(Model):
+class HolsteinLattice(Model):
     """
     A model representing a nearest-neighbor tight-binding model
     with Holstein-type electron-phonon coupling with a

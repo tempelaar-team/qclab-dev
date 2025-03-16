@@ -19,7 +19,7 @@ First, we import the necessary modules:
     import numpy as np
     import matplotlib.pyplot as plt
     from qc_lab import Simulation # import simulation class 
-    from qc_lab.models import SpinBosonModel # import model class 
+    from qc_lab.models import SpinBoson # import model class 
     from qc_lab.algorithms import MeanField # import algorithm class 
     from qc_lab.dynamics import serial_driver # import dynamics driver
 
@@ -55,7 +55,7 @@ Next, we instantiate a model object. Like the simulation object, it has a set of
 
 ::
 
-    sim.model = SpinBosonModel()
+    sim.model = SpinBoson()
     print('default model parameters: ', sim.model.default_parameters)
     # default model parameters:  {'temp': 1, 'V': 0.5, 'E': 0.5, 'A': 100, 'W': 0.1, 'l_reorg': 0.005, 'boson_mass': 1}
 

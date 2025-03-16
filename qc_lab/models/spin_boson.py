@@ -7,7 +7,7 @@ from qc_lab.model import Model
 from qc_lab import ingredients
 
 
-class SpinBosonModel(Model):
+class SpinBoson(Model):
     """
     Spin-Boson model class for the simulation framework.
     """
@@ -27,6 +27,7 @@ class SpinBosonModel(Model):
         super().__init__(self.default_constants, constants)
         self.dh_qc_dzc_inds = None
         self.dh_qc_dzc_mels = None
+        self.dh_qc_dzc_shape = None
 
     def initialize_constants_model(self):
         """
@@ -77,56 +78,18 @@ class SpinBosonModel(Model):
         )
         self.constants.two_level_system_d = 0
 
-    # @ingredients.vectorize_ingredient
-    # def h_qc(self, constants, parameters, **kwargs):
-    #     z = kwargs.get("z_coord")
-    #     g = constants.g
-    #     m = constants.classical_coordinate_mass
-    #     h = constants.classical_coordinate_weight
-    #     h_qc = np.zeros((2, 2), dtype=complex)
-    #     h_qc[0, 0] = np.sum(g * np.sqrt(1 / (2 * m * h)) * (z + np.conj(z)))
-    #     h_qc[1, 1] = -h_qc[0, 0]
-    #     return h_qc
-
-    # @ingredients.make_ingredient_sparse
-    # @ingredients.vectorize_ingredient
-    # def dh_qc_dzc(self, constants, parameters, **kwargs):
-    #     m = constants.classical_coordinate_mass
-    #     g = constants.g
-    #     h = constants.classical_coordinate_weight
-    #     dh_qc_dzc = np.zeros((constants.A, 2, 2), dtype=complex)
-    #     dh_qc_dzc[:, 0, 0] = g * np.sqrt(1 / (2 * m * h))
-    #     dh_qc_dzc[:, 1, 1] = -dh_qc_dzc[:, 0, 0]
-    #     return dh_qc_dzc
-
-    # @ingredients.vectorize_ingredient
-    # def h_qc(self, constants, parameters, **kwargs):
-    #     z = kwargs.get("z_coord")
-    #     g = constants.g
-    #     m = constants.classical_coordinate_mass
-    #     h = constants.classical_coordinate_weight
-    #     h_qc = np.zeros((2, 2), dtype=complex)
-    #     h_qc[0, 0] = np.sum(g * np.sqrt(1 / (2 * m * h)) * (z + np.conj(z)))
-    #     h_qc[1, 1] = -h_qc[0, 0]
-    #     return h_qc
-
-    # @ingredients.make_ingredient_sparse
-    # @ingredients.vectorize_ingredient
-    # def dh_qc_dzc(self, constants, parameters, **kwargs):
-    #     m = constants.classical_coordinate_mass
-    #     g = constants.g
-    #     h = constants.classical_coordinate_weight
-    #     dh_qc_dzc = np.zeros((constants.A, 2, 2), dtype=complex)
-    #     dh_qc_dzc[:, 0, 0] = g * np.sqrt(1 / (2 * m * h))
-    #     dh_qc_dzc[:, 1, 1] = -dh_qc_dzc[:, 0, 0]
-    #     return dh_qc_dzc
-
     def h_qc(self, constants, parameters, **kwargs):
         z = kwargs.get("z_coord")
+        if kwargs.get("batch_size") is not None:
+            batch_size = kwargs.get("batch_size")
+            assert len(z) == batch_size
+        else:
+            batch_size = len(z)
+
         g = constants.g
         m = constants.classical_coordinate_mass
         h = constants.classical_coordinate_weight
-        h_qc = np.zeros((len(z), 2, 2), dtype=complex)
+        h_qc = np.zeros((batch_size, 2, 2), dtype=complex)
         h_qc[:, 0, 0] = np.sum(
             g * np.sqrt(1 / (2 * m * h))[np.newaxis, :] * (z + np.conj(z)), axis=-1
         )
@@ -138,23 +101,43 @@ class SpinBosonModel(Model):
         Calculate the derivative of the quantum-classical coupling Hamiltonian
         with respect to the z-coordinates.
         """
-        del kwargs
-        if self.dh_qc_dzc_inds is None or self.dh_qc_dzc_mels is None:
+        # if there is not an explicitly specified batch_size, use the length of z
+        z = kwargs.get("z_coord")
+        if kwargs.get("batch_size") is not None:
+            batch_size = kwargs.get("batch_size")
+            assert len(z) == batch_size
+        else:
+            batch_size = len(z)
+
+        recalculate = False
+        if self.dh_qc_dzc_shape is not None:
+            if self.dh_qc_dzc_shape[0] != batch_size:
+                recalculate = True
+
+        if (
+            self.dh_qc_dzc_inds is None
+            or self.dh_qc_dzc_mels is None
+            or self.dh_qc_dzc_shape is None
+            or recalculate
+        ):
+
             m = constants.classical_coordinate_mass
             g = constants.g
             h = constants.classical_coordinate_weight
-            batch_size = len(parameters.seed)
             dh_qc_dzc = np.zeros((batch_size, constants.A, 2, 2), dtype=complex)
             dh_qc_dzc[:, :, 0, 0] = (g * np.sqrt(1 / (2 * m * h)))[..., :]
             dh_qc_dzc[:, :, 1, 1] = -dh_qc_dzc[..., :, 0, 0]
             inds = np.where(dh_qc_dzc != 0)
             mels = dh_qc_dzc[inds]
+            shape = np.shape(dh_qc_dzc)
             self.dh_qc_dzc_inds = inds
             self.dh_qc_dzc_mels = dh_qc_dzc[inds]
+            self.dh_qc_dzc_shape = shape
         else:
             inds = self.dh_qc_dzc_inds
             mels = self.dh_qc_dzc_mels
-        return inds, mels
+            shape = self.dh_qc_dzc_shape
+        return inds, mels, shape
 
     init_classical = ingredients.harmonic_oscillator_boltzmann_init_classical
     hop_function = ingredients.harmonic_oscillator_hop

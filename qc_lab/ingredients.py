@@ -4,12 +4,12 @@ This file contains ingredient functions for use in Model classes.
 
 import functools
 import numpy as np
-from tqdm import tqdm
 
 
 def make_ingredient_sparse(ingredient):
     """
-    Converts a vectorized ingredient output to a sparse format
+    Wrapper that converts a vectorized ingredient output to a sparse format
+    consisting of the indices (inds), nonzero elements (mels), and shape.
     """
 
     @functools.wraps(ingredient)
@@ -18,22 +18,26 @@ def make_ingredient_sparse(ingredient):
         out = ingredient(model, constants, parameters, **kwargs)
         inds = np.where(out != 0)
         mels = out[inds]
-        return inds, mels
+        shape = np.shape(out)
+        return inds, mels, shape
 
     return sparse_ingredient
 
 
 def vectorize_ingredient(ingredient):
     """
-    Vectorize an ingredient function.
-    assumes any kwarg that is a np.ndarray is vectorized over its firts index.
-    non np.ndarray kwargs are assumed to not be vectorized.
+    Wrapper that vectorize an ingredient function.
+    It assumes that any kwarg is an numpy.ndarray is vectorized over its first index.
+    Other kwargs are assumed to not be vectorized.
     """
 
     @functools.wraps(ingredient)
     def vectorized_ingredient(*args, **kwargs):
         (model, constants, parameters) = args
-        batch_size = len(parameters.seed)
+        if kwargs.get("batch_size") is not None:
+            batch_size = kwargs.get("batch_size")
+        else:
+            batch_size = len(parameters.seed)
         keys = kwargs.keys()
         kwargs_list = []
         for n in range(batch_size):
@@ -61,6 +65,12 @@ def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     """
     del model, parameters
     z = kwargs.get("z_coord")
+    if kwargs.get("batch_size") is not None:
+        batch_size = kwargs.get("batch_size")
+        assert len(z) == batch_size
+    else:
+        batch_size = len(z)
+
     h = constants.classical_coordinate_weight[np.newaxis, :]
     w = constants.harmonic_oscillator_frequency[np.newaxis, :]
     m = constants.classical_coordinate_mass[np.newaxis, :]
@@ -73,7 +83,7 @@ def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
 def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
     """
     Calculate the derivative of the classical harmonic oscillator Hamiltonian
-    with respect to the z-coordinates.
+    with respect to the z coordinate.
     """
     del model, parameters
     z_coord = kwargs["z_coord"]
@@ -85,8 +95,12 @@ def two_level_system_h_q(model, constants, parameters, **kwargs):
     """
     Calculate the quantum Hamiltonian for a two-level system.
     """
-    del model, kwargs
-    batch_size = len(parameters.seed)
+    del model
+
+    if kwargs.get("batch_size") is not None:
+        batch_size = kwargs.get("batch_size")
+    else:
+        batch_size = len(parameters.seed)
     h_q = np.zeros((batch_size, 2, 2), dtype=complex)
     h_q[:, 0, 0] = constants.two_level_system_a
     h_q[:, 1, 1] = constants.two_level_system_b
@@ -100,6 +114,10 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     Calculate the quantum Hamiltonian for a nearest-neighbor lattice.
     """
     del model, kwargs
+    if kwargs.get("batch_size") is not None:
+        batch_size = kwargs.get("batch_size")
+    else:
+        batch_size = len(parameters.seed)
     num_sites = constants.num_quantum_states
     hopping_energy = constants.nearest_neighbor_lattice_hopping_energy
     periodic_boundary = constants.nearest_neighbor_lattice_periodic_boundary
@@ -116,7 +134,7 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
         h_q[num_sites - 1, 0] += np.conj(h_q[0, num_sites - 1])
 
     return h_q[np.newaxis, :, :] + np.zeros(
-        (len(parameters.seed), num_sites, num_sites), dtype=complex
+        (batch_size, num_sites, num_sites), dtype=complex
     )
 
 
@@ -125,14 +143,20 @@ def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
     Calculate the Holstein coupling Hamiltonian.
     """
     del model, parameters
-    z_coord = kwargs["z_coord"]
+    z = kwargs["z_coord"]
+    if kwargs.get("batch_size") is not None:
+        if kwargs.get("batch_size") is not None:
+            batch_size = kwargs.get("batch_size")
+            assert len(z) == batch_size
+        else:
+            batch_size = len(z)
     num_sites = constants.num_quantum_states
-    oscillator_frequency = constants.holstein_coupling_oscillator_frequency
-    dimensionless_coupling = constants.holstein_coupling_dimensionless_coupling
-    h_qc = np.zeros((*np.shape(z_coord)[:-1], num_sites, num_sites), dtype=complex)
+    w = constants.holstein_coupling_oscillator_frequency
+    g = constants.holstein_coupling_dimensionless_coupling
+    h_qc = np.zeros((batch_size, num_sites, num_sites), dtype=complex)
     np.einsum("...ii->...i", h_qc)[...] = (
-        dimensionless_coupling * oscillator_frequency
-    )[..., :] * (z_coord + np.conj(z_coord))
+        g * w
+    )[..., :] * (z + np.conj(z))
     return h_qc
 
 
@@ -141,26 +165,43 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
     Calculate the derivative of the Holstein coupling Hamiltonian with
     respect to the z-coordinates.
     """
-    del parameters
-    if hasattr(model, "dh_qc_dzc_mels") and hasattr(model, "dh_qc_dzc_inds"):
-        return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels
-    z_coord = kwargs["z_coord"]
+    # if there is not an explicitly specified batch_size, use the length of the seed
+    z = kwargs["z_coord"]
+    if kwargs.get("batch_size") is not None:
+        batch_size = kwargs.get("batch_size")
+    else:
+        batch_size = len(parameters.seed)
+
+    recalculate = False
+    if model.dh_qc_dzc_shape is not None:
+        if model.dh_qc_dzc_shape[0] != batch_size:
+            recalculate = True
+
+    if (
+        model.dh_qc_dzc_inds is None
+        or model.dh_qc_dzc_mels is None
+        or model.dh_qc_dzc_shape is None
+        or recalculate
+    ):
+        return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels, model.dh_qc_dzc_shape
     num_sites = constants.num_quantum_states
     oscillator_frequency = constants.holstein_coupling_oscillator_frequency
     dimensionless_coupling = constants.holstein_coupling_dimensionless_coupling
 
     dh_qc_dzc = np.zeros(
-        (len(z_coord), num_sites, num_sites, num_sites), dtype=complex
+        (batch_size, num_sites, num_sites, num_sites), dtype=complex
     )
 
     np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (
         dimensionless_coupling * oscillator_frequency
-    )[..., :] * (np.ones_like(z_coord, dtype=complex))
+    )[..., :] * (np.ones_like(z, dtype=complex))
     inds = np.where(dh_qc_dzc != 0)
     mels = dh_qc_dzc[inds]
+    shape = np.shape(dh_qc_dzc)
     model.dh_qc_dzc_inds = inds
     model.dh_qc_dzc_mels = dh_qc_dzc[inds]
-    return inds, mels
+    model.dh_qc_dzc_shape = shape
+    return inds, mels, shape
 
 
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
@@ -246,71 +287,6 @@ def harmonic_oscillator_boltzmann_init_classical(
     return out
 
 
-def default_numerical_boltzmann_init_classical(model, constants, parameters, **kwargs):
-    """
-    Initialize classical coordinates according to Boltzmann statistics using a numerical method.
-    """
-    seed = kwargs.get("seed", None)
-    out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
-    for s in tqdm(range(len(seed))):
-        np.random.seed(seed[s])
-        rand_val = np.random.rand()
-        num_points = constants.numerical_boltzmann_init_classical_num_points
-        max_amplitude = constants.numerical_boltzmann_init_classical_max_amplitude
-
-        z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
-
-        for n in range(constants.num_classical_coordinates):
-            grid = (
-                2 * max_amplitude * (np.random.rand(num_points) - 0.5)
-            )  # np.linspace(-max_amplitude, max_amplitude, num_points)
-            kinetic_grid = 1.0j * grid
-            potential_grid = grid
-            # construct grid for kinetic points
-            kinetic_points = np.zeros(
-                (num_points, constants.num_classical_coordinates), dtype=complex
-            )
-            # construct grid for potential points
-            potential_points = np.zeros(
-                (num_points, constants.num_classical_coordinates), dtype=complex
-            )
-            for p in range(num_points):
-                kinetic_points[p, n] = kinetic_grid[p]
-                potential_points[p, n] = potential_grid[p]
-            # calculate kinetic energies on the grid
-            kinetic_energies = np.array(
-                [
-                    model.h_c(constants, parameters, z_coord=kinetic_points[p])
-                    for p in range(num_points)
-                ]
-            )
-            boltz_facs = np.exp(-kinetic_energies / constants.temp)
-            boltz_facs = boltz_facs / np.sum(boltz_facs)
-            # calculate cumulative distribution
-            tot = 0
-            for k in range(num_points):
-                tot += boltz_facs[k]
-                if rand_val <= tot:
-                    z_out[n] += kinetic_grid[k]
-                    break
-            # calculate potential energies on the grid
-            potential_energies = np.array(
-                [
-                    model.h_c(constants, parameters, z_coord=potential_points[p])
-                    for p in range(num_points)
-                ]
-            )
-            boltz_facs = np.exp(-potential_energies / constants.temp)
-            boltz_facs = boltz_facs / np.sum(boltz_facs)
-            # calculate cumulative distribution
-            tot = 0
-            for p in range(num_points):
-                tot += boltz_facs[p]
-                if rand_val <= tot:
-                    z_out[n] += potential_grid[p]
-                    break
-        out[s] = z_out
-    return out
 
 
 def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kwargs):

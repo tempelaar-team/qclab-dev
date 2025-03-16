@@ -43,6 +43,13 @@ class Vector:
     def __setstate__(self, state):
         self.__dict__.update(state)
 
+    def set_inplace(self, name, val):
+        """
+        Set an attribute in the Vector object in place.
+        """
+        setattr(self, name, val)
+        return self
+
 
 def initialize_vector_objects(sim, batch_seeds):
     """
