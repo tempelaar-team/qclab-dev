@@ -1094,7 +1094,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
             # Perform hopping using the model's hop function
             # or the default numerical hop function
             if hasattr(sim.model, "hop_function"):
-                z_branch_out, hopped = sim.model.hop_function(
+                z_out, hopped = sim.model.hop_function(
                     sim.model.constants,
                     parameters,
                     z_coord=z[traj_ind],
@@ -1102,7 +1102,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                     ev_diff=ev_diff,
                 )
             else:
-                z_branch_out, hopped = numerical_fssh_hop(
+                z_out, hopped = numerical_fssh_hop(
                     sim.model,
                     sim.model.constants,
                     parameters,
@@ -1114,7 +1114,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                 act_surf_ind_flat[traj_ind] = k
                 act_surf_flat[traj_ind] = np.zeros_like(act_surf_flat[traj_ind])
                 act_surf_flat[traj_ind][k] = 1
-                z[traj_ind] = z_branch_out
+                z[traj_ind] = z_out
                 state.act_surf_ind = np.copy(
                     act_surf_ind_flat.reshape((num_trajs, num_branches))
                 )
