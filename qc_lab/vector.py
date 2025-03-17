@@ -36,8 +36,7 @@ class Vector:
 
     def __getstate__(self):
         """Called when pickling the object."""
-        state = self.__dict__.copy()  # Create a copy of the object's dictionary
-        # Remove unpickleable attributes or transform them
+        state = self.__dict__.copy()
         return state
 
     def __setstate__(self, state):
