@@ -1073,7 +1073,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
 
             max_pos_q = np.argmax(np.abs(dkj_q))
             max_pos_p = np.argmax(np.abs(dkj_p))
-            # Check for complex nonadiabatic couplings
+            # Check for complex nonadiabatic couplings.
             if (
                 np.abs(dkj_q[max_pos_q]) > 1e-8
                 and np.abs(np.sin(np.angle(dkj_q[max_pos_q]))) > 1e-2
