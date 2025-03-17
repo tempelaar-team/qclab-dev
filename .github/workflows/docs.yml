@@ -32,6 +32,8 @@ jobs:
         make latex
 
     - name: Upload artifacts
+      run: |
+        echo ls
       uses: actions/upload-artifact@v3
       with:
         name: documentation
