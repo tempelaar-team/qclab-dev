@@ -32,10 +32,10 @@ jobs:
         make latex
 
     - name: Upload artifacts
-      # uses: actions/upload-artifact@v3
-      # with:
-      #   name: documentation
-      #   path: ./docs/_build/latex/qclab.pdf
-      run: |
-        ls
-        pwd
+      uses: actions/upload-artifact@v3
+      with:
+      name: documentation
+        path: ./docs/_build/latex/qclab.pdf
+      #run: |
+      #  ls
+      #  pwd
