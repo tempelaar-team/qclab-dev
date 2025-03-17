@@ -210,12 +210,12 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     Perform a hopping operation for the harmonic oscillator.
     """
     del model, parameters
-    z_coord = kwargs["z_coord"]
-    delta_z_coord = kwargs["delta_z_coord"]
+    z = kwargs["z_coord"]
+    delta_z = kwargs["delta_z_coord"]
     ev_diff = kwargs["ev_diff"]
     hopped = False
-    delta_zc_coord = np.conj(delta_z_coord)
-    zc_coord = np.conj(z_coord)
+    delta_zc = np.conj(delta_z)
+    zc = np.conj(z)
     a_const = (1 / 4) * (
         (
             (constants.harmonic_oscillator_frequency**2)
@@ -231,12 +231,12 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
         + constants.classical_coordinate_weight
     )
     akj_z = np.sum(
-        2 * delta_zc_coord * delta_z_coord * b_const
-        - a_const * (delta_z_coord**2 + delta_zc_coord**2)
+        2 * delta_zc * delta_z * b_const
+        - a_const * (delta_z**2 + delta_zc**2)
     )
     bkj_z = 2j * np.sum(
-        (z_coord * delta_z_coord - delta_zc_coord * zc_coord) * a_const
-        + (delta_z_coord * zc_coord - delta_zc_coord * z_coord) * b_const
+        (z * delta_z - delta_zc * zc) * a_const
+        + (delta_z * zc - delta_zc * z) * b_const
     )
     ckj_z = ev_diff
     disc = bkj_z**2 - 4 * akj_z * ckj_z
@@ -250,9 +250,9 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
         else:
             gamma = gamma / (2 * akj_z)
         # adjust classical coordinate
-        z_coord = z_coord - 1.0j * np.real(gamma) * delta_z_coord
+        z = z - 1.0j * np.real(gamma) * delta_z
         hopped = True
-    return z_coord, hopped
+    return z, hopped
 
 
 def harmonic_oscillator_boltzmann_init_classical(

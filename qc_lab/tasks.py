@@ -140,12 +140,12 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
     """
     Calculate the gradient of the classical Hamiltonian using finite differences.
     """
-    z_coord = kwargs["z_coord"]
+    z = kwargs["z_coord"]
     delta_z = 1e-6
     batch_size = len(parameters.seed)
     num_classical_coordinates = model.constants.num_classical_coordinates
-    offset_z_coord_re = (
-        z_coord[:, np.newaxis, :]
+    offset_z_re = (
+        z[:, np.newaxis, :]
         + np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
     ).reshape(
         (
@@ -153,8 +153,8 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
             num_classical_coordinates,
         )
     )
-    offset_z_coord_im = (
-        z_coord[:, np.newaxis, :]
+    offset_z_im = (
+        z[:, np.newaxis, :]
         + 1.0j * np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
     ).reshape(
         (
@@ -162,17 +162,17 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
             num_classical_coordinates,
         )
     )
-    h_c_0 = model.h_c(constants, parameters, z_coord=z_coord)
+    h_c_0 = model.h_c(constants, parameters, z_coord=z)
     h_c_offset_re = model.h_c(
         constants,
         parameters,
-        z_coord=offset_z_coord_re,
+        z_coord=offset_z_re,
         batch_size=batch_size * num_classical_coordinates,
     ).reshape(batch_size, num_classical_coordinates)
     h_c_offset_im = model.h_c(
         constants,
         parameters,
-        z_coord=offset_z_coord_im,
+        z_coord=offset_z_im,
         batch_size=batch_size * num_classical_coordinates,
     ).reshape(batch_size, num_classical_coordinates)
     diff_re = (h_c_offset_re - h_c_0[:, np.newaxis]) / delta_z
@@ -185,13 +185,13 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
     """
     Calculate the gradient of the quantum-classical Hamiltonian using finite differences.
     """
-    z_coord = kwargs["z_coord"]
+    z = kwargs["z_coord"]
     delta_z = 1e-6
     batch_size = len(parameters.seed)
     num_classical_coordinates = model.constants.num_classical_coordinates
     num_quantum_states = model.constants.num_quantum_states
-    offset_z_coord_re = (
-        z_coord[:, np.newaxis, :]
+    offset_z_re = (
+        z[:, np.newaxis, :]
         + np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
     ).reshape(
         (
@@ -199,8 +199,8 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
             num_classical_coordinates,
         )
     )
-    offset_z_coord_im = (
-        z_coord[:, np.newaxis, :]
+    offset_z_im = (
+        z[:, np.newaxis, :]
         + 1.0j * np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
     ).reshape(
         (
@@ -208,11 +208,11 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
             num_classical_coordinates,
         )
     )
-    h_qc_0 = model.h_qc(constants, parameters, z_coord=z_coord)
+    h_qc_0 = model.h_qc(constants, parameters, z_coord=z)
     h_qc_offset_re = model.h_qc(
         constants,
         parameters,
-        z_coord=offset_z_coord_re,
+        z_coord=offset_z_re,
         batch_size=batch_size * num_classical_coordinates,
     ).reshape(
         batch_size,
@@ -223,7 +223,7 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
     h_qc_offset_im = model.h_qc(
         constants,
         parameters,
-        z_coord=offset_z_coord_im,
+        z_coord=offset_z_im,
         batch_size=batch_size * num_classical_coordinates,
     ).reshape(
         batch_size,
@@ -245,14 +245,14 @@ def update_dh_c_dzc(sim, parameters, state, **kwargs):
     Update the gradient of the classical Hamiltonian
     w.r.t the conjugate classical coordinate.
     """
-    z_coord = kwargs["z_coord"]
+    z = kwargs["z_coord"]
     if hasattr(sim.model, "dh_c_dzc"):
         state.dh_c_dzc = sim.model.dh_c_dzc(
-            sim.model.constants, parameters, z_coord=z_coord
+            sim.model.constants, parameters, z_coord=z
         )
     else:
         state.dh_c_dzc = dh_c_dzc_finite_differences(
-            sim.model, sim.model.constants, parameters, z_coord=z_coord
+            sim.model, sim.model.constants, parameters, z_coord=z
         )
     return parameters, state
 
@@ -262,14 +262,14 @@ def update_dh_qc_dzc(sim, parameters, state, **kwargs):
     Update the gradient of the quantum-classical Hamiltonian
     w.r.t the conjugate classical coordinate.
     """
-    z_coord = kwargs["z_coord"]
+    z = kwargs["z_coord"]
     if hasattr(sim.model, "dh_qc_dzc"):
         state.dh_qc_dzc = sim.model.dh_qc_dzc(
-            sim.model.constants, parameters, z_coord=z_coord
+            sim.model.constants, parameters, z_coord=z
         )
     else:
         state.dh_qc_dzc = dh_qc_dzc_finite_differences(
-            sim.model, sim.model.constants, parameters, z_coord=z_coord
+            sim.model, sim.model.constants, parameters, z_coord=z
         )
 
     return parameters, state
@@ -279,8 +279,8 @@ def update_classical_forces(sim, parameters, state, **kwargs):
     """
     Update the classical forces.
     """
-    z_coord = kwargs["z_coord"]
-    parameters, state = update_dh_c_dzc(sim, parameters, state, z_coord=z_coord)
+    z = kwargs["z_coord"]
+    parameters, state = update_dh_c_dzc(sim, parameters, state, z_coord=z)
     state.classical_forces = state.dh_c_dzc
     return parameters, state
 
@@ -289,9 +289,9 @@ def update_quantum_classical_forces(sim, parameters, state, **kwargs):
     """
     Update the quantum-classical forces w.r.t the state defined by wf.
     """
-    z_coord = kwargs["z_coord"]
+    z = kwargs["z_coord"]
     wf = kwargs["wf"]
-    parameters, state = update_dh_qc_dzc(sim, parameters, state, z_coord=z_coord)
+    parameters, state = update_dh_qc_dzc(sim, parameters, state, z_coord=z)
     inds, mels, shape = state.dh_qc_dzc
 
     state.quantum_classical_forces = np.zeros(
@@ -318,40 +318,40 @@ def update_z_coord_rk4(sim, parameters, state, **kwargs):
         update_quantum_classical_forces_bool = not sim.model.linear_h_qc
     else:
         update_quantum_classical_forces_bool = True
-    z_coord_0 = kwargs["z_coord"]
+    z_0 = kwargs["z_coord"]
     output_name = kwargs["output_name"]
     parameters, state = update_classical_forces(
-        sim, parameters, state, z_coord=z_coord_0
+        sim, parameters, state, z_coord=z_0
     )
     parameters, state = update_quantum_classical_forces(
-        sim, parameters, state, wf=wf, z_coord=z_coord_0
+        sim, parameters, state, wf=wf, z_coord=z_0
     )
     k1 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     parameters, state = update_classical_forces(
-        sim, parameters, state, z_coord=z_coord_0 + 0.5 * dt * k1
+        sim, parameters, state, z_coord=z_0 + 0.5 * dt * k1
     )
     if update_quantum_classical_forces_bool:
         parameters, state = update_quantum_classical_forces(
-            sim, parameters, state, wf=wf, z_coord=z_coord_0 + 0.5 * dt * k1
+            sim, parameters, state, wf=wf, z_coord=z_0 + 0.5 * dt * k1
         )
     k2 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     parameters, state = update_classical_forces(
-        sim, parameters, state, z_coord=z_coord_0 + 0.5 * dt * k2
+        sim, parameters, state, z_coord=z_0 + 0.5 * dt * k2
     )
     if update_quantum_classical_forces_bool:
         parameters, state = update_quantum_classical_forces(
-            sim, parameters, state, wf=wf, z_coord=z_coord_0 + 0.5 * dt * k2
+            sim, parameters, state, wf=wf, z_coord=z_0 + 0.5 * dt * k2
         )
     k3 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     parameters, state = update_classical_forces(
-        sim, parameters, state, z_coord=z_coord_0 + dt * k3
+        sim, parameters, state, z_coord=z_0 + dt * k3
     )
     if update_quantum_classical_forces_bool:
         parameters, state = update_quantum_classical_forces(
-            sim, parameters, state, wf=wf, z_coord=z_coord_0 + dt * k3
+            sim, parameters, state, wf=wf, z_coord=z_0 + dt * k3
         )
     k4 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
-    setattr(state, output_name, z_coord_0 + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
+    setattr(state, output_name, z_0 + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
     return parameters, state
 
 
@@ -360,8 +360,8 @@ def update_z_coord_parameter(sim, parameters, state, **kwargs):
     Put the current z-coordinate into the parameters object.
     """
     del sim
-    z_coord = kwargs.get("z_coord", state.z_coord)
-    parameters.z_coord = z_coord
+    z = kwargs.get("z_coord", state.z_coord)
+    parameters.z_coord = z
     return parameters, state
 
 
@@ -369,9 +369,9 @@ def update_h_quantum(sim, parameters, state, **kwargs):
     """
     Update the quantum + quantum-classical Hamiltonian.
     """
-    z_coord = kwargs.get("z_coord", state.z_coord)
+    z = kwargs.get("z_coord", state.z_coord)
     h_q = sim.model.h_q(sim.model.constants, parameters)
-    h_qc = sim.model.h_qc(sim.model.constants, parameters, z_coord=z_coord)
+    h_qc = sim.model.h_qc(sim.model.constants, parameters, z_coord=z)
     state.h_quantum = h_q + h_qc
     return parameters, state
 
@@ -414,9 +414,9 @@ def update_classical_energy(sim, parameters, state, **kwargs):
     """
     Update the classical energy.
     """
-    z_coord = kwargs["z_coord"]
+    z = kwargs["z_coord"]
     state.classical_energy = np.real(
-        sim.model.h_c(sim.model.constants, parameters, z_coord=z_coord)
+        sim.model.h_c(sim.model.constants, parameters, z_coord=z)
     )
     return parameters, state
 
@@ -425,7 +425,7 @@ def update_classical_energy_fssh(sim, parameters, state, **kwargs):
     """
     Update the classical energy as a sum of equally-weighted contributions from each branch.
     """
-    z_coord = kwargs["z_coord"]
+    z = kwargs["z_coord"]
     num_branches = sim.algorithm.settings.num_branches
     batch_size = sim.settings.batch_size // num_branches
     num_states = sim.model.constants.num_quantum_states
@@ -440,19 +440,19 @@ def update_classical_energy_fssh(sim, parameters, state, **kwargs):
             )
         )
         for branch_ind in range(num_branches):
-            z_coord_branch = (
-                z_coord[state.branch_ind == branch_ind]
+            z_branch = (
+                z[state.branch_ind == branch_ind]
                 * branch_weights[:, branch_ind][:, np.newaxis]
             )
             state.classical_energy = state.classical_energy + sim.model.h_c(
-                sim.model.constants, parameters, z_coord=z_coord_branch
+                sim.model.constants, parameters, z_coord=z_branch
             )
     else:
         state.classical_energy = 0
         for branch_ind in range(num_branches):
-            z_coord_branch = z_coord[state.branch_ind == branch_ind]
+            z_branch = z[state.branch_ind == branch_ind]
             state.classical_energy = state.classical_energy + sim.model.h_c(
-                sim.model.constants, parameters, z_coord=z_coord_branch
+                sim.model.constants, parameters, z_coord=z_branch
             )
         state.classical_energy = state.classical_energy / num_branches
     state.classical_energy = np.real(state.classical_energy)
@@ -645,8 +645,8 @@ def gauge_fix_eigs(sim, parameters, state, **kwargs):
         )
         eigvecs = np.einsum("tai,ti->tai", eigvecs, phase, optimize="greedy")
     if kwargs["gauge_fixing"] >= 2:
-        z_coord = kwargs["z_coord"]
-        parameters, state = update_dh_qc_dzc(sim, parameters, state, z_coord=z_coord)
+        z = kwargs["z_coord"]
+        parameters, state = update_dh_qc_dzc(sim, parameters, state, z_coord=z)
         der_couple_q_phase, _ = analytic_der_couple_phase(
             sim, parameters, state, eigvals, eigvecs
         )
@@ -930,14 +930,14 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
     """
     Determines the coordinate rescaling in FSSH numerically.
     """
-    z_coord = kwargs["z_coord"]
-    delta_z_coord = kwargs["delta_z_coord"]
+    z = kwargs["z_coord"]
+    delta_z = kwargs["delta_z_coord"]
     ev_diff = kwargs["ev_diff"]
     gamma_range = constants.get("numerical_fssh_hop_gamma_range", 5)
     num_iter = constants.get("numerical_fssh_hop_num_iter", 10)
     num_points = constants.get("numerical_fssh_hop_num_points", 10)
     init_energy = model.h_c(
-        constants, parameters, z_coord=np.array([z_coord]), batch_size=1
+        constants, parameters, z_coord=np.array([z]), batch_size=1
     )[0]
     min_gamma = 0
     for _ in range(num_iter):
@@ -952,7 +952,7 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
                     - model.h_c(
                         constants,
                         parameters,
-                        z_coord=np.array([z_coord - 1.0j * gamma * delta_z_coord]),
+                        z_coord=np.array([z - 1.0j * gamma * delta_z]),
                         batch_size=1,
                     )[0]
                     for gamma in gamma_list
@@ -963,8 +963,8 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
         min_energy = np.min(new_energies)
         gamma_range = gamma_range / 2
     if min_energy > 1 / num_points:
-        return z_coord, False
-    return z_coord - 1.0j * min_gamma * delta_z_coord, True
+        return z, False
+    return z - 1.0j * min_gamma * delta_z, True
 
 
 def update_active_surface_fssh(sim, parameters, state, **kwargs):
@@ -1012,7 +1012,7 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
         inds, mels, _ = state.dh_qc_dzc
         eigvecs_flat = state.eigvecs
         eigvals_flat = state.eigvals
-        z_coord = state.z_coord
+        z = np.copy(state.z_coord)
         act_surf_flat = state.act_surf
         for traj_ind in traj_hop_ind:
             k = np.argmax(
@@ -1094,19 +1094,19 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
             # Perform hopping using the model's hop function
             # or the default numerical hop function
             if hasattr(sim.model, "hop_function"):
-                z_coord_branch_out, hopped = sim.model.hop_function(
+                z_branch_out, hopped = sim.model.hop_function(
                     sim.model.constants,
                     parameters,
-                    z_coord=z_coord[traj_ind],
+                    z_coord=z[traj_ind],
                     delta_z_coord=delta_z,
                     ev_diff=ev_diff,
                 )
             else:
-                z_coord_branch_out, hopped = numerical_fssh_hop(
+                z_branch_out, hopped = numerical_fssh_hop(
                     sim.model,
                     sim.model.constants,
                     parameters,
-                    z_coord=z_coord[traj_ind],
+                    z_coord=z[traj_ind],
                     delta_z_coord=delta_z,
                     ev_diff=ev_diff,
                 )
@@ -1114,10 +1114,10 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                 act_surf_ind_flat[traj_ind] = k
                 act_surf_flat[traj_ind] = np.zeros_like(act_surf_flat[traj_ind])
                 act_surf_flat[traj_ind][k] = 1
-                z_coord[traj_ind] = z_coord_branch_out
+                z[traj_ind] = z_branch_out
                 state.act_surf_ind = np.copy(
                     act_surf_ind_flat.reshape((num_trajs, num_branches))
                 )
                 state.act_surf = np.copy(act_surf_flat)
-                state.z_coord_branch = np.copy(z_coord)
+                state.z_coord = np.copy(z)
     return parameters, state
