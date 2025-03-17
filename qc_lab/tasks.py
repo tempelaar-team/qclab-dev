@@ -854,7 +854,6 @@ def update_dm_db_fssh(sim, parameters, state, **kwargs):
         )
     else:
         dm_adb_branch = dm_adb_branch / num_branches
-    state.dm_adb = np.sum(dm_adb_branch, axis=-3).astype(complex)  # TODO is this right?
     parameters, state = basis_transform_mat(
         sim,
         parameters,
