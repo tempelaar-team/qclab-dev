@@ -35,7 +35,6 @@ class SpinBoson(Model):
         """
         num_bosons = self.constants.get("A", self.default_constants.get("A"))
         char_freq = self.constants.get("W", self.default_constants.get("W"))
-        w = self.constants.get("w", self.default_constants.get("w"))
         boson_mass = self.constants.get(
             "boson_mass", self.default_constants.get("boson_mass")
         )
@@ -44,7 +43,7 @@ class SpinBoson(Model):
         )
         self.constants.num_classical_coordinates = num_bosons
         self.constants.num_quantum_states = 2
-        self.constants.classical_coordinate_weight = w
+        self.constants.classical_coordinate_weight = self.constants.w*2
         self.constants.classical_coordinate_mass = boson_mass * np.ones(num_bosons)
 
     def initialize_constants_h_c(self):

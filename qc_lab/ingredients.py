@@ -95,7 +95,7 @@ def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
     w = constants.harmonic_oscillator_frequency
     a = (1 / 4) * (((w**2) / h) - h)
     b = (1 / 4) * (((w**2) / h) + h)
-    dh_c_dzc = 2 * b[..., :] * z - a[..., :] * np.conj(z)
+    dh_c_dzc = 2 * b[..., :] * z + 2 * a[..., :] * np.conj(z)
     return dh_c_dzc
 
 
@@ -129,11 +129,11 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     hopping_energy = constants.nearest_neighbor_lattice_hopping_energy
     periodic_boundary = constants.nearest_neighbor_lattice_periodic_boundary
     h_q = np.zeros((num_sites, num_sites), dtype=complex)
-    # Fill the Hamiltonian matrix with hopping energies
+    # Fill the Hamiltonian matrix with hopping energies.
     for n in range(num_sites - 1):
         h_q[n, n + 1] += -hopping_energy
         h_q[n + 1, n] += np.conj(h_q[n, n + 1])
-    # Apply periodic boundary conditions if specified
+    # Apply periodic boundary conditions if specified.
     if periodic_boundary:
         h_q[0, num_sites - 1] += -hopping_energy
         h_q[num_sites - 1, 0] += np.conj(h_q[0, num_sites - 1])

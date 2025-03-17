@@ -98,7 +98,7 @@ Analyzing Results
 The data object returned by the dynamics driver contains the results of the simulation in a dictionary with keys corresponding
 to the names of the observables that were requested to be recorded during the simulation.
 
-::
+:: 
 
     print('calculated quantities:', data.data_dic.keys())
     # calculated quantities: dict_keys(['seed', 'dm_db', 'classical_energy', 'quantum_energy'])

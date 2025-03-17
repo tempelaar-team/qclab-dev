@@ -19,3 +19,8 @@ Installation
 ------------
 
 System requirements and installation steps.
+
+
+
+Citing QC Lab
+-------------
