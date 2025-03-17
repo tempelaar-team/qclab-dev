@@ -36,4 +36,4 @@ jobs:
       with:
         name: documentation
         path: |
-          docs/_build/latex/qclab.pdf
+          _build/latex/qclab.pdf
