@@ -13,9 +13,12 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     """
     Parallel driver for the dynamics core using the mpi4py library.
     """
-    try: from mpi4py import MPI
+    try:
+        from mpi4py import MPI
     except ImportError:
-        raise ImportError("mpi4py is required for the parallel_driver_mpi driver") from None
+        raise ImportError(
+            "mpi4py is required for the parallel_driver_mpi driver"
+        ) from None
     except Exception as e:
         raise RuntimeError(f"An error occurred when importing mpi4py: {e}") from None
     if seeds is None:
