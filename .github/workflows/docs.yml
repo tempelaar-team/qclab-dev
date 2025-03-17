@@ -35,7 +35,6 @@ jobs:
       uses: actions/upload-artifact
       with:
         name: documentation
-        path: ./docs/_build/latex/qclab.pdf
-      #run: |
-      #  ls
-      #  pwd
+        path: |
+          docs/_build/html/
+          docs/_build/latex/qclab.pdf
