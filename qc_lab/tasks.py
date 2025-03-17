@@ -609,13 +609,13 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
         )
         der_couple_q_angle[np.where(np.abs(der_couple_q_angle) < 1e-12)] = 0
         der_couple_p_angle[np.where(np.abs(der_couple_p_angle) < 1e-12)] = 0
-        der_couple_q_phase[..., i + 1 :] = (
+        der_couple_q_phase[..., i + 1:] = (
             np.exp(1.0j * der_couple_q_angle[..., np.newaxis])
-            * der_couple_q_phase[..., i + 1 :]
+            * der_couple_q_phase[..., i + 1:]
         )
-        der_couple_p_phase[..., i + 1 :] = (
+        der_couple_p_phase[..., i + 1:] = (
             np.exp(1.0j * der_couple_p_angle[..., np.newaxis])
-            * der_couple_p_phase[..., i + 1 :]
+            * der_couple_p_phase[..., i + 1:]
         )
     return der_couple_q_phase, der_couple_p_phase
 

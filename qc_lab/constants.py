@@ -1,5 +1,5 @@
 """
-This file contains the Constants class, which is used to handle 
+This file contains the Constants class, which is used to handle
 constants and trigger updates automatically when constants change.
 """
 

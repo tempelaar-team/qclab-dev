@@ -120,7 +120,7 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     """
     Calculate the quantum Hamiltonian for a nearest-neighbor lattice.
     """
-    del model, kwargs
+    del model
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
     else:

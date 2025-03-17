@@ -1,4 +1,4 @@
-""" 
+"""
 This file contains the spin-boson Model class.
 """
 
@@ -101,6 +101,7 @@ class SpinBoson(Model):
         Calculate the derivative of the quantum-classical coupling Hamiltonian
         with respect to the z-coordinates.
         """
+        del parameters
         z = kwargs.get("z_coord")
         if kwargs.get("batch_size") is not None:
             batch_size = kwargs.get("batch_size")

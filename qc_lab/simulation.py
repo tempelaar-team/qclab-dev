@@ -1,5 +1,5 @@
 """
-This file contains the Simulation, State, and Data classes. It also contains additional 
+This file contains the Simulation, State, and Data classes. It also contains additional
 functions for initializing and handling these objects.
 """
 

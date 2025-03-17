@@ -47,7 +47,7 @@ def serial_driver(sim, seeds=None, data=None):
     num_sims = int(num_trajs / sim.settings.batch_size) + 1
     for n in range(num_sims):
         batch_seeds = seeds[
-            n * sim.settings.batch_size : (n + 1) * sim.settings.batch_size
+            n * sim.settings.batch_size: (n + 1) * sim.settings.batch_size
         ]
         if len(batch_seeds) == 0:
             break
