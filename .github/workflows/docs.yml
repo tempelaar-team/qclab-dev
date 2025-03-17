@@ -36,4 +36,5 @@ jobs:
       with:
         name: documentation
         path: |
-          _build/latex/qclab.pdf
+          ./docs/_build/html
+          ./docs/_build/latex/qclab.pdf
