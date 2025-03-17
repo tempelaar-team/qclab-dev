@@ -9,7 +9,7 @@ from numba import njit
 
 def initialize_branch_seeds(sim, parameters, state, **kwargs):
     """
-    Initialize the seeds in each branch
+    Initialize the seeds in each branch.
     """
     del kwargs
     num_branches = sim.algorithm.settings.num_branches
@@ -42,14 +42,14 @@ def default_numerical_boltzmann_init_classical(model, constants, parameters, **k
         np.random.seed(seed_s)
         rand_val = np.random.rand()
         num_points = constants.get("numerical_boltzmann_init_classical_num_points", 100)
-        max_amplitude = constants.get("numerical_boltzmann_init_classical_max_amplitude", 10)
+        max_amplitude = constants.get(
+            "numerical_boltzmann_init_classical_max_amplitude", 10
+        )
 
         z_out = np.zeros((constants.num_classical_coordinates), dtype=complex)
 
         for n in range(constants.num_classical_coordinates):
-            grid = (
-                2 * max_amplitude * (np.random.rand(num_points) - 0.5)
-            )  # np.linspace(-max_amplitude, max_amplitude, num_points)
+            grid = 2 * max_amplitude * (np.random.rand(num_points) - 0.5)
             kinetic_grid = 1.0j * grid
             potential_grid = grid
             # Construct grid for kinetic points.
@@ -66,7 +66,12 @@ def default_numerical_boltzmann_init_classical(model, constants, parameters, **k
             # Calculate kinetic energies on the grid.
             kinetic_energies = np.array(
                 [
-                    model.h_c(constants, parameters, z_coord=np.array([kinetic_points[p]]), batch_size = 1)[0]
+                    model.h_c(
+                        constants,
+                        parameters,
+                        z_coord=np.array([kinetic_points[p]]),
+                        batch_size=1,
+                    )[0]
                     for p in range(num_points)
                 ]
             )
@@ -82,7 +87,12 @@ def default_numerical_boltzmann_init_classical(model, constants, parameters, **k
             # Calculate potential energies on the grid.
             potential_energies = np.array(
                 [
-                    model.h_c(constants, parameters, z_coord=np.array([potential_points[p]]), batch_size = 1)[0]
+                    model.h_c(
+                        constants,
+                        parameters,
+                        z_coord=np.array([potential_points[p]]),
+                        batch_size=1,
+                    )[0]
                     for p in range(num_points)
                 ]
             )
@@ -153,12 +163,18 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
         )
     )
     h_c_0 = model.h_c(constants, parameters, z_coord=z_coord)
-    h_c_offset_re = model.h_c(constants, parameters, z_coord=offset_z_coord_re, batch_size = batch_size * num_classical_coordinates).reshape(
-        batch_size, num_classical_coordinates
-    )
-    h_c_offset_im = model.h_c(constants, parameters, z_coord=offset_z_coord_im, batch_size = batch_size * num_classical_coordinates).reshape(
-        batch_size, num_classical_coordinates
-    )
+    h_c_offset_re = model.h_c(
+        constants,
+        parameters,
+        z_coord=offset_z_coord_re,
+        batch_size=batch_size * num_classical_coordinates,
+    ).reshape(batch_size, num_classical_coordinates)
+    h_c_offset_im = model.h_c(
+        constants,
+        parameters,
+        z_coord=offset_z_coord_im,
+        batch_size=batch_size * num_classical_coordinates,
+    ).reshape(batch_size, num_classical_coordinates)
     diff_re = (h_c_offset_re - h_c_0[:, np.newaxis]) / delta_z
     diff_im = (h_c_offset_im - h_c_0[:, np.newaxis]) / delta_z
     dh_c_dzc = 0.5 * (diff_re + 1.0j * diff_im)
@@ -194,7 +210,10 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
     )
     h_qc_0 = model.h_qc(constants, parameters, z_coord=z_coord)
     h_qc_offset_re = model.h_qc(
-        constants, parameters, z_coord=offset_z_coord_re, batch_size = batch_size * num_classical_coordinates
+        constants,
+        parameters,
+        z_coord=offset_z_coord_re,
+        batch_size=batch_size * num_classical_coordinates,
     ).reshape(
         batch_size,
         num_classical_coordinates,
@@ -202,7 +221,10 @@ def dh_qc_dzc_finite_differences(model, constants, parameters, **kwargs):
         num_quantum_states,
     )
     h_qc_offset_im = model.h_qc(
-        constants, parameters, z_coord=offset_z_coord_im, batch_size = batch_size * num_classical_coordinates
+        constants,
+        parameters,
+        z_coord=offset_z_coord_im,
+        batch_size=batch_size * num_classical_coordinates,
     ).reshape(
         batch_size,
         num_classical_coordinates,
@@ -478,54 +500,6 @@ def update_quantum_energy_fssh(sim, parameters, state, **kwargs):
             state.quantum_energy / sim.algorithm.settings.num_branches
         )
     state.quantum_energy = np.real(state.quantum_energy)
-    return parameters, state
-
-
-def broadcast_var_to_branch(sim, parameters, state, **kwargs):
-    """
-    Broadcasts a variable to an equivalent with a new internal "branch" index.
-    Each branch will be identical.
-    Also generates a new set of indices named "var_branch_ind" and "var_traj_ind"
-      which can be used to index the new variable.
-    The shape will be (batch_size * num_branches, *var.shape[1:])
-    """
-    name = kwargs["name"]
-    val = kwargs["val"]
-    out = (
-        np.zeros(
-            (
-                sim.settings.batch_size,
-                sim.algorithm.settings.num_branches,
-                *np.shape(val)[1:],
-            ),
-            dtype=val.dtype,
-        )
-        + val[:, np.newaxis, ...]
-    ).reshape(
-        (
-            sim.settings.batch_size * sim.algorithm.settings.num_branches,
-            *np.shape(val)[1:],
-        )
-    )
-    setattr(state, name, out)
-    branch_ind = (
-        (
-            np.arange(sim.algorithm.settings.num_branches)[np.newaxis, :]
-            + np.zeros((sim.settings.batch_size, sim.algorithm.settings.num_branches))
-        )
-        .astype(int)
-        .reshape(sim.settings.batch_size * sim.algorithm.settings.num_branches)
-    )
-    setattr(state, name + "_branch_ind", branch_ind)
-    traj_ind = (
-        (
-            np.arange(sim.settings.batch_size)[:, np.newaxis]
-            + np.zeros((sim.settings.batch_size, sim.algorithm.settings.num_branches))
-        )
-        .astype(int)
-        .reshape(sim.settings.batch_size * sim.algorithm.settings.num_branches)
-    )
-    setattr(state, name + "_traj_ind", traj_ind)
     return parameters, state
 
 
@@ -960,13 +934,12 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
     z_coord = kwargs["z_coord"]
     delta_z_coord = kwargs["delta_z_coord"]
     ev_diff = kwargs["ev_diff"]
-
     gamma_range = constants.get("numerical_fssh_hop_gamma_range", 5)
     num_iter = constants.get("numerical_fssh_hop_num_iter", 10)
     num_points = constants.get("numerical_fssh_hop_num_points", 10)
-
-    init_energy = model.h_c(constants, parameters, z_coord=np.array([z_coord]),batch_size=1)[0]
-
+    init_energy = model.h_c(
+        constants, parameters, z_coord=np.array([z_coord]), batch_size=1
+    )[0]
     min_gamma = 0
     for _ in range(num_iter):
         gamma_list = np.linspace(
@@ -990,7 +963,6 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
         min_gamma = gamma_list[np.argmin(new_energies)]
         min_energy = np.min(new_energies)
         gamma_range = gamma_range / 2
-
     if min_energy > 1 / num_points:
         return z_coord, False
     return z_coord - 1.0j * min_gamma * delta_z_coord, True
@@ -1012,7 +984,6 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
         .flatten()
         .astype(int)
     )
-
     prod = np.einsum(
         "bn,bni->bi",
         np.conj(
@@ -1150,5 +1121,4 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                 )
                 state.act_surf = np.copy(act_surf_flat)
                 state.z_coord_branch = np.copy(z_coord)
-
     return parameters, state

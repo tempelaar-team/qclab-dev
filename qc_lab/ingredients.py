@@ -70,7 +70,6 @@ def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
         assert len(z) == batch_size
     else:
         batch_size = len(z)
-
     h = constants.classical_coordinate_weight[np.newaxis, :]
     w = constants.harmonic_oscillator_frequency[np.newaxis, :]
     m = constants.classical_coordinate_mass[np.newaxis, :]
@@ -105,7 +104,6 @@ def two_level_system_h_q(model, constants, parameters, **kwargs):
     Calculate the quantum Hamiltonian for a two-level system.
     """
     del model
-
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
     else:
@@ -131,17 +129,14 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     hopping_energy = constants.nearest_neighbor_lattice_hopping_energy
     periodic_boundary = constants.nearest_neighbor_lattice_periodic_boundary
     h_q = np.zeros((num_sites, num_sites), dtype=complex)
-
     # Fill the Hamiltonian matrix with hopping energies
     for n in range(num_sites - 1):
         h_q[n, n + 1] += -hopping_energy
         h_q[n + 1, n] += np.conj(h_q[n, n + 1])
-
     # Apply periodic boundary conditions if specified
     if periodic_boundary:
         h_q[0, num_sites - 1] += -hopping_energy
         h_q[num_sites - 1, 0] += np.conj(h_q[0, num_sites - 1])
-
     return h_q[np.newaxis, :, :] + np.zeros(
         (batch_size, num_sites, num_sites), dtype=complex
     )
@@ -175,18 +170,17 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
     Calculate the derivative of the Holstein coupling Hamiltonian with
     respect to the z-coordinates.
     """
-    # if there is not an explicitly specified batch_size, use the length of the seed
+    # if there is not an explicitly specified batch_size,
+    # use the length of the seed.
     z = kwargs["z_coord"]
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
     else:
         batch_size = len(parameters.seed)
-
     recalculate = False
     if model.dh_qc_dzc_shape is not None:
         if model.dh_qc_dzc_shape[0] != batch_size:
             recalculate = True
-
     if (
         model.dh_qc_dzc_inds is None
         or model.dh_qc_dzc_mels is None
@@ -198,9 +192,7 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
     w = constants.holstein_coupling_oscillator_frequency
     g = constants.holstein_coupling_dimensionless_coupling
     h = constants.classical_coordinate_weight
-
     dh_qc_dzc = np.zeros((batch_size, num_sites, num_sites, num_sites), dtype=complex)
-
     np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (g * w * np.sqrt(w / h))[
         ..., :
     ] * (np.ones_like(z, dtype=complex))
@@ -224,7 +216,6 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     hopped = False
     delta_zc_coord = np.conj(delta_z_coord)
     zc_coord = np.conj(z_coord)
-
     a_const = (1 / 4) * (
         (
             (constants.harmonic_oscillator_frequency**2)
@@ -232,7 +223,6 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
         )
         - constants.classical_coordinate_weight
     )
-
     b_const = (1 / 4) * (
         (
             (constants.harmonic_oscillator_frequency**2)
@@ -240,7 +230,6 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
         )
         + constants.classical_coordinate_weight
     )
-
     akj_z = np.sum(
         2 * delta_zc_coord * delta_z_coord * b_const
         - a_const * (delta_z_coord**2 + delta_zc_coord**2)
@@ -250,7 +239,6 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
         + (delta_z_coord * zc_coord - delta_zc_coord * z_coord) * b_const
     )
     ckj_z = ev_diff
-
     disc = bkj_z**2 - 4 * akj_z * ckj_z
     if disc >= 0:
         if bkj_z < 0:
@@ -286,8 +274,12 @@ def harmonic_oscillator_boltzmann_init_classical(
         std_q = np.sqrt(kbt / (m * (w**2)))
         std_p = np.sqrt(m * kbt)
         # Generate random q and p values.
-        q = np.random.normal(loc=0, scale=std_q, size=constants.num_classical_coordinates)
-        p = np.random.normal(loc=0, scale=std_p, size=constants.num_classical_coordinates)
+        q = np.random.normal(
+            loc=0, scale=std_q, size=constants.num_classical_coordinates
+        )
+        p = np.random.normal(
+            loc=0, scale=std_p, size=constants.num_classical_coordinates
+        )
         # Calculate the complex classical coordinate.
         z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
         out[s] = z
@@ -312,8 +304,12 @@ def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kw
         std_q = np.sqrt(1 / (2 * w * m * np.tanh(w / (2 * kbt))))
         std_p = np.sqrt((m * w) / (2 * np.tanh(w / (2 * kbt))))
         # Generate random q and p values.
-        q = np.random.normal(loc=0, scale=std_q, size=constants.num_classical_coordinates)
-        p = np.random.normal(loc=0, scale=std_p, size=constants.num_classical_coordinates)
+        q = np.random.normal(
+            loc=0, scale=std_q, size=constants.num_classical_coordinates
+        )
+        p = np.random.normal(
+            loc=0, scale=std_p, size=constants.num_classical_coordinates
+        )
         # Calculate the complex classical coordinate.
         z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
         out[s] = z

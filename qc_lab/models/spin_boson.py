@@ -101,7 +101,6 @@ class SpinBoson(Model):
         Calculate the derivative of the quantum-classical coupling Hamiltonian
         with respect to the z-coordinates.
         """
-        # if there is not an explicitly specified batch_size, use the length of z
         z = kwargs.get("z_coord")
         if kwargs.get("batch_size") is not None:
             batch_size = kwargs.get("batch_size")
