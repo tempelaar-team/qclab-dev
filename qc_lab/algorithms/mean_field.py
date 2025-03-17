@@ -21,23 +21,23 @@ class MeanField(Algorithm):
         lambda sim, parameters, state: tasks.assign_to_parameters(
             sim, parameters, state, name="seed", val=state.seed
         ),
-        lambda sim, parameters, state: tasks.initialize_z_coord(
+        lambda sim, parameters, state: tasks.initialize_z(
             sim=sim, parameters=parameters, state=state, seed=state.seed
         ),
         lambda sim, parameters, state: tasks.update_h_quantum(
-            sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
+            sim=sim, parameters=parameters, state=state, z=state.z
         ),
     ]
     update_recipe = [
         lambda sim, parameters, state: tasks.update_h_quantum(
-            sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
+            sim=sim, parameters=parameters, state=state, z=state.z
         ),
-        lambda sim, parameters, state: tasks.update_z_coord_rk4(
+        lambda sim, parameters, state: tasks.update_z_rk4(
             sim=sim,
             parameters=parameters,
             state=state,
-            z_coord=state.z_coord,
-            output_name="z_coord",
+            z=state.z,
+            output_name="z",
             wf=state.wf_db,
         ),
         tasks.update_wf_db_rk4,
@@ -48,7 +48,7 @@ class MeanField(Algorithm):
             sim=sim, parameters=parameters, state=state, wf=state.wf_db
         ),
         lambda sim, parameters, state: tasks.update_classical_energy(
-            sim=sim, parameters=parameters, state=state, z_coord=state.z_coord
+            sim=sim, parameters=parameters, state=state, z=state.z
         ),
     ]
     output_variables = [

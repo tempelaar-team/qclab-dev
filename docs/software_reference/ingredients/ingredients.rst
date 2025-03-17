@@ -18,12 +18,12 @@ generates the quantum-classical Hamiltonian for the spin-boson model might look 
 .. code-block:: python
 
     def spin_boson_h_qc(model, **kwargs):
-        z_coord = kwargs['z_coord']
+        z = kwargs['z']
         g = model.parameters.g
         m = model.parameters.mass
         h = model.parameters.pq_weight
         h_qc = np.zeros((2, 2), dtype=complex)
-        h_qc[0, 0] = np.sum((g * np.sqrt(1 / (2 * m * h))) * (z_coord + np.conj(z_coord)))
+        h_qc[0, 0] = np.sum((g * np.sqrt(1 / (2 * m * h))) * (z + np.conj(z)))
         h_qc[1, 1] = -h_qc[0, 0]
         return h_qc
 
@@ -33,12 +33,12 @@ QC Lab treates vectorized and non-vectorized ingredients differently. The option
 .. code-block:: python
 
     def spin_boson_h_qc_vectorized(model, **kwargs):
-        z_coord = kwargs['z_coord']
+        z = kwargs['z']
         g = model.parameters.g
         m = model.parameters.mass
         h = model.parameters.pq_weight
-        h_qc = np.zeros((*np.shape(z_coord)[:-1], 2, 2), dtype=complex)
-        h_qc[..., 0, 0] = np.sum((g * np.sqrt(1 / (2 * m * h)))[..., :] * (z_coord + np.conj(z_coord)), axis=-1)
+        h_qc = np.zeros((*np.shape(z)[:-1], 2, 2), dtype=complex)
+        h_qc[..., 0, 0] = np.sum((g * np.sqrt(1 / (2 * m * h)))[..., :] * (z + np.conj(z)), axis=-1)
         h_qc[..., 1, 1] = -h_qc[..., 0, 0]
         return h_qc
 

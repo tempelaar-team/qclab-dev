@@ -64,7 +64,7 @@ def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     Harmonic oscillator classical Hamiltonian function.
     """
     del model, parameters
-    z = kwargs.get("z_coord")
+    z = kwargs.get("z")
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
         assert len(z) == batch_size
@@ -85,7 +85,7 @@ def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
     with respect to the z coordinate.
     """
     del model, parameters
-    z = kwargs.get("z_coord")
+    z = kwargs.get("z")
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
         assert len(z) == batch_size
@@ -147,7 +147,7 @@ def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
     Calculate the Holstein coupling Hamiltonian.
     """
     del model, parameters
-    z = kwargs["z_coord"]
+    z = kwargs["z"]
     if kwargs.get("batch_size") is not None:
         if kwargs.get("batch_size") is not None:
             batch_size = kwargs.get("batch_size")
@@ -172,7 +172,7 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
     """
     # if there is not an explicitly specified batch_size,
     # use the length of the seed.
-    z = kwargs["z_coord"]
+    z = kwargs["z"]
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
     else:
@@ -210,8 +210,8 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
     Perform a hopping operation for the harmonic oscillator.
     """
     del model, parameters
-    z = kwargs["z_coord"]
-    delta_z = kwargs["delta_z_coord"]
+    z = kwargs["z"]
+    delta_z = kwargs["delta_z"]
     ev_diff = kwargs["ev_diff"]
     hopped = False
     delta_zc = np.conj(delta_z)

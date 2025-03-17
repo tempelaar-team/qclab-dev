@@ -79,7 +79,7 @@ class SpinBoson(Model):
         self.constants.two_level_system_d = 0
 
     def h_qc(self, constants, parameters, **kwargs):
-        z = kwargs.get("z_coord")
+        z = kwargs.get("z")
         if kwargs.get("batch_size") is not None:
             batch_size = kwargs.get("batch_size")
             assert len(z) == batch_size
@@ -102,7 +102,7 @@ class SpinBoson(Model):
         with respect to the z-coordinates.
         """
         del parameters
-        z = kwargs.get("z_coord")
+        z = kwargs.get("z")
         if kwargs.get("batch_size") is not None:
             batch_size = kwargs.get("batch_size")
             assert len(z) == batch_size

@@ -34,14 +34,14 @@ class FewestSwitchesSurfaceHopping(Algorithm):
 
     initialization_recipe = [
         tasks.initialize_branch_seeds,
-        lambda sim, parameters, state: tasks.initialize_z_coord(
+        lambda sim, parameters, state: tasks.initialize_z(
             sim=sim, parameters=parameters, state=state, seed=state.seed
         ),
         lambda sim, parameters, state: tasks.update_h_quantum(
             sim=sim,
             parameters=parameters,
             state=state,
-            z_coord=state.z_coord,
+            z=state.z,
         ),
         lambda sim, parameters, state: tasks.diagonalize_matrix(
             sim=sim,
@@ -59,7 +59,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             eigvecs=state.eigvecs,
             eigvecs_previous=state.eigvecs,
             output_eigvecs_name="eigvecs",
-            z_coord=state.z_coord,
+            z=state.z,
             gauge_fixing=2,
         ),
         lambda sim, parameters, state: tasks.assign_to_state(
@@ -107,13 +107,13 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             val=state.eigvals,
             name="eigvals_previous",
         ),
-        lambda sim, parameters, state: tasks.update_z_coord_rk4(
+        lambda sim, parameters, state: tasks.update_z_rk4(
             sim=sim,
             parameters=parameters,
             state=state,
             wf=state.act_surf_wf,
-            z_coord=state.z_coord,
-            output_name="z_coord",
+            z=state.z,
+            output_name="z",
         ),
         lambda sim, parameters, state: tasks.update_wf_db_eigs(
             sim=sim,
@@ -129,7 +129,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             sim=sim,
             parameters=parameters,
             state=state,
-            z_coord=state.z_coord,
+            z=state.z,
         ),
         lambda sim, parameters, state: tasks.diagonalize_matrix(
             sim=sim,
@@ -147,7 +147,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             eigvecs=state.eigvecs,
             eigvecs_previous=state.eigvecs_previous,
             output_eigvecs_name="eigvecs",
-            z_coord=state.z_coord,
+            z=state.z,
             gauge_fixing=sim.algorithm.settings.gauge_fixing,
         ),
         tasks.update_active_surface_fssh,
@@ -165,7 +165,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             sim=sim,
             parameters=parameters,
             state=state,
-            z_coord=state.z_coord,
+            z=state.z,
         ),
     ]
     output_variables = [

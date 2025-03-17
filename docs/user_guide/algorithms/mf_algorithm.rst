@@ -44,8 +44,8 @@ Initialization Recipe
 .. code-block:: python
 
     initialization_recipe = [
-        lambda sim, state: tasks.initialize_z_coord(sim=sim, state=state, seed=state.seed),
-        lambda sim, state: tasks.update_h_quantum_vectorized(sim=sim, state=state, z_coord=state.z_coord),
+        lambda sim, state: tasks.initialize_z(sim=sim, state=state, seed=state.seed),
+        lambda sim, state: tasks.update_h_quantum_vectorized(sim=sim, state=state, z=state.z),
     ]
 
 Update Recipe
@@ -54,9 +54,9 @@ Update Recipe
 .. code-block:: python
 
     update_recipe = [
-        lambda sim, state: tasks.update_h_quantum_vectorized(sim=sim, state=state, z_coord=state.z_coord),
-        lambda sim, state: tasks.update_z_coord_rk4_vectorized(sim=sim, state=state, z_coord=state.z_coord,
-                                                               output_name='z_coord', wf=state.wf_db,
+        lambda sim, state: tasks.update_h_quantum_vectorized(sim=sim, state=state, z=state.z),
+        lambda sim, state: tasks.update_z_rk4_vectorized(sim=sim, state=state, z=state.z,
+                                                               output_name='z', wf=state.wf_db,
                                                                update_quantum_classical_forces_bool=False),
         lambda sim, state: tasks.update_wf_db_rk4_vectorized(sim=sim, state=state),
     ]
@@ -69,7 +69,7 @@ Output Recipe
     output_recipe = [
         lambda sim, state: tasks.update_dm_db_mf_vectorized(sim=sim, state=state),
         lambda sim, state: tasks.update_quantum_energy_mf_vectorized(sim=sim, state=state, wf=state.wf_db),
-        lambda sim, state: tasks.update_classical_energy_vectorized(sim=sim, state=state, z_coord=state.z_coord),
+        lambda sim, state: tasks.update_classical_energy_vectorized(sim=sim, state=state, z=state.z),
     ]
 
 Output Variables
