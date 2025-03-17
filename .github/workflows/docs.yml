@@ -30,7 +30,6 @@ jobs:
         make clean
         make html
         make latex
-        make latexpdf
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
