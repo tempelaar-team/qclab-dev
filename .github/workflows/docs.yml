@@ -31,9 +31,9 @@ jobs:
         make html
         make latex
 
-    # - name: Upload artifacts
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: documentation
-    #     path: |
-    #       _build/latex/qclab.pdf
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: documentation
+        path: |
+          _build/latex/qclab.pdf
