@@ -86,8 +86,17 @@ def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
     with respect to the z coordinate.
     """
     del model, parameters
-    z_coord = kwargs["z_coord"]
-    dh_c_dzc = constants.classical_coordinate_weight[..., :] * z_coord
+    z = kwargs.get("z_coord")
+    if kwargs.get("batch_size") is not None:
+        batch_size = kwargs.get("batch_size")
+        assert len(z) == batch_size
+    else:
+        batch_size = len(z)
+    h = constants.classical_coordinate_weight
+    w = constants.harmonic_oscillator_frequency
+    a = (1 / 4) * (((w**2) / h) - h)
+    b = (1 / 4) * (((w**2) / h) + h)
+    dh_c_dzc = 2 * b[..., :] * z - a[..., :] * np.conj(z)
     return dh_c_dzc
 
 
@@ -153,10 +162,11 @@ def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
     num_sites = constants.num_quantum_states
     w = constants.holstein_coupling_oscillator_frequency
     g = constants.holstein_coupling_dimensionless_coupling
+    h = constants.classical_coordinate_weight
     h_qc = np.zeros((batch_size, num_sites, num_sites), dtype=complex)
-    np.einsum("...ii->...i", h_qc)[...] = (
-        g * w
-    )[..., :] * (z + np.conj(z))
+    np.einsum("...ii->...i", h_qc)[...] = (g * w * np.sqrt(w / h))[..., :] * (
+        z + np.conj(z)
+    )
     return h_qc
 
 
@@ -185,16 +195,15 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
     ):
         return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels, model.dh_qc_dzc_shape
     num_sites = constants.num_quantum_states
-    oscillator_frequency = constants.holstein_coupling_oscillator_frequency
-    dimensionless_coupling = constants.holstein_coupling_dimensionless_coupling
+    w = constants.holstein_coupling_oscillator_frequency
+    g = constants.holstein_coupling_dimensionless_coupling
+    h = constants.classical_coordinate_weight
 
-    dh_qc_dzc = np.zeros(
-        (batch_size, num_sites, num_sites, num_sites), dtype=complex
-    )
+    dh_qc_dzc = np.zeros((batch_size, num_sites, num_sites, num_sites), dtype=complex)
 
-    np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (
-        dimensionless_coupling * oscillator_frequency
-    )[..., :] * (np.ones_like(z, dtype=complex))
+    np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (g * w * np.sqrt(w / h))[
+        ..., :
+    ] * (np.ones_like(z, dtype=complex))
     inds = np.where(dh_qc_dzc != 0)
     mels = dh_qc_dzc[inds]
     shape = np.shape(dh_qc_dzc)
@@ -267,26 +276,22 @@ def harmonic_oscillator_boltzmann_init_classical(
     del model, parameters
     seed = kwargs.get("seed", None)
     kbt = constants.temp
-
     h = constants.classical_coordinate_weight
     w = constants.harmonic_oscillator_frequency
     m = constants.classical_coordinate_mass
     out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
     for s, seed_value in enumerate(seed):
         np.random.seed(seed_value)
-        q = np.random.normal(
-            loc=0,
-            scale=np.sqrt(kbt / (m * (w**2))),
-            size=(constants.num_classical_coordinates),
-        )
-        p = np.random.normal(
-            loc=0, scale=np.sqrt(kbt), size=(constants.num_classical_coordinates)
-        )
+        # Calculate the standard deviations for q and p.
+        std_q = np.sqrt(kbt / (m * (w**2)))
+        std_p = np.sqrt(m * kbt)
+        # Generate random q and p values.
+        q = np.random.normal(loc=0, scale=std_q, size=constants.num_classical_coordinates)
+        p = np.random.normal(loc=0, scale=std_p, size=constants.num_classical_coordinates)
+        # Calculate the complex classical coordinate.
         z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
         out[s] = z
     return out
-
-
 
 
 def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kwargs):
@@ -296,30 +301,20 @@ def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kw
     """
     del model, parameters
     seed = kwargs.get("seed", None)
-    np.random.seed(seed)
-
-    # Calculate the standard deviations for q and p
-    std_q = np.sqrt(
-        1
-        / (
-            2
-            * constants.classical_coordinate_weight
-            * constants.mass
-            * np.tanh(constants.classical_coordinate_weight / (2 * constants.temp))
-        )
-    )
-    std_p = np.sqrt(
-        (constants.mass * constants.classical_coordinate_weight)
-        / (2 * np.tanh(constants.classical_coordinate_weight / (2 * constants.temp)))
-    )
-
-    # Generate random q and p values
-    q = np.random.normal(loc=0, scale=std_q, size=constants.num_classical_coordinates)
-    p = np.random.normal(loc=0, scale=std_p, size=constants.num_classical_coordinates)
-
-    # Calculate the classical coordinates z
-    z = np.sqrt(constants.classical_coordinate_weight * constants.mass / 2) * (
-        q + 1.0j * (p / (constants.classical_coordinate_weight * constants.mass))
-    )
-
-    return z
+    m = constants.classical_coordinate_mass
+    h = constants.classical_coordinate_weight
+    w = constants.harmonic_oscillator_frequency
+    kbt = constants.temp
+    out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
+    for s, seed_value in enumerate(seed):
+        np.random.seed(seed_value)
+        # Calculate the standard deviations for q and p.
+        std_q = np.sqrt(1 / (2 * w * m * np.tanh(w / (2 * kbt))))
+        std_p = np.sqrt((m * w) / (2 * np.tanh(w / (2 * kbt))))
+        # Generate random q and p values.
+        q = np.random.normal(loc=0, scale=std_q, size=constants.num_classical_coordinates)
+        p = np.random.normal(loc=0, scale=std_p, size=constants.num_classical_coordinates)
+        # Calculate the complex classical coordinate.
+        z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
+        out[s] = z
+    return out
