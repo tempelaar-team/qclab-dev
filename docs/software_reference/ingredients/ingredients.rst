@@ -58,31 +58,31 @@ Quantum Hamiltonian
 ^^^^^^^^^^^^^^^^^^^
 
 
-.. automodule:: qclab.ingredients
-    :members: two_level_system_h_q_vectorized, nearest_neighbor_lattice_h_q_vectorized, spin_boson_h_q_vectorized
+.. automodule:: qc_lab.ingredients
+    :members: two_level_system_h_q, nearest_neighbor_lattice_h_q, spin_boson_h_q
 
 Quantum-Classical Interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Ingredients that generate quantum-classical interaction terms.
 
-.. automodule:: qclab.ingredients
-    :members: holstein_lattice_h_qc_vectorized, holstein_lattice_dh_qc_dzc_vectorized
+.. automodule:: qc_lab.ingredients
+    :members: holstein_lattice_h_qc, holstein_lattice_dh_qc_dzc
 
 Classical Hamiltonian
 ^^^^^^^^^^^^^^^^^^^^^
 
 Ingredients that generate classical Hamiltonians. 
 
-.. automodule:: qclab.ingredients
-    :members: harmonic_oscillator_h_c_vectorized, harmonic_oscillator_dh_c_dzc_vectorized, harmonic_oscillator_hop 
+.. automodule:: qc_lab.ingredients
+    :members: harmonic_oscillator_h_c, harmonic_oscillator_dh_c_dzc, harmonic_oscillator_hop 
 
 Classical Initialization 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Ingredients that initialize the complex-valued classical coordinates.
 
-.. automodule:: qclab.ingredients
+.. automodule:: qc_lab.ingredients
     :members: harmonic_oscillator_wigner_init_classical, harmonic_oscillator_boltzmann_init_classical
 
 
