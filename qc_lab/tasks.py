@@ -4,7 +4,6 @@ This module contains the task functions used to build algorithms in QC Lab.
 
 import warnings
 import numpy as np
-from numba import njit
 
 
 def initialize_branch_seeds(sim, parameters, state, **kwargs):
@@ -376,14 +375,6 @@ def update_h_quantum(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-@njit
-def mat_vec_branch(mat, vec):
-    """
-    Perform matrix-vector multiplication for each branch.
-    """
-    return np.sum(mat * vec[:, np.newaxis, :], axis=-1)
-
-
 def update_wf_db_rk4(sim, parameters, state, **kwargs):
     """
     Update the wavefunction using the 4th-order Runge-Kutta method.
@@ -392,10 +383,16 @@ def update_wf_db_rk4(sim, parameters, state, **kwargs):
     dt = sim.settings.dt
     wf_db = state.wf_db
     h_quantum = state.h_quantum
-    k1 = -1j * mat_vec_branch(h_quantum, wf_db)
-    k2 = -1j * mat_vec_branch(h_quantum, (wf_db + 0.5 * dt * k1))
-    k3 = -1j * mat_vec_branch(h_quantum, (wf_db + 0.5 * dt * k2))
-    k4 = -1j * mat_vec_branch(h_quantum, (wf_db + dt * k3))
+    k1 = -1j * np.einsum("tij, ti -> tj", h_quantum, wf_db, optimize="greedy")
+    k2 = -1j * np.einsum(
+        "tij, ti -> tj", h_quantum, (wf_db + 0.5 * dt * k1), optimize="greedy"
+    )
+    k3 = -1j * np.einsum(
+        "tij, ti -> tj", h_quantum, (wf_db + 0.5 * dt * k2), optimize="greedy"
+    )
+    k4 = -1j * np.einsum(
+        "tij, ti -> tj", h_quantum, (wf_db + dt * k3), optimize="greedy"
+    )
     state.wf_db = wf_db + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
     return parameters, state
 

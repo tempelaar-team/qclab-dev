@@ -40,6 +40,7 @@ html_theme_options = {
     "collapse_navigation": True,
     "show_nav_level":2,
     "secondary_sidebar_items": ["page-toc", "sourcelink"],
+    "external_links_new_tab": True,
 }
 html_css_files=['custom.css']
 

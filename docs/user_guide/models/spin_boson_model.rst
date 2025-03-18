@@ -3,19 +3,23 @@
 Spin-Boson Model
 ~~~~~~~~~~~~~~~~
 
+We employ the same naming conventions as in `Tempelaar & Reichman 2019 <https://doi.org/10.1063/1.5000843>`_. 
+
 The quantum-classical Hamiltonian of the spin-boson model is:
 
 .. math::
     
-    \hat{H}_{\mathrm{q}} = \left(\begin{array}{cc} -E & V \\ V & E \end{array}\right)
+    \hat{H}_{\mathrm{q}} = \left(\begin{array}{cc} E & V \\ V & -E \end{array}\right)
 
 .. math::
 
-    \hat{H}_{\mathrm{q-c}} = \sigma_{z} \sum_{\alpha}^{A}  \frac{g_{\alpha}}{\sqrt{2mh_{\alpha}}} \left(z^{*}_{\alpha} + z_{\alpha}\right)
+    \hat{H}_{\mathrm{q-c}} = \sigma_{z} \sum_{\alpha}^{A}  g_{\alpha}q_{\alpha}
 
 .. math::
 
-    H_{\mathrm{c}} = \sum_{\alpha}^{A} \omega_{\alpha} z^{*}_{\alpha} z_{\alpha}
+    H_{\mathrm{c}} = \sum_{\alpha}^{A} \frac{p_{\alpha}^{2}}{2m} + \frac{1}{2}m\omega_{\alpha}^{2}q_{\alpha}^{2}
+
+where :math:`\sigma_{z}` is the Pauli matrix, :math:`E` is the diagonal energy, :math:`V` is the off-diagonal coupling, and :math:`A` is the number of bosons.
 
 The couplings and frequencies are sampled from a Debye spectral density:
 
@@ -35,7 +39,7 @@ The classical coordinates are sampled from a Boltzmann distribution:
 
     P(z) \propto \exp\left(-\frac{H_{\mathrm{c}}(\boldsymbol{z})}{T}\right)
 
-and by convention we assume that :math:`\hbar = 1`, :math:`k_{B} = 1`, and :math:`\omega_{\alpha} = h_{\alpha}`.
+and by convention we assume that :math:`\hbar = 1`, :math:`k_{B} = 1`.
 
 Parameters
 ----------
@@ -76,23 +80,23 @@ Example
 
 ::
 
-    from qclab.models import SpinBosonModel
-    from qclab import Simulation
-    from qclab.algorithms import MeanField
-    from qclab.dynamics import serial_driver
+    from qc_lab.models import SpinBoson
+    from qc_lab import Simulation
+    from qc_lab.algorithms import MeanField
+    from qc_lab.dynamics import serial_driver
     import numpy as np
 
     # instantiate a simulation
     sim = Simulation()
 
     # instantiate a model 
-    sim.model = SpinBosonModel()
+    sim.model = SpinBoson()
 
     # instantiate an algorithm 
     sim.algorithm = MeanField()
 
     # define an initial diabatic wavefunction 
-    sim.state.modify('wf_db',np.array([1, 0], dtype=np.complex128))
+    sim.state.wf_db = np.array([1, 0], dtype=complex)
 
     # run the simulation
     data = serial_driver(sim)

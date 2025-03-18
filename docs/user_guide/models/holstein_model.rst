@@ -14,23 +14,21 @@ where :math:`\langle i,j\rangle` denotes nearest-neighbor sites with or without 
 
 .. math::
 
-    \hat{H}_{\mathrm{q-c}} = g\omega\sum_{i}^{N} \sqrt{\frac{\omega}{h_{i}}}\hat{c}^{\dagger}_{i}\hat{c}_{i} \left(z^{*}_{i} + z_{i}\right)
+    \hat{H}_{\mathrm{q-c}} = g\sqrt{2m\omega^{3}}\sum_{i}^{N} \hat{c}^{\dagger}_{i}\hat{c}_{i} q_{i}
 
 .. math::
 
-    H_{\mathrm{c}} = \sum_{i}^{N} a_{i}z_{i}^{2} + 2 b_{i}z^{*}_{i}z_{i} + a_{i}z_{i}^{*2}
+    H_{\mathrm{c}} = \sum_{i}^{N} \frac{p_{i}^{2}}{2m} + \frac{1}{2}m\omega^{2}q_{i}^{2}
 
 
-where :math:`a_{i}=\frac{1}{4}\left(\frac{\omega^{2}}{h_{i}}-h_{i}\right)` and :math:`b_{i}=\frac{1}{4}\left(\frac{\omega^{2}}{h_{i}}+h_{i}\right)`.
 
-Here, :math:`g` is the dimensionless electron-phonon coupling, :math:`\omega` is the phonon frequency, :math:`m` is the phonon mass, and :math:`h_{i}` is 
-the classical coordinate weight which may take on arbitrary (nonzero) values. 
+Here, :math:`g` is the dimensionless electron-phonon coupling, :math:`\omega` is the phonon frequency, and :math:`m` is the phonon mass. 
 
 The classical coordinates are sampled from a Boltzmann distribution:
 
 .. math::
 
-    P(z) \propto \exp\left(-\frac{H_{\mathrm{c}}(\boldsymbol{z})}{T}\right)
+    P(q,p) \propto \exp\left(-\frac{H_{\mathrm{c}}}{T}\right)
 
 and by convention we assume that :math:`\hbar = 1`, :math:`k_{B} = 1`.
 
