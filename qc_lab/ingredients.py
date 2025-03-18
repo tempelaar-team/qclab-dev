@@ -190,10 +190,12 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
         w = constants.holstein_coupling_oscillator_frequency
         g = constants.holstein_coupling_dimensionless_coupling
         h = constants.classical_coordinate_weight
-        dh_qc_dzc = np.zeros((batch_size, num_sites, num_sites, num_sites), dtype=complex)
-        np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (g * w * np.sqrt(w / h))[
-            ..., :
-        ] * (np.ones_like(z, dtype=complex))
+        dh_qc_dzc = np.zeros(
+            (batch_size, num_sites, num_sites, num_sites), dtype=complex
+        )
+        np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (
+            g * w * np.sqrt(w / h)
+        )[..., :] * (np.ones_like(z, dtype=complex))
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]
         shape = np.shape(dh_qc_dzc)
@@ -230,8 +232,7 @@ def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
         + constants.classical_coordinate_weight
     )
     akj_z = np.sum(
-        2 * delta_zc * delta_z * b_const
-        - a_const * (delta_z**2 + delta_zc**2)
+        2 * delta_zc * delta_z * b_const - a_const * (delta_z**2 + delta_zc**2)
     )
     bkj_z = 2j * np.sum(
         (z * delta_z - delta_zc * zc) * a_const

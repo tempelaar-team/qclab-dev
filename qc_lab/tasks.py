@@ -115,9 +115,7 @@ def initialize_z(sim, parameters, state, **kwargs):
     """
     seed = kwargs["seed"]
     if hasattr(sim.model, "init_classical"):
-        state.z = sim.model.init_classical(
-            sim.model.constants, parameters, seed=seed
-        )
+        state.z = sim.model.init_classical(sim.model.constants, parameters, seed=seed)
     else:
         state.z = default_numerical_boltzmann_init_classical(
             sim.model, sim.model.constants, parameters, seed=seed
@@ -247,9 +245,7 @@ def update_dh_c_dzc(sim, parameters, state, **kwargs):
     """
     z = kwargs["z"]
     if hasattr(sim.model, "dh_c_dzc"):
-        state.dh_c_dzc = sim.model.dh_c_dzc(
-            sim.model.constants, parameters, z=z
-        )
+        state.dh_c_dzc = sim.model.dh_c_dzc(sim.model.constants, parameters, z=z)
     else:
         state.dh_c_dzc = dh_c_dzc_finite_differences(
             sim.model, sim.model.constants, parameters, z=z
@@ -264,9 +260,7 @@ def update_dh_qc_dzc(sim, parameters, state, **kwargs):
     """
     z = kwargs["z"]
     if hasattr(sim.model, "dh_qc_dzc"):
-        state.dh_qc_dzc = sim.model.dh_qc_dzc(
-            sim.model.constants, parameters, z=z
-        )
+        state.dh_qc_dzc = sim.model.dh_qc_dzc(sim.model.constants, parameters, z=z)
     else:
         state.dh_qc_dzc = dh_qc_dzc_finite_differences(
             sim.model, sim.model.constants, parameters, z=z
@@ -319,9 +313,7 @@ def update_z_rk4(sim, parameters, state, **kwargs):
         update_quantum_classical_forces_bool = True
     z_0 = kwargs["z"]
     output_name = kwargs["output_name"]
-    parameters, state = update_classical_forces(
-        sim, parameters, state, z=z_0
-    )
+    parameters, state = update_classical_forces(sim, parameters, state, z=z_0)
     parameters, state = update_quantum_classical_forces(
         sim, parameters, state, wf=wf, z=z_0
     )
@@ -342,9 +334,7 @@ def update_z_rk4(sim, parameters, state, **kwargs):
             sim, parameters, state, wf=wf, z=z_0 + 0.5 * dt * k2
         )
     k3 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
-    parameters, state = update_classical_forces(
-        sim, parameters, state, z=z_0 + dt * k3
-    )
+    parameters, state = update_classical_forces(sim, parameters, state, z=z_0 + dt * k3)
     if update_quantum_classical_forces_bool:
         parameters, state = update_quantum_classical_forces(
             sim, parameters, state, wf=wf, z=z_0 + dt * k3
@@ -608,13 +598,13 @@ def analytic_der_couple_phase(sim, parameters, state, eigvals, eigvecs):
         )
         der_couple_q_angle[np.where(np.abs(der_couple_q_angle) < 1e-12)] = 0
         der_couple_p_angle[np.where(np.abs(der_couple_p_angle) < 1e-12)] = 0
-        der_couple_q_phase[..., i + 1:] = (
+        der_couple_q_phase[..., i + 1 :] = (
             np.exp(1.0j * der_couple_q_angle[..., np.newaxis])
-            * der_couple_q_phase[..., i + 1:]
+            * der_couple_q_phase[..., i + 1 :]
         )
-        der_couple_p_phase[..., i + 1:] = (
+        der_couple_p_phase[..., i + 1 :] = (
             np.exp(1.0j * der_couple_p_angle[..., np.newaxis])
-            * der_couple_p_phase[..., i + 1:]
+            * der_couple_p_phase[..., i + 1 :]
         )
     return der_couple_q_phase, der_couple_p_phase
 
@@ -935,9 +925,7 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
     gamma_range = constants.get("numerical_fssh_hop_gamma_range", 5)
     num_iter = constants.get("numerical_fssh_hop_num_iter", 10)
     num_points = constants.get("numerical_fssh_hop_num_points", 10)
-    init_energy = model.h_c(
-        constants, parameters, z=np.array([z]), batch_size=1
-    )[0]
+    init_energy = model.h_c(constants, parameters, z=np.array([z]), batch_size=1)[0]
     min_gamma = 0
     for _ in range(num_iter):
         gamma_list = np.linspace(
