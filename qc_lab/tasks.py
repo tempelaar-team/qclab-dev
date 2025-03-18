@@ -12,8 +12,14 @@ def initialize_branch_seeds(sim, parameters, state, **kwargs):
     Initialize the seeds in each branch.
     """
     del kwargs
-    num_branches = sim.algorithm.settings.num_branches
+    if sim.algorithm.settings.fssh_deterministic:
+        num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
     batch_size = sim.settings.batch_size
+    assert (
+        batch_size % num_branches == 0
+    ), "Batch size must be divisible by number of quantums states for deterministic surface hopping."
     orig_seeds = state.seed
     min_seed = orig_seeds.min()
     if min_seed != orig_seeds[0]:
@@ -420,7 +426,10 @@ def update_classical_energy_fssh(sim, parameters, state, **kwargs):
     Update the classical energy as a sum of equally-weighted contributions from each branch.
     """
     z = kwargs["z"]
-    num_branches = sim.algorithm.settings.num_branches
+    if sim.algorithm.settings.fssh_deterministic:
+        num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
     batch_size = sim.settings.batch_size // num_branches
     num_states = sim.model.constants.num_quantum_states
     if sim.algorithm.settings.fssh_deterministic:
@@ -472,7 +481,7 @@ def update_quantum_energy_fssh(sim, parameters, state, **kwargs):
     wf = kwargs["wf"]
 
     if sim.algorithm.settings.fssh_deterministic:
-        num_branches = sim.algorithm.settings.num_branches
+        num_branches = sim.model.constants.num_quantum_states
         batch_size = sim.settings.batch_size // num_branches
         num_states = sim.model.constants.num_quantum_states
         wf = wf * np.sqrt(
@@ -490,9 +499,7 @@ def update_quantum_energy_fssh(sim, parameters, state, **kwargs):
         state.quantum_energy = np.einsum(
             "ti,tij,tj->t", np.conj(wf), state.h_quantum, wf, optimize="greedy"
         )
-        state.quantum_energy = (
-            state.quantum_energy / sim.algorithm.settings.num_branches
-        )
+        state.quantum_energy = state.quantum_energy
     state.quantum_energy = np.real(state.quantum_energy)
     return parameters, state
 
@@ -735,17 +742,16 @@ def initialize_active_surface(sim, parameters, state, **kwargs):
     adiabatic basis.
     """
     del kwargs
+    if sim.algorithm.settings.fssh_deterministic:
+        num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
     num_states = sim.model.constants.num_quantum_states
-    num_branches = sim.algorithm.settings.num_branches
     num_trajs = sim.settings.batch_size // num_branches
     if sim.algorithm.settings.fssh_deterministic:
-        if num_branches != num_states:
-            raise ValueError(
-                "num_branches must be equal to the quantum dimension for deterministic FSSH."
-            )
-        act_surf_ind_0 = np.arange(sim.algorithm.settings.num_branches, dtype=int)[
-            np.newaxis, :
-        ] + np.zeros((num_trajs, num_branches)).astype(int)
+        act_surf_ind_0 = np.arange(num_branches, dtype=int)[np.newaxis, :] + np.zeros(
+            (num_trajs, num_branches)
+        ).astype(int)
     else:
         intervals = np.cumsum(
             np.real(
@@ -780,7 +786,10 @@ def initialize_random_values_fssh(sim, parameters, state, **kwargs):
     Initialize a set of random variables using the trajectory seeds for FSSH.
     """
     del kwargs
-    num_branches = sim.algorithm.settings.num_branches
+    if sim.algorithm.settings.fssh_deterministic:
+        num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
     batch_size = sim.settings.batch_size // num_branches
     state.hopping_probs_rand_vals = np.zeros((batch_size, len(sim.settings.tdat)))
     state.stochastic_sh_rand_vals = np.zeros((batch_size, num_branches))
@@ -831,7 +840,10 @@ def update_dm_db_fssh(sim, parameters, state, **kwargs):
         np.conj(state.wf_adb),
         optimize="greedy",
     )
-    num_branches = sim.algorithm.settings.num_branches
+    if sim.algorithm.settings.fssh_deterministic:
+        num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
     batch_size = sim.settings.batch_size // num_branches
     num_quantum_states = sim.model.constants.num_quantum_states
     for nt, _ in enumerate(dm_adb_branch):
@@ -968,7 +980,10 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
     rand = state.hopping_probs_rand_vals[:, sim.t_ind]
     act_surf_ind = state.act_surf_ind
     act_surf_ind_flat = act_surf_ind.flatten().astype(int)
-    num_branches = sim.algorithm.settings.num_branches
+    if sim.algorithm.settings.fssh_deterministic:
+        num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
     num_trajs = sim.settings.batch_size // num_branches
     traj_ind = (
         (np.arange(num_trajs)[:, np.newaxis] * np.ones((num_trajs, num_branches)))
