@@ -91,6 +91,8 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     local_input_data = input_data[start:end]
     local_results = [dynamics.dynamics(*x) for x in local_input_data]
 
+    comm.Barrier()
+
     all_results = comm.gather(local_results, root=0)
 
     if rank == 0:
