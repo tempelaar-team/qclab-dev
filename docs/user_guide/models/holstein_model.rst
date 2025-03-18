@@ -8,20 +8,23 @@ Holstein coupling. The current implementation accommodates a single electronic p
 
 .. math::
     
-    \hat{H}_{\mathrm{q}} = -t\sum_{\langle i,j\rangle}^{N}\hat{c}^{\dagger}_{i}\hat{c}_{j}
+    \hat{H}_{\mathrm{q}} = -j\sum_{\langle i,j\rangle}^{N}\hat{c}^{\dagger}_{i}\hat{c}_{j}
 
 where :math:`\langle i,j\rangle` denotes nearest-neighbor sites with or without periodic boundaries determined by the parameter `periodic_boundary=True`.
 
 .. math::
 
-    \hat{H}_{\mathrm{q-c}} = g\omega\sum_{i}^{N} \hat{c}^{\dagger}_{i}\hat{c}_{i} \frac{1}{\sqrt{2mh_{i}}} \left(z^{*}_{i} + z_{i}\right)
+    \hat{H}_{\mathrm{q-c}} = g\omega\sum_{i}^{N} \sqrt{\frac{\omega}{h_{i}}}\hat{c}^{\dagger}_{i}\hat{c}_{i} \left(z^{*}_{i} + z_{i}\right)
 
 .. math::
 
-    H_{\mathrm{c}} = \omega \sum_{i}^{N} z^{*}_{i} z_{i}
+    H_{\mathrm{c}} = \sum_{i}^{N} a_{i}z_{i}^{2} + 2 b_{i}z^{*}_{i}z_{i} + a_{i}z_{i}^{*2}
+
+
+where :math:`a_{i}=\frac{1}{4}\left(\frac{\omega^{2}}{h_{i}}-h_{i}\right)` and :math:`b_{i}=\frac{1}{4}\left(\frac{\omega^{2}}{h_{i}}+h_{i}\right)`.
 
 Here, :math:`g` is the dimensionless electron-phonon coupling, :math:`\omega` is the phonon frequency, :math:`m` is the phonon mass, and :math:`h_{i}` is 
-the complex-valued coordinate parameter which we take to be :math:`h_{i} = \omega`. 
+the classical coordinate weight which may take on arbitrary (nonzero) values. 
 
 The classical coordinates are sampled from a Boltzmann distribution:
 
@@ -54,7 +57,7 @@ The following table lists all of the parameters required by the `HolsteinLattice
    * - `N` :math:`(N)`
      - Number of sites
      - 10
-   * - `t` :math:`(t)`
+   * - `j` :math:`(j)`
      - Hopping energy
      - 1
    * - `phonon_mass` :math:`(m)`
@@ -70,17 +73,17 @@ Example
 
 ::
 
-    from qclab.models import HolsteinLatticeModel
-    from qclab import Simulation
-    from qclab.algorithms import MeanField
-    from qclab.dynamics import serial_driver
+    from qc_lab.models import HolsteinLattice
+    from qc_lab import Simulation
+    from qc_lab.algorithms import MeanField
+    from qc_lab.dynamics import serial_driver
     import numpy as np
 
     # instantiate a simulation
     sim = Simulation()
 
     # instantiate a model 
-    sim.model = HolsteinLatticeModel()
+    sim.model = HolsteinLattice()
 
     # instantiate an algorithm 
     sim.algorithm = MeanField()
@@ -88,7 +91,7 @@ Example
     # define an initial diabatic wavefunction 
     wf_db_0 = np.zeros((sim.model.parameters.N), dtype=np.complex128)
     wf_db_0[0] = 1.0 + 0.0j
-    sim.state.modify('wf_db',wf_db_0)
+    sim.state.wf_db = wf_db_0
 
     # run the simulation
     data = serial_driver(sim)
