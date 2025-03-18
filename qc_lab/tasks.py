@@ -115,11 +115,14 @@ def initialize_z(sim, parameters, state, **kwargs):
     """
     seed = kwargs["seed"]
     if hasattr(sim.model, "init_classical"):
-        state.z = sim.model.init_classical(sim.model.constants, parameters, seed=seed)
-    else:
-        state.z = default_numerical_boltzmann_init_classical(
-            sim.model, sim.model.constants, parameters, seed=seed
-        )
+        if sim.model.init_classical is not None:
+            state.z = sim.model.init_classical(
+                sim.model.constants, parameters, seed=seed
+            )
+            return parameters, state
+    state.z = default_numerical_boltzmann_init_classical(
+        sim.model, sim.model.constants, parameters, seed=seed
+    )
     return parameters, state
 
 
@@ -245,11 +248,12 @@ def update_dh_c_dzc(sim, parameters, state, **kwargs):
     """
     z = kwargs["z"]
     if hasattr(sim.model, "dh_c_dzc"):
-        state.dh_c_dzc = sim.model.dh_c_dzc(sim.model.constants, parameters, z=z)
-    else:
-        state.dh_c_dzc = dh_c_dzc_finite_differences(
-            sim.model, sim.model.constants, parameters, z=z
-        )
+        if sim.model.dh_c_dzc is not None:
+            state.dh_c_dzc = sim.model.dh_c_dzc(sim.model.constants, parameters, z=z)
+            return parameters, state
+    state.dh_c_dzc = dh_c_dzc_finite_differences(
+        sim.model, sim.model.constants, parameters, z=z
+    )
     return parameters, state
 
 
@@ -260,11 +264,12 @@ def update_dh_qc_dzc(sim, parameters, state, **kwargs):
     """
     z = kwargs["z"]
     if hasattr(sim.model, "dh_qc_dzc"):
-        state.dh_qc_dzc = sim.model.dh_qc_dzc(sim.model.constants, parameters, z=z)
-    else:
-        state.dh_qc_dzc = dh_qc_dzc_finite_differences(
-            sim.model, sim.model.constants, parameters, z=z
-        )
+        if sim.model.dh_qc_dzc is not None:
+            state.dh_qc_dzc = sim.model.dh_qc_dzc(sim.model.constants, parameters, z=z)
+            return parameters, state
+    state.dh_qc_dzc = dh_qc_dzc_finite_differences(
+        sim.model, sim.model.constants, parameters, z=z
+    )
     return parameters, state
 
 
@@ -1080,15 +1085,18 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
             delta_z = dkj_zc
             # Perform hopping using the model's hop function
             # or the default numerical hop function
+            hopped = False
+            z_out = None
             if hasattr(sim.model, "hop_function"):
-                z_out, hopped = sim.model.hop_function(
-                    sim.model.constants,
-                    parameters,
-                    z=z[traj_ind],
-                    delta_z=delta_z,
-                    ev_diff=ev_diff,
-                )
-            else:
+                if sim.model.hop_function is not None:
+                    z_out, hopped = sim.model.hop_function(
+                        sim.model.constants,
+                        parameters,
+                        z=z[traj_ind],
+                        delta_z=delta_z,
+                        ev_diff=ev_diff,
+                    )
+            if not hasattr(sim.model, "hop_function") or sim.model.hop_function is None:
                 z_out, hopped = numerical_fssh_hop(
                     sim.model,
                     sim.model.constants,

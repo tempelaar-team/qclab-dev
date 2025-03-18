@@ -81,7 +81,7 @@ The initial state is stored in `sim.state` which can be accessed as follows,
 
 ::
 
-    sim.state.wf_db= np.array([0, 1], dtype=complex)
+    sim.state.wf_db= np.array([1, 0], dtype=complex)
 
 Running the Simulation
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -126,8 +126,8 @@ Finally, we can plot the results of the simulation like the population dynamics:
 
 ::
 
-    plt.plot(time, populations[:, 0], label='lower state')
-    plt.plot(time, populations[:, 1], label='upper state')
+    plt.plot(time, populations[:, 0], label='upper state')
+    plt.plot(time, populations[:, 1], label='lower state')
     plt.xlabel('time')
     plt.ylabel('population')
     plt.legend()

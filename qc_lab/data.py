@@ -46,6 +46,8 @@ class Data:
         Add new data to the existing data dictionary.
         """
         for key, val in new_data.data_dic.items():
+            if val is None:
+                print(key, val)
             if key == "seed":
                 self.data_dic[key] = np.concatenate(
                     (self.data_dic[key], val.flatten()), axis=0
