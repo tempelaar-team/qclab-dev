@@ -4,7 +4,7 @@ This module contains the task functions used to build algorithms in QC Lab.
 
 import warnings
 import numpy as np
-
+from numba import njit
 
 def initialize_branch_seeds(sim, parameters, state, **kwargs):
     """
