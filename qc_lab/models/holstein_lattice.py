@@ -27,6 +27,9 @@ class HolsteinLattice(Model):
             "periodic_boundary": True,
         }
         super().__init__(self.default_parameters, parameters)
+        self.dh_qc_dzc_inds = None
+        self.dh_qc_dzc_mels = None
+        self.dh_qc_dzc_shape = None
 
     def initialize_constants_model(self):
         num_sites = self.constants.get("N", self.default_parameters.get("N"))

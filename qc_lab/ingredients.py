@@ -149,11 +149,10 @@ def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
     del model, parameters
     z = kwargs["z"]
     if kwargs.get("batch_size") is not None:
-        if kwargs.get("batch_size") is not None:
-            batch_size = kwargs.get("batch_size")
-            assert len(z) == batch_size
-        else:
-            batch_size = len(z)
+        batch_size = kwargs.get("batch_size")
+        assert len(z) == batch_size
+    else:
+        batch_size = len(z)
     num_sites = constants.num_quantum_states
     w = constants.holstein_coupling_oscillator_frequency
     g = constants.holstein_coupling_dimensionless_coupling
@@ -187,22 +186,22 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
         or model.dh_qc_dzc_shape is None
         or recalculate
     ):
-        return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels, model.dh_qc_dzc_shape
-    num_sites = constants.num_quantum_states
-    w = constants.holstein_coupling_oscillator_frequency
-    g = constants.holstein_coupling_dimensionless_coupling
-    h = constants.classical_coordinate_weight
-    dh_qc_dzc = np.zeros((batch_size, num_sites, num_sites, num_sites), dtype=complex)
-    np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (g * w * np.sqrt(w / h))[
-        ..., :
-    ] * (np.ones_like(z, dtype=complex))
-    inds = np.where(dh_qc_dzc != 0)
-    mels = dh_qc_dzc[inds]
-    shape = np.shape(dh_qc_dzc)
-    model.dh_qc_dzc_inds = inds
-    model.dh_qc_dzc_mels = dh_qc_dzc[inds]
-    model.dh_qc_dzc_shape = shape
-    return inds, mels, shape
+        num_sites = constants.num_quantum_states
+        w = constants.holstein_coupling_oscillator_frequency
+        g = constants.holstein_coupling_dimensionless_coupling
+        h = constants.classical_coordinate_weight
+        dh_qc_dzc = np.zeros((batch_size, num_sites, num_sites, num_sites), dtype=complex)
+        np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (g * w * np.sqrt(w / h))[
+            ..., :
+        ] * (np.ones_like(z, dtype=complex))
+        inds = np.where(dh_qc_dzc != 0)
+        mels = dh_qc_dzc[inds]
+        shape = np.shape(dh_qc_dzc)
+        model.dh_qc_dzc_inds = inds
+        model.dh_qc_dzc_mels = dh_qc_dzc[inds]
+        model.dh_qc_dzc_shape = shape
+        return inds, mels, shape
+    return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels, model.dh_qc_dzc_shape
 
 
 def harmonic_oscillator_hop(model, constants, parameters, **kwargs):

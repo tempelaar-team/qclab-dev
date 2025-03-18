@@ -271,7 +271,6 @@ def update_dh_qc_dzc(sim, parameters, state, **kwargs):
         state.dh_qc_dzc = dh_qc_dzc_finite_differences(
             sim.model, sim.model.constants, parameters, z=z
         )
-
     return parameters, state
 
 
