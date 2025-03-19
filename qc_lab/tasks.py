@@ -374,6 +374,29 @@ def update_h_quantum(sim, parameters, state, **kwargs):
     state.h_quantum = h_q + h_qc
     return parameters, state
 
+@njit
+def matprod_(mat, vec):
+    return np.sum(mat * vec[:, np.newaxis, :], axis=-1)
+@njit
+def matprod(mat, vec):
+    out = np.zeros(np.shape(vec)) + 0.0j
+    for t in range(len(mat)):
+        for i in range(len(mat[0])):
+            sum = 0 + 0.0j
+            for j in range(len(mat[0,])):
+                sum = sum + mat[t, i, j] * vec[t, j]
+            out[t, i] = sum
+    return out
+
+    #return np.sum(mat * vec[:, np.newaxis, :], axis=-1)
+
+@njit
+def rk4(h_quantum, wf_db, dt):
+    k1 = -1j * matprod(h_quantum, wf_db)
+    k2 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt * k1))
+    k3 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt * k2))
+    k4 = -1j * matprod(h_quantum, (wf_db + dt * k3))
+    return wf_db + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
 
 def update_wf_db_rk4(sim, parameters, state, **kwargs):
     """
@@ -383,17 +406,22 @@ def update_wf_db_rk4(sim, parameters, state, **kwargs):
     dt = sim.settings.dt
     wf_db = state.wf_db
     h_quantum = state.h_quantum
-    k1 = -1j * np.einsum("tji, ti -> tj", h_quantum, wf_db, optimize="greedy")
-    k2 = -1j * np.einsum(
-        "tji, ti -> tj", h_quantum, (wf_db + 0.5 * dt * k1), optimize="greedy"
-    )
-    k3 = -1j * np.einsum(
-        "tji, ti -> tj", h_quantum, (wf_db + 0.5 * dt * k2), optimize="greedy"
-    )
-    k4 = -1j * np.einsum(
-        "tji, ti -> tj", h_quantum, (wf_db + dt * k3), optimize="greedy"
-    )
-    state.wf_db = wf_db + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
+    # k1 = -1j * np.einsum("tji, ti -> tj", h_quantum, wf_db, optimize="greedy")
+    # k2 = -1j * np.einsum(
+    #     "tji, ti -> tj", h_quantum, (wf_db + 0.5 * dt * k1), optimize="greedy"
+    # )
+    # k3 = -1j * np.einsum(
+    #     "tji, ti -> tj", h_quantum, (wf_db + 0.5 * dt * k2), optimize="greedy"
+    # )
+    # k4 = -1j * np.einsum(
+    #     "tji, ti -> tj", h_quantum, (wf_db + dt * k3), optimize="greedy"
+    # )
+    # state.wf_db = wf_db + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
+    # k1 = -1j * matprod(h_quantum, wf_db)
+    # k2 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt * k1))
+    # k3 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt * k2))
+    # k4 = -1j * matprod(h_quantum, (wf_db + dt * k3))
+    state.wf_db = rk4(h_quantum, wf_db, dt)
     return parameters, state
 
 
