@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 from numba import njit
 
+
 def initialize_branch_seeds(sim, parameters, state, **kwargs):
     """
     Initialize the seeds in each branch.
@@ -288,6 +289,22 @@ def update_classical_forces(sim, parameters, state, **kwargs):
     return parameters, state
 
 
+@njit
+def calc_sparse_inner_product(inds, mels, shape, vec_l, vec_r):
+    """
+    Given the indices, matrix elements and shape of a sparse matrix, calculate the expectation value with a vector.
+    """
+    out = np.zeros((shape[:2])) + 0.0j
+    for i in range(len(inds[0])):
+        out[inds[0][i], inds[1][i]] = (
+            out[inds[0][i], inds[1][i]]
+            + np.conj(vec_l[inds[0][i], inds[2][i]])
+            * mels[i]
+            * vec_r[inds[0][i], inds[3][i]]
+        )
+    return out
+
+
 def update_quantum_classical_forces(sim, parameters, state, **kwargs):
     """
     Update the quantum-classical forces w.r.t the state defined by wf.
@@ -296,16 +313,7 @@ def update_quantum_classical_forces(sim, parameters, state, **kwargs):
     wf = kwargs["wf"]
     parameters, state = update_dh_qc_dzc(sim, parameters, state, z=z)
     inds, mels, shape = state.dh_qc_dzc
-
-    state.quantum_classical_forces = np.zeros(
-        shape[:2],
-        dtype=complex,
-    )
-    np.add.at(
-        state.quantum_classical_forces,
-        (inds[0], inds[1]),
-        np.conj(wf)[inds[0], inds[2]] * mels * wf[inds[0], inds[3]],
-    )
+    state.quantum_classical_forces = calc_sparse_inner_product(inds, mels, shape, wf, wf)
     return parameters, state
 
 
@@ -374,9 +382,7 @@ def update_h_quantum(sim, parameters, state, **kwargs):
     state.h_quantum = h_q + h_qc
     return parameters, state
 
-@njit
-def matprod_(mat, vec):
-    return np.sum(mat * vec[:, np.newaxis, :], axis=-1)
+
 @njit
 def matprod(mat, vec):
     out = np.zeros(np.shape(vec)) + 0.0j
@@ -388,15 +394,18 @@ def matprod(mat, vec):
             out[t, i] = sum
     return out
 
-    #return np.sum(mat * vec[:, np.newaxis, :], axis=-1)
 
 @njit
-def rk4(h_quantum, wf_db, dt):
+def wf_db_rk4(h_quantum, wf_db, dt):
+    """
+    Low-level function for quantum RK4 propagation.
+    """
     k1 = -1j * matprod(h_quantum, wf_db)
     k2 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt * k1))
     k3 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt * k2))
     k4 = -1j * matprod(h_quantum, (wf_db + dt * k3))
     return wf_db + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
+
 
 def update_wf_db_rk4(sim, parameters, state, **kwargs):
     """
@@ -406,22 +415,7 @@ def update_wf_db_rk4(sim, parameters, state, **kwargs):
     dt = sim.settings.dt
     wf_db = state.wf_db
     h_quantum = state.h_quantum
-    # k1 = -1j * np.einsum("tji, ti -> tj", h_quantum, wf_db, optimize="greedy")
-    # k2 = -1j * np.einsum(
-    #     "tji, ti -> tj", h_quantum, (wf_db + 0.5 * dt * k1), optimize="greedy"
-    # )
-    # k3 = -1j * np.einsum(
-    #     "tji, ti -> tj", h_quantum, (wf_db + 0.5 * dt * k2), optimize="greedy"
-    # )
-    # k4 = -1j * np.einsum(
-    #     "tji, ti -> tj", h_quantum, (wf_db + dt * k3), optimize="greedy"
-    # )
-    # state.wf_db = wf_db + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
-    # k1 = -1j * matprod(h_quantum, wf_db)
-    # k2 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt * k1))
-    # k3 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt * k2))
-    # k4 = -1j * matprod(h_quantum, (wf_db + dt * k3))
-    state.wf_db = rk4(h_quantum, wf_db, dt)
+    state.wf_db = wf_db_rk4(h_quantum, wf_db, dt)
     return parameters, state
 
 

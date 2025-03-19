@@ -4,7 +4,7 @@ This file contains ingredient functions for use in Model classes.
 
 import functools
 import numpy as np
-
+from numba import njit
 
 def make_ingredient_sparse(ingredient):
     """
@@ -116,11 +116,27 @@ def two_level_system_h_q(model, constants, parameters, **kwargs):
     return h_q
 
 
+@njit
+def nearest_neighbor_lattice_h_q_jit(batch_size, num_sites, hopping_energy, periodic_boundary):
+    """
+    Low level function to generate the nearest-neighbor lattice quantum Hamiltonian.
+    """
+    out = np.zeros((batch_size, num_sites, num_sites)) + 0.0j
+    for b in range(batch_size):
+        for n in range(num_sites - 1):
+            out[b, n, n + 1] = -hopping_energy + 0.0j
+            out[b, n + 1, n] = -np.conj(hopping_energy) + 0.0j
+        if periodic_boundary:
+            out[b, 0, num_sites - 1] = -hopping_energy + 0.0j
+            out[b, num_sites - 1, 0] = -np.conj(hopping_energy) + 0.0j
+    return out
+        
+
+
 def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     """
     Calculate the quantum Hamiltonian for a nearest-neighbor lattice.
     """
-    del model
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
     else:
@@ -128,6 +144,10 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     num_sites = constants.num_quantum_states
     hopping_energy = constants.nearest_neighbor_lattice_hopping_energy
     periodic_boundary = constants.nearest_neighbor_lattice_periodic_boundary
+    if hasattr(model, 'h_q_mat'):
+        if model.h_q_mat is not None:
+            if len(model.h_q_mat) == batch_size:
+                return model.h_q_mat
     h_q = np.zeros((num_sites, num_sites), dtype=complex)
     # Fill the Hamiltonian matrix with hopping energies.
     for n in range(num_sites - 1):
@@ -137,10 +157,21 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     if periodic_boundary:
         h_q[0, num_sites - 1] += -hopping_energy
         h_q[num_sites - 1, 0] += np.conj(h_q[0, num_sites - 1])
-    return h_q[np.newaxis, :, :] + np.zeros(
+    model.h_q_mat =  h_q[np.newaxis, :, :] + np.zeros(
         (batch_size, num_sites, num_sites), dtype=complex
     )
+    return model.h_q_mat
 
+@njit(parallel=True)
+def holstein_coupling_h_qc_jit(batch_size, num_sites, z, g, w, h):
+    """
+    Low level function to generate the Holstein coupling Hamiltonian.
+    """
+    h_qc = np.zeros((batch_size, num_sites, num_sites)) + 0.0j
+    for b in range(batch_size):
+        for i in range(num_sites):
+            h_qc[b, i, i] = (g[i] * w[i] * np.sqrt(w[i] / h[i])) * (z[b, i] + np.conj(z[b, i]))
+    return h_qc
 
 def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
     """
@@ -157,11 +188,11 @@ def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
     w = constants.holstein_coupling_oscillator_frequency
     g = constants.holstein_coupling_dimensionless_coupling
     h = constants.classical_coordinate_weight
-    h_qc = np.zeros((batch_size, num_sites, num_sites), dtype=complex)
-    np.einsum("...ii->...i", h_qc)[...] = (g * w * np.sqrt(w / h))[..., :] * (
-        z + np.conj(z)
-    )
-    return h_qc
+    # h_qc = np.zeros((batch_size, num_sites, num_sites), dtype=complex)
+    # np.einsum("...ii->...i", h_qc, optimize='greedy')[...] = (g * w * np.sqrt(w / h))[..., :] * (
+    #     z + np.conj(z)
+    # )
+    return holstein_coupling_h_qc_jit(batch_size, num_sites, z, g, w, h)
 
 
 def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
