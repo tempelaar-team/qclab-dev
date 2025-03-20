@@ -165,7 +165,7 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     return model.h_q_mat
 
 
-@njit(parallel=True)
+@njit()
 def holstein_coupling_h_qc_jit(batch_size, num_sites, z, g, w, h):
     """
     Low level function to generate the Holstein coupling Hamiltonian.
