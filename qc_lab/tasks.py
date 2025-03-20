@@ -41,7 +41,7 @@ def initialize_branch_seeds(sim, parameters, state, **kwargs):
     return parameters, state
 
 
-def _gen_sample_gaussian(constants, z0=None, seed=0, separable=True):
+def _gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     """
     Generate a sample from a Gaussian distribution.
 
@@ -49,21 +49,24 @@ def _gen_sample_gaussian(constants, z0=None, seed=0, separable=True):
         - num_classical_coordinates (int): Number of classical coordinates. Default: None.
         - mcmc_std (float): Standard deviation for sampling. Default: 1.
     """
-    np.random.seed(seed)
+    if seed is not None:
+        np.random.seed(seed)
     num_classical_coordinates = constants.num_classical_coordinates
     if separable:
-        rand = np.random.rand()
+        rand = np.random.rand(num_classical_coordinates)
     else:
         rand = np.random.rand()
     std_re = constants.get("mcmc_std", 1)
     std_im = constants.get("mcmc_std", 1)
-    if z0 is None:
-        z0 = np.zeros((num_classical_coordinates), dtype=complex)
     # Generate random real and imaginary parts of z
     z_re = np.random.normal(loc=0, scale=std_re, size=num_classical_coordinates)
     z_im = np.random.normal(loc=0, scale=std_im, size=num_classical_coordinates)
     z = z_re + 1.0j * z_im
+    if z0 is None:
+        return np.random.rand(num_classical_coordinates) + 1.0j*np.random.rand(num_classical_coordinates), rand
     return z0 + z, rand
+
+
 
 
 def numerical_boltzmann_mcmc_init_classical(model, constants, parameters, **kwargs):
@@ -73,74 +76,52 @@ def numerical_boltzmann_mcmc_init_classical(model, constants, parameters, **kwar
 
     Required constants:
         - num_classical_coordinates (int): Number of classical coordinates. Default: None.
-        - mcmc_burn_size (int): Number of burn-in steps. Default: 5000.
+        - mcmc_burn_in_size (int): Number of burn-in steps. Default: 5000.
         - mcmc_std (float): Standard deviation for sampling. Default: 1.
+        - mcmc_h_c_separable (bool): If the classical Hamiltonian is separable. Default: True.
+        - mcmc_init_z (np.ndarray): Initial sample. Default: None.
         - temp (float): Temperature. Default: None.
     """
     seed = kwargs.get("seed", None)
-    out = np.zeros((len(seed), constants.num_classical_coordinates), dtype=complex)
-    burn_size = constants.get("mcmc_burn_size", int(5000))
-    burn_seeds = np.arange(burn_size)
+    burn_in_size = constants.get("mcmc_burn_in_size", 10000)
+    sample_size = constants.get("mcmc_sample_size", 100000)
+    mcmc_h_c_separable = constants.get("mcmc_h_c_separable", True)
+    burn_in_seeds = np.arange(burn_in_size)
+    sample_seeds = np.arange(sample_size)
+    save_inds = np.zeros(len(seed), dtype=int)
+    out_tmp = np.zeros((sample_size, constants.num_classical_coordinates), dtype=complex)
+    for s, seed_s in enumerate(seed):
+        np.random.seed(seed_s)
+        save_inds[s] = np.random.randint(0, sample_size)
     mcmc_init_z, _ = _gen_sample_gaussian(constants, z0=None, seed=0, separable=False)
     sample = constants.get("mcmc_init_z", mcmc_init_z)
-
-    if constants.get("mcmc_h_c_separable", True):
-        for s, seed_s in enumerate(burn_seeds):
+    if mcmc_h_c_separable:
+        for s, seed_s in enumerate(burn_in_seeds):
             last_sample = np.copy(sample)
             last_z = np.diag(last_sample)
-            last_e = np.array(
-                [
-                    model.h_c(constants, parameters, z=np.array([last_z[n]]))[0]
-                    for n in range(constants.num_classical_coordinates)
-                ]
-            )
+            last_e = model.h_c(constants, parameters, z = last_z)
             proposed_sample, rand = _gen_sample_gaussian(
                 constants, z0=last_sample, seed=seed_s, separable=True
             )
             new_z = np.diag(proposed_sample)
-            new_e = np.array(
-                [
-                    model.h_c(constants, parameters, z=np.array([new_z[n]]))[0]
-                    for n in range(constants.num_classical_coordinates)
-                ]
-            )
-            thresh = np.array(
-                [
-                    min(1, np.exp(-(new_e[n] - last_e[n]) / constants.temp))
-                    for n in range(constants.num_classical_coordinates)
-                ]
-            )
+            new_e = model.h_c(constants, parameters, z = new_z)
+            thresh = np.minimum(np.ones(constants.num_classical_coordinates), np.exp(-(new_e - last_e) / constants.temp))
             sample[rand < thresh] = proposed_sample[rand < thresh]
-        for s, seed_s in enumerate(seed):
+        for s, seed_s in enumerate(sample_seeds):
             last_sample = np.copy(sample)
             last_z = np.diag(last_sample)
-            last_e = np.array(
-                [
-                    model.h_c(constants, parameters, z=np.array([last_z[n]]))[0]
-                    for n in range(constants.num_classical_coordinates)
-                ]
-            )
+            last_e = model.h_c(constants, parameters, z = last_z)
             proposed_sample, rand = _gen_sample_gaussian(
                 constants, z0=last_sample, seed=seed_s, separable=True
             )
             new_z = np.diag(proposed_sample)
-            new_e = np.array(
-                [
-                    model.h_c(constants, parameters, z=np.array([new_z[n]]))[0]
-                    for n in range(constants.num_classical_coordinates)
-                ]
-            )
-            thresh = np.array(
-                [
-                    min(1, np.exp(-(new_e[n] - last_e[n]) / constants.temp))
-                    for n in range(constants.num_classical_coordinates)
-                ]
-            )
+            new_e = model.h_c(constants, parameters, z = new_z)
+            thresh = np.minimum(np.ones(constants.num_classical_coordinates), np.exp(-(new_e - last_e) / constants.temp))
             sample[rand < thresh] = proposed_sample[rand < thresh]
-            out[s] = sample
-        return out
+            out_tmp[s] = sample
+        return out_tmp[save_inds]
 
-    for s, seed_s in enumerate(burn_seeds):
+    for s, seed_s in enumerate(burn_in_seeds):
         last_sample = np.copy(sample)
         last_e = model.h_c(constants, parameters, z=last_sample)
         proposed_sample, rand = _gen_sample_gaussian(
@@ -150,7 +131,7 @@ def numerical_boltzmann_mcmc_init_classical(model, constants, parameters, **kwar
         thresh = min(1, np.exp(-(new_e - last_e) / constants.temp))
         if rand < thresh:
             sample = proposed_sample
-    for s, seed_s in enumerate(seed):
+    for s, seed_s in enumerate(sample_seeds):
         last_sample = np.copy(sample)
         last_e = model.h_c(constants, parameters, z=last_sample)
         proposed_sample, rand = _gen_sample_gaussian(
@@ -160,8 +141,8 @@ def numerical_boltzmann_mcmc_init_classical(model, constants, parameters, **kwar
         thresh = min(1, np.exp(-(new_e - last_e) / constants.temp))
         if rand < thresh:
             sample = proposed_sample
-        out[s] = sample
-    return out
+        out_tmp[s] = sample
+    return out_tmp[save_inds]
 
 
 def initialize_z(sim, parameters, state, **kwargs):
