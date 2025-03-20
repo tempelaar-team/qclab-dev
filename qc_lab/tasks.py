@@ -63,10 +63,12 @@ def _gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     z_im = np.random.normal(loc=0, scale=std_im, size=num_classical_coordinates)
     z = z_re + 1.0j * z_im
     if z0 is None:
-        return np.random.rand(num_classical_coordinates) + 1.0j*np.random.rand(num_classical_coordinates), rand
+        return (
+            np.random.rand(num_classical_coordinates)
+            + 1.0j * np.random.rand(num_classical_coordinates),
+            rand,
+        )
     return z0 + z, rand
-
-
 
 
 def numerical_boltzmann_mcmc_init_classical(model, constants, parameters, **kwargs):
@@ -89,7 +91,9 @@ def numerical_boltzmann_mcmc_init_classical(model, constants, parameters, **kwar
     burn_in_seeds = np.arange(burn_in_size)
     sample_seeds = np.arange(sample_size)
     save_inds = np.zeros(len(seed), dtype=int)
-    out_tmp = np.zeros((sample_size, constants.num_classical_coordinates), dtype=complex)
+    out_tmp = np.zeros(
+        (sample_size, constants.num_classical_coordinates), dtype=complex
+    )
     for s, seed_s in enumerate(seed):
         np.random.seed(seed_s)
         save_inds[s] = np.random.randint(0, sample_size)
@@ -99,24 +103,30 @@ def numerical_boltzmann_mcmc_init_classical(model, constants, parameters, **kwar
         for s, seed_s in enumerate(burn_in_seeds):
             last_sample = np.copy(sample)
             last_z = np.diag(last_sample)
-            last_e = model.h_c(constants, parameters, z = last_z)
+            last_e = model.h_c(constants, parameters, z=last_z)
             proposed_sample, rand = _gen_sample_gaussian(
                 constants, z0=last_sample, seed=seed_s, separable=True
             )
             new_z = np.diag(proposed_sample)
-            new_e = model.h_c(constants, parameters, z = new_z)
-            thresh = np.minimum(np.ones(constants.num_classical_coordinates), np.exp(-(new_e - last_e) / constants.temp))
+            new_e = model.h_c(constants, parameters, z=new_z)
+            thresh = np.minimum(
+                np.ones(constants.num_classical_coordinates),
+                np.exp(-(new_e - last_e) / constants.temp),
+            )
             sample[rand < thresh] = proposed_sample[rand < thresh]
         for s, seed_s in enumerate(sample_seeds):
             last_sample = np.copy(sample)
             last_z = np.diag(last_sample)
-            last_e = model.h_c(constants, parameters, z = last_z)
+            last_e = model.h_c(constants, parameters, z=last_z)
             proposed_sample, rand = _gen_sample_gaussian(
                 constants, z0=last_sample, seed=seed_s, separable=True
             )
             new_z = np.diag(proposed_sample)
-            new_e = model.h_c(constants, parameters, z = new_z)
-            thresh = np.minimum(np.ones(constants.num_classical_coordinates), np.exp(-(new_e - last_e) / constants.temp))
+            new_e = model.h_c(constants, parameters, z=new_z)
+            thresh = np.minimum(
+                np.ones(constants.num_classical_coordinates),
+                np.exp(-(new_e - last_e) / constants.temp),
+            )
             sample[rand < thresh] = proposed_sample[rand < thresh]
             out_tmp[s] = sample
         return out_tmp[save_inds]
