@@ -197,7 +197,7 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
         - num_classical_coordinates (int): Number of classical coordinates. Default: None.
     """
     z = kwargs["z"]
-    delta_z = 1e-6
+    delta_z = constants.get("finite_difference_dz", 1e-6)
     batch_size = len(parameters.seed)
     num_classical_coordinates = model.constants.num_classical_coordinates
     offset_z_re = (
