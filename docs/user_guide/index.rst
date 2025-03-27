@@ -12,3 +12,7 @@ User Guide
     drivers/drivers 
     models/models 
     algorithms/algorithms 
+    data_object
+    model_dev
+    defaults
+    algorithm_dev

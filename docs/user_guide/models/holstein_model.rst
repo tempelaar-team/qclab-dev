@@ -4,7 +4,10 @@ Holstein Lattice Model
 ~~~~~~~~~~~~~~~~~~~~~~
 
 The Holstein Lattice Model is a nearest-neighbor tight-binding model combined with an idealized optical phonon that interacts via a 
-Holstein coupling. The current implementation accommodates a single electronic particle. The quantum-classical Hamiltonian of the Holstein model is:
+Holstein coupling. The current implementation accommodates a single electronic particle and is described in detail in `Krotz et al. 2021 <https://doi.org/10.1063/5.0053177>`_
+. 
+
+The quantum Hamiltonian of the Holstein model is a nearest-neighbor tight-binding model
 
 .. math::
     
@@ -12,17 +15,19 @@ Holstein coupling. The current implementation accommodates a single electronic p
 
 where :math:`\langle i,j\rangle` denotes nearest-neighbor sites with or without periodic boundaries determined by the parameter `periodic_boundary=True`.
 
+The quantum-classical Hamiltonian is the Holstein coupling with dimensionless electron-phonon coupling :math:`g` and phonon frequency :math:`\omega`
+
 .. math::
 
     \hat{H}_{\mathrm{q-c}} = g\sqrt{2m\omega^{3}}\sum_{i}^{N} \hat{c}^{\dagger}_{i}\hat{c}_{i} q_{i}
+
+and the classical Hamiltonian is the harmonic oscillator
 
 .. math::
 
     H_{\mathrm{c}} = \sum_{i}^{N} \frac{p_{i}^{2}}{2m} + \frac{1}{2}m\omega^{2}q_{i}^{2}
 
-
-
-Here, :math:`g` is the dimensionless electron-phonon coupling, :math:`\omega` is the phonon frequency, and :math:`m` is the phonon mass. 
+with mass :math:`m`.
 
 The classical coordinates are sampled from a Boltzmann distribution:
 
@@ -32,12 +37,12 @@ The classical coordinates are sampled from a Boltzmann distribution:
 
 and by convention we assume that :math:`\hbar = 1`, :math:`k_{B} = 1`.
 
-Parameters
+Constants
 ----------
 
-The following table lists all of the parameters required by the `HolsteinLatticeModel` class:
+The following table lists all of the constants required by the `HolsteinLatticeModel` class:
 
-.. list-table:: HolsteinLatticeModel Parameters
+.. list-table:: HolsteinLatticeModel constants
    :header-rows: 1
 
    * - Parameter (symbol)
@@ -63,7 +68,7 @@ The following table lists all of the parameters required by the `HolsteinLattice
      - 1
    * - `periodic_boundary`
      - Periodic boundary condition
-     - True
+     - `True``
 
      
 Example
@@ -87,7 +92,7 @@ Example
     sim.algorithm = MeanField()
 
     # define an initial diabatic wavefunction 
-    wf_db_0 = np.zeros((sim.model.parameters.N), dtype=np.complex128)
+    wf_db_0 = np.zeros((sim.model.constants.num_quantum_states), dtype=np.complex128)
     wf_db_0[0] = 1.0 + 0.0j
     sim.state.wf_db = wf_db_0
 

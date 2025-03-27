@@ -63,6 +63,15 @@ def vectorize_ingredient(ingredient):
 def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     """
     Harmonic oscillator classical Hamiltonian function.
+
+    Required Constants:
+        - classical_coordinate_weight: Array of weights for classical coordinates.
+        - harmonic_oscillator_frequency: Array of harmonic oscillator frequencies.
+        - classical_coordinate_mass: Array of masses for classical coordinates.
+
+    Keyword Arguments:
+        - z: Complex classical coordinates.
+        - batch_size: (Optional) Number of batches for vectorized computation.
     """
     del model, parameters
     z = kwargs.get("z")
@@ -80,10 +89,28 @@ def harmonic_oscillator_h_c(model, constants, parameters, **kwargs):
     return h_c
 
 
+@njit()
+def harmonic_oscillator_dh_c_dzc_jit(z, h, w):
+    """
+    Numba accelerated calculation of the gradient of the Harmonic oscillator Hamiltonian.
+    """
+    a = (1 / 4) * (((w**2) / h) - h)
+    b = (1 / 4) * (((w**2) / h) + h)
+    out = 2 * b[..., :] * z + 2 * a[..., :] * np.conj(z)
+    return out
+
+
 def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
     """
-    Calculate the derivative of the classical harmonic oscillator Hamiltonian
-    with respect to the z coordinate.
+    Derivative of the classical harmonic oscillator Hamiltonian with respect to the z coordinate.
+
+    Required Constants:
+        - classical_coordinate_weight: Array of weights for classical coordinates.
+        - harmonic_oscillator_frequency: Array of harmonic oscillator frequencies.
+
+    Keyword Arguments:
+        - z: Complex classical coordinates.
+        - batch_size: (Optional) Number of batches for vectorized computation.
     """
     del model, parameters
     z = kwargs.get("z")
@@ -94,15 +121,21 @@ def harmonic_oscillator_dh_c_dzc(model, constants, parameters, **kwargs):
         batch_size = len(z)
     h = constants.classical_coordinate_weight
     w = constants.harmonic_oscillator_frequency
-    a = (1 / 4) * (((w**2) / h) - h)
-    b = (1 / 4) * (((w**2) / h) + h)
-    dh_c_dzc = 2 * b[..., :] * z + 2 * a[..., :] * np.conj(z)
-    return dh_c_dzc
+    return harmonic_oscillator_dh_c_dzc_jit(z, h, w)
 
 
 def two_level_system_h_q(model, constants, parameters, **kwargs):
     """
-    Calculate the quantum Hamiltonian for a two-level system.
+    Quantum Hamiltonian for a two-level system.
+
+    Required Constants:
+        - two_level_system_a: Energy of the first level.
+        - two_level_system_b: Energy of the second level.
+        - two_level_system_c: Real part of the coupling between levels.
+        - two_level_system_d: Imaginary part of the coupling between levels.
+
+    Keyword Arguments:
+        - batch_size: (Optional) Number of batches for vectorized computation.
     """
     del model
     if kwargs.get("batch_size") is not None:
@@ -137,7 +170,15 @@ def nearest_neighbor_lattice_h_q_jit(
 
 def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
     """
-    Calculate the quantum Hamiltonian for a nearest-neighbor lattice.
+    Quantum Hamiltonian for a nearest-neighbor lattice.
+
+    Required Constants:
+        - num_quantum_states: Number of quantum states (sites).
+        - nearest_neighbor_lattice_hopping_energy: Hopping energy between sites.
+        - nearest_neighbor_lattice_periodic_boundary: Boolean indicating periodic boundary conditions.
+
+    Keyword Arguments:
+        - batch_size: (Optional) Number of batches for vectorized computation.
     """
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
@@ -166,22 +207,38 @@ def nearest_neighbor_lattice_h_q(model, constants, parameters, **kwargs):
 
 
 @njit()
-def holstein_coupling_h_qc_jit(batch_size, num_sites, z, g, w, h):
+def diagonal_linear_h_qc_jit(
+    batch_size, num_sites, num_classical_coordinates, z, gamma
+):
     """
-    Low level function to generate the Holstein coupling Hamiltonian.
+    Low level function to generate the diagonal linear quantum-classical coupling Hamiltonian.
     """
     h_qc = np.zeros((batch_size, num_sites, num_sites)) + 0.0j
     for b in range(batch_size):
         for i in range(num_sites):
-            h_qc[b, i, i] = (g[i] * w[i] * np.sqrt(w[i] / h[i])) * (
-                z[b, i] + np.conj(z[b, i])
-            )
+            for j in range(num_classical_coordinates):
+                h_qc[b, i, i] = h_qc[b, i, i] + gamma[i, j] * (
+                    z[b, j] + np.conj(z[b, j])
+                )
     return h_qc
 
 
-def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
+def diagonal_linear_h_qc(model, constants, parameters, **kwargs):
     """
-    Calculate the Holstein coupling Hamiltonian.
+    Diagonal linear quantum-classical coupling Hamiltonian.
+
+    Diagonal elements are given by
+
+    :math:`H_{ii} = \sum_{j} \gamma_{ij} (z_{j} + z_{j}^*)`
+
+    Required Constants:
+        - num_quantum_states: Number of quantum states (sites).
+        - num_classical_coordinates: Number of classical coordinates.
+        - diagonal_linear_coupling: Array of coupling constants (num_sites, num_classical_coordinates).
+
+    Keyword Arguments:
+        - z: Complex classical coordinates.
+        - batch_size: (Optional) Number of batches for vectorized computation.
     """
     del model, parameters
     z = kwargs["z"]
@@ -191,19 +248,26 @@ def holstein_coupling_h_qc(model, constants, parameters, **kwargs):
     else:
         batch_size = len(z)
     num_sites = constants.num_quantum_states
-    w = constants.holstein_coupling_oscillator_frequency
-    g = constants.holstein_coupling_dimensionless_coupling
-    h = constants.classical_coordinate_weight
-    return holstein_coupling_h_qc_jit(batch_size, num_sites, z, g, w, h)
+    num_classical_coordinates = constants.num_classical_coordinates
+    gamma = constants.diagonal_linear_coupling
+    return diagonal_linear_h_qc_jit(
+        batch_size, num_sites, num_classical_coordinates, z, gamma
+    )
 
 
-def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
+def diagonal_linear_dh_qc_dzc(model, constants, parameters, **kwargs):
     """
-    Calculate the derivative of the Holstein coupling Hamiltonian with
-    respect to the z-coordinates.
+    Gradient of the diagonal linear quantum-classical coupling Hamiltonian.
+
+    Required Constants:
+        - num_quantum_states: Number of quantum states (sites).
+        - num_classical_coordinates: Number of classical coordinates
+        - diagonal_linear_coupling: Array of coupling constants (num_sites, num_classical_coordinates).
+
+    Keyword Arguments:
+        - z: Complex classical coordinates.
+        - batch_size: (Optional) Number of batches for vectorized computation.
     """
-    # if there is not an explicitly specified batch_size,
-    # use the length of the seed.
     z = kwargs["z"]
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
@@ -219,16 +283,20 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
         or model.dh_qc_dzc_shape is None
         or recalculate
     ):
-        num_sites = constants.num_quantum_states
-        w = constants.holstein_coupling_oscillator_frequency
-        g = constants.holstein_coupling_dimensionless_coupling
-        h = constants.classical_coordinate_weight
+
+        num_states = constants.num_quantum_states
+        num_classical_coordinates = constants.num_classical_coordinates
+        gamma = constants.diagonal_linear_coupling
         dh_qc_dzc = np.zeros(
-            (batch_size, num_sites, num_sites, num_sites), dtype=complex
+            (num_classical_coordinates, num_states, num_states), dtype=complex
         )
-        np.einsum("tiii->ti", dh_qc_dzc, optimize="greedy")[...] = (
-            g * w * np.sqrt(w / h)
-        )[..., :] * (np.ones_like(z, dtype=complex))
+        for i in range(num_states):
+            for j in range(num_classical_coordinates):
+                dh_qc_dzc[j, i, i] = gamma[i, j]
+        dh_qc_dzc = dh_qc_dzc[np.newaxis, :, :, :] + np.zeros(
+            (batch_size, num_classical_coordinates, num_states, num_states),
+            dtype=complex,
+        )
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]
         shape = np.shape(dh_qc_dzc)
@@ -239,9 +307,18 @@ def holstein_coupling_dh_qc_dzc(model, constants, parameters, **kwargs):
     return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels, model.dh_qc_dzc_shape
 
 
-def harmonic_oscillator_hop(model, constants, parameters, **kwargs):
+def harmonic_oscillator_hop_function(model, constants, parameters, **kwargs):
     """
     Perform a hopping operation for the harmonic oscillator.
+
+    Required Constants:
+        - harmonic_oscillator_frequency: Array of harmonic oscillator frequencies.
+        - classical_coordinate_weight: Array of weights for classical coordinates.
+
+    Keyword Arguments:
+        - z: Complex classical coordinates.
+        - delta_z: Change in classical coordinates.
+        - ev_diff: Energy difference for the hopping operation.
     """
     del model, parameters
     z = kwargs["z"]
@@ -292,7 +369,16 @@ def harmonic_oscillator_boltzmann_init_classical(
     model, constants, parameters, **kwargs
 ):
     """
-    Initialize classical coordinates according to Boltzmann statistics for the Harmonic oscillator.
+    Initialize classical coordinates according to Boltzmann statistics for the harmonic oscillator.
+
+    Required Constants:
+        - temp: Temperature of the system.
+        - classical_coordinate_weight: Array of weights for classical coordinates.
+        - harmonic_oscillator_frequency: Array of harmonic oscillator frequencies.
+        - classical_coordinate_mass: Array of masses for classical coordinates.
+
+    Keyword Arguments:
+        - seed: Array of random seeds for initialization.
     """
     del model, parameters
     seed = kwargs.get("seed", None)
@@ -321,8 +407,16 @@ def harmonic_oscillator_boltzmann_init_classical(
 
 def harmonic_oscillator_wigner_init_classical(model, constants, parameters, **kwargs):
     """
-    Initialize classical coordinates according to the Wigner distribution
-    of the ground state of a harmonic oscillator.
+    Initialize classical coordinates according to the Wigner distribution of the ground state of a harmonic oscillator.
+
+    Required Constants:
+        - temp: Temperature of the system.
+        - classical_coordinate_weight: Array of weights for classical coordinates.
+        - harmonic_oscillator_frequency: Array of harmonic oscillator frequencies.
+        - classical_coordinate_mass: Array of masses for classical coordinates.
+
+    Keyword Arguments:
+        - seed: Array of random seeds for initialization.
     """
     del model, parameters
     seed = kwargs.get("seed", None)
