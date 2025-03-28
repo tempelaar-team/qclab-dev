@@ -511,6 +511,48 @@ def update_wf_db_rk4(sim, parameters, state, **kwargs):
     return parameters, state
 
 
+@njit()
+def matprod_dm(mat, dm):
+    """
+    Multiply a branch matrix mat by a branch matrix dm.
+    """
+    out = np.zeros((np.shape(dm))) + 0.0j
+    for t in range(len(mat)):
+        for k in range(len(dm[0])):
+            for i in range(len(mat[0])):
+                sum = 0 + 0.0j
+                for j in range(len(mat[0,])):
+                    sum = sum + mat[t, i, j] * dm[t, j, k]
+                out[t, i, k] = sum
+    return out
+
+
+@njit()
+def dm_db_rk4(h, dm, dt):
+    """
+    Low-level function for quantum propagation of the density matrix using RK4.
+    """
+    k1 = 1j * (matprod_dm(h, dm) - matprod_dm(dm, h))
+    dm_k1 = dm + 0.5 * dt * k1
+    k2 = 1j * (matprod_dm(h, dm_k1) - matprod_dm(dm_k1, h))
+    dm_k2 = dm + 0.5 * dt * k2
+    k3 = 1j * (matprod_dm(h, dm_k2) - matprod_dm(dm_k2, h))
+    dm_k3 = dm + dt * k3
+    k4 = 1j * (matprod_dm(h, dm_k3) - matprod_dm(dm_k3, h))
+    return dm + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
+
+def update_dm_db_rk4(sim, parameters, state, **kwargs):
+    """
+    Update the diabatic density matrix using the 4th-order Runge-Kutta method. 
+    """
+    del sim, kwargs
+    dt = sim.settings.dt
+    dm_db = state.dm_db
+    h_quantum = state.h_quantum
+    state.dm_db = dm_db_rk4(h_quantum, dm_db, dt)
+    return parameters, state
+
+
 def update_dm_db_mf(sim, parameters, state, **kwargs):
     """
     Update the density matrix in the mean-field approximation.
