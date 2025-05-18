@@ -1,0 +1,70 @@
+\begin{sphinxtheindex}
+\let\bigletter\sphinxstyleindexlettergroup
+\let\spxpagem \sphinxstyleindexpagemain
+\let\spxentry \sphinxstyleindexentry
+\let\spxextra \sphinxstyleindexextra
+
+  \bigletter B
+  \item \spxentry{built\sphinxhyphen{}in function}
+    \subitem \spxentry{data.add\_data()}, \hyperpage{22}
+    \subitem \spxentry{data.load\_from\_h5()}, \hyperpage{22}
+    \subitem \spxentry{data.save\_as\_h5()}, \hyperpage{22}
+    \subitem \spxentry{sim.model.dh\_c\_dzc()}, \hyperpage{40}
+    \subitem \spxentry{sim.model.hop\_function()}, \hyperpage{41}
+    \subitem \spxentry{sim.model.init\_classical()}, \hyperpage{39}
+
+  \indexspace
+  \bigletter D
+  \item \spxentry{data.add\_data()}
+    \subitem \spxentry{built\sphinxhyphen{}in function}, \hyperpage{22}
+  \item \spxentry{data.load\_from\_h5()}
+    \subitem \spxentry{built\sphinxhyphen{}in function}, \hyperpage{22}
+  \item \spxentry{data.save\_as\_h5()}
+    \subitem \spxentry{built\sphinxhyphen{}in function}, \hyperpage{22}
+  \item \spxentry{data\_dic}\spxextra{data attribute}, \hyperpage{22}
+  \item \spxentry{diagonal\_linear\_dh\_qc\_dzc()}\spxextra{in module qc\_lab.ingredients}, 
+		\hyperpage{48}
+  \item \spxentry{diagonal\_linear\_h\_qc()}\spxextra{in module qc\_lab.ingredients}, 
+		\hyperpage{48}
+
+  \indexspace
+  \bigletter H
+  \item \spxentry{harmonic\_oscillator\_boltzmann\_init\_classical()}\spxextra{in module qc\_lab.ingredients}, 
+		\hyperpage{49}
+  \item \spxentry{harmonic\_oscillator\_dh\_c\_dzc()}\spxextra{in module qc\_lab.ingredients}, 
+		\hyperpage{49}
+  \item \spxentry{harmonic\_oscillator\_h\_c()}\spxextra{in module qc\_lab.ingredients}, 
+		\hyperpage{49}
+  \item \spxentry{harmonic\_oscillator\_wigner\_init\_classical()}\spxextra{in module qc\_lab.ingredients}, 
+		\hyperpage{50}
+
+  \indexspace
+  \bigletter M
+  \item \spxentry{module}
+    \subitem \spxentry{qc\_lab.ingredients}, \hyperpage{48, 49}
+
+  \indexspace
+  \bigletter N
+  \item \spxentry{nearest\_neighbor\_lattice\_h\_q()}\spxextra{in module qc\_lab.ingredients}, 
+		\hyperpage{48}
+
+  \indexspace
+  \bigletter Q
+  \item \spxentry{qc\_lab.ingredients}
+    \subitem \spxentry{module}, \hyperpage{48, 49}
+
+  \indexspace
+  \bigletter S
+  \item \spxentry{sim.model.dh\_c\_dzc()}
+    \subitem \spxentry{built\sphinxhyphen{}in function}, \hyperpage{40}
+  \item \spxentry{sim.model.hop\_function()}
+    \subitem \spxentry{built\sphinxhyphen{}in function}, \hyperpage{41}
+  \item \spxentry{sim.model.init\_classical()}
+    \subitem \spxentry{built\sphinxhyphen{}in function}, \hyperpage{39}
+
+  \indexspace
+  \bigletter T
+  \item \spxentry{two\_level\_system\_h\_q()}\spxextra{in module qc\_lab.ingredients}, 
+		\hyperpage{48}
+
+\end{sphinxtheindex}

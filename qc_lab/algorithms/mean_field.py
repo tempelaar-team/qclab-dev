@@ -18,6 +18,7 @@ class MeanField(Algorithm):
         super().__init__(self.default_settings, settings)
 
     initialization_recipe = [
+        tasks.assign_norm_factor_mf,
         lambda sim, parameters, state: tasks.assign_to_parameters(
             sim, parameters, state, name="seed", val=state.seed
         ),
@@ -39,6 +40,7 @@ class MeanField(Algorithm):
             z=state.z,
             output_name="z",
             wf=state.wf_db,
+            use_gauge_field_force=False,
         ),
         tasks.update_wf_db_rk4,
     ]

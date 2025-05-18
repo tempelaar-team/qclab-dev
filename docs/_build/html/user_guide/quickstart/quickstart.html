@@ -1,0 +1,654 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Quick Start Guide &#8212; QC Lab  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=744294ec" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/quickstart/quickstart';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Dynamics Drivers" href="../drivers/drivers.html" />
+    <link rel="prev" title="User Guide" href="../index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo-light.png" class="logo__image only-light" alt="QC Lab  documentation - Home"/>
+    <img src="../../_static/logo-dark.png" class="logo__image only-dark pst-js-only" alt="QC Lab  documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../software_reference/index.html">
+    Software Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qc_lab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../software_reference/index.html">
+    Software Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qc_lab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../drivers/drivers.html">Dynamics Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../models/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithms/algorithms.html">Algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_object.html">Data Object</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model_dev.html">Model Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../defaults.html">Default Behavior</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm_dev.html">Algorithm Development</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Quick Start Guide</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="quick-start-guide">
+<span id="quickstart"></span><h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading">#</a></h1>
+<p>QC Lab is organized into models and algorithms which are combined into a simulation object.
+The simulation object fully defines a quantum-classical dynamics simulation which is then carried out by a dynamics driver.
+This guide will walk you through the process of setting up a simulation object and running a simulation.</p>
+<p>The code in this page is implemented in the notebook <cite>quickstart.ipynb</cite> which can be found in the <cite>examples</cite> directory of the repository.</p>
+<section id="importing-modules">
+<h2>Importing Modules<a class="headerlink" href="#importing-modules" title="Link to this heading">#</a></h2>
+<p>First, we import the necessary modules.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">qc_lab</span> <span class="kn">import</span> <span class="n">Simulation</span> <span class="c1"># import simulation class</span>
+<span class="kn">from</span> <span class="nn">qc_lab.models</span> <span class="kn">import</span> <span class="n">SpinBoson</span> <span class="c1"># import model class</span>
+<span class="kn">from</span> <span class="nn">qc_lab.algorithms</span> <span class="kn">import</span> <span class="n">MeanField</span> <span class="c1"># import algorithm class</span>
+<span class="kn">from</span> <span class="nn">qc_lab.dynamics</span> <span class="kn">import</span> <span class="n">serial_driver</span> <span class="c1"># import dynamics driver</span>
+</pre></div>
+</div>
+</section>
+<section id="instantiating-simulation-object">
+<h2>Instantiating Simulation Object<a class="headerlink" href="#instantiating-simulation-object" title="Link to this heading">#</a></h2>
+<p>Next, we instantiate a simulation object from <cite>qc_lab.Simulation</cite>. Each object has a set of default settings which can be accessed by calling <cite>sim.default_settings</cite>.
+Passing a dictionary to the simulation object when instantiating it will override the default settings.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;default simulation settings: &#39;</span><span class="p">,</span> <span class="n">sim</span><span class="o">.</span><span class="n">default_settings</span><span class="p">)</span>
+<span class="c1"># default simulation settings:  {&#39;tmax&#39;: 10, &#39;dt&#39;: 0.01, &#39;dt_output&#39;: 0.1, &#39;num_trajs&#39;: 10, &#39;batch_size&#39;: 1}</span>
+</pre></div>
+</div>
+<p>Alternatively, you can directly modify the simulation settings by assigning new values to the settings attribute of the simulation object. Here we change the number
+of trajectories that the simulation will run, and how many trajectories are run at a time (the batch size). We also change the total time of each trajectory (<cite>tmax</cite>) and the
+timestep used for propagation (<cite>dt</cite>).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>QC Lab expects that the total time of the simulation (<cite>tmax</cite>) is an integer multiple of the output timestep (<cite>dt_output</cite>), which must also be an integer multiple
+of the propagation timestep (<cite>dt</cite>).</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># change settings to customize simulation</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">num_trajs</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">tmax</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">dt_output</span> <span class="o">=</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+</section>
+<section id="instantiating-model-object">
+<h2>Instantiating Model Object<a class="headerlink" href="#instantiating-model-object" title="Link to this heading">#</a></h2>
+<p>Next, we instantiate a model object. Like the simulation object, it has a set of default constants.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">SpinBoson</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;default model constants: &#39;</span><span class="p">,</span> <span class="n">sim</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">default_constants</span><span class="p">)</span>
+<span class="c1"># default model constants:  {&#39;temp&#39;: 1, &#39;V&#39;: 0.5, &#39;E&#39;: 0.5, &#39;A&#39;: 100, &#39;W&#39;: 0.1, &#39;l_reorg&#39;: 0.005, &#39;boson_mass&#39;: 1}</span>
+</pre></div>
+</div>
+</section>
+<section id="instantiating-algorithm-object">
+<h2>Instantiating Algorithm Object<a class="headerlink" href="#instantiating-algorithm-object" title="Link to this heading">#</a></h2>
+<p>Next, we instantiate an algorithm object which likewise has a set of default settings.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="n">MeanField</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;default algorithm settings: &#39;</span><span class="p">,</span> <span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">default_settings</span><span class="p">)</span>
+<span class="c1"># default algorithm settings:  {}</span>
+</pre></div>
+</div>
+</section>
+<section id="setting-initial-state">
+<h2>Setting Initial State<a class="headerlink" href="#setting-initial-state" title="Link to this heading">#</a></h2>
+<p>Before using the dynamics driver to run the simulation, it is necessary to provide the simulation with an initial state. This initial state is
+dependent on both the model and algorithm. For mean-field dynamics, we require a diabatic wavefunction called “wf_db”. Because we are using a spin-boson model,
+this wavefunction should have dimension 2. The initial state is stored in <cite>sim.state</cite> which can be accessed as follows.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">wf_db</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="running-the-simulation">
+<h2>Running the Simulation<a class="headerlink" href="#running-the-simulation" title="Link to this heading">#</a></h2>
+<p>Finally, we run the simulation using the dynamics driver. Here, we are using the serial driver. QC Lab comes with several different types of parallel drivers which are discussed elsewhere.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">serial_driver</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="analyzing-results">
+<h2>Analyzing Results<a class="headerlink" href="#analyzing-results" title="Link to this heading">#</a></h2>
+<p>The data object returned by the dynamics driver contains the results of the simulation in a dictionary with keys corresponding
+to the names of the observables that were requested to be recorded during the simulation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;calculated quantities:&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="c1"># calculated quantities: dict_keys([&#39;seed&#39;, &#39;dm_db&#39;, &#39;classical_energy&#39;, &#39;quantum_energy&#39;])</span>
+</pre></div>
+</div>
+<p>Each of the calculated quantities is normalized with respect to the number of trajectories (note that this might depend on the type of algorithm used) and can be accessed through the <cite>data.data_dict</cite> attribute.
+The normlaization factor for the data is kept in <cite>data.data_dict[“norm_factor”]</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">norm_factor</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;norm_factor&#39;</span><span class="p">]</span>
+<span class="n">classical_energy</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;classical_energy&#39;</span><span class="p">]</span>
+<span class="n">quantum_energy</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;quantum_energy&#39;</span><span class="p">]</span>
+<span class="n">populations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;tii-&gt;ti&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;dm_db&#39;</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>The time axis can be retrieved from the simulation object through its settings.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">time</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">tdat_output</span>
+</pre></div>
+</div>
+</section>
+<section id="plotting-results">
+<h2>Plotting Results<a class="headerlink" href="#plotting-results" title="Link to this heading">#</a></h2>
+<p>Finally, we can plot the results of the simulation like the population dynamics.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">populations</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;upper state&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">populations</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;lower state&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;population&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="Population dynamics." class="align-center" src="../../_images/quickstart_populations.png" />
+<p>We can verify that the total energy of the simulation was conserved by inspecting the change in energy of quantum and classical subsystems over time.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">classical_energy</span> <span class="o">-</span> <span class="n">classical_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;classical energy&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">quantum_energy</span> <span class="o">-</span> <span class="n">quantum_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;quantum energy&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">classical_energy</span> <span class="o">+</span> <span class="n">quantum_energy</span> <span class="o">-</span> <span class="n">classical_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">quantum_energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;total energy&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;energy&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="Change in energy." class="align-center" src="../../_images/quickstart_energies.png" />
+</section>
+<section id="changing-the-algorithm">
+<h2>Changing the Algorithm<a class="headerlink" href="#changing-the-algorithm" title="Link to this heading">#</a></h2>
+<p>If you want to do a surface hopping calculation rather than a mean-field one, QC Lab makes it very easy to do so.
+Simply import the relevant Algorithm class and set <cite>sim.algorithm</cite> to it and rerun the calculation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qc_lab.algorithms</span> <span class="kn">import</span> <span class="n">FewestSwitchesSurfaceHopping</span>
+
+<span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="n">FewestSwitchesSurfaceHopping</span><span class="p">()</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">serial_driver</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The populations can be visualized in a similar way as before. Note that the simulation settings chosen here are solely for testing
+purposes. Publication quality simulations would require checking convergence of the number of trajectories and the timestep.</p>
+<img alt="Population dynamics." class="align-center" src="../../_images/quickstart_populations_fssh.png" />
+<img alt="Population dynamics." class="align-center" src="../../_images/quickstart_energies_fssh.png" />
+</section>
+<section id="changing-the-driver">
+<h2>Changing the Driver<a class="headerlink" href="#changing-the-driver" title="Link to this heading">#</a></h2>
+<p>You can likewise run the simulation using a parallel driver. Here we use the multiprocessing driver to split the trajectories
+over four tasks.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qc_lab.dynamics</span> <span class="kn">import</span> <span class="n">parallel_driver_multiprocessing</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">parallel_driver_multiprocessing</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">num_tasks</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="units-in-qc-lab">
+<h2>Units in QC Lab<a class="headerlink" href="#units-in-qc-lab" title="Link to this heading">#</a></h2>
+<p>QC Lab is written assuming all energies are in units of the thermal quantum (<span class="math notranslate nohighlight">\(k_{\mathrm{B}}T\)</span>). Units of time are then determined by assuming a value for
+the temperature defining the thermal quantum and calculating the equivalent timescales. For example, if we assume a standard temperature of <span class="math notranslate nohighlight">\(T = 298.15\,\mathrm{K}\)</span>
+then the thermal quantum is <span class="math notranslate nohighlight">\(k_{\mathrm{B}}T = 25.7\,\mathrm{meV}\)</span> and one unit of time is <span class="math notranslate nohighlight">\(\hbar/k_{\mathrm{B}}T = 25.6\,\mathrm{fs}\)</span>.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">User Guide</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../drivers/drivers.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Dynamics Drivers</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-modules">Importing Modules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#instantiating-simulation-object">Instantiating Simulation Object</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#instantiating-model-object">Instantiating Model Object</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#instantiating-algorithm-object">Instantiating Algorithm Object</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-initial-state">Setting Initial State</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-simulation">Running the Simulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#analyzing-results">Analyzing Results</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting-results">Plotting Results</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#changing-the-algorithm">Changing the Algorithm</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#changing-the-driver">Changing the Driver</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#units-in-qc-lab">Units in QC Lab</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/user_guide/quickstart/quickstart.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025-2025, Tempelaar Team.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

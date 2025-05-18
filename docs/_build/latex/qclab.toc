@@ -1,0 +1,94 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{\numberline {1}Capabilities}{3}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Dynamics Algorithms}{3}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Model Systems}{3}{section.1.2}%
+\contentsline {chapter}{\numberline {2}Installing qc\_lab}{5}{chapter.2}%
+\contentsline {chapter}{\numberline {3}User Guide}{7}{chapter.3}%
+\contentsline {section}{\numberline {3.1}User Guide}{7}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Quick Start Guide}{7}{subsection.3.1.1}%
+\contentsline {subsubsection}{Importing Modules}{7}{subsubsection*.3}%
+\contentsline {subsubsection}{Instantiating Simulation Object}{7}{subsubsection*.4}%
+\contentsline {subsubsection}{Instantiating Model Object}{8}{subsubsection*.5}%
+\contentsline {subsubsection}{Instantiating Algorithm Object}{8}{subsubsection*.6}%
+\contentsline {subsubsection}{Setting Initial State}{8}{subsubsection*.7}%
+\contentsline {subsubsection}{Running the Simulation}{8}{subsubsection*.8}%
+\contentsline {subsubsection}{Analyzing Results}{8}{subsubsection*.9}%
+\contentsline {subsubsection}{Plotting Results}{9}{subsubsection*.10}%
+\contentsline {subsubsection}{Changing the Algorithm}{10}{subsubsection*.11}%
+\contentsline {subsubsection}{Changing the Driver}{12}{subsubsection*.12}%
+\contentsline {subsubsection}{Units in QC Lab}{12}{subsubsection*.13}%
+\contentsline {subsection}{\numberline {3.1.2}Dynamics Drivers}{12}{subsection.3.1.2}%
+\contentsline {subsubsection}{Serial Driver}{13}{subsubsection*.14}%
+\contentsline {paragraph}{Function Signature}{13}{paragraph*.15}%
+\contentsline {paragraph}{Parameters}{13}{paragraph*.16}%
+\contentsline {paragraph}{Returns}{13}{paragraph*.17}%
+\contentsline {paragraph}{Example}{13}{paragraph*.18}%
+\contentsline {subsubsection}{Parallel Multiprocessing Driver}{13}{subsubsection*.19}%
+\contentsline {paragraph}{Function Signature}{13}{paragraph*.20}%
+\contentsline {paragraph}{Parameters}{13}{paragraph*.21}%
+\contentsline {paragraph}{Returns}{14}{paragraph*.22}%
+\contentsline {paragraph}{Example}{14}{paragraph*.23}%
+\contentsline {paragraph}{Notes}{14}{paragraph*.24}%
+\contentsline {paragraph}{References}{14}{paragraph*.25}%
+\contentsline {subsubsection}{MPI Driver}{14}{subsubsection*.26}%
+\contentsline {paragraph}{Function Signature}{14}{paragraph*.27}%
+\contentsline {paragraph}{Parameters}{14}{paragraph*.28}%
+\contentsline {paragraph}{Returns}{14}{paragraph*.29}%
+\contentsline {paragraph}{Example}{15}{paragraph*.30}%
+\contentsline {paragraph}{Notes}{15}{paragraph*.31}%
+\contentsline {paragraph}{References}{15}{paragraph*.32}%
+\contentsline {subsection}{\numberline {3.1.3}Models}{16}{subsection.3.1.3}%
+\contentsline {subsubsection}{Spin\sphinxhyphen {}Boson Model}{16}{subsubsection*.33}%
+\contentsline {paragraph}{Constants}{16}{paragraph*.34}%
+\contentsline {paragraph}{Example}{16}{paragraph*.35}%
+\contentsline {subsubsection}{Holstein Lattice Model}{17}{subsubsection*.36}%
+\contentsline {paragraph}{Constants}{18}{paragraph*.37}%
+\contentsline {paragraph}{Example}{18}{paragraph*.38}%
+\contentsline {subsubsection}{Fenna\sphinxhyphen {}Matthews\sphinxhyphen {}Olson Model}{18}{subsubsection*.39}%
+\contentsline {paragraph}{Constants}{19}{paragraph*.40}%
+\contentsline {paragraph}{Example}{19}{paragraph*.41}%
+\contentsline {subsection}{\numberline {3.1.4}Algorithms}{20}{subsection.3.1.4}%
+\contentsline {subsubsection}{Mean\sphinxhyphen {}Field Dynamics}{20}{subsubsection*.42}%
+\contentsline {paragraph}{Settings}{20}{paragraph*.43}%
+\contentsline {paragraph}{Initial State}{20}{paragraph*.44}%
+\contentsline {paragraph}{Output Variables}{20}{paragraph*.45}%
+\contentsline {paragraph}{Example}{20}{paragraph*.46}%
+\contentsline {subsubsection}{Fewest\sphinxhyphen {}Switches Surface Hopping}{21}{subsubsection*.47}%
+\contentsline {paragraph}{Settings}{21}{paragraph*.48}%
+\contentsline {paragraph}{Initial State}{21}{paragraph*.49}%
+\contentsline {paragraph}{Output Variables}{21}{paragraph*.50}%
+\contentsline {paragraph}{Example}{22}{paragraph*.51}%
+\contentsline {subsection}{\numberline {3.1.5}Data Object}{22}{subsection.3.1.5}%
+\contentsline {subsubsection}{Methods}{22}{subsubsection*.52}%
+\contentsline {subsubsection}{Attributes}{22}{subsubsection*.56}%
+\contentsline {subsection}{\numberline {3.1.6}Model Development}{23}{subsection.3.1.6}%
+\contentsline {subsubsection}{Minimal Model Class}{23}{subsubsection*.66}%
+\contentsline {paragraph}{Initialization functions}{24}{paragraph*.67}%
+\contentsline {paragraph}{Ingredients}{26}{paragraph*.68}%
+\contentsline {subsubsection}{Upgrading the Model Class}{28}{subsubsection*.69}%
+\contentsline {paragraph}{Vectorized Ingredients}{28}{paragraph*.70}%
+\contentsline {paragraph}{Analytic Gradients}{29}{paragraph*.71}%
+\contentsline {paragraph}{Classical Initialization}{31}{paragraph*.72}%
+\contentsline {paragraph}{Using Built\sphinxhyphen {}in Ingredients}{35}{paragraph*.73}%
+\contentsline {subsection}{\numberline {3.1.7}Default Behavior}{38}{subsection.3.1.7}%
+\contentsline {subsubsection}{Default Simulation Settings}{38}{subsubsection*.74}%
+\contentsline {subsubsection}{Default Model Attributes}{39}{subsubsection*.75}%
+\contentsline {paragraph}{Initialization of classical coordinates}{39}{paragraph*.76}%
+\contentsline {paragraph}{Classical Hamiltonian gradients}{40}{paragraph*.78}%
+\contentsline {paragraph}{Quantum\sphinxhyphen {}classical Hamiltonian gradients}{40}{paragraph*.80}%
+\contentsline {paragraph}{Surface Hopping Switching Algorithm}{41}{paragraph*.82}%
+\contentsline {subsection}{\numberline {3.1.8}Algorithm Development}{42}{subsection.3.1.8}%
+\contentsline {subsubsection}{Adding output obvservables}{42}{subsubsection*.84}%
+\contentsline {paragraph}{Linear response functions}{43}{paragraph*.85}%
+\contentsline {paragraph}{Adiabatic populations}{44}{paragraph*.86}%
+\contentsline {subsubsection}{Modifying algorithm behavior}{46}{subsubsection*.87}%
+\contentsline {chapter}{\numberline {4}Software Reference}{47}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Software Reference}{47}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Ingredients}{47}{subsection.4.1.1}%
+\contentsline {subsubsection}{Quantum Hamiltonian}{48}{subsubsection*.88}%
+\contentsline {subsubsection}{Quantum\sphinxhyphen {}Classical Hamiltonian}{48}{subsubsection*.91}%
+\contentsline {subsubsection}{Classical Hamiltonian}{49}{subsubsection*.95}%
+\contentsline {subsubsection}{Classical Initialization}{49}{subsubsection*.99}%
+\contentsline {chapter}{\numberline {5}Bibliography}{51}{chapter.5}%
+\contentsline {chapter}{Python Module Index}{53}{section*.103}%
+\contentsline {chapter}{Index}{55}{section*.104}%

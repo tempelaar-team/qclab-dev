@@ -7,6 +7,35 @@ import numpy as np
 from numba import njit
 
 
+def assign_norm_factor_mf(sim, parameters, state, **kwargs):
+    """
+    Assign the normalization factor to the state object for MF dynamics.
+
+    Required constants:
+        - None.
+    """
+    del kwargs
+    state.norm_factor = sim.settings.batch_size
+    return parameters, state
+
+
+def assign_norm_factor_fssh(sim, parameters, state, **kwargs):
+    """
+    Assign the normalization factor to the state object for FSSH.
+
+    Required constants:
+        - None.
+    """
+    del kwargs
+    if sim.algorithm.settings.fssh_deterministic:
+        state.norm_factor = (
+            sim.settings.batch_size // sim.model.constants.num_quantum_states
+        )
+    else:
+        state.norm_factor = sim.settings.batch_size
+    return parameters, state
+
+
 def initialize_branch_seeds(sim, parameters, state, **kwargs):
     """
     Initialize the seeds in each branch.
@@ -15,6 +44,7 @@ def initialize_branch_seeds(sim, parameters, state, **kwargs):
         - num_quantum_states (int): Number of quantum states. Default: None.
     """
     del kwargs
+    # First ensure that the number of branches is correct.
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
     else:
@@ -22,20 +52,18 @@ def initialize_branch_seeds(sim, parameters, state, **kwargs):
     batch_size = sim.settings.batch_size
     assert (
         batch_size % num_branches == 0
-    ), "Batch size must be divisible by number of quantums states for deterministic surface hopping."
+    ), "Batch size must be divisible by number of quantum states for deterministic surface hopping."
+    # Next, determine the number of trajectories that have been run by assuming that
+    # the minimum seed in the current batch of seeds is the number of trajectories
+    # that have been run modulo num_branches.
     orig_seeds = state.seed
-    min_seed = orig_seeds.min()
-    if min_seed != orig_seeds[0]:
-        warnings.warn(
-            "Minimum seed is not the first, this could lead to redundancies.",
-            UserWarning,
-        )
-    num_prev_trajs = min_seed * num_branches
+    # Now construct a branch index for each trajectory in the expanded batch.
     state.branch_ind = (
         np.zeros((batch_size // num_branches, num_branches), dtype=int)
         + np.arange(num_branches)[np.newaxis, :]
     ).flatten()
-    new_seeds = (num_prev_trajs + np.arange(len(orig_seeds))) // num_branches
+    # Now generate the new seeds for each trajectory in the expanded batch.
+    new_seeds = orig_seeds // num_branches
     parameters.seed = new_seeds
     state.seed = new_seeds
     return parameters, state
@@ -82,7 +110,7 @@ def numerical_boltzmann_mcmc_init_classical(model, constants, parameters, **kwar
         - mcmc_std (float): Standard deviation for sampling. Default: 1.
         - mcmc_h_c_separable (bool): If the classical Hamiltonian is separable. Default: True.
         - mcmc_init_z (np.ndarray): Initial sample. Default: None.
-        - temp (float): Temperature. Default: None.
+        - kBT (float): Thermal quantum. Default: None.
     """
     seed = kwargs.get("seed", None)
     burn_in_size = constants.get("mcmc_burn_in_size", 10000)
@@ -103,29 +131,29 @@ def numerical_boltzmann_mcmc_init_classical(model, constants, parameters, **kwar
         for s, seed_s in enumerate(burn_in_seeds):
             last_sample = np.copy(sample)
             last_z = np.diag(last_sample)
-            last_e = model.h_c(constants, parameters, z=last_z, batch_size = len(last_z))
+            last_e = model.h_c(constants, parameters, z=last_z, batch_size=len(last_z))
             proposed_sample, rand = _gen_sample_gaussian(
                 constants, z0=last_sample, seed=seed_s, separable=True
             )
             new_z = np.diag(proposed_sample)
-            new_e = model.h_c(constants, parameters, z=new_z, batch_size = len(new_z))
+            new_e = model.h_c(constants, parameters, z=new_z, batch_size=len(new_z))
             thresh = np.minimum(
                 np.ones(constants.num_classical_coordinates),
-                np.exp(-(new_e - last_e) / constants.temp),
+                np.exp(-(new_e - last_e) / constants.kBT),
             )
             sample[rand < thresh] = proposed_sample[rand < thresh]
         for s, seed_s in enumerate(sample_seeds):
             last_sample = np.copy(sample)
             last_z = np.diag(last_sample)
-            last_e = model.h_c(constants, parameters, z=last_z, batch_size = len(last_z))
+            last_e = model.h_c(constants, parameters, z=last_z, batch_size=len(last_z))
             proposed_sample, rand = _gen_sample_gaussian(
                 constants, z0=last_sample, seed=seed_s, separable=True
             )
             new_z = np.diag(proposed_sample)
-            new_e = model.h_c(constants, parameters, z=new_z, batch_size = len(new_z))
+            new_e = model.h_c(constants, parameters, z=new_z, batch_size=len(new_z))
             thresh = np.minimum(
                 np.ones(constants.num_classical_coordinates),
-                np.exp(-(new_e - last_e) / constants.temp),
+                np.exp(-(new_e - last_e) / constants.kBT),
             )
             sample[rand < thresh] = proposed_sample[rand < thresh]
             out_tmp[s] = sample
@@ -133,22 +161,30 @@ def numerical_boltzmann_mcmc_init_classical(model, constants, parameters, **kwar
 
     for s, seed_s in enumerate(burn_in_seeds):
         last_sample = np.copy(sample)
-        last_e = model.h_c(constants, parameters, z=last_sample, batch_size = len(last_sample))
+        last_e = model.h_c(
+            constants, parameters, z=last_sample, batch_size=len(last_sample)
+        )
         proposed_sample, rand = _gen_sample_gaussian(
             constants, z0=last_sample, seed=seed_s, separable=False
         )
-        new_e = model.h_c(constants, parameters, z=proposed_sample, batch_size = len(proposed_sample))
-        thresh = min(1, np.exp(-(new_e - last_e) / constants.temp))
+        new_e = model.h_c(
+            constants, parameters, z=proposed_sample, batch_size=len(proposed_sample)
+        )
+        thresh = min(1, np.exp(-(new_e - last_e) / constants.kBT))
         if rand < thresh:
             sample = proposed_sample
     for s, seed_s in enumerate(sample_seeds):
         last_sample = np.copy(sample)
-        last_e = model.h_c(constants, parameters, z=last_sample, batch_size = len(last_sample))
+        last_e = model.h_c(
+            constants, parameters, z=last_sample, batch_size=len(last_sample)
+        )
         proposed_sample, rand = _gen_sample_gaussian(
             constants, z0=last_sample, seed=seed_s, separable=False
         )
-        new_e = model.h_c(constants, parameters, z=proposed_sample, batch_size = len(proposed_sample))
-        thresh = min(1, np.exp(-(new_e - last_e) / constants.temp))
+        new_e = model.h_c(
+            constants, parameters, z=proposed_sample, batch_size=len(proposed_sample)
+        )
+        thresh = min(1, np.exp(-(new_e - last_e) / constants.kBT))
         if rand < thresh:
             sample = proposed_sample
         out_tmp[s] = sample
@@ -218,7 +254,7 @@ def dh_c_dzc_finite_differences(model, constants, parameters, **kwargs):
             num_classical_coordinates,
         )
     )
-    h_c_0 = model.h_c(constants, parameters, z=z, batch_size = len(z))
+    h_c_0 = model.h_c(constants, parameters, z=z, batch_size=len(z))
     h_c_offset_re = model.h_c(
         constants,
         parameters,
@@ -375,16 +411,24 @@ def update_quantum_classical_forces(sim, parameters, state, **kwargs):
     """
     Update the quantum-classical forces w.r.t the state defined by wf.
 
+    If the model has a gauge_field_force ingredient, this term will be added
+    to the quantum-classical forces.
+
     Required constants:
         - None.
     """
     z = kwargs["z"]
     wf = kwargs["wf"]
+    use_gauge_field_force = kwargs.get("use_gauge_field_force", False)
     parameters, state = update_dh_qc_dzc(sim, parameters, state, z=z)
     inds, mels, shape = state.dh_qc_dzc
     state.quantum_classical_forces = calc_sparse_inner_product(
         inds, mels, shape, wf, wf
     )
+    if hasattr(sim.model, "gauge_field_force") and use_gauge_field_force:
+        state.quantum_classical_forces += sim.model.gauge_field_force(
+            sim.model.constants, parameters, z=z, wf=wf
+        )
     return parameters, state
 
 
@@ -399,6 +443,7 @@ def update_z_rk4(sim, parameters, state, **kwargs):
     """
     dt = sim.settings.dt
     wf = kwargs["wf"]
+    use_gauge_field_force = kwargs.get("use_gauge_field_force", False)
     if hasattr(sim.model, "linear_h_qc"):
         update_quantum_classical_forces_bool = not sim.model.linear_h_qc
     else:
@@ -407,7 +452,12 @@ def update_z_rk4(sim, parameters, state, **kwargs):
     output_name = kwargs["output_name"]
     parameters, state = update_classical_forces(sim, parameters, state, z=z_0)
     parameters, state = update_quantum_classical_forces(
-        sim, parameters, state, wf=wf, z=z_0
+        sim,
+        parameters,
+        state,
+        wf=wf,
+        z=z_0,
+        use_gauge_field_force=use_gauge_field_force,
     )
     k1 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     parameters, state = update_classical_forces(
@@ -415,7 +465,12 @@ def update_z_rk4(sim, parameters, state, **kwargs):
     )
     if update_quantum_classical_forces_bool:
         parameters, state = update_quantum_classical_forces(
-            sim, parameters, state, wf=wf, z=z_0 + 0.5 * dt * k1
+            sim,
+            parameters,
+            state,
+            wf=wf,
+            z=z_0 + 0.5 * dt * k1,
+            use_gauge_field_force=use_gauge_field_force,
         )
     k2 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     parameters, state = update_classical_forces(
@@ -423,13 +478,23 @@ def update_z_rk4(sim, parameters, state, **kwargs):
     )
     if update_quantum_classical_forces_bool:
         parameters, state = update_quantum_classical_forces(
-            sim, parameters, state, wf=wf, z=z_0 + 0.5 * dt * k2
+            sim,
+            parameters,
+            state,
+            wf=wf,
+            z=z_0 + 0.5 * dt * k2,
+            use_gauge_field_force=use_gauge_field_force,
         )
     k3 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     parameters, state = update_classical_forces(sim, parameters, state, z=z_0 + dt * k3)
     if update_quantum_classical_forces_bool:
         parameters, state = update_quantum_classical_forces(
-            sim, parameters, state, wf=wf, z=z_0 + dt * k3
+            sim,
+            parameters,
+            state,
+            wf=wf,
+            z=z_0 + dt * k3,
+            use_gauge_field_force=use_gauge_field_force,
         )
     k4 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     setattr(state, output_name, z_0 + dt * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
@@ -533,7 +598,7 @@ def update_classical_energy(sim, parameters, state, **kwargs):
     """
     z = kwargs["z"]
     state.classical_energy = np.real(
-        sim.model.h_c(sim.model.constants, parameters, z=z, batch_size = len(z))
+        sim.model.h_c(sim.model.constants, parameters, z=z, batch_size=len(z))
     )
     return parameters, state
 
@@ -568,14 +633,14 @@ def update_classical_energy_fssh(sim, parameters, state, **kwargs):
                 * branch_weights[:, branch_ind][:, np.newaxis]
             )
             state.classical_energy = state.classical_energy + sim.model.h_c(
-                sim.model.constants, parameters, z=z_branch, batch_size = len(z_branch)
+                sim.model.constants, parameters, z=z_branch, batch_size=len(z_branch)
             )
     else:
         state.classical_energy = 0
         for branch_ind in range(num_branches):
             z_branch = z[state.branch_ind == branch_ind]
             state.classical_energy = state.classical_energy + sim.model.h_c(
-                sim.model.constants, parameters, z=z_branch, batch_size = len(z_branch)
+                sim.model.constants, parameters, z=z_branch, batch_size=len(z_branch)
             )
         state.classical_energy = state.classical_energy / num_branches
     state.classical_energy = np.real(state.classical_energy)
@@ -924,6 +989,7 @@ def initialize_active_surface(sim, parameters, state, **kwargs):
     state.act_surf = act_surf.astype(int).reshape(
         (num_trajs * num_branches, num_states)
     )
+    parameters.act_surf_ind = state.act_surf_ind
     return parameters, state
 
 
@@ -943,7 +1009,7 @@ def initialize_random_values_fssh(sim, parameters, state, **kwargs):
     state.hopping_probs_rand_vals = np.zeros((batch_size, len(sim.settings.tdat)))
     state.stochastic_sh_rand_vals = np.zeros((batch_size, num_branches))
     for nt in range(batch_size):
-        np.random.seed(state.seed[nt])
+        np.random.seed(state.seed[int(nt * num_branches)])
         state.hopping_probs_rand_vals[nt] = np.random.rand(len(sim.settings.tdat))
         state.stochastic_sh_rand_vals[nt] = np.random.rand(num_branches)
     return parameters, state
@@ -1144,6 +1210,98 @@ def numerical_fssh_hop(model, constants, parameters, **kwargs):
     return z - 1.0j * min_gamma * delta_z, True
 
 
+def calc_delta_z_fssh(sim, parameters, state, **kwargs):
+    """
+    Update the rescaling direction state.delta_z in FSSH.
+    """
+    traj_ind, final_state_ind, init_state_ind = (
+        kwargs["traj_ind"],
+        kwargs["final_state_ind"],
+        kwargs["init_state_ind"]
+    )
+    if hasattr(sim.model, "rescaling_direction_fssh"):
+        delta_z = sim.model.rescaling_direction_fssh(
+            sim.model.constants, parameters,
+            z=state.z[traj_ind],
+            init_state_ind=init_state_ind,
+            final_state_ind=final_state_ind,
+        )
+        return delta_z
+    
+    inds, mels, _ = state.dh_qc_dzc
+    eigvecs_flat = state.eigvecs
+    eigvals_flat = state.eigvals
+    evec_init_state = eigvecs_flat[traj_ind][:, init_state_ind]
+    evec_final_state = eigvecs_flat[traj_ind][:, final_state_ind]
+    eval_init_state = eigvals_flat[traj_ind][init_state_ind]
+    eval_final_state = eigvals_flat[traj_ind][final_state_ind]
+    ev_diff = eval_final_state - eval_init_state
+    inds_traj_ind = (
+        inds[0][inds[0] == traj_ind],
+        inds[1][inds[0] == traj_ind],
+        inds[2][inds[0] == traj_ind],
+        inds[3][inds[0] == traj_ind],
+    )
+    mels_traj_ind = mels[inds[0] == traj_ind]
+    dkj_z = np.zeros((sim.model.constants.num_classical_coordinates), dtype=complex)
+    dkj_zc = np.zeros((sim.model.constants.num_classical_coordinates), dtype=complex)
+    np.add.at(
+        dkj_z,
+        (inds_traj_ind[1]),
+        np.conj(evec_init_state)[inds_traj_ind[2]]
+        * mels_traj_ind
+        * evec_final_state[inds_traj_ind[3]]
+        / ev_diff,
+    )
+    np.add.at(
+        dkj_zc,
+        (inds_traj_ind[1]),
+        np.conj(evec_init_state)[inds_traj_ind[3]]
+        * np.conj(mels_traj_ind)
+        * evec_final_state[inds_traj_ind[2]]
+        / ev_diff,
+    )
+    dkj_p = (
+        1.0j
+        * np.sqrt(
+            1
+            / (
+                2
+                * sim.model.constants.classical_coordinate_weight
+                * sim.model.constants.classical_coordinate_mass
+            )
+        )
+        * (dkj_z - dkj_zc)
+    )
+    dkj_q = np.sqrt(
+        sim.model.constants.classical_coordinate_weight
+        * sim.model.constants.classical_coordinate_mass
+        / 2
+    ) * (dkj_z + dkj_zc)
+
+    max_pos_q = np.argmax(np.abs(dkj_q))
+    max_pos_p = np.argmax(np.abs(dkj_p))
+    # Check for complex nonadiabatic couplings.
+    if (
+        np.abs(dkj_q[max_pos_q]) > 1e-8
+        and np.abs(np.sin(np.angle(dkj_q[max_pos_q]))) > 1e-2
+    ):
+        warnings.warn(
+            "dkj_q Nonadiabatic coupling is complex, needs gauge fixing!",
+            UserWarning,
+        )
+    if (
+        np.abs(dkj_p[max_pos_p]) > 1e-8
+        and np.abs(np.sin(np.angle(dkj_p[max_pos_p]))) > 1e-2
+    ):
+        warnings.warn(
+            "dkj_p Nonadiabatic coupling is complex, needs gauge fixing!",
+            UserWarning,
+        )
+    delta_z = dkj_zc
+    return delta_z
+
+
 def update_active_surface_fssh(sim, parameters, state, **kwargs):
     """
     Update the active surface in FSSH. If a hopping function is not specified in the model
@@ -1198,84 +1356,92 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
         z = np.copy(state.z)
         act_surf_flat = state.act_surf
         for traj_ind in traj_hop_ind:
-            k = np.argmax(
+            final_state_ind = np.argmax(
                 (cumulative_probs[traj_ind] > rand_branch[traj_ind]).astype(int)
             )
-            j = act_surf_ind_flat[traj_ind]
-            evec_k = eigvecs_flat[traj_ind][:, j]
-            evec_j = eigvecs_flat[traj_ind][:, k]
-            eval_k = eigvals_flat[traj_ind][j]
-            eval_j = eigvals_flat[traj_ind][k]
-            ev_diff = eval_j - eval_k
-            inds_traj_ind = (
-                inds[0][inds[0] == traj_ind],
-                inds[1][inds[0] == traj_ind],
-                inds[2][inds[0] == traj_ind],
-                inds[3][inds[0] == traj_ind],
-            )
-            mels_traj_ind = mels[inds[0] == traj_ind]
-            dkj_z = np.zeros(
-                (sim.model.constants.num_classical_coordinates), dtype=complex
-            )
-            dkj_zc = np.zeros(
-                (sim.model.constants.num_classical_coordinates), dtype=complex
-            )
-            np.add.at(
-                dkj_z,
-                (inds_traj_ind[1]),
-                np.conj(evec_k)[inds_traj_ind[2]]
-                * mels_traj_ind
-                * evec_j[inds_traj_ind[3]]
-                / ev_diff,
-            )
-            np.add.at(
-                dkj_zc,
-                (inds_traj_ind[1]),
-                np.conj(evec_k)[inds_traj_ind[3]]
-                * np.conj(mels_traj_ind)
-                * evec_j[inds_traj_ind[2]]
-                / ev_diff,
-            )
-            dkj_p = (
-                1.0j
-                * np.sqrt(
-                    1
-                    / (
-                        2
-                        * sim.model.constants.classical_coordinate_weight
-                        * sim.model.constants.classical_coordinate_mass
-                    )
-                )
-                * (dkj_z - dkj_zc)
-            )
-            dkj_q = np.sqrt(
-                sim.model.constants.classical_coordinate_weight
-                * sim.model.constants.classical_coordinate_mass
-                / 2
-            ) * (dkj_z + dkj_zc)
+            init_state_ind = act_surf_ind_flat[traj_ind]
+            # evec_k = eigvecs_flat[traj_ind][:, j]
+            # evec_j = eigvecs_flat[traj_ind][:, k]
+            eval_init_state = eigvals_flat[traj_ind][init_state_ind]
+            eval_final_state = eigvals_flat[traj_ind][final_state_ind]
+            ev_diff = eval_final_state - eval_init_state
+            # inds_traj_ind = (
+            #     inds[0][inds[0] == traj_ind],
+            #     inds[1][inds[0] == traj_ind],
+            #     inds[2][inds[0] == traj_ind],
+            #     inds[3][inds[0] == traj_ind],
+            # )
+            # mels_traj_ind = mels[inds[0] == traj_ind]
+            # dkj_z = np.zeros(
+            #     (sim.model.constants.num_classical_coordinates), dtype=complex
+            # )
+            # dkj_zc = np.zeros(
+            #     (sim.model.constants.num_classical_coordinates), dtype=complex
+            # )
+            # np.add.at(
+            #     dkj_z,
+            #     (inds_traj_ind[1]),
+            #     np.conj(evec_k)[inds_traj_ind[2]]
+            #     * mels_traj_ind
+            #     * evec_j[inds_traj_ind[3]]
+            #     / ev_diff,
+            # )
+            # np.add.at(
+            #     dkj_zc,
+            #     (inds_traj_ind[1]),
+            #     np.conj(evec_k)[inds_traj_ind[3]]
+            #     * np.conj(mels_traj_ind)
+            #     * evec_j[inds_traj_ind[2]]
+            #     / ev_diff,
+            # )
+            # dkj_p = (
+            #     1.0j
+            #     * np.sqrt(
+            #         1
+            #         / (
+            #             2
+            #             * sim.model.constants.classical_coordinate_weight
+            #             * sim.model.constants.classical_coordinate_mass
+            #         )
+            #     )
+            #     * (dkj_z - dkj_zc)
+            # )
+            # dkj_q = np.sqrt(
+            #     sim.model.constants.classical_coordinate_weight
+            #     * sim.model.constants.classical_coordinate_mass
+            #     / 2
+            # ) * (dkj_z + dkj_zc)
 
-            max_pos_q = np.argmax(np.abs(dkj_q))
-            max_pos_p = np.argmax(np.abs(dkj_p))
-            # Check for complex nonadiabatic couplings.
-            if (
-                np.abs(dkj_q[max_pos_q]) > 1e-8
-                and np.abs(np.sin(np.angle(dkj_q[max_pos_q]))) > 1e-2
-            ):
-                warnings.warn(
-                    "dkj_q Nonadiabatic coupling is complex, needs gauge fixing!",
-                    UserWarning,
-                )
-            if (
-                np.abs(dkj_p[max_pos_p]) > 1e-8
-                and np.abs(np.sin(np.angle(dkj_p[max_pos_p]))) > 1e-2
-            ):
-                warnings.warn(
-                    "dkj_p Nonadiabatic coupling is complex, needs gauge fixing!",
-                    UserWarning,
-                )
-            delta_z = dkj_zc
+            # max_pos_q = np.argmax(np.abs(dkj_q))
+            # max_pos_p = np.argmax(np.abs(dkj_p))
+            # # Check for complex nonadiabatic couplings.
+            # if (
+            #     np.abs(dkj_q[max_pos_q]) > 1e-8
+            #     and np.abs(np.sin(np.angle(dkj_q[max_pos_q]))) > 1e-2
+            # ):
+            #     warnings.warn(
+            #         "dkj_q Nonadiabatic coupling is complex, needs gauge fixing!",
+            #         UserWarning,
+            #     )
+            # if (
+            #     np.abs(dkj_p[max_pos_p]) > 1e-8
+            #     and np.abs(np.sin(np.angle(dkj_p[max_pos_p]))) > 1e-2
+            # ):
+            #     warnings.warn(
+            #         "dkj_p Nonadiabatic coupling is complex, needs gauge fixing!",
+            #         UserWarning,
+            #     )
+            # delta_z = dkj_zc
             # Perform hopping using the model's hop function
             # or the default numerical hop function
+            delta_z = calc_delta_z_fssh(
+                sim,
+                parameters,
+                state,
+                traj_ind=traj_ind,
+                final_state_ind=final_state_ind,
+                init_state_ind=init_state_ind,
+            )
             hopped = False
             z_out = None
             if hasattr(sim.model, "hop_function"):
@@ -1297,13 +1463,14 @@ def update_active_surface_fssh(sim, parameters, state, **kwargs):
                     ev_diff=ev_diff,
                 )
             if hopped:
-                act_surf_ind_flat[traj_ind] = k
+                act_surf_ind_flat[traj_ind] = final_state_ind
                 act_surf_flat[traj_ind] = np.zeros_like(act_surf_flat[traj_ind])
-                act_surf_flat[traj_ind][k] = 1
+                act_surf_flat[traj_ind][final_state_ind] = 1
                 z[traj_ind] = z_out
                 state.act_surf_ind = np.copy(
                     act_surf_ind_flat.reshape((num_trajs, num_branches))
                 )
                 state.act_surf = np.copy(act_surf_flat)
                 state.z = np.copy(z)
+    parameters.act_surf_ind = state.act_surf_ind
     return parameters, state
