@@ -1,7 +1,0 @@
-This is makeindex, version 2.15 [TeX Live 2022/dev] (kpathsea + Thai support).
-Scanning style file ./python.ist.......done (7 attributes redefined, 0 ignored).
-Scanning input file qclab.idx....done (31 entries accepted, 0 rejected).
-Sorting entries....done (159 comparisons).
-Generating output file qclab.ind....done (70 lines written, 0 warnings).
-Output written in qclab.ind.
-Transcript written in qclab.ilg.

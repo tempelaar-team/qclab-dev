@@ -14,6 +14,8 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     """
     Parallel driver for the dynamics core using the mpi4py library.
     """
+    # first initialize the model constants
+    sim.model.initialize_constants()
     try:
         from mpi4py import MPI
     except ImportError:
@@ -38,6 +40,8 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
             UserWarning,
         )
         sim.settings.num_trajs = num_trajs
+        if data is None:
+            data = Data()
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     if num_tasks is None:

@@ -11,8 +11,10 @@ class Data:
     The data object handles the collection of data from the dynamics driver.
     """
 
-    def __init__(self):
-        self.data_dict = {"seed": np.array([], dtype=int), "norm_factor": 0}
+    def __init__(self, seeds=None):
+        if seeds is None:
+            seeds = np.array([], dtype=int)
+        self.data_dict = {"seed": seeds, "norm_factor": 0}
 
     def add_to_output_total_arrays(self, sim, state, t_ind):
         """
@@ -20,7 +22,7 @@ class Data:
 
         Args:
             sim: The simulation object containing settings and parameters.
-            full_state: The full state object containing the current simulation state.
+            state: The state object containing the current simulation state.
             t_ind: The current time index in the simulation.
         """
         # Check if the norm_factor is zero, if it is, save it from the state object.
@@ -54,8 +56,6 @@ class Data:
             new_data.data_dict["norm_factor"] + self.data_dict["norm_factor"]
         )
         for key, val in new_data.data_dict.items():
-            if val is None:
-                print(key, val)
             if key == "seed":
                 self.data_dict[key] = np.concatenate(
                     (self.data_dict[key], val.flatten()), axis=0
@@ -104,14 +104,27 @@ class Data:
             dic: The dictionary to save.
         """
         for key, item in dic.items():
-            if isinstance(item, (np.ndarray, np.int64, np.float64, str, bytes)):
+            if isinstance(
+                item,
+                (
+                    np.ndarray,
+                    np.int64,
+                    np.float64,
+                    str,
+                    bytes,
+                    int,
+                    float,
+                    bool,
+                    complex,
+                ),
+            ):
                 h5file[path + key] = item
             elif isinstance(item, dict):
                 self._recursive_save(h5file, path + key + "/", item)
             elif isinstance(item, list):
                 h5file[path + key] = np.array(item)
             else:
-                raise ValueError(f"Cannot save {type(item)} type")
+                raise ValueError(f"Cannot save {key} with type {type(item)}.")
 
     def _recursive_load(self, h5file, path, dic):
         """

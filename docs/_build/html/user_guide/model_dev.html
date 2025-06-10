@@ -132,6 +132,13 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../nested_docs/index.html">
+    Interactive Documentation
+  </a>
+</li>
+
+
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="index.html">
     User Guide
@@ -234,6 +241,13 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../nested_docs/index.html">
+    Interactive Documentation
+  </a>
+</li>
+
+
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="index.html">
     User Guide
@@ -401,6 +415,10 @@ We will first describe the construction of a minimal model class, and then discu
 <p>where <span class="math notranslate nohighlight">\(\hat{H}_{\mathrm{q}}\)</span> is the quantum Hamiltonian, <span class="math notranslate nohighlight">\(\hat{H}_{\mathrm{q-c}}\)</span> is the quantum-classical coupling Hamiltonian,
 and <span class="math notranslate nohighlight">\(H_{\mathrm{c}}\)</span> is the classical Hamiltonian. <span class="math notranslate nohighlight">\(\boldsymbol{z}\)</span> is a complex-valued classical coordinate that defines the
 classical degrees of freedom.</p>
+<p>The precise form of the Hamiltonian that is required for a model class is in practice determined by the algorithm being used. For the MF and FSSH algorithms the
+ingredients generating the Hamiltonian are required to return the Hamiltonian in a prescribed quantum basis. This is primarily relevant for cases such as the
+Holstein Lattice Model where the quantum and quantum-classical Hamiltonians are given in second quantization. In order to be used in QC Lab, the ingredients
+would choose a basis (for example a basis of one or more electrons) and then return that matrix.</p>
 <p>Before describing how the model ingredients should be structured in the model class, we will first describe the <cite>__init__</cite> method of the model class
 which is responsible for initializing the default model constants and any input constants into the set of constants needed for QC Lab and all
 of the model ingredients to run.</p>
@@ -516,13 +534,12 @@ the coupling strengths are updated appropriately:</p>
 the quantum-classical coupling Hamiltonian, and the classical Hamiltonian. The ingredients in a model class
 take a standard form which is required by QC Lab.</p>
 <p>A generic ingredients has as arguments the model class itself, the constants object containing time independent quantities (stored in <cite>sim.model.constants</cite>), and
-the parameters object which contain potentially time-dependent quantities (stored in <cite>sim.model.parameters</cite>). The ingredients can also take additional keyword arguments
-which are passed to the ingredient when it is called. The ingredients return the result of the calculation directly. Typically, users will never call ingredients as they
-are internal functions used by QC Lab to define the model.</p>
+the parameters object which contains potentially time-dependent quantities (stored in <cite>sim.model.parameters</cite>). The ingredients can also take additional keyword arguments
+which are passed to the ingredient when it is called. The ingredients return the result of the calculation directly.</p>
 <p>As an example we will use the quantum Hamiltonian. Importantly, QC Lab is a vectorized code capable of calculating multiple quantum-classical trajectories simultaneously.
 As a result, the ingredients must also be vectorized, meaning that they accept as input quantities with an additional dimension corresponding to the number of trajectories
-(this is taken to be the first dimension as a convention). The quantum Hamiltonian is a <span class="math notranslate nohighlight">\(2\times 2\)</span> matrix and so the vectorized quantum Hamiltonian is a 3D array with shape
-<cite>(len(parameters.seed), 2, 2)</cite> where the number of trajectories is given by the number of seeds in the parameters object.</p>
+(this is taken to be the first dimension as a convention). In the case of the spin-boson model, the quantum Hamiltonian is a <span class="math notranslate nohighlight">\(2\times 2\)</span> matrix and so the vectorized
+quantum Hamiltonian is a 3D array with shape <cite>(len(parameters.seed), 2, 2)</cite> where the number of trajectories is given by the number of seeds in the parameters object.</p>
 <p>Rather than writing a vectorized ingredient (which will be discussed later) we can invoke a decorator (<cite>ingredients.vectorize</cite>) which will automatically vectorize the ingredient
 at the cost of some performance (it is strongly recommended to write vectorized ingredients as a first pass for performance optimization).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">qc_lab.ingredients</span> <span class="k">as</span> <span class="nn">ingredients</span>
