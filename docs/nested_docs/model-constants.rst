@@ -1,4 +1,4 @@
-.. _model-settings:
+.. _model-constants:
 
 Model Constants
 =================
