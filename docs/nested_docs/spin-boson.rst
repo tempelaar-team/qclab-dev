@@ -82,15 +82,15 @@ the quantum and classical energies (`quantum_energy` and `classical_energy`), an
 
    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2em;">
      <button onclick="location.href='simulation-settings.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
-       I want to change the simulation settings
+       I want to change the simulation's settings.
      </button>
      <button onclick="location.href='model-constants.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
-       I want to change the model settings
+       I want to change the model's constants.
      </button>
      <button onclick="location.href='change-model.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
-       I want to change the model
+       I want to change the model.
      </button>
      <button onclick="location.href='change-algorithm.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
-       I want to change the algorithm
+       I want to change the algorithm.
      </button>
    </div>
