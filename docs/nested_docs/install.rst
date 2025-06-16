@@ -83,7 +83,7 @@ After installation, verify that QC Lab is available:
 
 .. code-block:: bash
 
-   python -c "import qc_lab; print(qc_lab.__version__)"
+   python -c "import qc_lab"
 
 You should see the QC Lab version printed without errors. 
 
