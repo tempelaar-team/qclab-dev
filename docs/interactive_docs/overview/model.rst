@@ -22,16 +22,16 @@ of a specific model. For a detailed discussion of model develoment, see the `Mod
 
 
 1. **Model Object**: The model object is an instance of the `Model` class from `qc_lab`. 
-
-2. **Input Constants**: The input constants are high level parameters that govern the behavior of the model like the number of sites in a lattice,
-the characteristic frequency of a spectral density, or other quantities the user may want to specify.
-
-3. **Initialization Functions**: The initialization functions are a list of functions that converts the user-speficied input constants into internal constants
-that are used both by QC Lab and any ingredients defined by the user in the model object. 
-
-4. **Internal Constants**: Internal constants are quantities that are derived from the input constants and have a well-defined meaning and structure within the context
-of the model and QC Lab. In the following table we list the necessary internal constants required by QC Lab, as well as their structure. 
-
+2. **Input Constants**: The input constants are high level parameters that govern the behavior of the model 
+   like the number of sites in a lattice, the characteristic frequency of a spectral density, or other quantities the user may want to specify.
+3. **Initialization Functions**: The initialization functions are a list of functions that converts the user-speficied input constants into 
+   internal constants that are used both by QC Lab and any ingredients defined by the user in the model object. 
+4. **Internal Constants**: Internal constants are quantities that are derived from the input constants and have a well-defined meaning and structure 
+   within the context of the model and QC Lab. In the following table we list the necessary internal constants required by QC Lab, as well as their structure. 
+5. **Ingredients**: The model ingredients are functions that define the specific properties of the Model. At its most basic, these ingredients define the 
+   quantum, quantum-classical, and classical terms of the Hamiltonian. Because QC Lab expects these ingredients to be attached to specific attributes of 
+   the model object, they are defined in a list of tuples, where each tuple contains the name of the attribute and the function that defines the ingredient. 
+   For example, the quantum Hamiltonian ingredient accessed at `model.h_q` would be defined by the ingredients list `model.ingredients = [('h_q', h_q_function)]`.
 
 .. list-table:: QC Lab Internal Constants
    :header-rows: 1
@@ -55,6 +55,9 @@ of the model and QC Lab. In the following table we list the necessary internal c
 
 
 
+Combining these elements provides a bare bones model object that can be used in a quantum-classical simulation.
+
+
 .. code-block:: python
 
     from qc_lab import Model
@@ -62,16 +65,47 @@ of the model and QC Lab. In the following table we list the necessary internal c
     class MyModel(Model):
         def __init__(self, constants={}):
             default_constants = {
-                'param1': 1.0,
-                'param2': 2.0,
+                'N': 10,
+                'mass': 1,
+                'A': 10,
+                'h': 1.0,
             }   
             super().__init__(self.default_constants, constants)
 
+        def initialize_internal_constants(self):
+            self.constants.num_quantum_states = self.constants.N
+            self.constants.num_classical_coordinates = self.constants.A
+            self.constants.classical_coordinate_mass = \
+                np.ones(self.constants.num_classical_coordinates) * self.constants.mass
+            self.constants.classical_coordinate_weight = \
+                np.ones(self.constants.num_classical_coordinates) * self.constants.h
+        
+        initialization_functions = [
+            initialize_internal_constants,
+        ]
+
+        def h_q_function(self, state):
+            # Define the quantum Hamiltonian here
+            pass
+
+        def h_c_function(self, state):
+            # Define the classical Hamiltonian here
+            pass    
+
+        def h_qc_function(self, state):
+            # Define the quantum-classical Hamiltonian here
+            pass    
+
+        ingredients = [
+            ('h_q', h_q_function),
+            ('h_c', h_c_function),
+            ('h_qc', h_qc_function),
+        ]
 
 
 
 
-5. **Ingredients**: The model object provides the "ingredients" for the simulation, which are used by the algorithm to compute the dynamics.
-These ingredients include the Hamiltonian, potential energy functions, and other relevant data that describe the system's behavior.
+
+
 
 
