@@ -97,3 +97,43 @@ Alternatively, you can set the constants directly in the model after instantiati
     sim.state.wf_db = np.array([1, 0], dtype=complex)
     # Run the simulation using the serial driver
     data = serial_driver(sim)
+
+Here we show a simple example where we compare the population dynamics of the spin-boson model with different values of the reorganization energy.
+
+.. code-block:: python
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from qc_lab import Simulation
+    from qc_lab.models import SpinBoson
+    from qc_lab.algorithms import MeanField
+    from qc_lab.dynamics import serial_driver
+
+
+    # Initialize the simulation object.
+    sim = Simulation()
+    # Equip it with a SpinBoson model object.
+    sim.model = SpinBoson()
+    # Attach the MeanField algorithm.
+    sim.algorithm = MeanField()
+    # Initialize the diabatic wavefunction.
+    sim.state.wf_db = np.array([1, 0], dtype=complex)
+    # Run the simulation.
+    data = serial_driver(sim)
+    # Change the reorganization energy.
+    sim.model.constants.l_reorg = 0.05
+    # Run the simulation again.
+    data_1 = serial_driver(sim)
+    # Plot the results.
+    plt.plot(data.data_dict["t"], np.real(data.data_dict["dm_db"][:,0,0]), label=r'$\lambda = 0.005$')
+    plt.plot(data_1.data_dict["t"], np.real(data_1.data_dict["dm_db"][:,0,0]), label=r'$\lambda = 0.05$')
+    plt.xlabel('Time')
+    plt.ylabel('Excited state population')
+    plt.legend()
+    plt.show()
+
+
+.. image:: lambda_comparison.png
+    :alt: Population dynamics.
+    :align: center
+    :width: 80%

@@ -39,3 +39,4 @@ changing the initial state if necessary, and then running the simulation again.
     sim.state.wf_db = np.zeros(sim.model.constants.N, dtype=complex)
     sim.state.wf_db[0] = 1  # Set the first site to be occupied
     data_holstein = serial_driver(sim)
+

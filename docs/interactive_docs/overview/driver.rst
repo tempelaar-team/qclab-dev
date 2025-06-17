@@ -13,3 +13,4 @@ Dynamics Driver
 
 The **Dynamics Driver** is a central component in QC Lab that orchestrates the execution of quantum dynamics simulations by running (or driving) the 
 **Dynamics Core**. It manages the flow of data between the simulation model, algorithm, and data storage, ensuring that all components work together seamlessly.
+
