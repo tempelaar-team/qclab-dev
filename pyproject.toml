@@ -20,10 +20,10 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
 ]
 dependencies = [
-    "numpy,
+    "numpy",
     "tqdm",
     "h5py",
-    "numba,
+    "numba",
     "matplotlib",
 ]
 
