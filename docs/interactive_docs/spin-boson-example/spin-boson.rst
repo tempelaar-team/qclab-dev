@@ -8,7 +8,7 @@ This example shows how to set up and run a simple spin-boson simulation using QC
 
 Prerequisites
 -------------
-- QC Lab installed (see :doc:`install`).
+- QC Lab installed.
 
 Overview
 --------
