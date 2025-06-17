@@ -81,16 +81,16 @@ the quantum and classical energies (`quantum_energy` and `classical_energy`), an
 .. raw:: html
 
    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2em;">
-     <button onclick="location.href='simulation-settings.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
+     <button onclick="location.href='spin-boson-example/simulation-settings.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
        I want to change the simulation's settings.
      </button>
-     <button onclick="location.href='model-constants.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
+     <button onclick="location.href='spin-boson-example/model-constants.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
        I want to change the model's constants.
      </button>
-     <button onclick="location.href='change-model.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
+     <button onclick="location.href='spin-boson-example/change-model.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
        I want to change the model.
      </button>
-     <button onclick="location.href='change-algorithm.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
+     <button onclick="location.href='spin-boson-example/change-algorithm.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
        I want to change the algorithm.
      </button>
    </div>

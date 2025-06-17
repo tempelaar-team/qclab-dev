@@ -35,19 +35,19 @@ Installing qc_lab
 
 This alpha release of QC Lab can be installed from source by downloading the repository and executing.::
 
-   pip install -e ./
+   pip install ./
 
 from inside its topmost directory (where the `pyproject.toml` file is located).
 
 
-Nested Documentation
+Interactive Documentation
 --------------------
 This documentation is organized into several sections to help you navigate through the features and functionalities of QC Lab.
 
 .. toctree::
    :maxdepth: 2
 
-   nested_docs/index
+   interactive_docs/index
 
 
 User Guide

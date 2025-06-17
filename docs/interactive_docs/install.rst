@@ -75,7 +75,7 @@ If you wish to install in “editable” (development) mode so that changes in t
 
 .. code-block:: bash
 
-   pip install -e .
+   pip install .
 
 Verifying the Installation
 --------------------------
