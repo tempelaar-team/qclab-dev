@@ -4,7 +4,7 @@ Model Constants
 =================
 Each model class has a constant object, `model.constants` that stores the constants defining a model.
 In the spin-boson model, these constants are derived from the definition of the Hamiltonian which can be found in the
- `Spin-Boson Model Documentation <../user_guide/models/spin_boson_model.html>`_.
+ `Spin-Boson Model Documentation <../../user_guide/models/spin_boson_model.html>`_.
 
 The table below lists the available constants and their default values.
 

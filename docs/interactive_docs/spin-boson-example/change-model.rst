@@ -32,6 +32,7 @@ You can change the model to a different one by first importing the new model cla
 changing the initial state if necessary, and then running the simulation again.
 
 .. code-block:: python
+    
     from qc_lab.models import HolsteinLattice
     sim.model = HolsteinLattice()
     # use the input constant 'N' to set the number of sites (this is specific to the HolsteinLattice model)

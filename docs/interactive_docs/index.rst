@@ -12,13 +12,13 @@ Welcome to the QC Lab documentation! Use the buttons below to navigate to the se
      <button onclick="location.href='install.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
        I want to install QC Lab
      </button>
-     <button onclick="location.href='spin-boson.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
+     <button onclick="location.href='spin-boson-example/spin-boson.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
        I want to run a spin-boson model
      </button>
-     <button onclick="location.href='overview.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
+     <button onclick="location.href='overview/overview.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
        I want a high level overview
      </button>
-     <button onclick="location.href='manual.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
+     <button onclick="location.href='../user_guide/index.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
        I want a comprehensive manual
      </button>
      <button onclick="location.href='cite.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
@@ -32,7 +32,7 @@ Welcome to the QC Lab documentation! Use the buttons below to navigate to the se
    :hidden:
 
    install
-   spin-boson
-   overview
-   manual
+   spin-boson-example/spin-boson
+   overview/overview
+   ../user_guide/index
    cite
