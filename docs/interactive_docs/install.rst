@@ -71,12 +71,6 @@ This command will:
 - Read the `pyproject.toml` in the source directory.
 - Install QC Lab and any required dependencies into your active Python environment.
 
-If you wish to install in “editable” (development) mode so that changes in the source tree are immediately available, run:
-
-.. code-block:: bash
-
-   pip install .
-
 Verifying the Installation
 --------------------------
 After installation, verify that QC Lab is available:
