@@ -14,9 +14,7 @@ class HolsteinLattice(Model):
     single optical mode.
     """
 
-    def __init__(self, constants=None):
-        if constants is None:
-            constants = {}
+    def __init__(self, constants={}):
         self.default_constants = {
             "kBT": 1,
             "g": 0.5,

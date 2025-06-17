@@ -12,9 +12,7 @@ class SpinBoson(Model):
     Spin-Boson model class for the simulation framework.
     """
 
-    def __init__(self, constants=None):
-        if constants is None:
-            constants = {}
+    def __init__(self, constants={}):
         self.default_constants = {
             "kBT": 1,
             "V": 0.5,

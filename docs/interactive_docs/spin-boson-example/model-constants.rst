@@ -49,7 +49,7 @@ The table below lists the available constants and their default values.
 
 The constants object can be initialized with custom values by passing a dictionary to the `SpinBoson` model class at instantiation.
 
-:: 
+.. code-block:: python
 
     from qc_lab.models import SpinBoson
     from qc_lab import Simulation
@@ -78,7 +78,7 @@ The constants object can be initialized with custom values by passing a dictiona
 
 Alternatively, you can set the constants directly in the model after instantiation.
 
-:: 
+.. code-block:: python
 
     from qc_lab.models import SpinBoson
     from qc_lab import Simulation
