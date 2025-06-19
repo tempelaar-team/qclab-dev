@@ -82,3 +82,38 @@ Ingredients that initialize the complex-valued classical coordinates.
 .. automodule:: qc_lab.ingredients
     :members: harmonic_oscillator_boltzmann_init_classical, harmonic_oscillator_wigner_init_classical
 
+
+Ingredients Currently Incorporated into QC Lab
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following table lists the ingredients that are currently utilized in QC Lab and specifies the 
+algorithm that uses them.
+
+.. list-table:: QC Lab Ingredients
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Ingredient
+     - Algorithm
+     - Description
+   * - `h_q`
+     - `MeanField`
+     - Generates the quantum Hamiltonian for a two-level system.
+   * - `h_qc`
+     - `MeanField`
+     - Generates the quantum Hamiltonian for a nearest neighbor lattice.
+   * - `h_c`
+     - `MeanField`
+     - Generates the quantum-classical interaction term for a diagonal linear coupling.
+   * - `init_classical`
+     - `MeanField`
+     - Computes the derivative of the classical Hamiltonian with respect to classical coordinates.
+   * - `dh_qc_dzc`
+     - `MeanField`
+     - Computes the derivative of the quantum-classical interaction term with respect to classical coordinates.
+   * - `dh_c_dzc`
+     - `MeanField`
+     - Generates the classical Hamiltonian for a harmonic oscillator.
+   * - `harmonic_oscillator_hop`
+     - `MeanField`
+     - Computes the hopping term for a harmonic oscillator.
