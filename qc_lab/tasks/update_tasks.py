@@ -433,7 +433,6 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
         kwargs["final_state_ind"],
         kwargs["init_state_ind"],
     )
-    # if hasattr(sim.model, "rescaling_direction_fssh"):
     rescaling_direction_fssh, has_rescaling_direction_fssh = sim.model.get(
         "rescaling_direction_fssh"
     )

@@ -86,13 +86,7 @@ def harmonic_oscillator_h_c(model, parameters, **kwargs):
     Harmonic oscillator classical Hamiltonian function.
 
     Required Constants:
-        - `classical_coordinate_weight`: Array of weights for classical coordinates.
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
-        - `classical_coordinate_mass`: Array of masses for classical coordinates.
-
-    Keyword Arguments:
-        - `z`: complex-valued classical coordinates.
-        - `batch_size`: (Optional) Number of batches for vectorized computation.
     """
     del parameters
     z = kwargs.get("z")
@@ -101,7 +95,6 @@ def harmonic_oscillator_h_c(model, parameters, **kwargs):
         assert len(z) == batch_size
     else:
         batch_size = len(z)
-    h = model.constants.classical_coordinate_weight[np.newaxis, :]
     w = model.constants.harmonic_oscillator_frequency[np.newaxis, :]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     q, p = z_to_qp(z, model.constants)
@@ -125,12 +118,7 @@ def harmonic_oscillator_dh_c_dzc(model, parameters, **kwargs):
     Derivative of the classical harmonic oscillator Hamiltonian with respect to the `z` coordinate.
 
     Required Constants:
-        - `classical_coordinate_weight`: Array of weights for classical coordinates.
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
-
-    Keyword Arguments:
-        - `z`: complex-valued classical coordinates.
-        - `batch_size`: (Optional) Number of batches for vectorized computation.
     """
     del parameters
     z = kwargs.get("z")
@@ -153,9 +141,6 @@ def two_level_system_h_q(model, parameters, **kwargs):
         - `two_level_system_b`: Energy of the second level.
         - `two_level_system_c`: Real part of the coupling between levels.
         - `two_level_system_d`: Imaginary part of the coupling between levels.
-
-    Keyword Arguments:
-        - `batch_size`: (Optional) Number of batches for vectorized computation.
     """
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
@@ -196,12 +181,8 @@ def nearest_neighbor_lattice_h_q(model, parameters, **kwargs):
     Quantum Hamiltonian for a nearest-neighbor lattice.
 
     Required Constants:
-        - `num_quantum_states`: Number of quantum states (sites).
         - `nearest_neighbor_lattice_hopping_energy`: Hopping energy between sites.
         - `nearest_neighbor_lattice_periodic_boundary`: Boolean indicating periodic boundary conditions.
-
-    Keyword Arguments:
-        - `batch_size`: (Optional) Number of batches for vectorized computation.
     """
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
@@ -255,13 +236,7 @@ def diagonal_linear_h_qc(model, parameters, **kwargs):
     :math:`H_{ii} = \sum_{j} \gamma_{ij} (z_{j} + z_{j}^*)`
 
     Required Constants:
-        - `num_quantum_states`: Number of quantum states (sites).
-        - `num_classical_coordinates`: Number of classical coordinates.
-        - `diagonal_linear_coupling`: Array of coupling constants (num_sites, num_classical_coordinates).
-
-    Keyword Arguments:
-        - `z`: complex-valued classical coordinates.
-        - `batch_size`: (Optional) Number of batches for vectorized computation.
+        - `diagonal_linear_coupling`: Array of coupling constants (num_quantum_states, num_classical_coordinates).
     """
     del parameters
     z = kwargs["z"]
@@ -283,13 +258,7 @@ def diagonal_linear_dh_qc_dzc(model, parameters, **kwargs):
     Gradient of the diagonal linear quantum-classical coupling Hamiltonian.
 
     Required Constants:
-        - `num_quantum_states`: Number of quantum states (sites).
-        - `num_classical_coordinates`: Number of classical coordinates
-        - `diagonal_linear_coupling`: Array of coupling constants (num_sites, num_classical_coordinates).
-
-    Keyword Arguments:
-        - `z`: complex-valued classical coordinates.
-        - `batch_size`: (Optional) Number of batches for vectorized computation.
+        - `diagonal_linear_coupling`: Array of coupling constants (num_quantum_states, num_classical_coordinates).
     """
     z = kwargs["z"]
     if kwargs.get("batch_size") is not None:
@@ -336,12 +305,6 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
 
     Required Constants:
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
-        - `classical_coordinate_weight`: Array of weights for classical coordinates.
-
-    Keyword Arguments:
-        - `z`: complex-valued classical coordinates.
-        - `delta_z`: Change in classical coordinates.
-        - `ev_diff`: Energy difference for the hopping operation.
     """
     del parameters
     z = kwargs["z"]
@@ -394,12 +357,7 @@ def harmonic_oscillator_boltzmann_init_classical(model, parameters, **kwargs):
 
     Required Constants:
         - `kBT`: Thermal quantum.
-        - `classical_coordinate_weight`: Array of weights for classical coordinates.
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
-        - `classical_coordinate_mass`: Array of masses for classical coordinates.
-
-    Keyword Arguments:
-        - `seed`: Array of random seeds for initialization.
     """
     del parameters
     seed = kwargs.get("seed", None)
@@ -433,12 +391,7 @@ def harmonic_oscillator_wigner_init_classical(model, parameters, **kwargs):
 
     Required Constants:
         - `kBT`: Thermal quantum.
-        - `classical_coordinate_weight`: Array of weights for classical coordinates.
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
-        - `classical_coordinate_mass`: Array of masses for classical coordinates.
-
-    Keyword Arguments:
-        - `seed`: Array of random seeds for initialization.
     """
     del parameters
     seed = kwargs.get("seed", None)
@@ -483,12 +436,7 @@ def harmonic_oscillator_coherent_state_wigner_init_classical(
 
     Required Constants:
         - `coherent_state_displacement`: Array of complex displacement parameter for the coherent state.
-        - `classical_coordinate_weight`: Array of weights for classical coordinates.
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
-        - `classical_coordinate_mass`: Array of masses for classical coordinates.
-
-    Keyword Arguments:
-        - `seed`: Array of random seeds for initialization.
     """
     del parameters
     seed = kwargs.get("seed", None)
