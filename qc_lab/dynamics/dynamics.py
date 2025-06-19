@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 
 
-def dynamics(sim, parameter_vector, state_vector, data):
+def dynamics(sim, parameter, state, data):
     """
     Dynamics core for QC Lab.
     """
@@ -14,21 +14,21 @@ def dynamics(sim, parameter_vector, state_vector, data):
     for sim.t_ind in tqdm(sim.settings.tdat_n):
         if sim.t_ind == 0:
             # Execute initialization recipe.
-            parameter_vector, state_vector = sim.algorithm.execute_recipe(
-                sim, parameter_vector, state_vector, sim.algorithm.initialization_recipe
+            parameter, state = sim.algorithm.execute_recipe(
+                sim, parameter, state, sim.algorithm.initialization_recipe
             )
         # Detect output timesteps.
         if np.mod(sim.t_ind, sim.settings.dt_output_n) == 0:
             # Calculate output variables.
-            parameter_vector, state_vector = sim.algorithm.execute_recipe(
-                sim, parameter_vector, state_vector, sim.algorithm.output_recipe
+            parameter, state = sim.algorithm.execute_recipe(
+                sim, parameter, state, sim.algorithm.output_recipe
             )
             # Collect output variables into a dictionary.
-            state_vector.collect_output_variables(sim.algorithm.output_variables)
+            state.collect_output_variables(sim.algorithm.output_variables)
             # Collect totals in output dictionary.
-            data.add_to_output_total_arrays(sim, state_vector, sim.t_ind)
+            data.add_to_output_total_arrays(sim, state, sim.t_ind)
         # Execute update recipe.
-        parameter_vector, state_vector = sim.algorithm.execute_recipe(
-            sim, parameter_vector, state_vector, sim.algorithm.update_recipe
+        parameter, state = sim.algorithm.execute_recipe(
+            sim, parameter, state, sim.algorithm.update_recipe
         )
     return data
