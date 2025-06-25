@@ -4,7 +4,7 @@ This file contains ingredient functions for use in Model classes.
 
 import functools
 import numpy as np
-from numba import njit
+from qc_lab.jit import njit
 
 
 def z_to_qp(z, constants):
