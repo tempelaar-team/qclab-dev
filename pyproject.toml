@@ -19,16 +19,3 @@ classifiers = [
     "Operating System :: Linux :: Linux",
     "License :: OSI Approved :: Apache Software License",
 ]
-
-#dynamic = ["dependencies"]
-
-#[tool.setuptools.dynamic]
-#dependencies = { file = "deps.py", attr = "get_dependencies" }
-
-#[project.optional-dependencies]
-#test = ["pytest", "mpi4py"]
-
-#[tool.setuptools.packages.find]
-#where = ["."]
-#exclude = ["tests", "tests.*"]
-
