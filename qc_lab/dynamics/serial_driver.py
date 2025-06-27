@@ -5,7 +5,7 @@ This file contains the serial driver for the dynamics core.
 import warnings
 import numpy as np
 from qc_lab.data import Data
-from qc_lab.vector import initialize_vector_objects
+from qc_lab.variable import initialize_vector_objects
 import qc_lab.dynamics as dynamics
 
 

@@ -5,7 +5,7 @@ functions for initializing and handling these objects.
 
 import numpy as np
 from qc_lab.constants import Constants
-from qc_lab.vector import Vector
+from qc_lab.variable import Variable
 
 
 class Simulation:
@@ -29,7 +29,7 @@ class Simulation:
             setattr(self.settings, key, val)
         self.algorithm = None
         self.model = None
-        self.state = Vector()
+        self.state = Variable()
 
     def initialize_timesteps(self):
         """

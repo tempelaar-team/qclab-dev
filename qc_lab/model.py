@@ -3,7 +3,7 @@ This file contains the Model class, which is the base class for Model objects in
 """
 
 from qc_lab.constants import Constants
-from qc_lab.vector import Vector
+from qc_lab.variable import Variable
 import copy
 
 
@@ -21,7 +21,7 @@ class Model:
         for key, val in constants.items():
             setattr(self.constants, key, val)
         self.constants._init_complete = True
-        self.parameters = Vector()
+        self.parameters = Variable()
         self.initialization_functions = copy.deepcopy(self.initialization_functions)
         self.ingredients = copy.deepcopy(self.ingredients)
 

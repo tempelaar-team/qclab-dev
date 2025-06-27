@@ -7,7 +7,7 @@ import copy
 import numpy as np
 import qc_lab.dynamics as dynamics
 from qc_lab.data import Data
-from qc_lab.vector import initialize_vector_objects
+from qc_lab.variable import initialize_vector_objects
 
 
 def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
