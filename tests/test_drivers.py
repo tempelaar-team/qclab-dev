@@ -14,7 +14,7 @@ def test_drivers_spinboson():
     sim.settings.num_trajs = 200
     sim.settings.batch_size = 50
     sim.settings.tmax = 10
-    sim.settings.dt = 0.01
+    sim.settings.dt_update = 0.01
 
     sim.model = SpinBoson({
         'V':0.5,
@@ -63,7 +63,7 @@ def test_drivers_spinboson_mpi():
     sim.settings.num_trajs = 200
     sim.settings.batch_size = 50
     sim.settings.tmax = 10
-    sim.settings.dt = 0.01
+    sim.settings.dt_update = 0.01
 
     sim.model = SpinBoson({
         'V':0.5,

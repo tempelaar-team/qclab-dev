@@ -25,7 +25,7 @@ sim = Simulation()
 sim.settings.num_trajs = 400
 sim.settings.batch_size = 100
 sim.settings.tmax = 10
-sim.settings.dt = 0.001
+sim.settings.dt_update = 0.001
 
 # instantiate a model
 sim.model = SpinBoson()

@@ -42,7 +42,7 @@ In addition to the recipes, a list of variable names is needed to specify which 
 .. code-block:: python
 
     # the variables that the algorithm will store
-    print(MeanField.output_variables)
+    print(MeanField.gather_variables)
 
 
 Adding output obvservables
@@ -81,11 +81,11 @@ Next we can add this task to the output recipe.
 
     MeanField.output_recipe.append(update_response_function)
 
-Finally we can add the relevant variable name to the output_variables list.
+Finally we can add the relevant variable name to the gather_variables list.
 
 .. code-block:: python
 
-    MeanField.output_variables.append('response_function')
+    MeanField.gather_variables.append('response_function')
 
 
 We can then run a simulation and calculate the corresponding spectral function,
@@ -105,7 +105,7 @@ We can then run a simulation and calculate the corresponding spectral function,
     sim.settings.num_trajs = 1000
     sim.settings.batch_size = 250
     sim.settings.tmax = 50
-    sim.settings.dt = 0.01
+    sim.settings.dt_update = 0.01
 
     # instantiate a model 
     sim.model = SpinBoson({'l_reorg': 0.2})
@@ -167,11 +167,11 @@ Next we can add this task to the output recipe.
     MeanField.output_recipe.append(update_adiabatic_populations)
 
 
-Finally we can add the relevant variable name to the output_variables list.
+Finally we can add the relevant variable name to the gather_variables list.
 
 .. code-block:: python
 
-    MeanField.output_variables.append('pops_adb')
+    MeanField.gather_variables.append('pops_adb')
 
 
 We can then run a simulation and plot the populations. Note that since the spin-boson model is always in a coupling regime these populations will not have a well-defined meaning.
@@ -191,7 +191,7 @@ We can then run a simulation and plot the populations. Note that since the spin-
     sim.settings.num_trajs = 100
     sim.settings.batch_size = 100
     sim.settings.tmax = 25
-    sim.settings.dt = 0.01
+    sim.settings.dt_update = 0.01
 
     # Instantiate a model.
     sim.model = SpinBoson()

@@ -65,7 +65,7 @@ class MeanField(Algorithm):
         _update_quantum_energy,
         _update_classical_energy,
     ]
-    output_variables = [
+    gather_variables = [
         "t",
         "dm_db",
         "classical_energy",

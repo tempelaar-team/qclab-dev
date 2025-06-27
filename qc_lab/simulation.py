@@ -18,8 +18,8 @@ class Simulation:
             settings = {}
         self.default_settings = {
             "tmax": 10,
-            "dt": 0.001,
-            "dt_output": 0.1,
+            "dt_update": 0.001,
+            "dt_gather": 0.1,
             "num_trajs": 100,
             "batch_size": 25,
         }
@@ -35,34 +35,34 @@ class Simulation:
         """
         Initialize the timesteps for the simulation based on the parameters.
 
-        First adjusts tmax to be the closest integer multiple of dt.
-        Then adjusts dt_output to be the closest integer multiple of dt as well.
-        Then adjusts tmax to be the closest point on the grid defined by dt_output.
+        First adjusts tmax to be the closest integer multiple of dt_update.
+        Then adjusts dt_update_gather to be the closest integer multiple of dt_update as well.
+        Then adjusts tmax to be the closest point on the grid defined by dt_gather.
         """
         tmax = self.settings.get("tmax", self.default_settings.get("tmax"))
-        dt = self.settings.get("dt", self.default_settings.get("dt"))
-        dt_output = self.settings.get(
-            "dt_output", self.default_settings.get("dt_output")
+        dt_update = self.settings.get("dt_update", self.default_settings.get("dt_update"))
+        dt_gather = self.settings.get(
+            "dt_gather", self.default_settings.get("dt_gather")
         )
 
-        tmax_n = np.round(tmax / dt).astype(int)
-        dt_output_n = np.round(dt_output / dt).astype(int)
-        tmax_n = np.round(tmax_n / dt_output_n).astype(int) * dt_output_n
+        tmax_n = np.round(tmax / dt_update).astype(int)
+        dt_gather_n = np.round(dt_gather / dt_update).astype(int)
+        tmax_n = np.round(tmax_n / dt_gather_n).astype(int) * dt_gather_n
 
         self.settings.tmax_n = tmax_n
-        self.settings.dt_output_n = dt_output_n
-        self.settings.tdat = np.arange(0, self.settings.tmax_n + 1, 1) * dt
+        self.settings.dt_gather_n = dt_gather_n
+        self.settings.tdat = np.arange(0, self.settings.tmax_n + 1, 1) * dt_update
         self.settings.tdat_n = np.arange(0, self.settings.tmax_n + 1, 1)
         self.settings.tdat_output = (
             np.arange(
                 0,
-                self.settings.tmax_n + self.settings.dt_output_n,
-                self.settings.dt_output_n,
+                self.settings.tmax_n + self.settings.dt_gather_n,
+                self.settings.dt_gather_n,
             )
-            * dt
+            * dt_update
         )
         self.settings.tdat_output_n = np.arange(
             0,
-            self.settings.tmax_n + self.settings.dt_output_n,
-            self.settings.dt_output_n,
+            self.settings.tmax_n + self.settings.dt_gather_n,
+            self.settings.dt_gather_n,
         )

@@ -19,7 +19,7 @@ The table below lists the available settings and their default values.
    * - ``'dt'``
      - 0.001
      - Time step for the simulation.
-   * - ``'dt_output'``
+   * - ``'dt_gather'``
      - 0.1
      - Time step for the simulation.
    * - ``'tmax'``

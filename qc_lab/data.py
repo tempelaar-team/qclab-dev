@@ -34,14 +34,14 @@ class Data:
             self.data_dict["norm_factor"] = state.norm_factor
         for key, val in state.output_dict.items():
             if key in self.data_dict:
-                self.data_dict[key][int(t_ind / sim.settings.dt_output_n)] = (
+                self.data_dict[key][int(t_ind / sim.settings.dt_gather_n)] = (
                     np.sum(val, axis=0) / self.data_dict["norm_factor"]
                 )
             else:
                 self.data_dict[key] = np.zeros(
                     (len(sim.settings.tdat_output), *np.shape(val)[1:]), dtype=val.dtype
                 )
-                self.data_dict[key][int(t_ind / sim.settings.dt_output_n)] = (
+                self.data_dict[key][int(t_ind / sim.settings.dt_gather_n)] = (
                     np.sum(val, axis=0) / self.data_dict["norm_factor"]
                 )
 

@@ -33,17 +33,17 @@ By default QC Lab uses the following settings in the simulation object. These se
    * - `tmax`
      - The total time of each trajectory.
      - 10
-   * - `dt`
+   * - `dt_update`
      - The timestep used for executing the update recipe (the dynamics propagation).
      - 0.01
-   * - `dt_output`
+   * - `dt_gather`
      - The timestep used for executing the output recipe (the calculation of observables).
      - 0.1
 
 .. note::
 
-    QC Lab expects that the total time of the simulation is an integer multiple of the output timestep `dt_output`, which must also be an integer multiple 
-    of the propagation timestep `dt`.
+    QC Lab expects that the total time of the simulation is an integer multiple of the output timestep `dt_gather`, which must also be an integer multiple 
+    of the propagation timestep `dt_update`.
 
  
 Default Model Attributes

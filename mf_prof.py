@@ -9,7 +9,7 @@ from qc_lab.dynamics import serial_driver
 
 
 # simulation settings 
-simulation_settings = dict(dt = 0.01, dt_output=.1, tmax = 30, num_trajs = 250, batch_size = 250)
+simulation_settings = dict(dt_update = 0.01, dt_gather=.1, tmax = 30, num_trajs = 250, batch_size = 250)
 sim = Simulation(simulation_settings)
 #model_parameters = dict(N = 4, j = 1.0,w = 1.0, g = 1, periodic_boundary = True)
 #sim.model = HolsteinLatticeModel(model_parameters)

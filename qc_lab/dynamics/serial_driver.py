@@ -5,7 +5,7 @@ This file contains the serial driver for the dynamics core.
 import warnings
 import numpy as np
 from qc_lab.data import Data
-from qc_lab.variable import initialize_vector_objects
+from qc_lab.variable import initialize_variable_objects
 import qc_lab.dynamics as dynamics
 
 
@@ -41,7 +41,7 @@ def serial_driver(sim, seeds=None, data=None):
             break
         sim.settings.batch_size = len(batch_seeds)
         sim.initialize_timesteps()
-        parameters, state = initialize_vector_objects(sim, batch_seeds)
+        parameters, state = initialize_variable_objects(sim, batch_seeds)
         new_data = Data()
         new_data.data_dict["seed"] = state.seed
         new_data = dynamics.dynamics(sim, parameters, state, new_data)

@@ -169,7 +169,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         _update_classical_energy_fssh,
     ]
     
-    output_variables = [
+    gather_variables = [
         "t",
         "quantum_energy",
         "classical_energy",
