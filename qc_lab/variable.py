@@ -22,14 +22,14 @@ class Variable:
             return self.__dict__[name]
         return None
 
-    def collect_outputs(self, output_names):
+    def collect_outputs(self, names):
         """
-        Collect varibles with names output_names into the output dictionary.
+        Collect arttributes into the output dictionary.
 
         Args:
-            output_names: List of output names.
+            names: List of attribute names.
         """
-        for var in output_names:
+        for var in names:
             self.output_dict[var] = getattr(self, var)
 
     def __getstate__(self):
