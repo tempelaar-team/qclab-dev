@@ -32,10 +32,10 @@ referred to as "tasks".
     print(MeanField.update_recipe)
 
     # the output recipe
-    print(MeanField.output_recipe)
+    print(MeanField.gather_recipe)
 
 As the name implies, the `initialization_recipe` initializes all the variables required for the algorithm. The `update_recipe`
-updates the variables at each time step, and the `output_recipe` is used to output the results of the algorithm.
+updates the variables at each time step, and the `gather_recipe` is used to output the results of the algorithm.
 
 In addition to the recipes, a list of variable names is needed to specify which variables the algorithm will store in the Data object. 
 
@@ -79,7 +79,7 @@ Next we can add this task to the output recipe.
 
 .. code-block:: python
 
-    MeanField.output_recipe.append(update_response_function)
+    MeanField.gather_recipe.append(update_response_function)
 
 Finally we can add the relevant variable name to the gather_variables list.
 
@@ -164,7 +164,7 @@ Next we can add this task to the output recipe.
 
 .. code-block:: python
 
-    MeanField.output_recipe.append(update_adiabatic_populations)
+    MeanField.gather_recipe.append(update_adiabatic_populations)
 
 
 Finally we can add the relevant variable name to the gather_variables list.

@@ -162,7 +162,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             self, sim, parameters, state, z=state.z
         )
 
-    output_recipe = [
+    gather_recipe = [
         tasks.update_t,
         tasks.update_dm_db_fssh,
         _update_quantum_energy_fssh,

@@ -21,7 +21,7 @@ def dynamics(sim, parameter, state, data):
         if np.mod(sim.t_ind, sim.settings.dt_gather_n) == 0:
             # Calculate output variables.
             parameter, state = sim.algorithm.execute_recipe(
-                sim, parameter, state, sim.algorithm.output_recipe
+                sim, parameter, state, sim.algorithm.gather_recipe
             )
             # Collect output variables into a dictionary.
             state.collect_outputs(sim.algorithm.gather_variables)

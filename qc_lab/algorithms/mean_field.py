@@ -59,7 +59,7 @@ class MeanField(Algorithm):
     def _update_classical_energy(self, sim, parameters, state):
         return tasks.update_classical_energy(self, sim, parameters, state, z=state.z)
 
-    output_recipe = [
+    gather_recipe = [
         tasks.update_t,
         tasks.update_dm_db_mf,
         _update_quantum_energy,
