@@ -4,7 +4,7 @@ from setuptools.command.build_py import build_py as _build_py
 from setuptools.command.develop import develop as _develop
 
 
-DEFAULT_DEPENDENCIES = [
+DEPENDENCIES = [
     "numpy",
     "tqdm",
     "h5py",
@@ -12,16 +12,23 @@ DEFAULT_DEPENDENCIES = [
     "numba",
 ]
 
-NONUMBA_DEPENDENCIES = [
-    "numpy",
-    "tqdm",
-    "h5py",
-    "matplotlib",
-]
 
 DISABLE_NUMBA = os.environ.get("QC_LAB_DISABLE_NUMBA", "0") == "1"
+DISABLE_H5PY = os.environ.get("QC_LAB_DISABLE_H5PY", "0") == "1"
+DISABLE_TQDM = os.environ.get("QC_LAB_DISABLE_TQDM", "0") == "1"
 
-install_requires = NONUMBA_DEPENDENCIES if DISABLE_NUMBA else DEFAULT_DEPENDENCIES
+if DISABLE_NUMBA:
+    print("Numba is disabled. QC Lab will run without Numba optimizations.")
+    DEPENDENCIES.remove("numba")
+if DISABLE_H5PY:
+    print("H5PY is disabled. QC Lab will run without HDF5 support.")
+    DEPENDENCIES.remove("h5py")
+if DISABLE_TQDM:
+    print("TQDM is disabled. QC Lab will run without progress bars.")
+    DEPENDENCIES.remove("tqdm")
+
+
+install_requires = DEPENDENCIES
 
 class develop(_develop):
     def run(self):
