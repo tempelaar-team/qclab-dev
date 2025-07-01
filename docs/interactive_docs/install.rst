@@ -66,10 +66,12 @@ Navigate into the QC Lab source directory and install via pip:
    # Install QC Lab (and its Python dependencies)
    pip install .
 
-This command will:
+If you want to install it without using numba precompilation (which 
+may improve compatibility with some systems but be much slower), you can use:
 
-- Read the `pyproject.toml` in the source directory.
-- Install QC Lab and any required dependencies into your active Python environment.
+.. code-block:: bash
+
+   QC_LAB_DISABLE_NUMBA=1 pip install .
 
 Verifying the Installation
 --------------------------
