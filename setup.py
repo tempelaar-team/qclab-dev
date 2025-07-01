@@ -46,7 +46,8 @@ setup(
     packages=find_packages(),
     install_requires=install_requires,
     extras_require={
-        "tests": ["pytest", "mpi4py"]
+        "tests": ["pytest", "mpi4py",],
+        "docs": ["sphinx", "pydata-sphinx-theme", "sphinx-design",],
     },
     cmdclass={
         "develop": develop,
