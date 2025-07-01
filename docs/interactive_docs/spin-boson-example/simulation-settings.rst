@@ -16,12 +16,12 @@ The table below lists the available settings and their default values.
    * - Setting
      - Default value
      - Description
-   * - ``'dt'``
+   * - ``'dt_update'``
      - 0.001
-     - Time step for the simulation.
+     - Time step for updating the state of the system.
    * - ``'dt_gather'``
      - 0.1
-     - Time step for the simulation.
+     - Time step for gathering the output variables.
    * - ``'tmax'``
      - 10
      - Maximum simulation time.
