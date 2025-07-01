@@ -290,5 +290,8 @@ def numerical_fssh_hop(model, parameters, **kwargs):
         gamma_range = gamma_range / 2
         num_iter += 1
     if min_energy > thresh:
-        return z, False
-    return z - 1.0j * min_gamma * delta_z, True
+        return 0*z, False
+    return - 1.0j * min_gamma * delta_z, True
+    # if min_energy > thresh:
+    #     return z, False
+    # return z - 1.0j * min_gamma * delta_z, True

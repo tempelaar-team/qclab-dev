@@ -287,8 +287,7 @@ def diagonal_linear_dh_qc_dzc(model, parameters, **kwargs):
                 dh_qc_dzc[j, i, i] = gamma[i, j]
         dh_qc_dzc = dh_qc_dzc[np.newaxis, :, :, :] + np.zeros(
             (batch_size, num_classical_coordinates, num_states, num_states),
-            dtype=complex,
-        )
+            dtype=complex)
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]
         shape = np.shape(dh_qc_dzc)
@@ -310,7 +309,6 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
     z = kwargs["z"]
     delta_z = kwargs["delta_z"]
     ev_diff = kwargs["ev_diff"]
-    hopped = False
     delta_zc = np.conj(delta_z)
     zc = np.conj(z)
     a_const = (1 / 4) * (
@@ -346,9 +344,8 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
         else:
             gamma = gamma / (2 * akj_z)
         # adjust classical coordinate
-        z = z - 1.0j * np.real(gamma) * delta_z
-        hopped = True
-    return z, hopped
+        return -1.0j * np.real(gamma) * delta_z, True
+    return 0*z, False
 
 
 def harmonic_oscillator_boltzmann_init_classical(model, parameters, **kwargs):
