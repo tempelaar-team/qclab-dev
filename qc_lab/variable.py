@@ -22,7 +22,7 @@ class Variable:
             return self.__dict__[name]
         return None
 
-    def collect_outputs(self, names):
+    def gather_outputs(self, names):
         """
         Collect arttributes into the output dictionary.
 

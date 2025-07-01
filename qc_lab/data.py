@@ -16,7 +16,7 @@ class Data:
             seeds = np.array([], dtype=int)
         self.data_dict = {"seed": seeds, "norm_factor": 0}
 
-    def add_to_output_total_arrays(self, sim, state, t_ind):
+    def add_output_to_data_dict(self, sim, state, t_ind):
         """
         Add data to the output total arrays.
 
@@ -33,15 +33,13 @@ class Data:
                 )
             self.data_dict["norm_factor"] = state.norm_factor
         for key, val in state.output_dict.items():
-            if key in self.data_dict:
-                self.data_dict[key][int(t_ind / sim.settings.dt_gather_n)] = (
-                    np.sum(val, axis=0) / self.data_dict["norm_factor"]
-                )
-            else:
+            if not(key in self.data_dict):
+                # If the key is not in the data_dict, initialize it with zeros.
                 self.data_dict[key] = np.zeros(
                     (len(sim.settings.tdat_output), *np.shape(val)[1:]), dtype=val.dtype
                 )
-                self.data_dict[key][int(t_ind / sim.settings.dt_gather_n)] = (
+            # store the data in the data_dict at the correct time index
+            self.data_dict[key][t_ind // sim.settings.dt_gather_n] = (
                     np.sum(val, axis=0) / self.data_dict["norm_factor"]
                 )
 

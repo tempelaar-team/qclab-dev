@@ -23,10 +23,10 @@ def dynamics(sim, parameter, state, data):
             parameter, state = sim.algorithm.execute_recipe(
                 sim, parameter, state, sim.algorithm.gather_recipe
             )
-            # Collect output variables into a dictionary.
-            state.collect_outputs(sim.algorithm.gather_variables)
+            # Gather output variables into a dictionary.
+            state.gather_outputs(sim.algorithm.gather_variables)
             # Collect totals in output dictionary.
-            data.add_to_output_total_arrays(sim, state, sim.t_ind)
+            data.add_output_to_data_dict(sim, state, sim.t_ind)
         # Execute update recipe.
         parameter, state = sim.algorithm.execute_recipe(
             sim, parameter, state, sim.algorithm.update_recipe
