@@ -90,7 +90,7 @@ Indeed, the only required ingredients are those that generate the Hamiltonian.
    * - `hop_function`
      - `z` (numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)), `delta_z` (numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)), `ev_diff` (float)
      - numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)
-     - Computes the rescaled classical coordinates for a given classical Hamiltonian in FSSH.
+     - Computes the shift required to rescale a coordinate for a given classical Hamiltonian in FSSH.
    * - `rescaling_direction_fssh`
      - `z` (numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)), `init_state_ind` (int), `final_state_ind` (int)
      - numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)

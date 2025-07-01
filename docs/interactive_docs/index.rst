@@ -6,26 +6,40 @@ QC Lab Interactive Documentation
 
 Welcome to the QC Lab documentation! Use the buttons below to navigate to the section you need.
 
-.. raw:: html
+.. button-link:: install.html
+    :color: primary
+    :shadow:
+    :align: center
 
-   <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2em;">
-     <button onclick="location.href='install.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
-       I want to install QC Lab
-     </button>
-     <button onclick="location.href='spin-boson-example/spin-boson.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
-       I want to run a spin-boson model
-     </button>
-     <button onclick="location.href='overview/overview.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
-       I want a high level overview
-     </button>
-     <button onclick="location.href='../user_guide/index.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
-       I want a comprehensive manual
-     </button>
-     <button onclick="location.href='cite.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 250px; border-radius: 8px;">
-       I want to cite QC Lab
-     </button>
-   </div>
+    I want to install QC Lab.
 
+.. button-link:: spin-boson-example/spin-boson.html
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want to run a spin-boson model.
+
+.. button-link:: overview/overview.html
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want a high level overview.
+
+.. button-link:: ../user_guide/index.html
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want a comprehensive manual.
+
+.. button-link:: cite.html
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want to cite QC Lab.
 
 .. toctree::
    :maxdepth: 1

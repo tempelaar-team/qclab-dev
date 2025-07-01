@@ -71,26 +71,46 @@ the quantum and classical energies (`quantum_energy` and `classical_energy`), an
 .. image:: populations.png
     :alt: Population dynamics.
     :align: center
-    :width: 80%
+    :width: 50%
 
 .. image:: energies.png
     :alt: Change in energy.
     :align: center
-    :width: 80%
+    :width: 50%
 
-.. raw:: html
 
-   <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2em;">
-     <button onclick="location.href='simulation-settings.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
-       I want to change the simulation's settings.
-     </button>
-     <button onclick="location.href='model-constants.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
-       I want to change the model's constants.
-     </button>
-     <button onclick="location.href='change-model.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
-       I want to change the model.
-     </button>
-     <button onclick="location.href='change-algorithm.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
-       I want to change the algorithm.
-     </button>
-   </div>
+.. button-link:: simulation-settings.html
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want to change the simulation's settings.
+
+
+.. button-link:: model-constants.html
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want to change the model's constants.
+
+.. button-link:: change-model.html
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want to change the model.
+    
+.. button-link:: change-algorithm.html
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want to change the algorithm.
+
+.. button-link:: modify-fssh.html
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want to modify the FSSH algorithm.

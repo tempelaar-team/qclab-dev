@@ -172,7 +172,7 @@ Surface Hopping Switching Algorithm
     :type delta_z: np.ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)
     :param ev_diff: Energy difference between final and initial surface (final - initial).
     :type ev_diff: float
-    :returns: Rescaled coordinate.
+    :returns: z_shift, the shift required to rescale the coordinate, z' = z + z_shift.
     :rtype: np.ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)
     :returns: True or False depending on if a hop happened.
     :rtype: Bool.
