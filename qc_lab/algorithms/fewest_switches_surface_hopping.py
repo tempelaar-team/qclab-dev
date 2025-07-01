@@ -144,7 +144,12 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         _update_h_quantum,
         _diagonalize_matrix,
         _gauge_fix_eigs_update,
-        tasks.update_active_surface_fssh,
+        tasks.update_hop_probs_fssh,
+        tasks.update_hop_inds_fssh,
+        tasks.update_hop_vals_fssh,
+        tasks.update_z_hop_fssh,
+        tasks.update_act_surf_hop_fssh,
+        #tasks.update_active_surface_fssh,
         tasks.update_act_surf_wf,
     ]
 

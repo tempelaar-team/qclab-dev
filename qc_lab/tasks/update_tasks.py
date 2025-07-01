@@ -519,7 +519,263 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
     return delta_z
 
 
-def update_active_surface_fssh(algorithm, sim, parameters, state, **kwargs):
+def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
+    """
+    This task calculates the hopping probabilities for FSSH.
+
+    P_{a->b} = -2 * Re((C_{b}/C_{a}) * < a(t)| b(t-dt)>)
+
+    Stores the probabilities in state.hop_prob.
+    """
+    act_surf_ind = state.act_surf_ind
+    act_surf_ind_flat = act_surf_ind.flatten().astype(int)
+    if sim.algorithm.settings.fssh_deterministic:
+        num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
+    num_trajs = sim.settings.batch_size // num_branches
+    prod = np.einsum(
+        "bn,bni->bi",
+        np.conj(
+            state.eigvecs[
+                np.arange(num_trajs * num_branches, dtype=int), :, act_surf_ind_flat
+            ]
+        ),
+        state.eigvecs_previous,
+        optimize="greedy",
+    )
+    hop_prob = -2 * np.real(
+        prod
+        * state.wf_adb
+        / state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind_flat][
+            :, np.newaxis
+        ]
+    )
+    hop_prob[np.arange(num_branches * num_trajs), act_surf_ind_flat] *= 0
+    state.hop_prob = hop_prob
+    
+    return parameters, state
+
+def update_hop_inds_fssh(algorithm, sim, parameters, state, **kwargs):
+    """
+    Determines which trajectories hop based on the hopping probabilities and which state they hop to.
+    Note that these will only hop if they are not frustrated by the hopping function.
+
+    Stores the indices of the hopping trajectories in state.hop_ind.
+    Stores the destination indices of the hops in state.hop_dest.
+    """
+    if sim.algorithm.settings.fssh_deterministic:
+        num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
+    num_trajs = sim.settings.batch_size // num_branches
+    hop_prob = state.hop_prob
+    rand = state.hopping_probs_rand_vals[:, sim.t_ind]
+    cumulative_probs = np.cumsum(
+        np.nan_to_num(hop_prob, nan=0, posinf=100e100, neginf=-100e100), axis=1
+    )
+    rand_branch = (rand[:, np.newaxis] * np.ones((num_trajs, num_branches))).flatten()
+    hop_ind = np.where(
+        np.sum((cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1) > 0
+    )[0] # trajectory indices that hop
+    # destination indices of the hops in each hoping trajectory
+    hop_dest = np.argmax((cumulative_probs > rand_branch[:,np.newaxis]).astype(int), axis=1)[hop_ind]
+    state.hop_ind = hop_ind
+    state.hop_dest = hop_dest
+    return parameters, state
+
+def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
+    """
+    Executes the hopping function for the hopping trajectories.
+    It stores the rescaled coordinates in state.z_rescaled
+    and the a boolean registering if the hop was successful in state.hop_successful.
+    """
+
+    hop_ind = state.hop_ind
+    hop_dest = state.hop_dest
+    state.z_shift = np.zeros((len(hop_ind), sim.model.constants.num_classical_coordinates), dtype=complex)
+    state.hop_successful = np.zeros(len(hop_ind), dtype=bool)
+    if sim.algorithm.settings.fssh_deterministic:
+        num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
+    eigvals_flat = state.eigvals
+    z = np.copy(state.z)
+    act_surf_ind = state.act_surf_ind
+    act_surf_ind_flat = act_surf_ind.flatten().astype(int)
+    hop_traj_ind = 0
+    for traj_ind in hop_ind:
+        final_state_ind = hop_dest[hop_traj_ind]
+        init_state_ind = act_surf_ind_flat[traj_ind]
+        eval_init_state = eigvals_flat[traj_ind][init_state_ind]
+        eval_final_state = eigvals_flat[traj_ind][final_state_ind]
+        ev_diff = eval_final_state - eval_init_state
+        delta_z = calc_delta_z_fssh(
+            algorithm,
+            sim,
+            parameters,
+            state,
+            traj_ind=traj_ind,
+            final_state_ind=final_state_ind,
+            init_state_ind=init_state_ind,
+        )
+        # hopped = False
+        # z_out = None
+        hop_function, has_hop_function = sim.model.get("hop_function")
+        if has_hop_function:
+            z_shift, hopped = hop_function(
+                sim.model,
+                parameters,
+                z=z[traj_ind],
+                delta_z=delta_z,
+                ev_diff=ev_diff,
+            )
+        else:
+            z_shift, hopped = numerical_fssh_hop(
+                sim.model,
+                parameters,
+                z=z[traj_ind],
+                delta_z=delta_z,
+                ev_diff=ev_diff,
+                )
+        state.hop_successful[hop_traj_ind] = hopped
+        state.z_shift[hop_traj_ind] = z_shift
+        hop_traj_ind += 1
+    return parameters, state
+
+def update_z_hop_fssh(algorithm, sim, parameters, state, **kwargs):
+    """
+    Executes the post-hop updates for FSSH, rescaling the z coordinates and updating 
+    the active surface indices, and wavefunctions.
+    """
+    # idx = state.hop_ind[state.hop_successful]
+    # dz = state.z_shift[state.hop_successful]
+    state.z[state.hop_ind]  += state.z_shift#[idx] += dz
+    return parameters, state
+
+def update_act_surf_hop_fssh(algorithm, sim, parameters, state, **kwargs):
+    """
+    Update the active surface, active surface index, and active surface wavefunction 
+    following a hop in FSSH.
+    
+    """
+    if sim.algorithm.settings.fssh_deterministic:
+            num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
+    num_trajs = sim.settings.batch_size // num_branches
+    act_surf_flat = state.act_surf
+    act_surf_ind = state.act_surf_ind
+    act_surf_ind_flat = act_surf_ind.flatten().astype(int)
+
+    idx = state.hop_ind[state.hop_successful]
+    act_surf_ind_flat[idx] = state.hop_dest[state.hop_successful]
+    act_surf_flat[idx] = np.zeros_like(act_surf_flat[idx])
+    act_surf_flat[idx, state.hop_dest[state.hop_successful]] = 1
+    state.act_surf_ind = np.copy(act_surf_ind_flat.reshape((num_trajs, num_branches)))
+    state.act_surf = np.copy(act_surf_flat)
+    parameters.act_surf_ind = state.act_surf_ind
+    return parameters, state
+   
+
+def _update_act_surf_hop_fssh(algorithm, sim, parameters, state, **kwargs):
+    """
+    Update the active surface, active surface index, and active surface wavefunction 
+    following a hop in FSSH.
+    
+    """
+    if sim.algorithm.settings.fssh_deterministic:
+            num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
+    num_trajs = sim.settings.batch_size // num_branches
+    act_surf_flat = state.act_surf
+    act_surf_ind = state.act_surf_ind
+    act_surf_ind_flat = act_surf_ind.flatten().astype(int)
+    hop_traj_ind = 0
+    for traj_ind in state.hop_ind:
+        if state.hop_successful[hop_traj_ind]:
+            final_state_ind = state.hop_dest[traj_ind]
+            act_surf_ind_flat[traj_ind] = final_state_ind
+            act_surf_flat[traj_ind] = np.zeros_like(act_surf_flat[traj_ind])
+            act_surf_flat[traj_ind][final_state_ind] = 1
+            state.act_surf_ind = np.copy(
+                act_surf_ind_flat.reshape((num_trajs, num_branches))
+            )
+            state.act_surf = np.copy(act_surf_flat)
+    parameters.act_surf_ind = state.act_surf_ind
+    return parameters, state
+
+def _update_active_surface_fssh(algorithm, sim, parameters, state, **kwargs):
+    """
+    Update the active surface in FSSH. If a hopping function is not specified in the model
+    class a numerical hopping procedure is used instead.
+
+    """
+    hop_ind = state.hop_ind
+    hop_dest = state.hop_dest
+    if len(hop_ind) > 0:
+        if sim.algorithm.settings.fssh_deterministic:
+            num_branches = sim.model.constants.num_quantum_states
+        else:
+            num_branches = 1
+        num_trajs = sim.settings.batch_size // num_branches
+        eigvals_flat = state.eigvals
+        z = np.copy(state.z)
+        act_surf_flat = state.act_surf
+        act_surf_ind = state.act_surf_ind
+        act_surf_ind_flat = act_surf_ind.flatten().astype(int)
+        for traj_ind in hop_ind:
+            # final_state_ind = np.argmax(
+            #     (cumulative_probs[traj_ind] > rand_branch[traj_ind]).astype(int)
+            # )
+            final_state_ind = hop_dest[traj_ind]
+            init_state_ind = act_surf_ind_flat[traj_ind]
+            eval_init_state = eigvals_flat[traj_ind][init_state_ind]
+            eval_final_state = eigvals_flat[traj_ind][final_state_ind]
+            ev_diff = eval_final_state - eval_init_state
+            delta_z = calc_delta_z_fssh(
+                algorithm,
+                sim,
+                parameters,
+                state,
+                traj_ind=traj_ind,
+                final_state_ind=final_state_ind,
+                init_state_ind=init_state_ind,
+            )
+            hopped = False
+            z_out = None
+            hop_function, has_hop_function = sim.model.get("hop_function")
+            if has_hop_function:
+                z_out, hopped = hop_function(
+                    sim.model,
+                    parameters,
+                    z=z[traj_ind],
+                    delta_z=delta_z,
+                    ev_diff=ev_diff,
+                )
+            if not has_hop_function:
+                z_out, hopped = numerical_fssh_hop(
+                    sim.model,
+                    parameters,
+                    z=z[traj_ind],
+                    delta_z=delta_z,
+                    ev_diff=ev_diff,
+                )
+            if hopped:
+                act_surf_ind_flat[traj_ind] = final_state_ind
+                act_surf_flat[traj_ind] = np.zeros_like(act_surf_flat[traj_ind])
+                act_surf_flat[traj_ind][final_state_ind] = 1
+                z[traj_ind] = z_out
+                state.act_surf_ind = np.copy(
+                    act_surf_ind_flat.reshape((num_trajs, num_branches))
+                )
+                state.act_surf = np.copy(act_surf_flat)
+                state.z = np.copy(z)
+    parameters.act_surf_ind = state.act_surf_ind
+    return parameters, state
+
+def _update_active_surface_fssh(algorithm, sim, parameters, state, **kwargs):
     """
     Update the active surface in FSSH. If a hopping function is not specified in the model
     class a numerical hopping procedure is used instead.
@@ -567,13 +823,19 @@ def update_active_surface_fssh(algorithm, sim, parameters, state, **kwargs):
         np.sum((cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1) > 0
     )[0]
     if len(traj_hop_ind) > 0:
+        hop_dest = np.argmax((cumulative_probs > rand_branch[:,np.newaxis]).astype(int), axis=1)
         eigvals_flat = state.eigvals
         z = np.copy(state.z)
         act_surf_flat = state.act_surf
         for traj_ind in traj_hop_ind:
+            # print(np.shape(cumulative_probs), np.shape(rand_branch))
             final_state_ind = np.argmax(
                 (cumulative_probs[traj_ind] > rand_branch[traj_ind]).astype(int)
             )
+            assert final_state_ind == hop_dest[traj_ind]
+            # print(cumulative_probs[traj_ind])
+            # print(rand_branch[traj_ind])
+            # print(final_state_ind)
             init_state_ind = act_surf_ind_flat[traj_ind]
             eval_init_state = eigvals_flat[traj_ind][init_state_ind]
             eval_final_state = eigvals_flat[traj_ind][final_state_ind]
