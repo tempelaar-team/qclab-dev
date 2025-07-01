@@ -44,9 +44,9 @@ These use cases are demonstrated in the following example:
     print(data.data_dict.keys())
 
     # Write the data to an h5 archive.
-    data.save_as_h5("spin_boson_data.h5")
+    data.save("spin_boson_data.h5")
 
     # Read the data back into a data object.
-    data_read = Data().load_from_h5("spin_boson_data.h5")
+    data_read = Data().load("spin_boson_data.h5")
 
 More detailed documentation of the data object can be found in the `Data Object <../../user_guide/data_object.html>`_ documentation page.

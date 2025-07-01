@@ -128,7 +128,6 @@ def numerical_boltzmann_mcmc_init_classical(model, parameters, **kwargs):
     return out_tmp[save_inds]
 
 
-
 def dh_c_dzc_finite_differences(model, parameters, **kwargs):
     """
     Calculate the gradient of the classical Hamiltonian using finite differences.
@@ -178,20 +177,17 @@ def dh_c_dzc_finite_differences(model, parameters, **kwargs):
     return dh_c_dzc
 
 
-def dh_qc_dzc_finite_differences(model, parameters, **kwargs):
+def _dh_c_dzc_finite_differences(model, parameters, **kwargs):
     """
-    Calculate the gradient of the quantum-classical Hamiltonian using finite differences.
+    Calculate the gradient of the classical Hamiltonian using finite differences.
 
     Required constants:
         - num_classical_coordinates (int): Number of classical coordinates. Default: None.
-        - num_quantum_states (int): Number of quantum states. Default: None.
-        - finite_difference_dz (float): Step size for finite differences. Default: 1e-6.
     """
     z = kwargs["z"]
-    delta_z = model.constants.get("dh_qc_dzc_finite_difference_delta", 1e-6)
+    delta_z = model.constants.get("dh_c_dzc_finite_difference_delta", 1e-6)
     batch_size = len(parameters.seed)
     num_classical_coordinates = model.constants.num_classical_coordinates
-    num_quantum_states = model.constants.num_quantum_states
     offset_z_re = (
         z[:, np.newaxis, :]
         + np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
@@ -210,37 +206,110 @@ def dh_qc_dzc_finite_differences(model, parameters, **kwargs):
             num_classical_coordinates,
         )
     )
-    h_qc, has_h_qc = model.get("h_qc")
-    h_qc_0 = h_qc(model, parameters, z=z)
-    h_qc_offset_re = h_qc(
+    h_c, has_h_c = model.get("h_c")
+    h_c_0 = h_c(model, parameters, z=z, batch_size=len(z))
+    h_c_offset_re = h_c(
         model,
         parameters,
         z=offset_z_re,
         batch_size=batch_size * num_classical_coordinates,
-    ).reshape(
-        batch_size,
-        num_classical_coordinates,
-        num_quantum_states,
-        num_quantum_states,
-    )
-    h_qc_offset_im = h_qc(
+    ).reshape(batch_size, num_classical_coordinates)
+    h_c_offset_im = h_c(
         model,
         parameters,
         z=offset_z_im,
         batch_size=batch_size * num_classical_coordinates,
-    ).reshape(
-        batch_size,
-        num_classical_coordinates,
-        num_quantum_states,
-        num_quantum_states,
-    )
-    diff_re = (h_qc_offset_re - h_qc_0[:, np.newaxis, :, :]) / delta_z
-    diff_im = (h_qc_offset_im - h_qc_0[:, np.newaxis, :, :]) / delta_z
-    dh_qc_dzc = 0.5 * (diff_re + 1.0j * diff_im)
-    inds = np.where(dh_qc_dzc != 0)
-    mels = dh_qc_dzc[inds]
-    shape = np.shape(dh_qc_dzc)
-    return inds, mels, shape
+    ).reshape(batch_size, num_classical_coordinates)
+    diff_re = (h_c_offset_re - h_c_0[:, np.newaxis]) / delta_z
+    diff_im = (h_c_offset_im - h_c_0[:, np.newaxis]) / delta_z
+    dh_c_dzc = 0.5 * (diff_re + 1.0j * diff_im)
+    return dh_c_dzc
+
+def dh_qc_dzc_finite_differences(model, parameters, **kwargs):
+    """
+    Calculate the gradient of the quantum-classical Hamiltonian using finite differences.
+
+    Required constants:
+        - num_classical_coordinates (int): Number of classical coordinates. Default: None.
+        - num_quantum_states (int): Number of quantum states. Default: None.
+        - finite_difference_dz (float): Step size for finite differences. Default: 1e-6.
+    """
+    z = kwargs["z"]
+    if kwargs.get("batch_size") is not None:
+        batch_size = kwargs.get("batch_size")
+    else:
+        batch_size = len(parameters.seed)
+    recalculate = False
+    if model.dh_qc_dzc_shape is not None:
+        if model.dh_qc_dzc_shape[0] != batch_size:
+            recalculate = True
+    if not(model.linear_h_qc):
+        # if the h_qc is not linear, we need to recalculate
+        recalculate = True
+    if (
+        model.dh_qc_dzc_inds is None
+        or model.dh_qc_dzc_mels is None
+        or model.dh_qc_dzc_shape is None
+        or recalculate
+    ):
+        
+        delta_z = model.constants.get("dh_qc_dzc_finite_difference_delta", 1e-6)
+        num_classical_coordinates = model.constants.num_classical_coordinates
+        num_quantum_states = model.constants.num_quantum_states
+        offset_z_re = (
+            z[:, np.newaxis, :]
+            + np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
+        ).reshape(
+            (
+                batch_size * num_classical_coordinates,
+                num_classical_coordinates,
+            )
+        )
+        offset_z_im = (
+            z[:, np.newaxis, :]
+            + 1.0j * np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
+        ).reshape(
+            (
+                batch_size * num_classical_coordinates,
+                num_classical_coordinates,
+            )
+        )
+        h_qc, has_h_qc = model.get("h_qc")
+        h_qc_0 = h_qc(model, parameters, z=z)
+        h_qc_offset_re = h_qc(
+            model,
+            parameters,
+            z=offset_z_re,
+            batch_size=batch_size * num_classical_coordinates,
+        ).reshape(
+            batch_size,
+            num_classical_coordinates,
+            num_quantum_states,
+            num_quantum_states,
+        )
+        h_qc_offset_im = h_qc(
+            model,
+            parameters,
+            z=offset_z_im,
+            batch_size=batch_size * num_classical_coordinates,
+        ).reshape(
+            batch_size,
+            num_classical_coordinates,
+            num_quantum_states,
+            num_quantum_states,
+        )
+        diff_re = (h_qc_offset_re - h_qc_0[:, np.newaxis, :, :]) / delta_z
+        diff_im = (h_qc_offset_im - h_qc_0[:, np.newaxis, :, :]) / delta_z
+        dh_qc_dzc = 0.5 * (diff_re + 1.0j * diff_im)
+        inds = np.where(dh_qc_dzc != 0)
+        mels = dh_qc_dzc[inds]
+        shape = np.shape(dh_qc_dzc)
+        model.dh_qc_dzc_inds = inds
+        model.dh_qc_dzc_mels = dh_qc_dzc[inds]
+        model.dh_qc_dzc_shape = shape
+        return inds, mels, shape
+    return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels, model.dh_qc_dzc_shape
+
 
 
 def numerical_fssh_hop(model, parameters, **kwargs):

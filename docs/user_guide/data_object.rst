@@ -27,13 +27,13 @@ Additionally, it contains methods that allwo you to write the data to an `h5` ar
 
     :param new_data: An input data object. 
 
-.. function:: data.save_as_h5(filename)
+.. function:: data.save(filename)
 
     Saves the data in the data object as an HDF5 file.
 
     :param filename: A string providing the name of the file to save the data to.
 
-.. function:: data.load_from_h5(filename)
+.. function:: data.load(filename)
 
     Loads data into the data object from an HDF5 file.
 
@@ -85,7 +85,7 @@ Example Usage
     print(data.data_dict.keys())
 
     # Write the data to an h5 archive.
-    data.save_as_h5("spin_boson_data.h5")
+    data.save("spin_boson_data.h5")
 
     # Read the data back into a data object.
-    data_read = Data().load_from_h5("spin_boson_data.h5")
+    data_read = Data().load("spin_boson_data.h5")

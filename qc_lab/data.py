@@ -4,6 +4,7 @@ Module defining the Data class.
 
 import numpy as np
 import h5py
+from qc_lab._config import DISABLE_H5PY
 
 
 class Data:
@@ -68,19 +69,24 @@ class Data:
                     self.data_dict[key] = val
         self.data_dict["norm_factor"] = new_norm_factor
 
-    def save_as_h5(self, filename):
+    def save(self, filename):
         """
-        Save the data as an h5 archive.
+        Save the data as an h5 archive if h5py is available, if not 
+        save each variable using numpy's savez function.
 
         Args:
             filename: The name of the file to save the data to.
         """
-        with h5py.File(filename, "w") as h5file:
-            self._recursive_save(h5file, "/", self.data_dict)
+        if DISABLE_H5PY:
+            np.savez(filename, **self.data_dict)
+        else:
+            with h5py.File(filename, "w") as h5file:
+                self._recursive_save(h5file, "/", self.data_dict)
 
-    def load_from_h5(self, filename):
+
+    def load(self, filename):
         """
-        Load a data object from an h5 archive.
+        Load a data object from a file named filename.
 
         Args:
             filename: The name of the file to load the data from.
@@ -88,6 +94,10 @@ class Data:
         Returns:
             The Data object with the loaded data.
         """
+        if DISABLE_H5PY:
+            loaded = np.load(filename)
+            self.data_dict = { key: loaded[key] for key in loaded.files }
+            return self
         with h5py.File(filename, "r") as h5file:
             self._recursive_load(h5file, "/", self.data_dict)
         return self

@@ -15,7 +15,6 @@ DEPENDENCIES = [
 
 DISABLE_NUMBA = os.environ.get("QC_LAB_DISABLE_NUMBA", "0") == "1"
 DISABLE_H5PY = os.environ.get("QC_LAB_DISABLE_H5PY", "0") == "1"
-DISABLE_TQDM = os.environ.get("QC_LAB_DISABLE_TQDM", "0") == "1"
 
 if DISABLE_NUMBA:
     print("Numba is disabled. QC Lab will run without Numba optimizations.")
@@ -23,9 +22,6 @@ if DISABLE_NUMBA:
 if DISABLE_H5PY:
     print("H5PY is disabled. QC Lab will run without HDF5 support.")
     DEPENDENCIES.remove("h5py")
-if DISABLE_TQDM:
-    print("TQDM is disabled. QC Lab will run without progress bars.")
-    DEPENDENCIES.remove("tqdm")
 
 
 install_requires = DEPENDENCIES
@@ -36,6 +32,7 @@ class develop(_develop):
         os.makedirs(os.path.dirname(target), exist_ok=True)
         with open(target, "w") as f:
             f.write(f"DISABLE_NUMBA = {DISABLE_NUMBA}\n")
+            f.write(f"DISABLE_H5PY = {DISABLE_H5PY}\n")
         super().run()
 
 class build_py(_build_py):
@@ -45,6 +42,7 @@ class build_py(_build_py):
         os.makedirs(os.path.dirname(target), exist_ok=True)
         with open(target, "w") as f:
             f.write(f"DISABLE_NUMBA = {DISABLE_NUMBA}\n")
+            f.write(f"DISABLE_H5PY = {DISABLE_H5PY}\n")
         super().run()
 
 

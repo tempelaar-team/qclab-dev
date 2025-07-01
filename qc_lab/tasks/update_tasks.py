@@ -1,5 +1,4 @@
 import numpy as np
-import warnings
 from qc_lab.jit import njit
 from qc_lab.tasks.default_ingredients import *
 
