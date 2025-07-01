@@ -104,14 +104,9 @@ Combining these elements provides a bare bones model object that can be used in 
 
 
 
+.. button-link:: ingredients.html
+    :color: primary
+    :shadow:
+    :align: center
 
-.. raw:: html
-
-   <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2em;">
-     <button onclick="location.href='ingredients.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
-       I want to learn how an ingredient works.
-     </button>
-   </div>
-
-
-
+    I want to learn how an ingredient works.

@@ -39,10 +39,10 @@ For a detailed discussion of algorithm develoment, see the `Algorithm Developmen
 6. **Output Variables**: In order to collect particular quantities, the algorithm object defines a list of output variables that are collected at each output timestep. 
    These variables are defined as strings that correspond to attributes of the internal state object.
 
-.. raw:: html
 
-   <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2em;">
-     <button onclick="location.href='tasks.html'" style="margin: 0.5em 0; padding: 0.75em 1.5em; font-size: 1em; width: 300px; border-radius: 8px;">
-       I want to learn how a task works.
-     </button>
-   </div>
+.. button-link:: tasks.html
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want to learn how a task works.
