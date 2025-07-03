@@ -35,8 +35,9 @@ class Simulation:
         """
         Initialize the timesteps for the simulation based on the parameters.
 
-        First adjusts tmax to be the closest integer multiple of dt_update.
-        Then adjusts dt_update_gather to be the closest integer multiple of dt_update as well.
+        First ensures that dt_gather >= dt_update, if not it adjusts dt_gather to be equal to dt_update.
+        Then adjusts tmax to be the closest integer multiple of dt_update.
+        Then adjusts dt_gather to be the closest integer multiple of dt_update as well.
         Then adjusts tmax to be the closest point on the grid defined by dt_gather.
         """
         tmax = self.settings.get("tmax", self.default_settings.get("tmax"))
@@ -44,6 +45,9 @@ class Simulation:
         dt_gather = self.settings.get(
             "dt_gather", self.default_settings.get("dt_gather")
         )
+
+        if dt_update > dt_gather:
+            dt_gather = dt_update
 
         tmax_n = np.round(tmax / dt_update).astype(int)
         dt_gather_n = np.round(dt_gather / dt_update).astype(int)
