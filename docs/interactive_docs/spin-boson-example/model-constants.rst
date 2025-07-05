@@ -1,139 +1,47 @@
 .. _model-constants:
 
-Model Constants
-=================
-Each model class has a constant object, `model.constants` that stores the constants defining a model.
-In the spin-boson model, these constants are derived from the definition of the Hamiltonian which can be found in the
- `Spin-Boson Model Documentation <../../user_guide/models/spin_boson_model.html>`_.
-
-The table below lists the available constants and their default values.
 
 
-.. list-table:: Spin-Boson Model Constants
-   :widths: 20 20 20 40
-   :header-rows: 1
+I want to change the reorganization energy.
+===========================================
 
-   * - Symbol
-     - Name
-     - Default value
-     - Description
-   * - :math:`\Omega`
-     - `W`
-     - 0.1
-     - Characteristic frequency.
-   * - :math:`\lambda`
-     - `l_reorg`
-     - 0.005
-     - Reorganization energy.
-   * - :math:`E`
-     - `E`
-     - 0.5
-     - Diagonal energy.
-   * - :math:`V`
-     - `V`
-     - 0.5
-     - Off-diagonal coupling.
-   * - :math:`A`
-     - `A`
-     - 100
-     - Number of bosons.
-   * - :math:`m`
-     - `boson_mass`
-     - 1
-     - boson mass.
-   * - :math:`k_B T`
-     - `kBT`
-     - 1
-     - Thermal quantum.
+Changing the reorganization energy is easy! 
+
+Using the same simulation object from the previous example, we can modify the `l_reorg` constant in `sim.model.constants`.
 
 
-The constants object can be initialized with custom values by passing a dictionary to the `SpinBoson` model class at instantiation.
 
 .. code-block:: python
 
-    from qc_lab.models import SpinBoson
-    from qc_lab import Simulation
-    from qc_lab.algorithms import MeanField
-    from qc_lab.dynamics import serial_driver
-    import numpy as np
-    # Instantiate a simulation
-    sim = Simulation()
-    # Instantiate a model with custom constants
-    sim.model = SpinBoson(constants={
-        'W': 0.2,          # Characteristic frequency
-        'l_reorg': 0.01,   # Reorganization energy
-        'E': 0.6,          # Diagonal energy
-        'V': 0.4,          # Off-diagonal coupling
-        'A': 150,          # Number of bosons
-        'boson_mass': 1.5, # Mass of the bosons
-        'kBT': 1.2         # Thermal quantum
-    })
-    # Instantiate an algorithm
-    sim.algorithm = MeanField()
-    # Set the initial diabatic wavefunction
-    sim.state.wf_db = np.array([1, 0], dtype=complex)
-    # Run the simulation using the serial driver
-    data = serial_driver(sim)
-
-
-Alternatively, you can set the constants directly in the model after instantiation.
-
-.. code-block:: python
-
-    from qc_lab.models import SpinBoson
-    from qc_lab import Simulation
-    from qc_lab.algorithms import MeanField
-    from qc_lab.dynamics import serial_driver
-    import numpy as np
-    # Instantiate a simulation
-    sim = Simulation()
-    # Instantiate a model with default constants
-    sim.model = SpinBoson()
-    # Change the constants directly
-    sim.model.constants.W = 0.2
-    # Instantiate an algorithm
-    sim.algorithm = MeanField()
-    # Set the initial diabatic wavefunction
-    sim.state.wf_db = np.array([1, 0], dtype=complex)
-    # Run the simulation using the serial driver
-    data = serial_driver(sim)
-
-Here we show a simple example where we compare the population dynamics of the spin-boson model with different values of the reorganization energy.
-
-.. code-block:: python
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from qc_lab import Simulation
-    from qc_lab.models import SpinBoson
-    from qc_lab.algorithms import MeanField
-    from qc_lab.dynamics import serial_driver
-
-
-    # Initialize the simulation object.
-    sim = Simulation()
-    # Equip it with a SpinBoson model object.
-    sim.model = SpinBoson()
-    # Attach the MeanField algorithm.
-    sim.algorithm = MeanField()
-    # Initialize the diabatic wavefunction.
-    sim.state.wf_db = np.array([1, 0], dtype=complex)
-    # Run the simulation.
-    data = serial_driver(sim)
-    # Change the reorganization energy.
     sim.model.constants.l_reorg = 0.05
-    # Run the simulation again.
-    data_1 = serial_driver(sim)
-    # Plot the results.
-    plt.plot(data.data_dict["t"], np.real(data.data_dict["dm_db"][:,0,0]), label=r'$\lambda = 0.005$')
-    plt.plot(data_1.data_dict["t"], np.real(data_1.data_dict["dm_db"][:,0,0]), label=r'$\lambda = 0.05$')
+
+    # Now let's run the simulation again
+    data_fssh_1000_05 = serial_driver(sim)
+
+    plt.plot(data_fssh_1000.data_dict["t"], np.real(data_fssh_1000.data_dict["dm_db"][:,0,0]), label=r'$\lambda = 0.005$')
+    plt.plot(data_fssh_1000_05.data_dict["t"], np.real(data_fssh_1000_05.data_dict["dm_db"][:,0,0]), label=r'$\lambda = 0.05$')
     plt.xlabel('Time')
     plt.ylabel('Excited state population')
+    #plt.savefig('fssh_lreorg.png')
     plt.legend()
     plt.show()
 
 
-.. image:: lambda_comparison.png
+.. image:: fssh_lreorg.png
     :alt: Population dynamics.
     :align: center
     :width: 80%
+
+
+For a complete list of model constants and their descriptions, please refer to the `Spin-Boson model documentation <../../user_guide/models/spin_boson_model.html>`_.
+
+
+
+
+
+.. button-ref:: modify-fssh
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want to modify the FSSH algorithm.

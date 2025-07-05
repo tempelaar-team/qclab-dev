@@ -12,13 +12,17 @@ sim = Simulation()
 sim.model = SpinBoson()
 # Attach the MeanField algorithm.
 sim.algorithm = MeanField()
-# Initialize the diabatic wavefunction.
+# Initialize the diabatic wavefunction. 
+# Here, the first state is the upper state and the second is the lower state.
 sim.state.wf_db = np.array([1, 0], dtype=complex)
 # Run the simulation.
 data = serial_driver(sim)
 
+# Pull out the time.
 t = data.data_dict["t"]
+# Get populations from the diagonal of the density matrix.
 populations = np.real(np.einsum("tii->ti", data.data_dict["dm_db"]))
+# Get the classical and quantum energy.
 classical_energy = data.data_dict["classical_energy"]
 quantum_energy = data.data_dict["quantum_energy"]
 

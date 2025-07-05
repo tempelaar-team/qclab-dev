@@ -1,73 +1,41 @@
 .. _simulation-settings:
 
 
-Simulation settings
-===================
+I want to run more trajectories.
+================================
 
-The simulation object stores its settings in a dictionary at `Simulation.settings`.
-These settings can be modified before running the simulation to customize the behavior of the simulation.
-The table below lists the available settings and their default values.
-
-
-.. list-table:: Simulation settings
-   :widths: 20 20 60
-   :header-rows: 1
-
-   * - Setting
-     - Default value
-     - Description
-   * - ``'dt_update'``
-     - 0.001
-     - Time step for updating the state of the system.
-   * - ``'dt_gather'``
-     - 0.1
-     - Time step for gathering the output variables.
-   * - ``'tmax'``
-     - 10
-     - Maximum simulation time.
-   * - ``'num_trajs'``
-     - 100
-     - Total number of trajectories to run.
-   * - ``'batch_size'``
-     - 25
-     - Number of trajectories to run in each batch.
-
-An example of changin the simulation settings is shown below, here we change the number of trajectories that the simulation runs 
-and compare the resulting population dynamics. 
+Increasing the number of trajectories is easy! Just modify the `num_trajs` variable in `sim.settings` before running the simulation.
 
 .. code-block:: python
 
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from qc_lab import Simulation
-    from qc_lab.models import SpinBoson
-    from qc_lab.algorithms import MeanField
-    from qc_lab.dynamics import serial_driver
+    sim.settings.num_trajs = 1000
+    # you can also change the batch size if you want to run more trajectories in each batch.
+    sim.settings.batch_size = 1000
+    data_fssh_1000 = serial_driver(sim)
+
+Now we can plot the results of the simulation with the increased number of trajectories.
+
+.. code-block:: python
 
 
-    # Initialize the simulation object.
-    sim = Simulation()
-    # Equip it with a SpinBoson model object.
-    sim.model = SpinBoson()
-    # Attach the MeanField algorithm.
-    sim.algorithm = MeanField()
-    # Initialize the diabatic wavefunction.
-    sim.state.wf_db = np.array([1, 0], dtype=complex)
-    # Run the simulation.
-    data_100 = serial_driver(sim)
-    # Change the number of trajectories.
-    sim.settings.num_trajs = 10
-    # Run the simulation again.
-    data_10 = serial_driver(sim)
-    # Plot the results.
-    plt.plot(data_100.data_dict["t"], np.real(data_100.data_dict["dm_db"][:,0,0]), label='100 Trajs')
-    plt.plot(data_10.data_dict["t"], np.real(data_10.data_dict["dm_db"][:,0,0]), label='10 Trajs')
+    plt.plot(data.data_dict["t"], np.real(data.data_dict["dm_db"][:,0,0]), label='MF')
+    plt.plot(data_fssh.data_dict["t"], np.real(data_fssh.data_dict["dm_db"][:,0,0]), label='FSSH')
+    plt.plot(data_fssh_1000.data_dict["t"], np.real(data_fssh_1000.data_dict["dm_db"][:,0,0]), label='FSSH, num_trajs=1000')
     plt.xlabel('Time')
     plt.ylabel('Excited state population')
     plt.legend()
     plt.show()
 
-.. image:: num_trajs_comparison.png
+
+.. image:: fssh_numtrajs.png
     :alt: Population dynamics.
     :align: center
     :width: 80%
+
+
+.. button-ref:: parallel-driver
+    :color: primary
+    :shadow:
+    :align: center
+
+    I want it to run faster!

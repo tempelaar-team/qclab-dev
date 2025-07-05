@@ -4,20 +4,13 @@
 Modifying the FSSH Algorithm
 ============================
 
-
-QC Lab provides a straightforward way to modify the behavior of quantum-classical algorithms.
-In this example, we will modify the behavior of the FSSH algorithm. By default, the FSSH algorithm
-leaves velocities unchanged if a hop is frustrated. However, some researchers have found favorable results
-by inverting the velocities in such cases. 
-
-To implement this modification, we will create a new task and insert it into an instance of the FSSH algorithm object.
-QC Lab stores information on which trajectories were eligible to hop in the `state.hop_ind` array, and whether a hop 
-was successful in the `state.hop_successful` boolean array. We can ue these to determine which trajectories were frustrated and reverse their velocities.
+Let's try modifying the FSSH algorithm so that the directions of the velocities of frustrated trajectories are reversed.
+In the complex coordinate formalism, this means conjugating the z coordinate of the frustrated trajectories.
 
 .. code-block:: python
 
 
-    def update_z_reverse_frustrated_fssh(algorithm, sim, parameters, state, **kwargs):
+    def update_z_reverse_frustrated_fssh(algorithm, sim, parameters, state):
         """
         Reverse the velocities of frustrated trajectories in the FSSH algorithm.
         """
