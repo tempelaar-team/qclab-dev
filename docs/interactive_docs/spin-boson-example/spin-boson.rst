@@ -25,10 +25,44 @@ The output of this code is:
     :align: center
     :width: 50%
     
+.. comment::
 
-.. button-ref:: change-algorithm
-    :color: primary
-    :shadow:
-    :align: center
+    .. button-ref:: change-algorithm
+        :color: primary
+        :shadow:
+        :align: center
 
-    I want to use the FSSH algorithm instead.
+        I want to use the FSSH algorithm instead.
+
+.. raw:: html
+
+   <br/>
+
+   
+.. dropdown:: I want to use the FSSH algorithm instead.
+
+    .. include:: change-algorithm.rst
+
+.. dropdown:: I want to run more trajectories.
+
+    .. include:: simulation-settings.rst
+
+.. dropdown:: I want it to run faster!
+
+    .. include:: parallel-driver.rst
+
+.. dropdown:: I want to change the reorganization energy.
+
+    .. include:: model-constants.rst
+
+.. dropdown:: I want to modify the FSSH algorithm.
+
+    .. include:: modify-fssh.rst
+
+
+.. dropdown:: Wrapping it all together.
+
+    .. literalinclude:: full_example.py
+        :language: python
+        :caption: This Full example.
+

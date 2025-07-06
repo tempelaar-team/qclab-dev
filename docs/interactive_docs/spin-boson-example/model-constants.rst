@@ -16,7 +16,7 @@ Using the same simulation object from the previous example, we can modify the `l
     sim.model.constants.l_reorg = 0.05
 
     # Now let's run the simulation again
-    data_fssh_1000_05 = serial_driver(sim)
+    data_fssh_1000_05 = parallel_driver_multiprocessing(sim)
 
     plt.plot(data_fssh_1000.data_dict["t"], np.real(data_fssh_1000.data_dict["dm_db"][:,0,0]), label=r'$\lambda = 0.005$')
     plt.plot(data_fssh_1000_05.data_dict["t"], np.real(data_fssh_1000_05.data_dict["dm_db"][:,0,0]), label=r'$\lambda = 0.05$')
@@ -30,7 +30,7 @@ Using the same simulation object from the previous example, we can modify the `l
 .. image:: fssh_lreorg.png
     :alt: Population dynamics.
     :align: center
-    :width: 80%
+    :width: 50%
 
 
 For a complete list of model constants and their descriptions, please refer to the `Spin-Boson model documentation <../../user_guide/models/spin_boson_model.html>`_.
@@ -38,10 +38,11 @@ For a complete list of model constants and their descriptions, please refer to t
 
 
 
+.. comment::
 
-.. button-ref:: modify-fssh
-    :color: primary
-    :shadow:
-    :align: center
+    .. button-ref:: modify-fssh
+        :color: primary
+        :shadow:
+        :align: center
 
-    I want to modify the FSSH algorithm.
+        I want to modify the FSSH algorithm.

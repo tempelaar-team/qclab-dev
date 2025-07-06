@@ -27,16 +27,18 @@ work if you have multiple CPU cores available.
 
 
 
-
 You should find that the results are exactly the same as before, but that the simulation runs faster. 
 The speedup will in general be less than ideal because of the overhead and also how your particular machine 
 is configured. But on my machine with 8 cores, I find that the speedup is about 3x faster than the serial driver.
 
+For an overview of the different drivers available in QC Lab, please refer to the `Drivers documentation <../../user_guide/drivers/drivers.html>`_.
 
 
-.. button-ref:: model-constants
-    :color: primary
-    :shadow:
-    :align: center
+.. comment::
 
-    I want to change the reorganization energy.
+    .. button-ref:: model-constants
+        :color: primary
+        :shadow:
+        :align: center
+
+        I want to change the reorganization energy.

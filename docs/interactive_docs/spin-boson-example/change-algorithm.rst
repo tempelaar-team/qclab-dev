@@ -30,7 +30,10 @@ Now the results look a bit different.
 .. image:: algorithm_comparison.png
     :alt: Population dynamics.
     :align: center
-    :width: 80%
+    :width: 50%
+
+
+You can learn about other algorithms in the `Algorithms documentation <../../user_guide/algorithms/algorithms.html>`_.
 
 
 .. note::
@@ -40,10 +43,11 @@ Now the results look a bit different.
     were increased, the populations would converge to the same value as the `MeanField` algorithm at the outset of the simulation.
 
 
+.. comment::
 
-.. button-ref:: simulation-settings
-    :color: primary
-    :shadow:
-    :align: center
+    .. button-ref:: simulation-settings
+        :color: primary
+        :shadow:
+        :align: center
 
-    I want to run more trajectories.
+        I want to run more trajectories.

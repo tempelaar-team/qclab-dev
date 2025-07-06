@@ -30,10 +30,10 @@ at the `update_recipe` attribute of the FSSH algorithm object.
 
 .. code-block:: python
 
-    from qc_lab.algorithms import FSSH
+    from qc_lab.algorithms import FewestSwitchesSurfaceHopping
 
     # Create an instance of the FSSH algorithm
-    fssh_algorithm = FSSH()
+    fssh_algorithm = FewestSwitchesSurfaceHopping()
 
     # Print the update recipe to see where to insert our task
     for ind, task in enumerate(fssh_algorithm.update_recipe):

@@ -10,6 +10,7 @@ User Guide
 
     quickstart/quickstart
     drivers/drivers 
+    simulation
     models/models 
     algorithms/algorithms 
     data_object

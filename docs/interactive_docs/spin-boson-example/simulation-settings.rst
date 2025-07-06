@@ -30,12 +30,16 @@ Now we can plot the results of the simulation with the increased number of traje
 .. image:: fssh_numtrajs.png
     :alt: Population dynamics.
     :align: center
-    :width: 80%
+    :width: 50%
 
 
-.. button-ref:: parallel-driver
-    :color: primary
-    :shadow:
-    :align: center
+You can learn more about modifying the simulation settings in the `Simulation Object documentation <../../user_guide/simulation.html>`_.
 
-    I want it to run faster!
+.. comment::
+
+    .. button-ref:: parallel-driver
+        :color: primary
+        :shadow:
+        :align: center
+
+        I want it to run faster!
