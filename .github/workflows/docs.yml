@@ -30,6 +30,7 @@ jobs:
         pip install pydata-sphinx-theme
         pip install sphinx-design
         pip install sphinx-togglebutton
+        pip install sphinx-panels
         pip install -e .
     - name: Build documentation
       id: build
