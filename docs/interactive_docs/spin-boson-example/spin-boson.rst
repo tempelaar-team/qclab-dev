@@ -38,31 +38,79 @@ The output of this code is:
 
    <br/>
 
-   
-.. dropdown:: I want to use the FSSH algorithm instead.
+I want to use the FSSH algorithm instead.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. container:: toggle
 
     .. include:: change-algorithm.rst
 
-.. dropdown:: I want to run more trajectories.
+I want to run more trajectories.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. container:: toggle
 
     .. include:: simulation-settings.rst
 
-.. dropdown:: I want it to run faster!
+I want it to run faster!
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. container:: toggle
 
     .. include:: parallel-driver.rst
 
-.. dropdown:: I want to change the reorganization energy.
+I want to change the reorganization energy.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. container:: toggle
 
     .. include:: model-constants.rst
 
-.. dropdown:: I want to modify the FSSH algorithm.
+
+I want to modify the FSSH algorithm.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. container:: toggle
 
     .. include:: modify-fssh.rst
 
+Wrapping it all together.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. dropdown:: Wrapping it all together.
+.. container:: toggle
 
     .. literalinclude:: full_example.py
         :language: python
         :caption: This Full example.
+
+
+.. comment::
+
+    
+    .. dropdown:: I want to use the FSSH algorithm instead.
+
+        .. include:: change-algorithm.rst
+
+    .. dropdown:: I want to run more trajectories.
+
+        .. include:: simulation-settings.rst
+
+    .. dropdown:: I want it to run faster!
+
+        .. include:: parallel-driver.rst
+
+    .. dropdown:: I want to change the reorganization energy.
+
+        .. include:: model-constants.rst
+
+    .. dropdown:: I want to modify the FSSH algorithm.
+
+        .. include:: modify-fssh.rst
+
+
+    .. dropdown:: Wrapping it all together.
+
+        .. literalinclude:: full_example.py
+            :language: python
+            :caption: This Full example.
 

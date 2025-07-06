@@ -5,3 +5,19 @@
   .bd-page-width {
     max-width: 95%;  /* default is 88rem */
   }
+
+  /* _static/custom.css */
+
+/* remove the “reserved” space when collapsed */
+.admonition.dropdown:not(.open) .admonition-content {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+/* tighten up the title line */
+/* .admonition.dropdown > .admonition-title {
+  padding: 0.2em 0 !important;
+  font-weight: bold;
+} */

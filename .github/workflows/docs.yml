@@ -26,11 +26,10 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install sphinx==5
+        pip install sphinx
         pip install pydata-sphinx-theme
         pip install sphinx-design
         pip install sphinx-togglebutton
-        pip install sphinx-panels
         pip install -e .
     - name: Build documentation
       id: build
