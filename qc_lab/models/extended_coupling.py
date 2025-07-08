@@ -8,7 +8,7 @@ class ExtendedCoupling(Model):
         if constants is None:
             constants = {}
         
-        self.default_constants = dict(init_momentum = 10, init_position=-25, mass=2000, pq_weight=1)
+        self.default_constants = dict(init_momentum = 10, init_position=-25, mass=2000)
 
         super().__init__(self.default_constants, constants)
 
@@ -21,7 +21,7 @@ class ExtendedCoupling(Model):
         self.constants.num_quantum_states = 2
         self.constants.num_classical_coordinates = 1
         self.constants.classical_coordinate_mass = np.array([self.constants.get("mass", self.default_constants.get("mass"))])
-        self.constants.classical_coordinate_weight = np.array([self.constants.get("pq_weight", self.default_constants.get("pq_weight"))])
+        self.constants.classical_coordinate_weight = np.array([1])
 
     def initialize_constants_h_qc(self):
         self.constants.gradient_weight = 1/np.sqrt(
@@ -34,7 +34,7 @@ class ExtendedCoupling(Model):
     def h_qc(self, parameters, **kwargs):
         num_quantum_states = self.constants.num_quantum_states
         mass = self.constants.classical_coordinate_mass.flatten()
-        pq_weight = self.constants.classical_coordinate_weight.flatten()   
+        h = self.constants.classical_coordinate_weight.flatten()   
         A = self.constants.A
         B = self.constants.B
         C = self.constants.C
@@ -45,7 +45,7 @@ class ExtendedCoupling(Model):
             batch_size = len(parameters.seed)
         z = kwargs["z"]
 
-        q = ((z + np.conj(z))/2)/((mass*pq_weight/2)**(1/2))
+        q = ((z + np.conj(z))/2)/((mass*h/2)**(1/2))
 
         h_qc = np.zeros((batch_size, num_quantum_states, num_quantum_states), dtype=complex)
         

@@ -2,13 +2,15 @@ import numpy as np
 from qc_lab.model import Model
 from qc_lab import ingredients
 
+
 class DualAvoidedCrossing(Model):
-    """ Tully's second problem, a dual avoided crossing."""
+    """Tully's second problem, a dual avoided crossing."""
+
     def __init__(self, constants=None):
         if constants is None:
             constants = {}
-        
-        self.default_constants = dict(init_momentum = 10, init_position=-25, mass=2000, pq_weight=1)
+
+        self.default_constants = dict(init_momentum=10, init_position=-25, mass=2000)
 
         super().__init__(self.default_constants, constants)
 
@@ -20,47 +22,54 @@ class DualAvoidedCrossing(Model):
     def initialize_constants_model(self):
         self.constants.num_quantum_states = 2
         self.constants.num_classical_coordinates = 1
-        self.constants.classical_coordinate_mass = np.array([self.constants.get("mass", self.default_constants.get("mass"))])
-        self.constants.classical_coordinate_weight = np.array([self.constants.get("pq_weight", self.default_constants.get("pq_weight"))])
+        self.constants.classical_coordinate_mass = np.array(
+            [self.constants.get("mass", self.default_constants.get("mass"))]
+        )
+        self.constants.classical_coordinate_weight = np.array([1])
 
     def initialize_constants_h_qc(self):
-        self.constants.gradient_weight = 1/np.sqrt(2*self.constants.classical_coordinate_mass*self.constants.classical_coordinate_weight)
+        self.constants.gradient_weight = 1 / np.sqrt(
+            2
+            * self.constants.classical_coordinate_mass
+            * self.constants.classical_coordinate_weight
+        )
         self.constants.A = 0.1
         self.constants.B = 0.28
         self.constants.C = 0.015
         self.constants.D = 0.06
         self.constants.E_o = 0.05
-        
-    
+
     def h_qc(self, parameters, **kwargs):
         num_quantum_states = self.constants.num_quantum_states
         mass = self.constants.classical_coordinate_mass.flatten()
-        pq_weight = self.constants.classical_coordinate_weight.flatten()
+        h = self.constants.classical_coordinate_weight.flatten()
         A = self.constants.A
         B = self.constants.B
         C = self.constants.C
         D = self.constants.D
         E_o = self.constants.E_o
-        
+
         if kwargs.get("batch_size") is not None:
             batch_size = kwargs.get("batch_size")
         else:
             batch_size = len(parameters.seed)
         z = kwargs["z"]
 
-        q = ((z + np.conj(z))/2)/((mass*pq_weight/2)**(1/2))
+        q = ((z + np.conj(z)) / 2) / ((mass * h / 2) ** (1 / 2))
 
-        h_qc = np.zeros((batch_size, num_quantum_states, num_quantum_states), dtype=complex)
+        h_qc = np.zeros(
+            (batch_size, num_quantum_states, num_quantum_states), dtype=complex
+        )
 
-        V_12 = C*(np.exp(-1*D*(q**2)))
-        V_22 = (-1*A*(np.exp(-1*B*(q**2))) + E_o)
-        
-        h_qc[:,0,1] = V_12.flatten()
-        h_qc[:,1,0] = V_12.flatten()
-        h_qc[:,1,1] = V_22.flatten()
+        V_12 = C * (np.exp(-1 * D * (q**2)))
+        V_22 = -1 * A * (np.exp(-1 * B * (q**2))) + E_o
+
+        h_qc[:, 0, 1] = V_12.flatten()
+        h_qc[:, 1, 0] = V_12.flatten()
+        h_qc[:, 1, 1] = V_22.flatten()
 
         return h_qc
-    
+
     def dh_qc_dzc(self, parameters, **kwargs):
         num_quantum_states = self.constants.num_quantum_states
         num_classical_coordinates = self.constants.num_classical_coordinates
@@ -69,21 +78,37 @@ class DualAvoidedCrossing(Model):
         B = self.constants.B
         C = self.constants.C
         D = self.constants.D
-        
+
         if kwargs.get("batch_size") is not None:
             batch_size = kwargs.get("batch_size")
         else:
             batch_size = len(parameters.seed)
         z = kwargs["z"]
 
-        dh_qc_dzc = np.zeros((batch_size, num_classical_coordinates, num_quantum_states, num_quantum_states), dtype=complex)
- 
-        dV_12_dzc = (-2*C*D*(gradient_weight**2))*(z + np.conj(z))*(np.exp(-1*D*(((z + np.conj(z))*gradient_weight)**2)))
-        dV_22_dzc = ((2*A*B*(gradient_weight**2))*(z + np.conj(z))*(np.exp(-1*B*(((z + np.conj(z))*gradient_weight)**2))))
+        dh_qc_dzc = np.zeros(
+            (
+                batch_size,
+                num_classical_coordinates,
+                num_quantum_states,
+                num_quantum_states,
+            ),
+            dtype=complex,
+        )
 
-        dh_qc_dzc[:,0,0,1] = dV_12_dzc.flatten()
-        dh_qc_dzc[:,0,1,0] = dV_12_dzc.flatten()
-        dh_qc_dzc[:,0,1,1] = dV_22_dzc.flatten()
+        dV_12_dzc = (
+            (-2 * C * D * (gradient_weight**2))
+            * (z + np.conj(z))
+            * (np.exp(-1 * D * (((z + np.conj(z)) * gradient_weight) ** 2)))
+        )
+        dV_22_dzc = (
+            (2 * A * B * (gradient_weight**2))
+            * (z + np.conj(z))
+            * (np.exp(-1 * B * (((z + np.conj(z)) * gradient_weight) ** 2)))
+        )
+
+        dh_qc_dzc[:, 0, 0, 1] = dV_12_dzc.flatten()
+        dh_qc_dzc[:, 0, 1, 0] = dV_12_dzc.flatten()
+        dh_qc_dzc[:, 0, 1, 1] = dV_22_dzc.flatten()
 
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]
@@ -93,17 +118,17 @@ class DualAvoidedCrossing(Model):
         self.dh_qc_dzc_shape = shape
 
         return inds, mels, shape
-        
+
     initialization_functions = [
         initialize_constants_model,
         initialize_constants_h_qc,
     ]
     ingredients = [
-            ("h_q", ingredients.two_level_system_h_q),
-            ("h_qc", h_qc),
-            ("h_c", ingredients.free_particle_h_c),
-            ("dh_qc_dzc", dh_qc_dzc),
-            ("dh_c_dzc", ingredients.free_particle_dh_c_dzc),
-            ("init_classical", ingredients.definite_position_momentum_init_classical),
-            ("hop_function", ingredients.free_particle_hop_function),
-        ]
+        ("h_q", ingredients.two_level_system_h_q),
+        ("h_qc", h_qc),
+        ("h_c", ingredients.free_particle_h_c),
+        ("dh_qc_dzc", dh_qc_dzc),
+        ("dh_c_dzc", ingredients.free_particle_dh_c_dzc),
+        ("init_classical", ingredients.definite_position_momentum_init_classical),
+        ("hop_function", ingredients.free_particle_hop_function),
+    ]
