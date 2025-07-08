@@ -102,6 +102,26 @@ def harmonic_oscillator_h_c(model, parameters, **kwargs):
     return h_c
 
 
+def free_particle_h_c(model, parameters, **kwargs):
+    """
+    Free particle classical Hamiltonian function.
+
+    Required Constants:
+        - `classical_coordinate_mass`: Mass of the classical coordinates.
+    """
+    del parameters
+    z = kwargs.get("z")
+    if kwargs.get("batch_size") is not None:
+        batch_size = kwargs.get("batch_size")
+        assert len(z) == batch_size
+    else:
+        batch_size = len(z)
+    m = model.constants.classical_coordinate_mass[np.newaxis, :]
+    _, p = z_to_qp(z, model.constants)
+    h_c = np.sum((1 / (2 * m)) * (p**2), axis=-1)
+    return h_c
+
+
 @njit()
 def harmonic_oscillator_dh_c_dzc_jit(z, h, w):
     """
@@ -115,7 +135,7 @@ def harmonic_oscillator_dh_c_dzc_jit(z, h, w):
 
 def harmonic_oscillator_dh_c_dzc(model, parameters, **kwargs):
     """
-    Derivative of the classical harmonic oscillator Hamiltonian with respect to the `z` coordinate.
+    Derivative of the classical harmonic oscillator Hamiltonian with respect to the conjugate `z` coordinate.
 
     Required Constants:
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
@@ -131,10 +151,39 @@ def harmonic_oscillator_dh_c_dzc(model, parameters, **kwargs):
     w = model.constants.harmonic_oscillator_frequency
     return harmonic_oscillator_dh_c_dzc_jit(z, h, w)
 
+def free_particle_dh_c_dzc(model, parameters, **kwargs):
+    """
+    Derivative of the free particle classical Hamiltonian with respect to the `z` coordinate.
+
+    Required Constants:
+        - `classical_coordinate_mass`: Mass of the classical coordinates.
+    """
+    del parameters
+    z = kwargs.get("z")
+    if kwargs.get("batch_size") is not None:
+        batch_size = kwargs.get("batch_size")
+        assert len(z) == batch_size
+    else:
+        batch_size = len(z)
+    h = model.constants.classical_coordinate_weight
+    return -(h[...,:]/2) * (np.conj(z) - z)
+
+
 
 def two_level_system_h_q(model, parameters, **kwargs):
     """
     Quantum Hamiltonian for a two-level system.
+
+    H = [[a, c + id],
+         [c - id, b]]
+
+    where:
+        - a is the energy of the first level,
+        - b is the energy of the second level,
+        - c is the real part of the coupling between levels,
+        - d is the imaginary part of the coupling between levels.
+    
+    By default, a=b=c=d=0.
 
     Required Constants:
         - `two_level_system_a`: Energy of the first level.
@@ -147,13 +196,13 @@ def two_level_system_h_q(model, parameters, **kwargs):
     else:
         batch_size = len(parameters.seed)
     h_q = np.zeros((batch_size, 2, 2), dtype=complex)
-    h_q[:, 0, 0] = model.constants.two_level_system_a
-    h_q[:, 1, 1] = model.constants.two_level_system_b
+    h_q[:, 0, 0] = model.constants.get("two_level_system_a", 0.0)
+    h_q[:, 1, 1] = model.constants.get("two_level_system_b", 0.0)
     h_q[:, 0, 1] = (
-        model.constants.two_level_system_c + 1j * model.constants.two_level_system_d
+        model.constants.get("two_level_system_c",0.0) + 1j * model.constants.get("two_level_system_d", 0.0)
     )
     h_q[:, 1, 0] = (
-        model.constants.two_level_system_c - 1j * model.constants.two_level_system_d
+        model.constants.get("two_level_system_c",0.0) - 1j * model.constants.get("two_level_system_d",0.0)
     )
     return h_q
 
@@ -300,7 +349,10 @@ def diagonal_linear_dh_qc_dzc(model, parameters, **kwargs):
 
 def harmonic_oscillator_hop_function(model, parameters, **kwargs):
     """
-    Perform a hopping operation for the harmonic oscillator.
+    Determines the shift in the classical cordiantes required to hop assuming
+    the classical Hamiltonian is a harmonic oscillator.
+    ev_diff = e_final - e_initial
+    returns the shift such that the new classical coordinate is z + shift.
 
     Required Constants:
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
@@ -325,6 +377,8 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
         )
         + model.constants.classical_coordinate_weight
     )
+    # Here, akj_z, bkj_z, ckj_z are the coefficients of the quadratic equation
+    # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0
     akj_z = np.sum(
         2 * delta_zc * delta_z * b_const - a_const * (delta_z**2 + delta_zc**2)
     )
@@ -343,10 +397,49 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
             gamma = 0
         else:
             gamma = gamma / (2 * akj_z)
-        # adjust classical coordinate
-        return -1.0j * np.real(gamma) * delta_z, True
+        return -1.0j * gamma * delta_z, True
     return 0*z, False
 
+def free_particle_hop_function(model, parameters, **kwargs):
+    """
+    Determines the shift in the classical cordiantes required to hop assuming
+    the classical Hamiltonian is a harmonic oscillator.
+    ev_diff = e_final - e_initial
+    returns the shift such that the new classical coordinate is z + shift.
+    
+    Required Constants:
+        - `classical_coordinate_weight`: Mass of the classical coordinates.
+    """
+    z = kwargs["z"]
+    delta_z = kwargs["delta_z"]
+    ev_diff = kwargs["ev_diff"]
+    delta_zc = np.conj(delta_z)
+    zc = np.conj(z)
+
+    f = 1.0j*(delta_zc + delta_z)
+    g = zc - z
+
+    h = model.constants.classical_coordinate_weight
+
+    # Here, akj_z, bkj_z, ckj_z are the coefficients of the quadratic equation
+    # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0
+
+    akj_z = np.sum((h/4) * f * f)
+    bkj_z = -np.sum((h/2) * f * g)
+    ckj_z = -ev_diff
+
+    disc = bkj_z**2 - 4 * akj_z * ckj_z
+    if disc >= 0:
+        if bkj_z < 0:
+            gamma = bkj_z + np.sqrt(disc)
+        else:
+            gamma = bkj_z - np.sqrt(disc)
+        if akj_z == 0:
+            gamma = 0
+        else:
+            gamma = gamma / (2 * akj_z)
+        return -1.0j * gamma * delta_z, True
+    return 0*z, False
 
 def harmonic_oscillator_boltzmann_init_classical(model, parameters, **kwargs):
     """
@@ -419,6 +512,27 @@ def harmonic_oscillator_wigner_init_classical(model, parameters, **kwargs):
         z = qp_to_z(q, p, model.constants)
         out[s] = z
     return out
+
+def definite_position_momentum_init_classical(model, parameters, **kwargs):
+    """
+    Initialize classical coordinates with definite position and momentum.
+    init_position and init_momentum are the initial position and momentum and
+    so should be numpy arrays of shape (num_classical_coordinates).
+
+    Required Constants:
+        - `classical_coordinate_mass`: Mass of the classical coordinates.
+        - `start_position`: Initial position of the classical coordinates.
+        - `start_momentum`: Initial momentum of the classical coordinates.
+    """
+    del parameters
+    seed = kwargs.get("seed", None)
+    q = model.constants.init_position
+    p = model.constants.init_momentum
+    z = np.zeros((len(seed), model.constants.num_classical_coordinates), dtype=complex)
+    for s, seed_value in enumerate(seed):
+        np.random.seed(seed_value)
+        z[s] = qp_to_z(q, p, model.constants)
+    return z
 
 
 def harmonic_oscillator_coherent_state_wigner_init_classical(
