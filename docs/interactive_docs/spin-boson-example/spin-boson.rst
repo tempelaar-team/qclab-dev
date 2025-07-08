@@ -34,57 +34,61 @@ The output of this code is:
 
         I want to use the FSSH algorithm instead.
 
-.. raw:: html
 
-   <br/>
 
-I want to use the FSSH algorithm instead.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. container:: toggle
-
-    .. include:: change-algorithm.rst
-
-I want to run more trajectories.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. container:: toggle
-
-    .. include:: simulation-settings.rst
-
-I want it to run faster!
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. container:: toggle
-
-    .. include:: parallel-driver.rst
-
-I want to change the reorganization energy.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+I want to increase the reorganization energy.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. container:: toggle
 
     .. include:: model-constants.rst
 
 
-I want to modify the FSSH algorithm.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+I want to use FSSH instead.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. container:: toggle
+
+    .. include:: change-algorithm.rst
+
+
+I want to inverte the momenta of frustrate hops.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. container:: toggle
 
     .. include:: modify-fssh.rst
 
-Wrapping it all together.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. container:: toggle
-
-    .. literalinclude:: full_example.py
-        :language: python
-        :caption: This Full example.
-
 
 .. comment::
+
+    I want to run more trajectories.
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    .. container:: toggle
+
+        .. include:: simulation-settings.rst
+
+    I want it to run faster!
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    .. container:: toggle
+
+        .. include:: parallel-driver.rst
+
+
+
+
+    Wrapping it all together.
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    .. container:: toggle
+
+        .. literalinclude:: full_example.py
+            :language: python
+            :caption: This Full example.
+
+
 
     
     .. dropdown:: I want to use the FSSH algorithm instead.
