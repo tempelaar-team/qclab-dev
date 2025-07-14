@@ -15,26 +15,11 @@ Here's a simple example of how to run a Spin-Boson model with Mean-Field dynamic
 
 The output of this code is:
 
-.. image:: populations.png
+.. image:: mf.png
     :alt: Population dynamics.
     :align: center
     :width: 50%
-
-.. image:: energies.png
-    :alt: Change in energy.
-    :align: center
-    :width: 50%
     
-.. comment::
-
-    .. button-ref:: change-algorithm
-        :color: primary
-        :shadow:
-        :align: center
-
-        I want to use the FSSH algorithm instead.
-
-
 
 I want to increase the reorganization energy.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,7 +37,7 @@ I want to use FSSH instead.
     .. include:: change-algorithm.rst
 
 
-I want to inverte the momenta of frustrate hops.
+I want to invert the momenta of frustrate hops.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. container:: toggle

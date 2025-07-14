@@ -4,7 +4,6 @@ This module contains the Algorithm class, which is the base class for Algorithm 
 
 from qc_lab.constants import Constants
 import copy
-import numpy as np
 
 
 class Algorithm:
@@ -26,8 +25,7 @@ class Algorithm:
         # copy the recipes and output variables to ensure they are not shared across instances
         self.initialization_recipe = copy.copy(self.initialization_recipe)
         self.update_recipe = copy.copy(self.update_recipe)
-        self.gather_recipe = copy.copy(self.gather_recipe)
-        self.gather_variables = copy.copy(self.gather_variables)
+        self.collect_recipe = copy.copy(self.collect_recipe)
 
     def update_algorithm_settings(self):
         """
@@ -36,8 +34,7 @@ class Algorithm:
 
     initialization_recipe = []
     update_recipe = []
-    gather_recipe = []
-    gather_variables = []
+    collect_recipe = []
 
     def execute_recipe(self, sim, parameter, state, recipe):
         """

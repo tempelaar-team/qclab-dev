@@ -35,11 +35,11 @@ By default QC Lab uses the following settings in the simulation object. These se
    * - `dt_update`
      - The timestep used for executing the update recipe (the dynamics propagation).
      - 0.01
-   * - `dt_gather`
+   * - `dt_collect`
      - The timestep used for executing the output recipe (the calculation of observables).
      - 0.1
 
 .. note::
 
-    QC Lab will change `dt_gather` to be integer multiple of `dt_update` and ensure that `tmax` is an integer multiple of both `dt_update` and `dt_gather`.
+    QC Lab will change `dt_collect` to be integer multiple of `dt_update` and ensure that `tmax` is an integer multiple of both `dt_update` and `dt_collect`.
     

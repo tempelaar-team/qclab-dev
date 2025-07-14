@@ -36,7 +36,7 @@ Passing a dictionary to the simulation object when instantiating it will overrid
 
     sim = Simulation()
     print('default simulation settings: ', sim.default_settings)
-    # default simulation settings:  {'tmax': 10, 'dt_update': 0.01, 'dt_gather': 0.1, 'num_trajs': 10, 'batch_size': 1}
+    # default simulation settings:  {'tmax': 10, 'dt_update': 0.01, 'dt_collect': 0.1, 'num_trajs': 10, 'batch_size': 1}
 
 Alternatively, you can directly modify the simulation settings by assigning new values to the settings attribute of the simulation object. Here we change the number
 of trajectories that the simulation will run, and how many trajectories are run at a time (the batch size). We also change the total time of each trajectory (`tmax`) and the 
@@ -44,7 +44,7 @@ timestep used for propagation (`dt_update`).
 
 .. note::
     
-    QC Lab expects that the total time of the simulation (`tmax`) is an integer multiple of the output timestep (`dt_gather`), which must also be an integer multiple 
+    QC Lab expects that the total time of the simulation (`tmax`) is an integer multiple of the output timestep (`dt_collect`), which must also be an integer multiple 
     of the propagation timestep (`dt_update`).
 
 .. code-block:: python
@@ -54,7 +54,7 @@ timestep used for propagation (`dt_update`).
     sim.settings.batch_size = 50
     sim.settings.tmax = 30
     sim.settings.dt_update = 0.01
-    sim.settings.dt_gather = 0.1
+    sim.settings.dt_collect = 0.1
 
 Instantiating Model Object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

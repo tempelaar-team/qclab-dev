@@ -24,7 +24,7 @@ The simulation object has a number of settings that can be adjusted by passing a
         'batch_size': 100,  # Size of each batch to run at once
         'tmax': 10.0,       # Maximum time for the simulation
         'dt_update': 0.01,  # Time step for updates
-        'dt_gather': 0.1,   # Time step for gathering results
+        'dt_collect': 0.1,   # Time step for collecting results
     })  
 
 You can see a list of the available settings and an example of changing them for a spin-boson model in `Simulation Settings <../spin-boson-example/simulation-settings.html>`_.

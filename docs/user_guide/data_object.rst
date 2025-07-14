@@ -52,7 +52,7 @@ the random seeds used in the simulation.
 
     A dictionary containing the data stored in the Data object. By default, this contains the seeds 
     (`data.data_dict["seed"]`), normalization factor (`data.data_dict["norm_factor"]`), output timesteps 
-    (`data.data_dict["t"]`), and any other gather variables that were gathered during the simulation (specified in `algorithm.gather_variables`).
+    (`data.data_dict["t"]`), and any other collect variables that were collected during the simulation (specified in `algorithm.collect_variables`).
 
 
 Example Usage

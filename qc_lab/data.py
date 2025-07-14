@@ -40,7 +40,7 @@ class Data:
                     (len(sim.settings.tdat_output), *np.shape(val)[1:]), dtype=val.dtype
                 )
             # store the data in the data_dict at the correct time index
-            self.data_dict[key][t_ind // sim.settings.dt_gather_n] = (
+            self.data_dict[key][t_ind // sim.settings.dt_collect_n] = (
                     np.sum(val, axis=0) / self.data_dict["norm_factor"]
                 )
 

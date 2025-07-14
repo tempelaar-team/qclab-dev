@@ -32,17 +32,17 @@ referred to as "tasks".
     print(MeanField.update_recipe)
 
     # the output recipe
-    print(MeanField.gather_recipe)
+    print(MeanField.collect_recipe)
 
 As the name implies, the `initialization_recipe` initializes all the variables required for the algorithm. The `update_recipe`
-updates the variables at each time step, and the `gather_recipe` is used to output the results of the algorithm.
+updates the variables at each time step, and the `collect_recipe` is used to output the results of the algorithm.
 
 In addition to the recipes, a list of variable names is needed to specify which variables the algorithm will store in the Data object. 
 
 .. code-block:: python
 
     # the variables that the algorithm will store
-    print(MeanField.gather_variables)
+    print(MeanField.collect_variables)
 
 
 Adding output obvservables
@@ -79,13 +79,13 @@ Next we can add this task to the output recipe.
 
 .. code-block:: python
 
-    MeanField.gather_recipe.append(update_response_function)
+    MeanField.collect_recipe.append(update_response_function)
 
-Finally we can add the relevant variable name to the gather_variables list.
+Finally we can add the relevant variable name to the collect_variables list.
 
 .. code-block:: python
 
-    MeanField.gather_variables.append('response_function')
+    MeanField.collect_variables.append('response_function')
 
 
 We can then run a simulation and calculate the corresponding spectral function,
@@ -164,14 +164,14 @@ Next we can add this task to the output recipe.
 
 .. code-block:: python
 
-    MeanField.gather_recipe.append(update_adiabatic_populations)
+    MeanField.collect_recipe.append(update_adiabatic_populations)
 
 
-Finally we can add the relevant variable name to the gather_variables list.
+Finally we can add the relevant variable name to the collect_variables list.
 
 .. code-block:: python
 
-    MeanField.gather_variables.append('pops_adb')
+    MeanField.collect_variables.append('pops_adb')
 
 
 We can then run a simulation and plot the populations. Note that since the spin-boson model is always in a coupling regime these populations will not have a well-defined meaning.

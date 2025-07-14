@@ -73,14 +73,18 @@ may improve compatibility with some systems but be much slower), you can use:
 
    QC_LAB_DISABLE_NUMBA=1 pip install .
 
-Verifying the Installation
---------------------------
-After installation, verify that QC Lab is available:
+You can also install QC Lab without `h5py` support by using:
 
 .. code-block:: bash
 
-   python -c "import qc_lab"
+   QC_LAB_DISABLE_H5PY=1 pip install .
 
-You should see the QC Lab version printed without errors. 
+If you are interesting in building the documentation, you can install the optional dependencies with:
+
+.. code-block:: bash
+
+   pip install .[docs]
+
+
 
 That’s it! QC Lab should now be installed and ready for us

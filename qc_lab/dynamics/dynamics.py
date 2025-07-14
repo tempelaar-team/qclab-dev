@@ -17,14 +17,12 @@ def dynamics(sim, parameter, state, data):
             parameter, state = sim.algorithm.execute_recipe(
                 sim, parameter, state, sim.algorithm.initialization_recipe
             )
-        # Detect output timesteps.
-        if np.mod(sim.t_ind, sim.settings.dt_gather_n) == 0:
+        # Detect collect timesteps.
+        if np.mod(sim.t_ind, sim.settings.dt_collect_n) == 0:
             # Calculate output variables.
             parameter, state = sim.algorithm.execute_recipe(
-                sim, parameter, state, sim.algorithm.gather_recipe
+                sim, parameter, state, sim.algorithm.collect_recipe
             )
-            # Gather output variables into a dictionary.
-            state.gather_outputs(sim.algorithm.gather_variables)
             # Collect totals in output dictionary.
             data.add_output_to_data_dict(sim, state, sim.t_ind)
         # Execute update recipe.

@@ -71,3 +71,6 @@ The following example demonstrates how to run a mean-field simulation for a spin
     sim.algorithm = FewestSwitchesSurfaceHopping()
     sim.state.wf_db= np.array([1, 0], dtype=complex)
     data = serial_driver(sim)
+
+
+
