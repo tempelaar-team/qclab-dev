@@ -16,6 +16,35 @@ quantum-classical simulation algorithms and models, allowing for rapid prototypi
 This construction is depicted diagramatically below, click on any component to learn more about it!
 
 
+.. container:: graphviz-center
+
+    .. graphviz::
+        
+        digraph flow {
+        rankdir=TB;
+        
+        node [
+        shape=box
+        style="filled,rounded,shadow"
+        fillcolor="#007acc"      // primary blue
+        fontcolor=white
+        fontsize=12
+        margin="0.3,0.2"         // vertical, horizontal padding
+        ];
+
+        sim     [label="Simulation Object", URL="../../user_guide/simulation.html"];
+        model  [label="Model Object", URL="../../user_guide/models/models.html"];
+        algo [label="Algorithm Object",     URL="../../user_guide/algorithms/algorithms.html"];
+        driver     [label="Dynamics Driver",        URL="../../user_guide/drivers/drivers.html"];
+        data [label="Data Object",    URL="../../user_guide/data_object.html"];
+
+        model -> sim;
+        algo -> sim;
+        sim -> driver;
+        driver -> data;
+        }
+
+
 .. button-link:: simulation.html
     :color: primary
     :shadow:
@@ -50,102 +79,5 @@ This construction is depicted diagramatically below, click on any component to l
     :align: center
 
     Data Object
-
-
-.. .. raw:: html
-
-..     <style>
-..     .diagram {
-..         display: flex;
-..         flex-direction: column;
-..         align-items: center;
-..         font-family: sans-serif;
-..     }
-
-..     /* make the whole simulation box clickable */
-..     .simulation-link {
-..         text-decoration: none;
-..         color: inherit;
-..         display: inline-block;
-..     }
-
-..     .simulation-container {
-..         border: 2px solid #ccc;
-..         border-radius: 15px;
-..         padding: 20px;
-..         background: #f8f8f8;
-..         text-align: center;       /* <<< center everything inside */
-..     }
-..     .simulation-container:hover {
-..         border-color: #999;
-..     }
-
-..     /* centered, with just a little bottom‐spacing */
-..     .simulation-title {
-..         font-weight: bold;
-..         font-size: 1.1em;
-..         margin: 0 0 15px;         /* zero top/right/left, 15px bottom */
-..     }
-
-..     .row {
-..         display: flex;
-..         justify-content: space-around;
-..         gap: 20px;
-..     }
-
-..     .box {
-..         display: inline-block;
-..         padding: 15px 25px;
-..         background: #8fbf8f;
-..         color: #000;
-..         text-decoration: none;
-..         border-radius: 5px;
-..         font-weight: 500;
-..         text-align: center;
-..         min-width: 120px;
-..     }
-..     .box:hover {
-..         background: #7fae7f;
-..     }
-
-..     .arrow {
-..         width: 2px;
-..         height: 30px;
-..         background: #333;
-..         position: relative;
-..         margin: 20px 0;
-..     }
-..     .arrow::after {
-..         content: '';
-..         position: absolute;
-..         top: 100%;
-..         left: 50%;
-..         transform: translateX(-50%);
-..         border-left: 6px solid transparent;
-..         border-right: 6px solid transparent;
-..         border-top: 8px solid #333;
-..     }
-..     </style>
-
-..     <div class="diagram">
-..     <a href="simulation.html" class="simulation-link">
-..         <div class="simulation-container">
-..         <div class="simulation-title">Simulation Object</div>
-..         <div class="row">
-..             <a href="model.html"     class="box">Model Object</a>
-..             <a href="algorithm.html" class="box">Algorithm Object</a>
-..         </div>
-..         </div>
-..     </a>
-
-..     <div class="arrow"></div>
-
-..     <a href="driver.html" class="box">Dynamics Driver</a>
-
-..     <div class="arrow"></div>
-
-..     <a href="data.html" class="box">Data Object</a>
-..     </div>
-
 
 

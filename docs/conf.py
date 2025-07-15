@@ -27,8 +27,10 @@ extensions = [
    "sphinx.ext.mathjax",
    "sphinx_design",
     "sphinx_togglebutton",
+    "sphinxcontrib.mermaid",
+    "sphinx.ext.graphviz",
 ]
-
+grzphviz_output_format = "svg"
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
