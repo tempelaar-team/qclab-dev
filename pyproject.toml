@@ -19,3 +19,16 @@ classifiers = [
     "Operating System :: Linux :: Linux",
     "License :: OSI Approved :: Apache Software License",
 ]
+
+[project.optional-dependencies]
+tests = [
+    "pytest",
+    "mpi4py",
+    ]
+docs = [
+    "sphinx",
+    "pydata-sphinx-theme",
+    "sphinx-design",
+    "sphinx-togglebutton",
+    "sphinxcontrib-mermaid",
+]

@@ -8,7 +8,7 @@ Ingredients are methods associated with model classes. A generic ingredient has 
 
 .. code-block:: python
 
-    def ingredient_name(model, constants, parameters, **kwargs):
+    def ingredient_name(model, parameters, **kwargs):
         # Calculate var.
         var = None
         return var

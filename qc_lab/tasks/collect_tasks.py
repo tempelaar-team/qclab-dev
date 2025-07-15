@@ -1,17 +1,6 @@
 import numpy as np
 
 
-def update_t(algorithm, sim, parameters, state, **kwargs):
-    """
-    Update the time in the state object.
-
-    Required constants:
-        - None.
-    """
-    time_axis = sim.settings.tdat
-    state.t = time_axis[sim.t_ind] * np.ones(sim.settings.batch_size)
-    return parameters, state
-
 
 def collect_t(algorithm, sim, parameters, state):
     """

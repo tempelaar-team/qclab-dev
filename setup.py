@@ -50,10 +50,6 @@ class build_py(_build_py):
 setup(
     packages=find_packages(),
     install_requires=install_requires,
-    extras_require={
-        "tests": ["pytest", "mpi4py",],
-        "docs": ["sphinx", "pydata-sphinx-theme", "sphinx-design", "sphinx-togglebutton",],
-    },
     cmdclass={
         "develop": develop,
         "build_py": build_py,

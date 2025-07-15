@@ -8,7 +8,12 @@ class ExtendedCoupling(Model):
         if constants is None:
             constants = {}
         
-        self.default_constants = dict(init_momentum = 10, init_position=-25, mass=2000)
+        self.default_constants = dict(init_momentum = 10,
+                                      init_position=-25,
+                                      mass=2000,
+                                      A=0.0006,
+                                      B=0.1,
+                                      C=0.9)
 
         super().__init__(self.default_constants, constants)
 
@@ -26,9 +31,6 @@ class ExtendedCoupling(Model):
     def initialize_constants_h_qc(self):
         self.constants.gradient_weight = 1/np.sqrt(
             2*self.constants.classical_coordinate_mass*self.constants.classical_coordinate_weight)
-        self.constants.A = 0.0006
-        self.constants.B = 0.1
-        self.constants.C = 0.9
 
     
     def h_qc(self, parameters, **kwargs):
