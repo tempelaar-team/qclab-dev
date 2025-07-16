@@ -31,4 +31,5 @@ docs = [
     "sphinx-design",
     "sphinx-togglebutton",
     "sphinxcontrib-mermaid",
+    "graphviz",
 ]

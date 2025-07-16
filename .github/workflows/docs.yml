@@ -31,6 +31,7 @@ jobs:
         pip install sphinx-design
         pip install sphinx-togglebutton
         pip install sphinxcontrib-mermaid
+        pip install graphviz
         pip install -e .
     - name: Build documentation
       id: build
