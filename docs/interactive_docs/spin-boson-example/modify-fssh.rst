@@ -36,7 +36,7 @@ at the `update_recipe` attribute of the FSSH algorithm object.
 
 
 .. code-block:: console
-
+    :caption: Output
 
     Task #0 <function FewestSwitchesSurfaceHopping._assign_eigvecs_to_state at 0x777d902d2710>
     Task #1 <function FewestSwitchesSurfaceHopping._update_z_rk4 at 0x777d902d28c0>
@@ -63,6 +63,7 @@ QC Lab makes this particularly easy to do by using python's built-in list method
         print(f"Task #{ind}", task)
 
 .. code-block:: console
+    :caption: Output
 
     Task #0 <function FewestSwitchesSurfaceHopping._assign_eigvecs_to_state at 0x777d902d2710>
     Task #1 <function FewestSwitchesSurfaceHopping._update_z_rk4 at 0x777d902d28c0>
