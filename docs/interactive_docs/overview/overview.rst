@@ -16,6 +16,33 @@ quantum-classical simulation algorithms and models, allowing for rapid prototypi
 This construction is depicted diagramatically below, click on any component to learn more about it!
 
 
+.. graphviz::
+        
+        digraph flow {
+        rankdir=TB;
+        
+        node [
+        shape=box
+        style="filled,rounded,shadow"
+        fillcolor="#007acc"      // primary blue
+        fontcolor=white
+        fontsize=12
+        margin="0.3,0.2"         // vertical, horizontal padding
+        ];
+
+        sim     [label="Simulation Object", URL="../../user_guide/simulation.html"];
+        model  [label="Model Object", URL="../../user_guide/models/models.html"];
+        algo [label="Algorithm Object",     URL="../../user_guide/algorithms/algorithms.html"];
+        driver     [label="Dynamics Driver",        URL="../../user_guide/drivers/drivers.html"];
+        data [label="Data Object",    URL="../../user_guide/data_object.html"];
+
+        model -> sim;
+        algo -> sim;
+        sim -> driver;
+        driver -> data;
+        }
+        
+
 .. container:: graphviz-center
 
     .. graphviz::
