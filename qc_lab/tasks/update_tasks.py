@@ -4,6 +4,18 @@ from qc_lab.jit import njit
 from qc_lab.tasks.default_ingredients import *
 
 
+def update_t(algorithm, sim, parameters, state):
+    """
+    Update the time in the state object with the collect timestep.
+    Note that if this is called in the update recipe, the timestep should
+    be changed to the update timestep.
+
+    Required constants:
+        - None.
+    """
+    state.t = sim.t_ind * sim.settings.dt_collect
+    return parameters, state
+
 
 def update_dh_c_dzc(algorithm, sim, parameters, state, **kwargs):
     """
@@ -95,7 +107,6 @@ def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs)
     return parameters, state
 
 
-
 def diagonalize_matrix(algorithm, sim, parameters, state, **kwargs):
     """
     Diagonalizes a given matrix and stores the eigenvalues and eigenvectors in the state object.
@@ -111,7 +122,6 @@ def diagonalize_matrix(algorithm, sim, parameters, state, **kwargs):
     setattr(state, eigvals_name, eigvals)
     setattr(state, eigvecs_name, eigvecs)
     return parameters, state
-
 
 
 def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvecs):
@@ -376,7 +386,6 @@ def update_wf_db_eigs(algorithm, sim, parameters, state, **kwargs):
     return parameters, state
 
 
-
 @njit
 def matprod(mat, vec):
     """
@@ -393,6 +402,7 @@ def matprod(mat, vec):
                 sum = sum + mat[t, i, j] * vec[t, j]
             out[t, i] = sum
     return out
+
 
 @njit
 def wf_db_rk4(h_quantum, wf_db, dt_update):
@@ -553,8 +563,9 @@ def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
     )
     hop_prob[np.arange(num_branches * num_trajs), act_surf_ind_flat] *= 0
     state.hop_prob = hop_prob
-    
+
     return parameters, state
+
 
 def update_hop_inds_fssh(algorithm, sim, parameters, state, **kwargs):
     """
@@ -577,12 +588,17 @@ def update_hop_inds_fssh(algorithm, sim, parameters, state, **kwargs):
     rand_branch = (rand[:, np.newaxis] * np.ones((num_trajs, num_branches))).flatten()
     hop_ind = np.where(
         np.sum((cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1) > 0
-    )[0] # trajectory indices that hop
+    )[
+        0
+    ]  # trajectory indices that hop
     # destination indices of the hops in each hoping trajectory
-    hop_dest = np.argmax((cumulative_probs > rand_branch[:,np.newaxis]).astype(int), axis=1)[hop_ind]
+    hop_dest = np.argmax(
+        (cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1
+    )[hop_ind]
     state.hop_ind = hop_ind
     state.hop_dest = hop_dest
     return parameters, state
+
 
 def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
     """
@@ -593,7 +609,9 @@ def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
 
     hop_ind = state.hop_ind
     hop_dest = state.hop_dest
-    state.z_shift = np.zeros((len(hop_ind), sim.model.constants.num_classical_coordinates), dtype=complex)
+    state.z_shift = np.zeros(
+        (len(hop_ind), sim.model.constants.num_classical_coordinates), dtype=complex
+    )
     state.hop_successful = np.zeros(len(hop_ind), dtype=bool)
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -637,30 +655,32 @@ def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
                 z=z[traj_ind],
                 delta_z=delta_z,
                 ev_diff=ev_diff,
-                )
+            )
         state.hop_successful[hop_traj_ind] = hopped
         state.z_shift[hop_traj_ind] = z_shift
         hop_traj_ind += 1
     return parameters, state
 
+
 def update_z_hop_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    Executes the post-hop updates for FSSH, rescaling the z coordinates and updating 
+    Executes the post-hop updates for FSSH, rescaling the z coordinates and updating
     the active surface indices, and wavefunctions.
     """
     # idx = state.hop_ind[state.hop_successful]
     # dz = state.z_shift[state.hop_successful]
-    state.z[state.hop_ind]  += state.z_shift#[idx] += dz
+    state.z[state.hop_ind] += state.z_shift  # [idx] += dz
     return parameters, state
+
 
 def update_act_surf_hop_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the active surface, active surface index, and active surface wavefunction 
+    Update the active surface, active surface index, and active surface wavefunction
     following a hop in FSSH.
-    
+
     """
     if sim.algorithm.settings.fssh_deterministic:
-            num_branches = sim.model.constants.num_quantum_states
+        num_branches = sim.model.constants.num_quantum_states
     else:
         num_branches = 1
     num_trajs = sim.settings.batch_size // num_branches
@@ -676,16 +696,16 @@ def update_act_surf_hop_fssh(algorithm, sim, parameters, state, **kwargs):
     state.act_surf = np.copy(act_surf_flat)
     parameters.act_surf_ind = state.act_surf_ind
     return parameters, state
-   
+
 
 def _update_act_surf_hop_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the active surface, active surface index, and active surface wavefunction 
+    Update the active surface, active surface index, and active surface wavefunction
     following a hop in FSSH.
-    
+
     """
     if sim.algorithm.settings.fssh_deterministic:
-            num_branches = sim.model.constants.num_quantum_states
+        num_branches = sim.model.constants.num_quantum_states
     else:
         num_branches = 1
     num_trajs = sim.settings.batch_size // num_branches
@@ -705,6 +725,7 @@ def _update_act_surf_hop_fssh(algorithm, sim, parameters, state, **kwargs):
             state.act_surf = np.copy(act_surf_flat)
     parameters.act_surf_ind = state.act_surf_ind
     return parameters, state
+
 
 def _update_active_surface_fssh(algorithm, sim, parameters, state, **kwargs):
     """
@@ -775,6 +796,7 @@ def _update_active_surface_fssh(algorithm, sim, parameters, state, **kwargs):
     parameters.act_surf_ind = state.act_surf_ind
     return parameters, state
 
+
 def _update_active_surface_fssh(algorithm, sim, parameters, state, **kwargs):
     """
     Update the active surface in FSSH. If a hopping function is not specified in the model
@@ -823,7 +845,9 @@ def _update_active_surface_fssh(algorithm, sim, parameters, state, **kwargs):
         np.sum((cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1) > 0
     )[0]
     if len(traj_hop_ind) > 0:
-        hop_dest = np.argmax((cumulative_probs > rand_branch[:,np.newaxis]).astype(int), axis=1)
+        hop_dest = np.argmax(
+            (cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1
+        )
         eigvals_flat = state.eigvals
         z = np.copy(state.z)
         act_surf_flat = state.act_surf
@@ -894,7 +918,6 @@ def update_h_quantum(algorithm, sim, parameters, state, **kwargs):
     h_qc, _ = sim.model.get("h_qc")
     state.h_quantum = h_q(sim.model, parameters) + h_qc(sim.model, parameters, z=z)
     return parameters, state
-
 
 
 def update_z_rk4(algorithm, sim, parameters, state, **kwargs):
@@ -970,7 +993,9 @@ def update_z_rk4(algorithm, sim, parameters, state, **kwargs):
             use_gauge_field_force=use_gauge_field_force,
         )
     k4 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
-    setattr(state, output_name, z_0 + dt_update * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4))
+    setattr(
+        state, output_name, z_0 + dt_update * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
+    )
     return parameters, state
 
 
