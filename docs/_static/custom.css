@@ -62,4 +62,10 @@
 .graphviz-center object {
   display: inline-block;
   margin: auto;
+  background-color: transparent !important;
+}
+
+.graphviz img {
+  background-color: transparent !important;
+  
 }
