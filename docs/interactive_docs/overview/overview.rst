@@ -18,31 +18,29 @@ This construction is depicted diagramatically below, click on any component to l
 
 .. container:: graphviz-center
 
-    .. graphviz::
-        
-        digraph flow {
+   .. graphviz::
+
+      digraph flow {
         rankdir=TB;
-        
+        bgcolor="transparent";
+
         node [
-        shape=box
-        style="filled,rounded,shadow"
-        fillcolor="#007acc"      // primary blue
-        fontcolor=white
-        fontsize=12
-        margin="0.3,0.2"         // vertical, horizontal padding
+          fontsize=12
+          fontname="Helvetica, Arial, sans-serif"
+          margin="0.3,0.2"
         ];
 
-        sim     [label="Simulation Object", URL="../../user_guide/simulation.html"];
-        model  [label="Model Object", URL="../../user_guide/models/models.html"];
-        algo [label="Algorithm Object",     URL="../../user_guide/algorithms/algorithms.html"];
-        driver     [label="Dynamics Driver",        URL="../../user_guide/drivers/drivers.html"];
-        data [label="Data Object",    URL="../../user_guide/data_object.html"];
+        sim   [label="Simulation Object", URL="../../user_guide/simulation.html"];
+        model [label="Model Object",      URL="../../user_guide/models/models.html"];
+        algo  [label="Algorithm Object",  URL="../../user_guide/algorithms/algorithms.html"];
+        driver[label="Dynamics Driver",   URL="../../user_guide/drivers/drivers.html"];
+        data  [label="Data Object",       URL="../../user_guide/data_object.html"];
 
         model -> sim;
-        algo -> sim;
-        sim -> driver;
-        driver -> data;
-        }
+        algo  -> sim;
+        sim   -> driver;
+        driver-> data;
+      }
 
 
 .. button-link:: simulation.html

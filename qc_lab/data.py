@@ -34,15 +34,15 @@ class Data:
                 )
             self.data_dict["norm_factor"] = state.norm_factor
         for key, val in state.output_dict.items():
-            if not(key in self.data_dict):
+            if not (key in self.data_dict):
                 # If the key is not in the data_dict, initialize it with zeros.
                 self.data_dict[key] = np.zeros(
                     (len(sim.settings.tdat_output), *np.shape(val)[1:]), dtype=val.dtype
                 )
             # store the data in the data_dict at the correct time index
             self.data_dict[key][t_ind // sim.settings.dt_collect_n] = (
-                    np.sum(val, axis=0) / self.data_dict["norm_factor"]
-                )
+                np.sum(val, axis=0) / self.data_dict["norm_factor"]
+            )
 
     def add_data(self, new_data):
         """
@@ -71,7 +71,7 @@ class Data:
 
     def save(self, filename):
         """
-        Save the data as an h5 archive if h5py is available, if not 
+        Save the data as an h5 archive if h5py is available, if not
         save each variable using numpy's savez function.
 
         Args:
@@ -82,7 +82,6 @@ class Data:
         else:
             with h5py.File(filename, "w") as h5file:
                 self._recursive_save(h5file, "/", self.data_dict)
-
 
     def load(self, filename):
         """
@@ -96,7 +95,7 @@ class Data:
         """
         if DISABLE_H5PY:
             loaded = np.load(filename)
-            self.data_dict = { key: loaded[key] for key in loaded.files }
+            self.data_dict = {key: loaded[key] for key in loaded.files}
             return self
         with h5py.File(filename, "r") as h5file:
             self._recursive_load(h5file, "/", self.data_dict)

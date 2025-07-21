@@ -41,7 +41,9 @@ class Simulation:
         Then adjusts tmax to be the closest point on the grid defined by dt_collect.
         """
         tmax = self.settings.get("tmax", self.default_settings.get("tmax"))
-        dt_update = self.settings.get("dt_update", self.default_settings.get("dt_update"))
+        dt_update = self.settings.get(
+            "dt_update", self.default_settings.get("dt_update")
+        )
         dt_collect = self.settings.get(
             "dt_collect", self.default_settings.get("dt_collect")
         )

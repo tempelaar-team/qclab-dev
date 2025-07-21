@@ -1,6 +1,7 @@
 import numpy as np
 from qc_lab.tasks.default_ingredients import *
 
+
 def assign_norm_factor_mf(algorithm, sim, parameters, state, **kwargs):
     """
     Assign the normalization factor to the state object for MF dynamics.
@@ -105,7 +106,6 @@ def assign_to_state(algorithm, sim, parameters, state, **kwargs):
     val = kwargs["val"]
     setattr(state, name, np.copy(val))
     return parameters, state
-
 
 
 def initialize_active_surface(algorithm, sim, parameters, state, **kwargs):

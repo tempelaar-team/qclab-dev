@@ -149,7 +149,6 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         tasks.update_hop_vals_fssh,
         tasks.update_z_hop_fssh,
         tasks.update_act_surf_hop_fssh,
-        #tasks.update_active_surface_fssh,
         tasks.update_act_surf_wf,
     ]
 

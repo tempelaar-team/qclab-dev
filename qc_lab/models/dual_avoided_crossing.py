@@ -10,14 +10,16 @@ class DualAvoidedCrossing(Model):
         if constants is None:
             constants = {}
 
-        self.default_constants = dict(init_momentum=10,
-                                      init_position=-25,
-                                      mass=2000,
-                                      A = 0.1,
-                                      B=0.28,
-                                      C=0.015,
-                                      D=0.06,
-                                      E_0=0.05)
+        self.default_constants = dict(
+            init_momentum=10,
+            init_position=-25,
+            mass=2000,
+            A=0.1,
+            B=0.28,
+            C=0.015,
+            D=0.06,
+            E_0=0.05,
+        )
 
         super().__init__(self.default_constants, constants)
 

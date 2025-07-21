@@ -8,13 +8,15 @@ class SimpleAvoidedCrossing(Model):
 
     def __init__(self, constants={}):
 
-        self.default_constants = dict(init_momentum=10, 
-                                      init_position=-25, 
-                                      mass=2000,
-                                      A=0.01,
-                                      B=1.6,
-                                      C=0.005,
-                                      D=1.0)
+        self.default_constants = dict(
+            init_momentum=10,
+            init_position=-25,
+            mass=2000,
+            A=0.01,
+            B=1.6,
+            C=0.005,
+            D=1.0,
+        )
 
         super().__init__(self.default_constants, constants)
 

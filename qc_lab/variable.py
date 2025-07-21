@@ -41,7 +41,6 @@ class Variable:
         self.__dict__.update(state)
 
 
-
 def initialize_variable_objects(sim, seeds):
     """
     This takes the numpy arrays inside the state and parameter objects
@@ -54,8 +53,7 @@ def initialize_variable_objects(sim, seeds):
         if isinstance(obj, np.ndarray) and name[0] != "_":
             init_shape = np.shape(obj)
             new_obj = (
-                np.zeros((len(seeds), *init_shape), dtype=obj.dtype)
-                + obj[np.newaxis]
+                np.zeros((len(seeds), *init_shape), dtype=obj.dtype) + obj[np.newaxis]
             )
             setattr(state_variable, name, new_obj)
     parameter_variable = Variable()

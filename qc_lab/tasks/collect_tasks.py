@@ -1,7 +1,6 @@
 import numpy as np
 
 
-
 def collect_t(algorithm, sim, parameters, state):
     """
     Collect the time in the state object.

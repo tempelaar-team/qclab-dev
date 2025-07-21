@@ -225,6 +225,7 @@ def _dh_c_dzc_finite_differences(model, parameters, **kwargs):
     dh_c_dzc = 0.5 * (diff_re + 1.0j * diff_im)
     return dh_c_dzc
 
+
 def dh_qc_dzc_finite_differences(model, parameters, **kwargs):
     """
     Calculate the gradient of the quantum-classical Hamiltonian using finite differences.
@@ -243,7 +244,7 @@ def dh_qc_dzc_finite_differences(model, parameters, **kwargs):
     if model.dh_qc_dzc_shape is not None:
         if model.dh_qc_dzc_shape[0] != batch_size:
             recalculate = True
-    if not(model.linear_h_qc):
+    if not (model.linear_h_qc):
         # if the h_qc is not linear, we need to recalculate
         recalculate = True
     if (
@@ -252,7 +253,7 @@ def dh_qc_dzc_finite_differences(model, parameters, **kwargs):
         or model.dh_qc_dzc_shape is None
         or recalculate
     ):
-        
+
         delta_z = model.constants.get("dh_qc_dzc_finite_difference_delta", 1e-6)
         num_classical_coordinates = model.constants.num_classical_coordinates
         num_quantum_states = model.constants.num_quantum_states
@@ -311,7 +312,6 @@ def dh_qc_dzc_finite_differences(model, parameters, **kwargs):
     return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels, model.dh_qc_dzc_shape
 
 
-
 def numerical_fssh_hop(model, parameters, **kwargs):
     """
     Determines the coordinate rescaling in FSSH numerically.
@@ -359,8 +359,8 @@ def numerical_fssh_hop(model, parameters, **kwargs):
         gamma_range = gamma_range / 2
         num_iter += 1
     if min_energy > thresh:
-        return 0*z, False
-    return - 1.0j * min_gamma * delta_z, True
+        return 0 * z, False
+    return -1.0j * min_gamma * delta_z, True
     # if min_energy > thresh:
     #     return z, False
     # return z - 1.0j * min_gamma * delta_z, True

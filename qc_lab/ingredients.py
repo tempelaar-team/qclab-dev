@@ -151,6 +151,7 @@ def harmonic_oscillator_dh_c_dzc(model, parameters, **kwargs):
     w = model.constants.harmonic_oscillator_frequency
     return harmonic_oscillator_dh_c_dzc_jit(z, h, w)
 
+
 def free_particle_dh_c_dzc(model, parameters, **kwargs):
     """
     Derivative of the free particle classical Hamiltonian with respect to the `z` coordinate.
@@ -166,8 +167,7 @@ def free_particle_dh_c_dzc(model, parameters, **kwargs):
     else:
         batch_size = len(z)
     h = model.constants.classical_coordinate_weight
-    return -(h[...,:]/2) * (np.conj(z) - z)
-
+    return -(h[..., :] / 2) * (np.conj(z) - z)
 
 
 def two_level_system_h_q(model, parameters, **kwargs):
@@ -182,7 +182,7 @@ def two_level_system_h_q(model, parameters, **kwargs):
         - b is the energy of the second level,
         - c is the real part of the coupling between levels,
         - d is the imaginary part of the coupling between levels.
-    
+
     By default, a=b=c=d=0.
 
     Required Constants:
@@ -198,12 +198,12 @@ def two_level_system_h_q(model, parameters, **kwargs):
     h_q = np.zeros((batch_size, 2, 2), dtype=complex)
     h_q[:, 0, 0] = model.constants.get("two_level_system_a", 0.0)
     h_q[:, 1, 1] = model.constants.get("two_level_system_b", 0.0)
-    h_q[:, 0, 1] = (
-        model.constants.get("two_level_system_c",0.0) + 1j * model.constants.get("two_level_system_d", 0.0)
-    )
-    h_q[:, 1, 0] = (
-        model.constants.get("two_level_system_c",0.0) - 1j * model.constants.get("two_level_system_d",0.0)
-    )
+    h_q[:, 0, 1] = model.constants.get(
+        "two_level_system_c", 0.0
+    ) + 1j * model.constants.get("two_level_system_d", 0.0)
+    h_q[:, 1, 0] = model.constants.get(
+        "two_level_system_c", 0.0
+    ) - 1j * model.constants.get("two_level_system_d", 0.0)
     return h_q
 
 
@@ -336,7 +336,8 @@ def diagonal_linear_dh_qc_dzc(model, parameters, **kwargs):
                 dh_qc_dzc[j, i, i] = gamma[i, j]
         dh_qc_dzc = dh_qc_dzc[np.newaxis, :, :, :] + np.zeros(
             (batch_size, num_classical_coordinates, num_states, num_states),
-            dtype=complex)
+            dtype=complex,
+        )
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]
         shape = np.shape(dh_qc_dzc)
@@ -398,7 +399,8 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
         else:
             gamma = gamma / (2 * akj_z)
         return -1.0j * gamma * delta_z, True
-    return 0*z, False
+    return 0 * z, False
+
 
 def free_particle_hop_function(model, parameters, **kwargs):
     """
@@ -406,7 +408,7 @@ def free_particle_hop_function(model, parameters, **kwargs):
     the classical Hamiltonian is a harmonic oscillator.
     ev_diff = e_final - e_initial
     returns the shift such that the new classical coordinate is z + shift.
-    
+
     Required Constants:
         - `classical_coordinate_weight`: Mass of the classical coordinates.
     """
@@ -416,7 +418,7 @@ def free_particle_hop_function(model, parameters, **kwargs):
     delta_zc = np.conj(delta_z)
     zc = np.conj(z)
 
-    f = 1.0j*(delta_zc + delta_z)
+    f = 1.0j * (delta_zc + delta_z)
     g = zc - z
 
     h = model.constants.classical_coordinate_weight
@@ -424,8 +426,8 @@ def free_particle_hop_function(model, parameters, **kwargs):
     # Here, akj_z, bkj_z, ckj_z are the coefficients of the quadratic equation
     # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0
 
-    akj_z = np.sum((h/4) * f * f)
-    bkj_z = -np.sum((h/2) * f * g)
+    akj_z = np.sum((h / 4) * f * f)
+    bkj_z = -np.sum((h / 2) * f * g)
     ckj_z = -ev_diff
 
     disc = bkj_z**2 - 4 * akj_z * ckj_z
@@ -439,7 +441,8 @@ def free_particle_hop_function(model, parameters, **kwargs):
         else:
             gamma = gamma / (2 * akj_z)
         return -1.0j * gamma * delta_z, True
-    return 0*z, False
+    return 0 * z, False
+
 
 def harmonic_oscillator_boltzmann_init_classical(model, parameters, **kwargs):
     """
@@ -512,6 +515,7 @@ def harmonic_oscillator_wigner_init_classical(model, parameters, **kwargs):
         z = qp_to_z(q, p, model.constants)
         out[s] = z
     return out
+
 
 def definite_position_momentum_init_classical(model, parameters, **kwargs):
     """
