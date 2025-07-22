@@ -234,15 +234,17 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
     """
     Fixes the gauge of the eigenvectors as specified by the gauge_fixing parameter.
 
-    if gauge_fixing >= 0:
-        Only the sign of the eigenvector is changed
+    if gauge_fixing == "sign_overlap":
+        Only the sign of the eigenvector is changed so its overlap 
+        with the previous eigenvector is positive.
 
-    if gauge_fixing >= 1:
+    if gauge_fixing == "phase_overlap":
         The phase of the eigenvector is determined from its overlap
-        with the previous eigenvector and the phase is fixed.
+        with the previous eigenvector and used to maximize the overlap.
 
-    if gauge_fixing >= 2:
-        The phase of the eigenvector is determined by calculating the derivative couplings.
+    if gauge_fixing == "phase_der_couple":
+        The phase of the eigenvector is determined by calculating the derivative couplings
+        and changed so that all the derivative couplings are real-valued.
 
     Required constants:
         - None.
@@ -251,12 +253,19 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
     eigvecs = kwargs["eigvecs"]
     eigvecs_previous = kwargs["eigvecs_previous"]
     output_eigvecs_name = kwargs["output_eigvecs_name"]
-    if kwargs["gauge_fixing"] >= 1:
+    gauge_fixing = kwargs["gauge_fixing"]
+    gauge_fixing_numerical_values = {
+        "sign_overlap": 0,
+        "phase_overlap": 1,
+        "phase_der_couple": 2,
+    }
+    gauge_fixing_value = gauge_fixing_numerical_values[gauge_fixing]
+    if gauge_fixing_value >= 1:
         phase = np.exp(
             -1.0j * np.angle(np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2))
         )
         eigvecs = np.einsum("tai,ti->tai", eigvecs, phase, optimize="greedy")
-    if kwargs["gauge_fixing"] >= 2:
+    if gauge_fixing_value >= 2:
         z = kwargs["z"]
         parameters, state = update_dh_qc_dzc(algorithm, sim, parameters, state, z=z)
         der_couple_q_phase, _ = analytic_der_couple_phase(
@@ -265,10 +274,10 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
         eigvecs = np.einsum(
             "tai,ti->tai", eigvecs, np.conj(der_couple_q_phase), optimize="greedy"
         )
-    if kwargs["gauge_fixing"] >= 0:
+    if gauge_fixing_value >= 0:
         signs = np.sign(np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2))
         eigvecs = np.einsum("tai,ti->tai", eigvecs, signs, optimize="greedy")
-    if kwargs["gauge_fixing"] == 2:
+    if gauge_fixing_value == 2:
         der_couple_q_phase_new, der_couple_p_phase_new = analytic_der_couple_phase(
             algorithm, sim, parameters, state, eigvals, eigvecs
         )

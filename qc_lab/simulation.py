@@ -1,6 +1,5 @@
 """
-This file contains the Simulation, State, and Data classes. It also contains additional
-functions for initializing and handling these objects.
+This module defines the Simulation class as well as the default settings for a simulation in QC Lab.
 """
 
 import numpy as np

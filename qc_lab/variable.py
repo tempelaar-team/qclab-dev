@@ -1,5 +1,5 @@
 """
-This file defines the Variable class.
+This module defines the Variable class, which is used to store time-dependent variables in QC Lab.
 """
 
 import numpy as np

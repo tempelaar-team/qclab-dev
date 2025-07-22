@@ -1,3 +1,9 @@
+"""
+This module provides dummy implementations of the `jit` and `njit` decorators
+from the `numba` library. These implementations are used when the `DISABLE_NUMBA`
+flag is set to `True`.
+"""
+
 from ._config import DISABLE_NUMBA
 
 
@@ -34,7 +40,6 @@ def qc_lab_custom_njit(func=None, **kwargs):
 if DISABLE_NUMBA:
     njit = qc_lab_custom_njit
     jit = qc_lab_custom_jit
-
 else:
     try:
         from numba import jit, njit

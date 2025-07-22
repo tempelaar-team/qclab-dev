@@ -1,6 +1,6 @@
 """
-This file contains the Constants class, which is used to handle
-constants and trigger updates automatically when constants change.
+This module defines the Constants class, which is used to handle
+quantities that define simulation
 """
 
 

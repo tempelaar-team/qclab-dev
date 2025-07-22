@@ -1,5 +1,7 @@
 """
-This file contains ingredient functions for use in Model classes.
+This module contains ingredients for use in Model classes.
+It also contains any functions that the ingredients depend on
+for low-level operations.
 """
 
 import functools
@@ -207,27 +209,12 @@ def two_level_system_h_q(model, parameters, **kwargs):
     return h_q
 
 
-@njit
-def nearest_neighbor_lattice_h_q_jit(
-    batch_size, num_sites, hopping_energy, periodic_boundary
-):
-    """
-    Low level function to generate the nearest-neighbor lattice quantum Hamiltonian.
-    """
-    out = np.zeros((batch_size, num_sites, num_sites)) + 0.0j
-    for b in range(batch_size):
-        for n in range(num_sites - 1):
-            out[b, n, n + 1] = -hopping_energy + 0.0j
-            out[b, n + 1, n] = -np.conj(hopping_energy) + 0.0j
-        if periodic_boundary:
-            out[b, 0, num_sites - 1] = -hopping_energy + 0.0j
-            out[b, num_sites - 1, 0] = -np.conj(hopping_energy) + 0.0j
-    return out
-
-
 def nearest_neighbor_lattice_h_q(model, parameters, **kwargs):
     """
-    Quantum Hamiltonian for a nearest-neighbor lattice.
+    Quantum Hamiltonian for a nearest-neighbor lattice. In this implementation,
+    the quantum Hamiltonian is stored as a matrix in model.h_q_mat. If this matrix
+    is already calculated, it is returned directly. This avoids recalculating
+    the Hamiltonian for each time step of the simulation.
 
     Required Constants:
         - `nearest_neighbor_lattice_hopping_energy`: Hopping energy between sites.
@@ -324,7 +311,6 @@ def diagonal_linear_dh_qc_dzc(model, parameters, **kwargs):
         or model.dh_qc_dzc_shape is None
         or recalculate
     ):
-
         num_states = model.constants.num_quantum_states
         num_classical_coordinates = model.constants.num_classical_coordinates
         gamma = model.constants.diagonal_linear_coupling
@@ -350,10 +336,16 @@ def diagonal_linear_dh_qc_dzc(model, parameters, **kwargs):
 
 def harmonic_oscillator_hop_function(model, parameters, **kwargs):
     """
-    Determines the shift in the classical cordiantes required to hop assuming
-    the classical Hamiltonian is a harmonic oscillator.
-    ev_diff = e_final - e_initial
-    returns the shift such that the new classical coordinate is z + shift.
+    FSSH hop function for a harmonic oscillator. Determines the
+    shift in the classical coordinates required to conserve energy
+    following a hop between quantum states. ev_diff = e_final - e_initial
+    is the energy difference between the final and initial quantum states and
+    delta_z is the rescaling direction of the z coordinate.
+
+    If enough energy is available, the function returns the shift in the classical
+    coordinates such that the new classical coordinate is z + shift and a boolean
+    indicating that the hop has occured. If not enough energy is available,
+    the shift becomes zero and the boolean is False.
 
     Required Constants:
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
@@ -364,14 +356,14 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
     ev_diff = kwargs["ev_diff"]
     delta_zc = np.conj(delta_z)
     zc = np.conj(z)
-    a_const = (1 / 4) * (
+    a_const = 0.25 * (
         (
             (model.constants.harmonic_oscillator_frequency**2)
             / model.constants.classical_coordinate_weight
         )
         - model.constants.classical_coordinate_weight
     )
-    b_const = (1 / 4) * (
+    b_const = 0.25 * (
         (
             (model.constants.harmonic_oscillator_frequency**2)
             / model.constants.classical_coordinate_weight
@@ -398,16 +390,24 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
             gamma = 0
         else:
             gamma = gamma / (2 * akj_z)
-        return -1.0j * gamma * delta_z, True
-    return 0 * z, False
+        shift = -1.0j * gamma * delta_z
+        return shift, True
+    shift = np.zeros_like(z)
+    return shift, False
 
 
 def free_particle_hop_function(model, parameters, **kwargs):
     """
-    Determines the shift in the classical cordiantes required to hop assuming
-    the classical Hamiltonian is a harmonic oscillator.
-    ev_diff = e_final - e_initial
-    returns the shift such that the new classical coordinate is z + shift.
+    FSSH hop function for a free particle. Determines the
+    shift in the classical coordinates required to conserve energy
+    following a hop between quantum states. ev_diff = e_final - e_initial
+    is the energy difference between the final and initial quantum states and
+    delta_z is the rescaling direction of the z coordinate.
+
+    If enough energy is available, the function returns the shift in the classical
+    coordinates such that the new classical coordinate is z + shift and a boolean
+    indicating that the hop has occured. If not enough energy is available,
+    the shift becomes zero and the boolean is False.
 
     Required Constants:
         - `classical_coordinate_weight`: Mass of the classical coordinates.
@@ -440,8 +440,10 @@ def free_particle_hop_function(model, parameters, **kwargs):
             gamma = 0
         else:
             gamma = gamma / (2 * akj_z)
-        return -1.0j * gamma * delta_z, True
-    return 0 * z, False
+        shift = -1.0j * gamma * delta_z
+        return shift, True
+    shift = np.zeros_like(z)
+    return shift, False
 
 
 def harmonic_oscillator_boltzmann_init_classical(model, parameters, **kwargs):

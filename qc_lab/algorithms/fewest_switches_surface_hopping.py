@@ -17,7 +17,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             settings = {}
         self.default_settings = {
             "fssh_deterministic": False,
-            "gauge_fixing": 0,
+            "gauge_fixing": "sign_overlap",
         }
         super().__init__(self.default_settings, settings)
 
@@ -49,7 +49,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             eigvecs_previous=state.eigvecs,
             output_eigvecs_name="eigvecs",
             z=state.z,
-            gauge_fixing=2,
+            gauge_fixing="phase_der_couple",
         )
 
     def _assign_eigvecs_to_state(self, sim, parameters, state):
