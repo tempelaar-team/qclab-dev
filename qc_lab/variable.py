@@ -24,7 +24,7 @@ class Variable:
 
     def collect_outputs(self, names):
         """
-        Collect arttributes into the output dictionary.
+        Collect attributes into the output dictionary.
 
         Args:
             names: List of attribute names.

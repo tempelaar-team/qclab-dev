@@ -296,7 +296,6 @@ def diagonal_linear_dh_qc_dzc(model, parameters, **kwargs):
     Required Constants:
         - `diagonal_linear_coupling`: Array of coupling constants (num_quantum_states, num_classical_coordinates).
     """
-    z = kwargs["z"]
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
     else:
