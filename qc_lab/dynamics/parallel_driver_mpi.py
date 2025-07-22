@@ -82,7 +82,7 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
 
     comm.Barrier()
 
-    all_results = comm.collect(local_results, root=0)
+    all_results = comm.gather(local_results, root=0)
 
     if rank == 0:
         final_results = [item for sublist in all_results for item in sublist]
