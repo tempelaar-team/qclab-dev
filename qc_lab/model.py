@@ -27,9 +27,9 @@ class Model:
 
     def get(self, ingredient_name):
         """
-        Get the ingredient by its name. Returns the first instance of the ingredient.
+        Get the ingredient by its name. Returns the first instance of the ingredient in reverse order.
         """
-        for ingredient in self.ingredients:
+        for ingredient in self.ingredients[::-1]:
             if ingredient[0] == ingredient_name and ingredient[1] is not None:
                 return ingredient[1], True
         return None, False

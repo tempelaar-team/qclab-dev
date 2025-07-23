@@ -57,7 +57,7 @@ def vectorize_ingredient(ingredient):
 
     @functools.wraps(ingredient)
     def vectorized_ingredient(*args, **kwargs):
-        (model, constants, parameters) = args
+        (model, parameters) = args
         if kwargs.get("batch_size") is not None:
             batch_size = kwargs.get("batch_size")
         else:
@@ -74,7 +74,7 @@ def vectorize_ingredient(ingredient):
             kwargs_list.append(kwargs_n)
         out = np.array(
             [
-                ingredient(model, constants, parameters, **kwargs_list[n])
+                ingredient(model, parameters, **kwargs_list[n])
                 for n in range(batch_size)
             ]
         )
