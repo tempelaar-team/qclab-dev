@@ -46,11 +46,13 @@ using finite differences.
     sim.model.ingredients.append(("dh_qc_dzc", None))
 
 
-Now we can run the simulation with the new coupling term and compare the results to the previous simulation.
+Now we can run the simulation with the new coupling term and compare the results to the previous simulation. 
+You'll notice a small decrease in the performance of the simulation due to the numerical calculation of the gradients. 
+If you'd like to speed up the simulation, you can implement an analytic gradient for the new coupling term by following the 
+`model development guide <../../developer_guide/model_dev/model_dev.html>`_.
 
 
 .. image:: fssh_lreorg_inv_vel_offdiag.png
     :alt: Population dynamics.
     :align: center
     :width: 50%
-

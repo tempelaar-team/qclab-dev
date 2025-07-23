@@ -502,27 +502,26 @@ This is accomplished by defining an ingredient called `init_classical` which has
 ::
 
     def init_classical(model, parameters, **kwargs):
-    del parameters
-    seed = kwargs.get("seed", None)
-    kBT = self.constants.kBT
-    h = self.constants.classical_coordinate_weight
-    w = self.constants.harmonic_oscillator_frequency
-    m = self.constants.classical_coordinate_mass
-    out = np.zeros((len(seed), self.constants.num_classical_coordinates), dtype=complex)
-    for s, seed_value in enumerate(seed):
-        np.random.seed(seed_value)
-        # Calculate the standard deviations for q and p.
-        std_q = np.sqrt(kBT / (m * (w**2)))
-        std_p = np.sqrt(m * kBT)
-        # Generate random q and p values.
-        q = np.random.normal(
-            loc=0, scale=std_q, size=self.constants.num_classical_coordinates
-        )
-        p = np.random.normal(
-            loc=0, scale=std_p, size=self.constants.num_classical_coordinates
-        )
-        # Calculate the complex-valued classical coordinate.
-        z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
-        out[s] = z
-    return out
+        seed = kwargs.get("seed", None)
+        kBT = self.constants.kBT
+        h = self.constants.classical_coordinate_weight
+        w = self.constants.harmonic_oscillator_frequency
+        m = self.constants.classical_coordinate_mass
+        out = np.zeros((len(seed), self.constants.num_classical_coordinates), dtype=complex)
+        for s, seed_value in enumerate(seed):
+            np.random.seed(seed_value)
+            # Calculate the standard deviations for q and p.
+            std_q = np.sqrt(kBT / (m * (w**2)))
+            std_p = np.sqrt(m * kBT)
+            # Generate random q and p values.
+            q = np.random.normal(
+                loc=0, scale=std_q, size=self.constants.num_classical_coordinates
+            )
+            p = np.random.normal(
+                loc=0, scale=std_p, size=self.constants.num_classical_coordinates
+            )
+            # Calculate the complex-valued classical coordinate.
+            z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
+            out[s] = z
+        return out
 

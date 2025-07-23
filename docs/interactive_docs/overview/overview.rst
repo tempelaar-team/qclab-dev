@@ -28,6 +28,9 @@ This construction is depicted diagramatically below, click on any component to l
           fontsize=12
           fontname="Helvetica, Arial, sans-serif"
           margin="0.3,0.2"
+          style=filled
+          fillcolor=white
+          color="#f38c3c"
         ];
 
         sim   [label="Simulation Object", URL="../../user_guide/simulation.html"];
@@ -36,46 +39,9 @@ This construction is depicted diagramatically below, click on any component to l
         driver[label="Dynamics Driver",   URL="../../user_guide/drivers/drivers.html"];
         data  [label="Data Object",       URL="../../user_guide/data_object.html"];
 
-        model -> sim;
-        algo  -> sim;
-        sim   -> driver;
-        driver-> data;
+        model -> sim [color="#f38c3c"];
+        algo  -> sim [color="#f38c3c"];
+        sim   -> driver [color="#f38c3c"];
+        driver-> data [color="#f38c3c"];
       }
-
-
-.. button-link:: simulation.html
-    :color: primary
-    :shadow:
-    :align: center
-
-    Simulation Object
-
-.. button-link:: model.html
-    :color: primary
-    :shadow:
-    :align: center
-
-    Model Object
-
-.. button-link:: algorithm.html
-    :color: primary
-    :shadow:
-    :align: center
-
-    Algorithm Object
-
-.. button-link:: driver.html
-    :color: primary
-    :shadow:
-    :align: center
-
-    Dynamics Driver
-
-.. button-link:: data.html
-    :color: primary
-    :shadow:
-    :align: center
-
-    Data Object
-
 
