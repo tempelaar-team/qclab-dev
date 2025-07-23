@@ -84,3 +84,10 @@ I want to invert velocities after frustrated hops.
 
     .. include:: modify-fssh.rst
 
+
+I want to use a different coupling term.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. container:: toggle
+
+    .. include:: change-coupling.rst    
