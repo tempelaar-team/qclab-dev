@@ -1,3 +1,5 @@
+"""Model representing Tully's first problem: a simple avoided crossing."""
+
 import numpy as np
 from qc_lab.model import Model
 from qc_lab import ingredients

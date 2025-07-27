@@ -1,3 +1,5 @@
+"""Tasks used to initialize simulation parameters and state objects."""
+
 import numpy as np
 from qc_lab.tasks.default_ingredients import *
 

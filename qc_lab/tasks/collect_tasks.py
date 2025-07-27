@@ -1,3 +1,5 @@
+"""Tasks that collect simulation results into output structures."""
+
 import numpy as np
 
 

@@ -1,3 +1,5 @@
+"""Utility functions providing default task ingredients for simulations."""
+
 import numpy as np
 
 
