@@ -1,15 +1,15 @@
 """
-This module defines the Model class, which is the base class for Model objects in QC Lab.
+This module defines the Model class in QC Lab.
 """
 
-from qc_lab.constants import Constants
-from qc_lab.variable import Variable
 import copy
+from qc_lab.constants import Constants
 
 
 class Model:
     """
-    Base class for models in the simulation framework.
+    The Model object provides the framework for defining the default constants of a model and
+    retreiving the ingredients of the model.
     """
 
     def __init__(self, default_constants=None, constants=None):
@@ -21,9 +21,10 @@ class Model:
         for key, val in constants.items():
             setattr(self.constants, key, val)
         self.constants._init_complete = True
-        self.parameters = Variable()
         self.initialization_functions = copy.deepcopy(self.initialization_functions)
         self.ingredients = copy.deepcopy(self.ingredients)
+        self.update_h_q = True
+        self.update_dh_qc_dzc = True
 
     def get(self, ingredient_name):
         """
@@ -39,8 +40,6 @@ class Model:
         Initialize the constants for the model and ingredients.
         """
         for func in self.initialization_functions:
-            # Here, self is needed because the initialization functions are
-            # defined in the subclass.
             func(self)
 
     initialization_functions = []

@@ -711,7 +711,12 @@ def update_h_quantum(algorithm, sim, parameters, state, **kwargs):
     z = kwargs.get("z", state.z)
     h_q, _ = sim.model.get("h_q")
     h_qc, _ = sim.model.get("h_qc")
-    state.h_quantum = h_q(sim.model, parameters) + h_qc(sim.model, parameters, z=z)
+    if sim.model.update_h_q or state.h_q is None:
+        # Update the quantum Hamiltonian if required or if it is not set.
+        state.h_q = h_q(sim.model, parameters)
+    # Update the quantum-classical Hamiltonian.
+    state.h_qc = h_qc(sim.model, parameters, z=z)
+    state.h_quantum = state.h_q + state.h_qc
     return parameters, state
 
 
@@ -727,8 +732,8 @@ def update_z_rk4(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     wf = kwargs["wf"]
     use_gauge_field_force = kwargs.get("use_gauge_field_force", False)
-    if hasattr(sim.model, "linear_h_qc"):
-        update_quantum_classical_forces_bool = not sim.model.linear_h_qc
+    if hasattr(sim.model, "update_dh_qc_dzc"):
+        update_quantum_classical_forces_bool = sim.model.update_dh_qc_dzc
     else:
         update_quantum_classical_forces_bool = True
     z_0 = kwargs["z"]

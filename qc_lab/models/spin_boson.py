@@ -26,7 +26,8 @@ class SpinBoson(Model):
         self.dh_qc_dzc_inds = None
         self.dh_qc_dzc_mels = None
         self.dh_qc_dzc_shape = None
-        self.linear_h_qc = True
+        self.update_dh_qc_dzc = False
+        self.update_h_q = False
 
     def initialize_constants_model(self):
         """
@@ -72,16 +73,16 @@ class SpinBoson(Model):
         """
         Initialize the constants for the quantum Hamiltonian.
         """
-        self.constants.two_level_system_a = self.constants.get(
+        self.constants.two_level_system_00 = self.constants.get(
             "E", self.default_constants.get("E")
         )
-        self.constants.two_level_system_b = -self.constants.get(
+        self.constants.two_level_system_11 = -self.constants.get(
             "E", self.default_constants.get("E")
         )
-        self.constants.two_level_system_c = self.constants.get(
+        self.constants.two_level_system_01_re = self.constants.get(
             "V", self.default_constants.get("V")
         )
-        self.constants.two_level_system_d = 0
+        self.constants.two_level_system_01_im = 0
 
     initialization_functions = [
         initialize_constants_model,

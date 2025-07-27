@@ -27,7 +27,8 @@ class FMOComplex(Model):
         self.dh_qc_dzc_inds = None
         self.dh_qc_dzc_mels = None
         self.dh_qc_dzc_shape = None
-        self.linear_h_qc = True
+        self.update_dh_qc_dzc = False
+        self.update_h_q = False
 
     def initialize_constants_model(self):
         """

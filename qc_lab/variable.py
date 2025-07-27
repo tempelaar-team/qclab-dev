@@ -7,7 +7,7 @@ import numpy as np
 
 class Variable:
     """
-    The Variable object defines a vehicle in which quantities can be placed, retrieved, and collected.
+    The Variable class provides an object in which time-dependent quantities can be stored.
     """
 
     def __init__(self):
@@ -60,3 +60,4 @@ def initialize_variable_objects(sim, seeds):
             setattr(state_variable, name, new_obj)
     parameter_variable = Variable()
     return parameter_variable, state_variable
+

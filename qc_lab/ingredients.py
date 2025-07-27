@@ -127,7 +127,7 @@ def free_particle_h_c(model, parameters, **kwargs):
 @njit()
 def harmonic_oscillator_dh_c_dzc_jit(z, h, w):
     """
-    Numba accelerated calculation of the gradient of the Harmonic oscillator Hamiltonian.
+    Gradient of the Harmonic oscillator Hamiltonian.
     """
     a = (1 / 2) * (((w**2) / h) - h)
     b = (1 / 2) * (((w**2) / h) + h)
@@ -176,45 +176,34 @@ def two_level_system_h_q(model, parameters, **kwargs):
     """
     Quantum Hamiltonian for a two-level system.
 
-    H = [[a, c + id],
-         [c - id, b]]
-
-    where:
-        - a is the energy of the first level,
-        - b is the energy of the second level,
-        - c is the real part of the coupling between levels,
-        - d is the imaginary part of the coupling between levels.
-
-    By default, a=b=c=d=0.
+    H = [[two_level_system_00, two_level_system_01_re + i * two_level_system_01_im],
+        [two_level_system_01_re - i * two_level_system_01_im, two_level_system_11]]
 
     Required Constants:
-        - `two_level_system_a`: Energy of the first level.
-        - `two_level_system_b`: Energy of the second level.
-        - `two_level_system_c`: Real part of the coupling between levels.
-        - `two_level_system_d`: Imaginary part of the coupling between levels.
+        - `two_level_system_00`: Energy of the first level.
+        - `two_level_system_11`: Energy of the second level.
+        - `two_level_system_01_re`: Real part of the coupling between levels.
+        - `two_level_system_01_im`: Imaginary part of the coupling between levels.
     """
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
     else:
         batch_size = len(parameters.seed)
     h_q = np.zeros((batch_size, 2, 2), dtype=complex)
-    h_q[:, 0, 0] = model.constants.get("two_level_system_a", 0.0)
-    h_q[:, 1, 1] = model.constants.get("two_level_system_b", 0.0)
+    h_q[:, 0, 0] = model.constants.get("two_level_system_00", 0.0)
+    h_q[:, 1, 1] = model.constants.get("two_level_system_11", 0.0)
     h_q[:, 0, 1] = model.constants.get(
-        "two_level_system_c", 0.0
-    ) + 1j * model.constants.get("two_level_system_d", 0.0)
+        "two_level_system_01_re", 0.0
+    ) + 1j * model.constants.get("two_level_system_01_im", 0.0)
     h_q[:, 1, 0] = model.constants.get(
-        "two_level_system_c", 0.0
-    ) - 1j * model.constants.get("two_level_system_d", 0.0)
+        "two_level_system_01_re", 0.0
+    ) - 1j * model.constants.get("two_level_system_01_im", 0.0)
     return h_q
 
 
 def nearest_neighbor_lattice_h_q(model, parameters, **kwargs):
     """
-    Quantum Hamiltonian for a nearest-neighbor lattice. In this implementation,
-    the quantum Hamiltonian is stored as a matrix in model.h_q_mat. If this matrix
-    is already calculated, it is returned directly. This avoids recalculating
-    the Hamiltonian for each time step of the simulation.
+    Quantum Hamiltonian for a nearest-neighbor lattice. 
 
     Required Constants:
         - `nearest_neighbor_lattice_hopping_energy`: Hopping energy between sites.
@@ -227,10 +216,6 @@ def nearest_neighbor_lattice_h_q(model, parameters, **kwargs):
     num_sites = model.constants.num_quantum_states
     hopping_energy = model.constants.nearest_neighbor_lattice_hopping_energy
     periodic_boundary = model.constants.nearest_neighbor_lattice_periodic_boundary
-    if hasattr(model, "h_q_mat"):
-        if model.h_q_mat is not None:
-            if len(model.h_q_mat) == batch_size:
-                return model.h_q_mat
     h_q = np.zeros((num_sites, num_sites), dtype=complex)
     # Fill the Hamiltonian matrix with hopping energies.
     for n in range(num_sites - 1):
@@ -240,10 +225,10 @@ def nearest_neighbor_lattice_h_q(model, parameters, **kwargs):
     if periodic_boundary:
         h_q[0, num_sites - 1] += -hopping_energy
         h_q[num_sites - 1, 0] += np.conj(h_q[0, num_sites - 1])
-    model.h_q_mat = h_q[np.newaxis, :, :] + np.zeros(
+    h_q_mat = h_q[np.newaxis, :, :] + np.zeros(
         (batch_size, num_sites, num_sites), dtype=complex
     )
-    return model.h_q_mat
+    return h_q_mat
 
 
 @njit()
@@ -546,7 +531,7 @@ def harmonic_oscillator_coherent_state_wigner_init_classical(
     """
     Initialize classical coordinates according to the Wigner distribution of a coherent state of a harmonic oscillator.
 
-    exp(a * b^{\dagger} - a^* * b)
+    :math:`exp(a * b^{\dagger} - a^* * b)`
 
     where `a` is the complex displacement parameter of the coherent state.
 
