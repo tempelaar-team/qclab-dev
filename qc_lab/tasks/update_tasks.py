@@ -1,3 +1,5 @@
+"""Tasks that update the simulation state during propagation."""
+
 import numpy as np
 import warnings
 from qc_lab.jit import njit

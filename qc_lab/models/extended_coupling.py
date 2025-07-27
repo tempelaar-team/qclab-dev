@@ -1,3 +1,5 @@
+"""Model for Tully's third problem with extended coupling and reflection."""
+
 import numpy as np
 from qc_lab.model import Model
 from qc_lab import ingredients
