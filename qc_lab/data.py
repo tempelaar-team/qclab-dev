@@ -19,13 +19,14 @@ class Data:
         self.data_dict = {"seed": seeds, "norm_factor": 0}
 
     def add_output_to_data_dict(self, sim, state, t_ind):
-        """
-        Add data to the output total arrays.
+        """Add data to the output total arrays.
 
         Args:
-            sim: The simulation object containing settings and parameters.
-            state: The state object containing the current simulation state.
-            t_ind: The current time index in the simulation.
+            sim (Simulation): The simulation object containing settings and
+                parameters.
+            state (Variable): The state object containing the current
+                simulation state.
+            t_ind (int): The current time index in the simulation.
         """
         # Check if the norm_factor is zero, if it is, save it from the state object.
         if self.data_dict["norm_factor"] == 0:
@@ -46,11 +47,11 @@ class Data:
             )
 
     def add_data(self, new_data):
-        """
-        Add new data to the existing data dictionary.
+        """Add new data to the existing data dictionary.
 
         Args:
-            new_data: A Data object containing the new data to be merged.
+            new_data (Data): A ``Data`` instance containing the new data to
+                merge.
         """
         new_norm_factor = (
             new_data.data_dict["norm_factor"] + self.data_dict["norm_factor"]
@@ -71,12 +72,13 @@ class Data:
         self.data_dict["norm_factor"] = new_norm_factor
 
     def save(self, filename):
-        """
-        Save the data as an h5 archive if h5py is available, if not
-        save each variable using numpy's savez function.
+        """Save the data to disk.
+
+        If ``h5py`` is available the data is stored as an HDF5 archive; otherwise
+        each variable is saved using :func:`numpy.savez`.
 
         Args:
-            filename: The name of the file to save the data to.
+            filename (str): The file name to save the data to.
         """
         if DISABLE_H5PY:
             np.savez(filename, **self.data_dict)
@@ -85,14 +87,13 @@ class Data:
                 self._recursive_save(h5file, "/", self.data_dict)
 
     def load(self, filename):
-        """
-        Load a data object from a file named filename.
+        """Load a :class:`Data` object from ``filename``.
 
         Args:
-            filename: The name of the file to load the data from.
+            filename (str): The file name to load the data from.
 
         Returns:
-            The Data object with the loaded data.
+            Data: The current instance populated with the loaded data.
         """
         if DISABLE_H5PY:
             loaded = np.load(filename)
@@ -103,13 +104,12 @@ class Data:
         return self
 
     def _recursive_save(self, h5file, path, dic):
-        """
-        Recursively saves dictionary contents to an HDF5 group.
+        """Recursively save dictionary contents to an HDF5 group.
 
         Args:
-            h5file: The HDF5 file object to save data into.
-            path: The current path in the HDF5 file.
-            dic: The dictionary to save.
+            h5file (h5py.File): The HDF5 file object to save data into.
+            path (str): The current path in the HDF5 file.
+            dic (dict): The dictionary to save.
         """
         for key, item in dic.items():
             if isinstance(
@@ -135,13 +135,12 @@ class Data:
                 raise ValueError(f"Cannot save {key} with type {type(item)}.")
 
     def _recursive_load(self, h5file, path, dic):
-        """
-        Recursively loads dictionary contents from an HDF5 group.
+        """Recursively load dictionary contents from an HDF5 group.
 
         Args:
-            h5file: The HDF5 file object to load data from.
-            path: The current path in the HDF5 file.
-            dic: The dictionary to populate with loaded data.
+            h5file (h5py.File): The HDF5 file object to load data from.
+            path (str): The current path in the HDF5 file.
+            dic (dict): The dictionary to populate with loaded data.
         """
         for key, item in h5file[path].items():
             if isinstance(item, h5py._hl.dataset.Dataset):

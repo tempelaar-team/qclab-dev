@@ -37,8 +37,17 @@ class Algorithm:
     collect_recipe = []
 
     def execute_recipe(self, sim, parameter, state, recipe):
-        """
-        Executes the given recipe for the simulation.
+        """Execute the given recipe for the simulation.
+
+        Args:
+            sim (Simulation): The simulation instance.
+            parameter (Variable): The parameter variable.
+            state (Variable): The state variable.
+            recipe (Iterable[callable]): Sequence of task functions.
+
+        Returns:
+            tuple[Variable, Variable]: The updated ``parameter`` and ``state``
+            objects.
         """
         for func in recipe:
             parameter, state = func(sim.algorithm, sim, parameter, state)
