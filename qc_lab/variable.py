@@ -43,8 +43,10 @@ class Variable:
 
 def initialize_variable_objects(sim, seeds):
     """
-    This takes the numpy arrays inside the state and parameter objects
-    and creates a first index corresponding to the number of trajectories.
+    This generates the state and parameter objects for the simulation.
+    Each object in sim.state is initialized as a numpy array in the 
+    state object with a new first index corresponding to the number of trajectories
+    as specified by the length of the seeds array.
     """
     state_variable = Variable()
     state_variable.seed = seeds
