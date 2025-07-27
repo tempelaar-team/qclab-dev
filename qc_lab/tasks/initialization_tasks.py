@@ -9,7 +9,6 @@ def assign_norm_factor_mf(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del kwargs
     state.norm_factor = sim.settings.batch_size
     return parameters, state
 
@@ -21,7 +20,6 @@ def assign_norm_factor_fssh(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del kwargs
     if sim.algorithm.settings.fssh_deterministic:
         state.norm_factor = (
             sim.settings.batch_size // sim.model.constants.num_quantum_states
@@ -38,7 +36,6 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - num_quantum_states (int): Number of quantum states. Default: None.
     """
-    del kwargs
     # First ensure that the number of branches is correct.
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -87,7 +84,6 @@ def assign_to_parameters(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del sim
     name = kwargs["name"]
     val = kwargs["val"]
     setattr(parameters, name, val)
@@ -101,7 +97,6 @@ def assign_to_state(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del sim
     name = kwargs["name"]
     val = kwargs["val"]
     setattr(state, name, np.copy(val))
@@ -125,7 +120,6 @@ def initialize_active_surface(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - num_quantum_states (int): Number of quantum states. Default: None.
     """
-    del kwargs
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
     else:
@@ -173,7 +167,6 @@ def initialize_random_values_fssh(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del kwargs
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
     else:
@@ -195,7 +188,6 @@ def initialize_dm_adb_0_fssh(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del sim, kwargs
     state.dm_adb_0 = np.einsum(
         "...i,...j->...ij",
         state.wf_adb,

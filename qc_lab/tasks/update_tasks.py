@@ -114,7 +114,6 @@ def diagonalize_matrix(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del sim
     matrix = kwargs["matrix"]
     eigvals_name = kwargs["eigvals_name"]
     eigvecs_name = kwargs["eigvecs_name"]
@@ -131,7 +130,6 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
     Required constants:
         - None.
     """
-    del parameters
     der_couple_q_phase = np.ones(
         (
             sim.settings.batch_size,
@@ -302,7 +300,6 @@ def basis_transform_vec(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del sim
     # Default transformation is adiabatic to diabatic.
     input_vec = kwargs["input_vec"]
     basis = kwargs["basis"]
@@ -324,7 +321,6 @@ def basis_transform_mat(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del sim
     # Default transformation is adiabatic to diabatic.
     input_mat = kwargs["input_mat"]
     basis = kwargs["basis"]
@@ -349,7 +345,6 @@ def update_act_surf_wf(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del kwargs
     num_trajs = sim.settings.batch_size
     act_surf_wf = state.eigvecs[
         np.arange(num_trajs, dtype=int),
@@ -435,7 +430,6 @@ def update_wf_db_rk4(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del kwargs
     dt_update = sim.settings.dt_update
     wf_db = state.wf_db
     h_quantum = state.h_quantum
@@ -806,7 +800,6 @@ def update_dm_db_mf(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del sim, kwargs
     wf_db = state.wf_db
     state.dm_db = np.einsum("ti,tj->tij", wf_db, np.conj(wf_db), optimize="greedy")
     return parameters, state
@@ -883,7 +876,6 @@ def update_quantum_energy(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del sim
     wf = kwargs["wf"]
     state.quantum_energy = np.real(
         np.einsum("ti,tij,tj->t", np.conj(wf), state.h_quantum, wf, optimize="greedy")
@@ -931,7 +923,6 @@ def update_dm_db_fssh(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    del kwargs
     dm_adb_branch = np.einsum(
         "...i,...j->...ij",
         state.wf_adb,
