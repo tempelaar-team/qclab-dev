@@ -4,7 +4,7 @@
 Running a Spin-Boson Model
 ===========================
 
-Here's a simple example of how to run a Spin-Boson model with Mean-Field dynamics in QC Lab.
+Here's a simple example of how to run a spin-boson model with mean-field dynamics in QC Lab.
 
 
 First, we will need to import the necessary modules:
@@ -25,15 +25,19 @@ Next, we will set up the simulation object and equip it with the model and algor
 
     # Initialize the simulation object.
     sim = Simulation()
-    # Equip it with a SpinBoson model object.
+    # Equip it with a spin-boson model object.
     sim.model = SpinBoson()
-    # Attach the MeanField algorithm.
+    # Attach the mean-field algorithm.
     sim.algorithm = MeanField()
-    # Initialize the diabatic wavefunction. 
-    # Here, the first state is the upper state and the second is the lower state.
+    # Initialize the diabatic wavevector. 
+    # Here, the first vector element refers to the upper state and the second
+    # element refers to the lower state..
     sim.state.wf_db = np.array([1, 0], dtype=complex)
     
 
+This is bound to run the spin-boson model using default values for the model constants. 
+Following the definitions from `Tempelaar & Reichman 2019 <https://doi.org/10.1063/1.5000843>`_, the model constant 
+values are `kBT=1.0`, `E=0.5`, `V=0.5`, `A=100`, `W=0.1`, and `l_reorg=0.005`.
 Finally, we can run the simulation and visualize the results:
 
 .. code-block:: python

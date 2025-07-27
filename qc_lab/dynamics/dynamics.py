@@ -1,5 +1,5 @@
 """
-This file contains the dynamics core.
+This module contains the dynamics core.
 """
 
 import numpy as np

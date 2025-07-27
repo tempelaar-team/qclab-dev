@@ -1,5 +1,5 @@
 """
-This file contains the parallel driver for the dynamics simulation in QC Lab.
+This module contains the parallel driver for the dynamics simulation in QC Lab.
 """
 
 import multiprocessing
@@ -15,7 +15,7 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
     """
     Parallel driver for the dynamics core using the python library multiprocessing.
     """
-    # first initialize the model constants
+    # First initialize the model constants.
     sim.model.initialize_constants()
     if data is None:
         data = Data()
@@ -63,5 +63,4 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
         results = pool.starmap(dynamics.dynamics, input_data)
     for result in results:
         data.add_data(result)
-    # data.data_dict["seed"] = seeds
     return data

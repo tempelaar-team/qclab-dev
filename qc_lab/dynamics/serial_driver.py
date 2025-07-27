@@ -1,5 +1,5 @@
 """
-This file contains the serial driver for the dynamics core.
+This module contains the serial driver for the dynamics core.
 """
 
 import warnings
@@ -13,7 +13,7 @@ def serial_driver(sim, seeds=None, data=None):
     """
     Serial driver for the dynamics core.
     """
-    # first initialize the model constants
+    # First initialize the model constants.
     sim.model.initialize_constants()
     if data is None:
         data = Data()
@@ -31,7 +31,7 @@ def serial_driver(sim, seeds=None, data=None):
             UserWarning,
         )
         sim.settings.num_trajs = num_trajs
-    # determine the number of simulations required to execute the total number of trajectories.
+    # Determine the number of simulations required to execute the total number of trajectories.
     num_sims = int(num_trajs / sim.settings.batch_size) + 1
     for n in range(num_sims):
         batch_seeds = seeds[

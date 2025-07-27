@@ -1,5 +1,5 @@
 """
-This file contains the MF algorithm class.
+This module contains the MF algorithm class.
 """
 
 from qc_lab.algorithm import Algorithm

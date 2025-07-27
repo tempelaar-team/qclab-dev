@@ -14,6 +14,7 @@ class Constants:
         self._init_complete = False
         self._update_function = update_function
 
+
     def __setattr__(self, name, value):
         """
         Overrides attribute setting to call the update function after the attribute is changed,
@@ -30,6 +31,7 @@ class Constants:
                 if self._update_function is not None:
                     self._update_function()
                 self._updating = False
+
 
     def get(self, name, default=None):
         """

@@ -51,7 +51,7 @@ def make_ingredient_sparse(ingredient):
 def vectorize_ingredient(ingredient):
     """
     Wrapper that vectorize an ingredient function.
-    It assumes that any kwarg is an numpy.ndarray is vectorized over its first index.
+    It assumes that any kwarg is an numpy.ndarray that is vectorized over its first index.
     Other kwargs are assumed to not be vectorized.
     """
 
@@ -79,7 +79,6 @@ def vectorize_ingredient(ingredient):
             ]
         )
         return out
-
     return vectorized_ingredient
 
 
@@ -225,10 +224,10 @@ def nearest_neighbor_lattice_h_q(model, parameters, **kwargs):
     if periodic_boundary:
         h_q[0, num_sites - 1] += -hopping_energy
         h_q[num_sites - 1, 0] += np.conj(h_q[0, num_sites - 1])
-    h_q_mat = h_q[np.newaxis, :, :] + np.zeros(
+    out = h_q[np.newaxis, :, :] + np.zeros(
         (batch_size, num_sites, num_sites), dtype=complex
     )
-    return h_q_mat
+    return out
 
 
 @njit()
@@ -518,7 +517,8 @@ def definite_position_momentum_init_classical(model, parameters, **kwargs):
     seed = kwargs.get("seed", None)
     q = model.constants.init_position
     p = model.constants.init_momentum
-    z = np.zeros((len(seed), model.constants.num_classical_coordinates), dtype=complex)
+    z = np.zeros(
+        (len(seed), model.constants.num_classical_coordinates), dtype=complex)
     for s, seed_value in enumerate(seed):
         np.random.seed(seed_value)
         z[s] = qp_to_z(q, p, model.constants)

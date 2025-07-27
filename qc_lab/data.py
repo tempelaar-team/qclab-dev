@@ -18,8 +18,9 @@ class Data:
             seeds = np.array([], dtype=int)
         self.data_dict = {"seed": seeds, "norm_factor": 0}
 
+
     def add_output_to_data_dict(self, sim, state, t_ind):
-        """Add data to the output total arrays.
+        """Add data to the output dictionary (data_dict).
 
         Args:
             sim (Simulation): The simulation object containing settings and
@@ -28,7 +29,7 @@ class Data:
                 simulation state.
             t_ind (int): The current time index in the simulation.
         """
-        # Check if the norm_factor is zero, if it is, save it from the state object.
+        # Check if the norm_factor is zero. If it is, save it from the state object.
         if self.data_dict["norm_factor"] == 0:
             if not (hasattr(state, "norm_factor")):
                 raise ValueError(
@@ -41,10 +42,11 @@ class Data:
                 self.data_dict[key] = np.zeros(
                     (len(sim.settings.tdat_output), *np.shape(val)[1:]), dtype=val.dtype
                 )
-            # store the data in the data_dict at the correct time index
+            # Store the data in the data_dict at the correct time index.
             self.data_dict[key][t_ind // sim.settings.dt_collect_n] = (
                 np.sum(val, axis=0) / self.data_dict["norm_factor"]
             )
+
 
     def add_data(self, new_data):
         """Add new data to the existing data dictionary.
@@ -71,6 +73,7 @@ class Data:
                     self.data_dict[key] = val
         self.data_dict["norm_factor"] = new_norm_factor
 
+
     def save(self, filename):
         """Save the data to disk.
 
@@ -85,6 +88,7 @@ class Data:
         else:
             with h5py.File(filename, "w") as h5file:
                 self._recursive_save(h5file, "/", self.data_dict)
+
 
     def load(self, filename):
         """Load a :class:`Data` object from ``filename``.
@@ -102,6 +106,7 @@ class Data:
         with h5py.File(filename, "r") as h5file:
             self._recursive_load(h5file, "/", self.data_dict)
         return self
+
 
     def _recursive_save(self, h5file, path, dic):
         """Recursively save dictionary contents to an HDF5 group.
@@ -133,6 +138,7 @@ class Data:
                 h5file[path + key] = np.array(item)
             else:
                 raise ValueError(f"Cannot save {key} with type {type(item)}.")
+
 
     def _recursive_load(self, h5file, path, dic):
         """Recursively load dictionary contents from an HDF5 group.

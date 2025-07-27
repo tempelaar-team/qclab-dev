@@ -1,5 +1,5 @@
 """
-This file contains the FSSH algorithm class.
+This module contains the FSSH algorithm class.
 """
 
 import numpy as np

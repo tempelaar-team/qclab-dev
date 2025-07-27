@@ -1,5 +1,5 @@
 """
-This file contains the parallel MPI driver for the dynamics simulation in QC Lab.
+This module contains the parallel MPI driver for the dynamics simulation in QC Lab.
 """
 
 import warnings
@@ -14,13 +14,13 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     """
     Parallel driver for the dynamics core using the mpi4py library.
     """
-    # first initialize the model constants
+    # First initialize the model constants.
     sim.model.initialize_constants()
     try:
         from mpi4py import MPI
     except ImportError:
         raise ImportError(
-            "mpi4py is required for the parallel_driver_mpi driver"
+            "The package mpi4py is required for the parallel_driver_mpi driver."
         ) from None
     except Exception as e:
         raise RuntimeError(f"An error occurred when importing mpi4py: {e}") from None
@@ -57,12 +57,12 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     )
     batch_seeds_list[:num_trajs] = seeds
     batch_seeds_list = batch_seeds_list.reshape((num_sims, sim.settings.batch_size))
-    # Split the simulations into chunks for each MPI process
+    # Split the simulations into chunks for each MPI process.
     chunk_inds = np.linspace(0, num_sims, size + 1, dtype=int)
     start = chunk_inds[rank]
     end = chunk_inds[rank + 1]
     chunk_size = end - start
-    # Create the input data for each local simulation
+    # Create the input data for each local simulation.
     sim.initialize_timesteps()
     local_input_data = [
         (
@@ -74,10 +74,10 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
         )
         for n in np.arange(num_sims)[start:end]
     ]
-    # Set the batch size for each local simulation
+    # Set the batch size for each local simulation.
     for i in range(chunk_size):
         local_input_data[i][0].settings.batch_size = len(local_input_data[i][2].seed)
-    # Execute the local simulations
+    # Execute the local simulations.
     local_results = [dynamics.dynamics(*x) for x in local_input_data]
 
     comm.Barrier()

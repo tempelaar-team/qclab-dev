@@ -1,5 +1,5 @@
 """
-This file contains the spin-boson Model class.
+This module contains the spin-boson Model class.
 """
 
 import numpy as np
