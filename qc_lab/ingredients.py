@@ -328,7 +328,7 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
 
     If enough energy is available, the function returns the shift in the classical
     coordinates such that the new classical coordinate is z + shift and a boolean
-    indicating that the hop has occured. If not enough energy is available,
+    indicating that the hop has occurred. If not enough energy is available,
     the shift becomes zero and the boolean is False.
 
     Required Constants:
@@ -390,7 +390,7 @@ def free_particle_hop_function(model, parameters, **kwargs):
 
     If enough energy is available, the function returns the shift in the classical
     coordinates such that the new classical coordinate is z + shift and a boolean
-    indicating that the hop has occured. If not enough energy is available,
+    indicating that the hop has occurred. If not enough energy is available,
     the shift becomes zero and the boolean is False.
 
     Required Constants:

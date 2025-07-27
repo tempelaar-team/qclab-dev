@@ -9,8 +9,8 @@ from qc_lab import ingredients
 
 class FMOComplex(Model):
     """
-    A model representing a Fenna-Mathes-Olson (FMO) complex.
-    All unitless quantities in this model are taken to be in units of kBT at 298.15K.
+    A model representing a Fenna-Matthews-Olson (FMO) complex.
+    All unitless quantities in this model are taken to be in units of kBT at 298.15 K.
     """
 
     def __init__(self, constants=None):
