@@ -27,8 +27,14 @@ class Model:
         self.update_dh_qc_dzc = True
 
     def get(self, ingredient_name):
-        """
-        Get the ingredient by its name. Returns the first instance of the ingredient in reverse order.
+        """Retrieve an ingredient by name.
+
+        Args:
+            ingredient_name (str): Name of the ingredient to search for.
+
+        Returns:
+            tuple[callable | None, bool]: The ingredient function (or ``None`` if
+            not found) and a flag indicating whether it exists.
         """
         for ingredient in self.ingredients[::-1]:
             if ingredient[0] == ingredient_name and ingredient[1] is not None:
