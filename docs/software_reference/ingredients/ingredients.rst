@@ -24,10 +24,10 @@ An ingredient that generates the quantum Hamiltonian for a two-level system migh
         Quantum Hamiltonian for a two-level system.
 
         Required Constants:
-            - two_level_system_a: Energy of the first level.
-            - two_level_system_b: Energy of the second level.
-            - two_level_system_c: Real part of the coupling between levels.
-            - two_level_system_d: Imaginary part of the coupling between levels.
+            - two_level_system_00: Energy of the first level.
+            - two_level_system_11: Energy of the second level.
+            - two_level_system_01_re: Real part of the coupling between levels.
+            - two_level_system_01_im: Imaginary part of the coupling between levels.
 
         Keyword Arguments:
             - batch_size: (Optional) Number of batches for vectorized computation.
@@ -37,10 +37,10 @@ An ingredient that generates the quantum Hamiltonian for a two-level system migh
         else:
             batch_size = len(parameters.seed)
         h_q = np.zeros((batch_size, 2, 2), dtype=complex)
-        h_q[:, 0, 0] = model.constants.two_level_system_a
-        h_q[:, 1, 1] = model.constants.two_level_system_b
-        h_q[:, 0, 1] = model.constants.two_level_sysmtem_c + 1j * model.constants.two_level_system_d
-        h_q[:, 1, 0] = model.constants.two_level_system_c - 1j * model.constants.two_level_system_d
+        h_q[:, 0, 0] = model.constants.two_level_system_00
+        h_q[:, 1, 1] = model.constants.two_level_system_11
+        h_q[:, 0, 1] = model.constants.two_level_sysmtem_c + 1j * model.constants.two_level_system_01_im
+        h_q[:, 1, 0] = model.constants.two_level_system_01_re - 1j * model.constants.two_level_system_01_im
         return h_q
 
 

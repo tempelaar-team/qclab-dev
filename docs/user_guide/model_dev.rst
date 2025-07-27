@@ -746,16 +746,16 @@ We will also need a new initialization function to interface with the constants 
         """
         Initialize the constants for the quantum Hamiltonian.
         """
-        model.constants.two_level_system_a = model.constants.get(
+        model.constants.two_level_system_00 = model.constants.get(
             "E", model.default_constants.get("E")
         )
-        model.constants.two_level_system_b = -model.constants.get(
+        model.constants.two_level_system_11 = -model.constants.get(
             "E", model.default_constants.get("E")
         )
-        model.constants.two_level_system_c = model.constants.get(
+        model.constants.two_level_system_01_re = model.constants.get(
             "V", model.default_constants.get("V")
         )
-        model.constants.two_level_system_d = 0
+        model.constants.two_level_system_01_im = 0
 
 Let's then add the ingredient and initialization function to the model class:
 
@@ -860,16 +860,16 @@ The full code for upgrading the `MinimalSpinBoson` using built-in ingredients is
         """
         Initialize the constants for the quantum Hamiltonian.
         """
-        model.constants.two_level_system_a = model.constants.get(
+        model.constants.two_level_system_00 = model.constants.get(
             "E", model.default_constants.get("E")
         )
-        model.constants.two_level_system_b = -model.constants.get(
+        model.constants.two_level_system_11 = -model.constants.get(
             "E", model.default_constants.get("E")
         )
-        model.constants.two_level_system_c = model.constants.get(
+        model.constants.two_level_system_01_re = model.constants.get(
             "V", model.default_constants.get("V")
         )
-        model.constants.two_level_system_d = 0
+        model.constants.two_level_system_01_im = 0
 
     model.initialize_constants_h_q = initialize_constants_h_q
     # also update the list of initialization functions

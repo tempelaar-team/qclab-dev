@@ -1,13 +1,14 @@
 .. _index:
 
 
-User Guide 
+User Guide
 ==========
 
 .. toctree::
     :maxdepth: 2
     :caption: User Guide
 
+    install
     quickstart/quickstart
     drivers/drivers 
     simulation

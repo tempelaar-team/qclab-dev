@@ -1,7 +1,8 @@
 .. _quickstart:
 
+=================
 Quick Start Guide
------------------
+=================
 
 
 QC Lab is organized into models and algorithms which are combined into a simulation object. 
@@ -11,8 +12,11 @@ This guide will walk you through the process of setting up a simulation object a
 The code in this page is implemented in the notebook `quickstart.ipynb` which can be found in the `examples` directory of the repository.
 
 
+
+
+
 Importing Modules
-~~~~~~~~~~~~~~~~~
+-----------------
 
 First, we import the necessary modules.
 
@@ -26,8 +30,8 @@ First, we import the necessary modules.
     from qc_lab.dynamics import serial_driver # import dynamics driver
 
 
-Instantiating Simulation Object
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Instantiating a Simulation Object
+---------------------------------
 
 Next, we instantiate a simulation object from `qc_lab.Simulation`. Each object has a set of default settings which can be accessed by calling `sim.default_settings`.
 Passing a dictionary to the simulation object when instantiating it will override the default settings.
@@ -56,8 +60,8 @@ timestep used for propagation (`dt_update`).
     sim.settings.dt_update = 0.01
     sim.settings.dt_collect = 0.1
 
-Instantiating Model Object
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Instantiating a Model Object
+---------------------------
 
 Next, we instantiate a model object. Like the simulation object, it has a set of default constants. 
 
@@ -67,8 +71,8 @@ Next, we instantiate a model object. Like the simulation object, it has a set of
     print('default model constants: ', sim.model.default_constants)
     # default model constants:  {'temp': 1, 'V': 0.5, 'E': 0.5, 'A': 100, 'W': 0.1, 'l_reorg': 0.005, 'boson_mass': 1}
 
-Instantiating Algorithm Object
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Instantiating an Algorithm Object
+---------------------------------
 
 Next, we instantiate an algorithm object which likewise has a set of default settings. 
 
@@ -78,8 +82,8 @@ Next, we instantiate an algorithm object which likewise has a set of default set
     print('default algorithm settings: ', sim.algorithm.default_settings)
     # default algorithm settings:  {}
 
-Setting Initial State
-~~~~~~~~~~~~~~~~~~~~~
+Setting the Initial State
+-------------------------
 
 Before using the dynamics driver to run the simulation, it is necessary to provide the simulation with an initial state. This initial state is
 dependent on both the model and algorithm. For mean-field dynamics, we require a diabatic wavefunction called "wf_db". Because we are using a spin-boson model,
@@ -90,7 +94,7 @@ this wavefunction should have dimension 2. The initial state is stored in `sim.s
     sim.state.wf_db = np.array([1, 0], dtype=complex)
 
 Running the Simulation
-~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 Finally, we run the simulation using the dynamics driver. Here, we are using the serial driver. QC Lab comes with several different types of parallel drivers which are discussed elsewhere.
 
@@ -98,8 +102,8 @@ Finally, we run the simulation using the dynamics driver. Here, we are using the
 
     data = serial_driver(sim)
 
-Analyzing Results
-~~~~~~~~~~~~~~~~~
+Analyzing the Results
+---------------------
 
 The data object returned by the dynamics driver contains the results of the simulation in a dictionary with keys corresponding
 to the names of the observables that were requested to be recorded during the simulation. 
@@ -126,7 +130,7 @@ The time axis can be retrieved from the simulation object through its settings.
     time = sim.settings.tdat_output 
 
 Plotting Results
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 
 Finally, we can plot the results of the simulation like the population dynamics.
 
@@ -160,7 +164,7 @@ We can verify that the total energy of the simulation was conserved by inspectin
     :align: center
 
 Changing the Algorithm
-~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 If you want to do a surface hopping calculation rather than a mean-field one, QC Lab makes it very easy to do so. 
 Simply import the relevant Algorithm class and set `sim.algorithm` to it and rerun the calculation. 
@@ -188,7 +192,7 @@ purposes. Publication quality simulations would require checking convergence of 
 
 
 Changing the Driver
-~~~~~~~~~~~~~~~~~~~
+--------------------
 
 You can likewise run the simulation using a parallel driver. Here we use the multiprocessing driver to split the trajectories 
 over four tasks.
@@ -201,7 +205,7 @@ over four tasks.
 
 
 Units in QC Lab
-~~~~~~~~~~~~~~~~~~~~
+-----------------
 
 QC Lab is written assuming all energies are in units of the thermal quantum (:math:`k_{\mathrm{B}}T`). Units of time are then determined by assuming a value for 
 the temperature defining the thermal quantum and calculating the equivalent timescales. For example, if we assume a standard temperature of :math:`T = 298.15\,\mathrm{K}`
