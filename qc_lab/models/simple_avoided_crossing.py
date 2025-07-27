@@ -6,7 +6,9 @@ from qc_lab import ingredients
 class SimpleAvoidedCrossing(Model):
     """Tully's first problem, a simple avoided crossing."""
 
-    def __init__(self, constants={}):
+    def __init__(self, constants=None):
+        if constants is None:
+            constants = {}
 
         self.default_constants = dict(
             init_momentum=10,
