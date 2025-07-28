@@ -8,14 +8,16 @@ from qc_lab.tasks.default_ingredients import *
 
 def update_t(algorithm, sim, parameters, state):
     """
-    Update the time in the state object with the collect timestep.
-    Note that if this is called in the update recipe, the timestep should
-    be changed to the update timestep.
+    Update the time in the state object with the time index in each trajectory
+    multiplied by the update timestep.
 
     Required constants:
         - None.
     """
-    state.t = sim.t_ind * sim.settings.dt_collect
+    batch_size = len(parameters.seed)
+    # the variable should store the time in each trajectory and should therefore be 
+    # and array with length batch_size.
+    state.t = np.ones(batch_size) * sim.t_ind * sim.settings.dt_update
     return parameters, state
 
 
@@ -838,7 +840,7 @@ def update_classical_energy_fssh(algorithm, sim, parameters, state, **kwargs):
     if sim.algorithm.settings.fssh_deterministic:
         state.classical_energy = 0
         branch_weights = np.sqrt(
-            np.einsum(
+            num_branches * np.einsum(
                 "tbbb->tb",
                 state.dm_adb_0.reshape(
                     (batch_size, num_branches, num_states, num_states)
@@ -899,7 +901,7 @@ def update_quantum_energy_fssh(algorithm, sim, parameters, state, **kwargs):
         batch_size = sim.settings.batch_size // num_branches
         num_states = sim.model.constants.num_quantum_states
         wf = wf * np.sqrt(
-            np.einsum(
+            num_branches * np.einsum(
                 "tbbb->tb",
                 state.dm_adb_0.reshape(
                     (batch_size, num_branches, num_states, num_states)
@@ -966,7 +968,7 @@ def update_dm_db_fssh(algorithm, sim, parameters, state, **kwargs):
         basis=state.eigvecs,
         output_name="dm_db_branch",
     )
-    state.dm_db = np.sum(
+    state.dm_db = num_branches * np.sum(
         state.dm_db_branch.reshape(
             (
                 batch_size,

@@ -29,7 +29,7 @@ class MeanField(Algorithm):
         return tasks.update_h_quantum(self, sim, parameters, state, z=state.z)
 
     initialization_recipe = [
-        tasks.assign_norm_factor_mf,
+        tasks.initialize_norm_factor,
         _assign_seeds_to_parameters,
         _initialize_z,
         _update_h_quantum,

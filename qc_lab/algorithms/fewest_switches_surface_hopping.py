@@ -83,7 +83,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         )
 
     initialization_recipe = [
-        tasks.assign_norm_factor_fssh,
+        tasks.initialize_norm_factor,
         tasks.initialize_branch_seeds,
         _initialize_z,
         _update_h_quantum,

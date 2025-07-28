@@ -4,36 +4,27 @@ import numpy as np
 from qc_lab.tasks.default_ingredients import *
 
 
-def assign_norm_factor_mf(algorithm, sim, parameters, state, **kwargs):
+def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
     """
-    Assign the normalization factor to the state object for MF dynamics.
+    Assign the normalization factor to the state object. 
 
     Required constants:
         - None.
     """
+
     state.norm_factor = sim.settings.batch_size
     return parameters, state
 
-
-def assign_norm_factor_fssh(algorithm, sim, parameters, state, **kwargs):
-    """
-    Assign the normalization factor to the state object for FSSH.
-
-    Required constants:
-        - None.
-    """
-    if sim.algorithm.settings.fssh_deterministic:
-        state.norm_factor = (
-            sim.settings.batch_size // sim.model.constants.num_quantum_states
-        )
-    else:
-        state.norm_factor = sim.settings.batch_size
-    return parameters, state
-
-
 def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     """
-    Initialize the seeds in each branch.
+    Convert seeds into branch seeds for deterministic surface hopping. 
+    This is done by first assumign that the number of branches is equal to the number of quantum states. 
+    Then, a branch index (state.branch_ind) is created which gives the branch index of each seed in the batch. 
+    Then a new set of seeds is created by floor dividing the original seeds by the number of branches so that 
+    the seeds corresponding to different branches within the same trajectory are the same.
+
+    Notably, this leads to the number of unique classical initial conditions being equal to the number of 
+    trajectories divided by the number of branches in deterministic surface hopping.
 
     Required constants:
         - num_quantum_states (int): Number of quantum states. Default: None.
