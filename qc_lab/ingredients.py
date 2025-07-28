@@ -86,7 +86,7 @@ def harmonic_oscillator_h_c(model, parameters, **kwargs):
     """
     Harmonic oscillator classical Hamiltonian function.
 
-    Required Constants:
+    Required constants:
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
     """
     del parameters
@@ -107,7 +107,7 @@ def free_particle_h_c(model, parameters, **kwargs):
     """
     Free particle classical Hamiltonian function.
 
-    Required Constants:
+    Required constants:
         - `classical_coordinate_mass`: Mass of the classical coordinates.
     """
     del parameters
@@ -138,7 +138,7 @@ def harmonic_oscillator_dh_c_dzc(model, parameters, **kwargs):
     """
     Derivative of the classical harmonic oscillator Hamiltonian with respect to the conjugate `z` coordinate.
 
-    Required Constants:
+    Required constants:
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
     """
     del parameters
@@ -157,7 +157,7 @@ def free_particle_dh_c_dzc(model, parameters, **kwargs):
     """
     Derivative of the free particle classical Hamiltonian with respect to the `z` coordinate.
 
-    Required Constants:
+    Required constants:
         - `classical_coordinate_mass`: Mass of the classical coordinates.
     """
     del parameters
@@ -178,7 +178,7 @@ def two_level_system_h_q(model, parameters, **kwargs):
     H = [[two_level_system_00, two_level_system_01_re + i * two_level_system_01_im],
         [two_level_system_01_re - i * two_level_system_01_im, two_level_system_11]]
 
-    Required Constants:
+    Required constants:
         - `two_level_system_00`: Energy of the first level.
         - `two_level_system_11`: Energy of the second level.
         - `two_level_system_01_re`: Real part of the coupling between levels.
@@ -204,7 +204,7 @@ def nearest_neighbor_lattice_h_q(model, parameters, **kwargs):
     """
     Quantum Hamiltonian for a nearest-neighbor lattice. 
 
-    Required Constants:
+    Required constants:
         - `nearest_neighbor_lattice_hopping_energy`: Hopping energy between sites.
         - `nearest_neighbor_lattice_periodic_boundary`: Boolean indicating periodic boundary conditions.
     """
@@ -255,7 +255,7 @@ def diagonal_linear_h_qc(model, parameters, **kwargs):
 
     :math:`H_{ii} = \sum_{j} \gamma_{ij} (z_{j} + z_{j}^*)`
 
-    Required Constants:
+    Required constants:
         - `diagonal_linear_coupling`: Array of coupling constants (num_quantum_states, num_classical_coordinates).
     """
     del parameters
@@ -277,7 +277,7 @@ def diagonal_linear_dh_qc_dzc(model, parameters, **kwargs):
     """
     Gradient of the diagonal linear quantum-classical coupling Hamiltonian.
 
-    Required Constants:
+    Required constants:
         - `diagonal_linear_coupling`: Array of coupling constants (num_quantum_states, num_classical_coordinates).
     """
     if kwargs.get("batch_size") is not None:
@@ -330,7 +330,7 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
     indicating that the hop has occurred. If not enough energy is available,
     the shift becomes zero and the boolean is False.
 
-    Required Constants:
+    Required constants:
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
     """
     del parameters
@@ -392,7 +392,7 @@ def free_particle_hop_function(model, parameters, **kwargs):
     indicating that the hop has occurred. If not enough energy is available,
     the shift becomes zero and the boolean is False.
 
-    Required Constants:
+    Required constants:
         - `classical_coordinate_weight`: Mass of the classical coordinates.
     """
     z = kwargs["z"]
@@ -433,7 +433,7 @@ def harmonic_oscillator_boltzmann_init_classical(model, parameters, **kwargs):
     """
     Initialize classical coordinates according to Boltzmann statistics for the harmonic oscillator.
 
-    Required Constants:
+    Required constants:
         - `kBT`: Thermal quantum.
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
     """
@@ -467,7 +467,7 @@ def harmonic_oscillator_wigner_init_classical(model, parameters, **kwargs):
     """
     Initialize classical coordinates according to the Wigner distribution of the ground state of a harmonic oscillator.
 
-    Required Constants:
+    Required constants:
         - `kBT`: Thermal quantum.
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
     """
@@ -508,7 +508,7 @@ def definite_position_momentum_init_classical(model, parameters, **kwargs):
     init_position and init_momentum are the initial position and momentum and
     so should be numpy arrays of shape (num_classical_coordinates).
 
-    Required Constants:
+    Required constants:
         - `classical_coordinate_mass`: Mass of the classical coordinates.
         - `start_position`: Initial position of the classical coordinates.
         - `start_momentum`: Initial momentum of the classical coordinates.
@@ -535,7 +535,7 @@ def harmonic_oscillator_coherent_state_wigner_init_classical(
 
     where `a` is the complex displacement parameter of the coherent state.
 
-    Required Constants:
+    Required constants:
         - `coherent_state_displacement`: Array of complex displacement parameter for the coherent state.
         - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
     """

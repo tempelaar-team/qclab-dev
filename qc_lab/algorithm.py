@@ -22,7 +22,7 @@ class Algorithm:
             setattr(self.settings, key, val)
         self.settings._init_complete = True
         self.update_algorithm_settings()
-        # copy the recipes and output variables to ensure they are not shared across instances
+        # Copy the recipes and output variables to ensure they are not shared across instances.
         self.initialization_recipe = copy.copy(self.initialization_recipe)
         self.update_recipe = copy.copy(self.update_recipe)
         self.collect_recipe = copy.copy(self.collect_recipe)

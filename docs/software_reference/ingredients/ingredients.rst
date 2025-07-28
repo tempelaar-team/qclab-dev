@@ -23,7 +23,7 @@ An ingredient that generates the quantum Hamiltonian for a two-level system migh
         """
         Quantum Hamiltonian for a two-level system.
 
-        Required Constants:
+        Required constants:
             - two_level_system_00: Energy of the first level.
             - two_level_system_11: Energy of the second level.
             - two_level_system_01_re: Real part of the coupling between levels.

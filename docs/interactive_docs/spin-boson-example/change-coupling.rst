@@ -23,7 +23,7 @@ QC Lab's built-in vectorization decorator to automatically vectorize it.
         """
         # First we'll get the z-coordinate from the keyword arguments
         z = kwargs['z']
-        # Next we'll get the required constants from the constants object.
+        # Next we'll get the Required constants from the constants object.
         m = model.constants.classical_coordinate_mass
         h = model.constants.classical_coordinate_weight
         g = model.constants.w * np.sqrt(2 * model.constants.l_reorg / model.constants.A)
