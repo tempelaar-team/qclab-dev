@@ -47,11 +47,14 @@ def update_dh_qc_dzc(algorithm, sim, parameters, state, **kwargs):
         - None.
     """
     z = kwargs["z"]
-    dh_qc_dzc, has_dh_qc_dzc = sim.model.get("dh_qc_dzc")
-    if has_dh_qc_dzc:
-        state.dh_qc_dzc = dh_qc_dzc(sim.model, parameters, z=z)
-        return parameters, state
-    state.dh_qc_dzc = dh_qc_dzc_finite_differences(sim.model, parameters, z=z)
+    if state.dh_qc_dzc is None or sim.model.update_dh_qc_dzc:
+        # If dh_qc_dzc has not been claculated yet, or if the 
+        # model requires it to be updated, calculate it.
+        dh_qc_dzc, has_dh_qc_dzc = sim.model.get("dh_qc_dzc")
+        if has_dh_qc_dzc:
+            state.dh_qc_dzc = dh_qc_dzc(sim.model, parameters, z=z)
+            return parameters, state
+        state.dh_qc_dzc = dh_qc_dzc_finite_differences(sim.model, parameters, z=z)
     return parameters, state
 
 
@@ -730,10 +733,10 @@ def update_z_rk4(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     wf = kwargs["wf"]
     use_gauge_field_force = kwargs.get("use_gauge_field_force", False)
-    if hasattr(sim.model, "update_dh_qc_dzc"):
-        update_quantum_classical_forces_bool = sim.model.update_dh_qc_dzc
-    else:
-        update_quantum_classical_forces_bool = True
+    # if hasattr(sim.model, "update_dh_qc_dzc"):
+    #     update_quantum_classical_forces_bool = sim.model.update_dh_qc_dzc
+    # else:
+    #     update_quantum_classical_forces_bool = True
     z_0 = kwargs["z"]
     output_name = kwargs["output_name"]
     parameters, state = update_classical_forces(
@@ -752,44 +755,44 @@ def update_z_rk4(algorithm, sim, parameters, state, **kwargs):
     parameters, state = update_classical_forces(
         algorithm, sim, parameters, state, z=z_0 + 0.5 * dt_update * k1
     )
-    if update_quantum_classical_forces_bool:
-        parameters, state = update_quantum_classical_forces(
-            algorithm,
-            sim,
-            parameters,
-            state,
-            wf=wf,
-            z=z_0 + 0.5 * dt_update * k1,
-            use_gauge_field_force=use_gauge_field_force,
-        )
+    # if update_quantum_classical_forces_bool:
+    parameters, state = update_quantum_classical_forces(
+        algorithm,
+        sim,
+        parameters,
+        state,
+        wf=wf,
+        z=z_0 + 0.5 * dt_update * k1,
+        use_gauge_field_force=use_gauge_field_force,
+    )
     k2 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     parameters, state = update_classical_forces(
         algorithm, sim, parameters, state, z=z_0 + 0.5 * dt_update * k2
     )
-    if update_quantum_classical_forces_bool:
-        parameters, state = update_quantum_classical_forces(
-            algorithm,
-            sim,
-            parameters,
-            state,
-            wf=wf,
-            z=z_0 + 0.5 * dt_update * k2,
-            use_gauge_field_force=use_gauge_field_force,
-        )
+    # if update_quantum_classical_forces_bool:
+    parameters, state = update_quantum_classical_forces(
+        algorithm,
+        sim,
+        parameters,
+        state,
+        wf=wf,
+        z=z_0 + 0.5 * dt_update * k2,
+        use_gauge_field_force=use_gauge_field_force,
+    )
     k3 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     parameters, state = update_classical_forces(
         algorithm, sim, parameters, state, z=z_0 + dt_update * k3
     )
-    if update_quantum_classical_forces_bool:
-        parameters, state = update_quantum_classical_forces(
-            algorithm,
-            sim,
-            parameters,
-            state,
-            wf=wf,
-            z=z_0 + dt_update * k3,
-            use_gauge_field_force=use_gauge_field_force,
-        )
+    # if update_quantum_classical_forces_bool:
+    parameters, state = update_quantum_classical_forces(
+        algorithm,
+        sim,
+        parameters,
+        state,
+        wf=wf,
+        z=z_0 + dt_update * k3,
+        use_gauge_field_force=use_gauge_field_force,
+    )
     k4 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     setattr(
         state, output_name, z_0 + dt_update * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
