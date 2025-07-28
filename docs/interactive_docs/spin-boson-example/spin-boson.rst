@@ -49,11 +49,10 @@ Finally, we can run the simulation and visualize the results:
     t = data.data_dict["t"]
     # Get populations from the diagonal of the density matrix.
     populations = np.real(np.einsum("tii->ti", data.data_dict["dm_db"]))
-    plt.plot(t, populations[:, 0], color="blue",label='MF')
-    plt.xlabel('Time')
+    plt.plot(t, populations[:, 0], color="blue")
+    plt.xlabel('Time [arb. units]')
     plt.ylabel('Excited state population')
     plt.ylim([0.4,1.01])
-    plt.legend(frameon=False)
     plt.show()
 
     
@@ -64,6 +63,11 @@ The output of this code is:
     :align: center
     :width: 50%
     
+
+.. note::
+    This simulation ran in serial mode. For a speed-up at high-perofrmance architecture, consider adopting the parallel driver by 
+    running the simulation as `data = parallel_driver_multiprocessing(sim)` instead.
+
 
 I want to increase the reorganization energy.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
