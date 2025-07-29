@@ -82,12 +82,12 @@ def vectorize_ingredient(ingredient):
     return vectorized_ingredient
 
 
-def harmonic_oscillator_h_c(model, parameters, **kwargs):
+def h_c_harmonic(model, parameters, **kwargs):
     """
     Harmonic oscillator classical Hamiltonian function.
 
     Required constants:
-        - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
+        - `harmonic_frequency`: Array of harmonic frequencies.
     """
     del parameters
     z = kwargs.get("z")
@@ -96,14 +96,14 @@ def harmonic_oscillator_h_c(model, parameters, **kwargs):
         assert len(z) == batch_size
     else:
         batch_size = len(z)
-    w = model.constants.harmonic_oscillator_frequency[np.newaxis, :]
+    w = model.constants.harmonic_frequency[np.newaxis, :]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     q, p = z_to_qp(z, model.constants)
     h_c = np.sum((1 / 2) * (((p**2) / m) + m * (w**2) * (q**2)), axis=-1)
     return h_c
 
 
-def free_particle_h_c(model, parameters, **kwargs):
+def h_c_free(model, parameters, **kwargs):
     """
     Free particle classical Hamiltonian function.
 
@@ -124,9 +124,10 @@ def free_particle_h_c(model, parameters, **kwargs):
 
 
 @njit()
-def harmonic_oscillator_dh_c_dzc_jit(z, h, w):
+def dh_c_dzc_harmonic_jit(z, h, w):
     """
-    Gradient of the Harmonic oscillator Hamiltonian.
+    Derivative of the harmonic oscillator classical Hamiltonian function with respect to the conjugate `z` coordinate.
+    This is a low-level function accelerated using Numba. 
     """
     a = (1 / 2) * (((w**2) / h) - h)
     b = (1 / 2) * (((w**2) / h) + h)
@@ -134,12 +135,13 @@ def harmonic_oscillator_dh_c_dzc_jit(z, h, w):
     return out
 
 
-def harmonic_oscillator_dh_c_dzc(model, parameters, **kwargs):
+def dh_c_dzc_harmonic(model, parameters, **kwargs):
     """
-    Derivative of the classical harmonic oscillator Hamiltonian with respect to the conjugate `z` coordinate.
+    Derivative of the harmonic oscillator classical Hamiltonian function with respect to the conjugate `z` coordinate.
+    This is an ingredient that calls the low-level function `dh_c_dzc_harmonic_jit`.
 
     Required constants:
-        - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
+        - `harmonic_frequency`: Array of harmonic frequencies.
     """
     del parameters
     z = kwargs.get("z")
@@ -149,13 +151,13 @@ def harmonic_oscillator_dh_c_dzc(model, parameters, **kwargs):
     else:
         batch_size = len(z)
     h = model.constants.classical_coordinate_weight
-    w = model.constants.harmonic_oscillator_frequency
-    return harmonic_oscillator_dh_c_dzc_jit(z, h, w)
+    w = model.constants.harmonic_frequency
+    return dh_c_dzc_harmonic_jit(z, h, w)
 
 
-def free_particle_dh_c_dzc(model, parameters, **kwargs):
+def dh_c_dzc_free(model, parameters, **kwargs):
     """
-    Derivative of the free particle classical Hamiltonian with respect to the `z` coordinate.
+    Derivative of the free particle classical Hamiltonian function with respect to the conjugate `z` coordinate.
 
     Required constants:
         - `classical_coordinate_mass`: Mass of the classical coordinates.
@@ -171,50 +173,50 @@ def free_particle_dh_c_dzc(model, parameters, **kwargs):
     return -(h[..., :] / 2) * (np.conj(z) - z)
 
 
-def two_level_system_h_q(model, parameters, **kwargs):
+def h_q_two_level(model, parameters, **kwargs):
     """
     Quantum Hamiltonian for a two-level system.
 
-    H = [[two_level_system_00, two_level_system_01_re + i * two_level_system_01_im],
-        [two_level_system_01_re - i * two_level_system_01_im, two_level_system_11]]
+    H = [[two_level_00, two_level_01_re + i * two_level_01_im],
+        [two_level_01_re - i * two_level_01_im, two_level_11]]
 
     Required constants:
-        - `two_level_system_00`: Energy of the first level.
-        - `two_level_system_11`: Energy of the second level.
-        - `two_level_system_01_re`: Real part of the coupling between levels.
-        - `two_level_system_01_im`: Imaginary part of the coupling between levels.
+        - `two_level_00`: Energy of the first level.
+        - `two_level_11`: Energy of the second level.
+        - `two_level_01_re`: Real part of the coupling between levels.
+        - `two_level_01_im`: Imaginary part of the coupling between levels.
     """
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
     else:
         batch_size = len(parameters.seed)
     h_q = np.zeros((batch_size, 2, 2), dtype=complex)
-    h_q[:, 0, 0] = model.constants.get("two_level_system_00", 0.0)
-    h_q[:, 1, 1] = model.constants.get("two_level_system_11", 0.0)
+    h_q[:, 0, 0] = model.constants.get("two_level_00", 0.0)
+    h_q[:, 1, 1] = model.constants.get("two_level_11", 0.0)
     h_q[:, 0, 1] = model.constants.get(
-        "two_level_system_01_re", 0.0
-    ) + 1j * model.constants.get("two_level_system_01_im", 0.0)
+        "two_level_01_re", 0.0
+    ) + 1j * model.constants.get("two_level_01_im", 0.0)
     h_q[:, 1, 0] = model.constants.get(
-        "two_level_system_01_re", 0.0
-    ) - 1j * model.constants.get("two_level_system_01_im", 0.0)
+        "two_level_01_re", 0.0
+    ) - 1j * model.constants.get("two_level_01_im", 0.0)
     return h_q
 
 
-def nearest_neighbor_lattice_h_q(model, parameters, **kwargs):
+def h_q_nearest_neighbor(model, parameters, **kwargs):
     """
     Quantum Hamiltonian for a nearest-neighbor lattice. 
 
     Required constants:
-        - `nearest_neighbor_lattice_hopping_energy`: Hopping energy between sites.
-        - `nearest_neighbor_lattice_periodic_boundary`: Boolean indicating periodic boundary conditions.
+        - `nearest_neighbor_hopping_energy`: Hopping energy between sites.
+        - `nearest_neighbor_periodic_boundary`: Boolean indicating periodic boundary conditions.
     """
     if kwargs.get("batch_size") is not None:
         batch_size = kwargs.get("batch_size")
     else:
         batch_size = len(parameters.seed)
     num_sites = model.constants.num_quantum_states
-    hopping_energy = model.constants.nearest_neighbor_lattice_hopping_energy
-    periodic_boundary = model.constants.nearest_neighbor_lattice_periodic_boundary
+    hopping_energy = model.constants.nearest_neighbor_hopping_energy
+    periodic_boundary = model.constants.nearest_neighbor_periodic_boundary
     h_q = np.zeros((num_sites, num_sites), dtype=complex)
     # Fill the Hamiltonian matrix with hopping energies.
     for n in range(num_sites - 1):
@@ -231,11 +233,11 @@ def nearest_neighbor_lattice_h_q(model, parameters, **kwargs):
 
 
 @njit()
-def diagonal_linear_h_qc_jit(
+def h_qc_diagonal_linear_jit(
     batch_size, num_sites, num_classical_coordinates, z, gamma
 ):
     """
-    Low level function to generate the diagonal linear quantum-classical coupling Hamiltonian.
+    Low level function to generate the diagonal linear quantum-classical Hamiltonian.
     """
     h_qc = np.zeros((batch_size, num_sites, num_sites)) + 0.0j
     for b in range(batch_size):
@@ -247,9 +249,9 @@ def diagonal_linear_h_qc_jit(
     return h_qc
 
 
-def diagonal_linear_h_qc(model, parameters, **kwargs):
+def h_qc_diagonal_linear(model, parameters, **kwargs):
     """
-    Diagonal linear quantum-classical coupling Hamiltonian.
+    Diagonal linear quantum-classical Hamiltonian.
 
     Diagonal elements are given by
 
@@ -268,12 +270,12 @@ def diagonal_linear_h_qc(model, parameters, **kwargs):
     num_sites = model.constants.num_quantum_states
     num_classical_coordinates = model.constants.num_classical_coordinates
     gamma = model.constants.diagonal_linear_coupling
-    return diagonal_linear_h_qc_jit(
+    return h_qc_diagonal_linear_jit(
         batch_size, num_sites, num_classical_coordinates, z, gamma
     )
 
 
-def diagonal_linear_dh_qc_dzc(model, parameters, **kwargs):
+def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
     """
     Gradient of the diagonal linear quantum-classical coupling Hamiltonian.
 
@@ -284,37 +286,23 @@ def diagonal_linear_dh_qc_dzc(model, parameters, **kwargs):
         batch_size = kwargs.get("batch_size")
     else:
         batch_size = len(parameters.seed)
-    recalculate = False
-    if model.dh_qc_dzc_shape is not None:
-        if model.dh_qc_dzc_shape[0] != batch_size:
-            recalculate = True
-    if (
-        model.dh_qc_dzc_inds is None
-        or model.dh_qc_dzc_mels is None
-        or model.dh_qc_dzc_shape is None
-        or recalculate
-    ):
-        num_states = model.constants.num_quantum_states
-        num_classical_coordinates = model.constants.num_classical_coordinates
-        gamma = model.constants.diagonal_linear_coupling
-        dh_qc_dzc = np.zeros(
-            (num_classical_coordinates, num_states, num_states), dtype=complex
-        )
-        for i in range(num_states):
-            for j in range(num_classical_coordinates):
-                dh_qc_dzc[j, i, i] = gamma[i, j]
-        dh_qc_dzc = dh_qc_dzc[np.newaxis, :, :, :] + np.zeros(
-            (batch_size, num_classical_coordinates, num_states, num_states),
-            dtype=complex,
-        )
-        inds = np.where(dh_qc_dzc != 0)
-        mels = dh_qc_dzc[inds]
-        shape = np.shape(dh_qc_dzc)
-        model.dh_qc_dzc_inds = inds
-        model.dh_qc_dzc_mels = dh_qc_dzc[inds]
-        model.dh_qc_dzc_shape = shape
-        return inds, mels, shape
-    return model.dh_qc_dzc_inds, model.dh_qc_dzc_mels, model.dh_qc_dzc_shape
+    num_states = model.constants.num_quantum_states
+    num_classical_coordinates = model.constants.num_classical_coordinates
+    gamma = model.constants.diagonal_linear_coupling
+    dh_qc_dzc = np.zeros(
+        (num_classical_coordinates, num_states, num_states), dtype=complex
+    )
+    for i in range(num_states):
+        for j in range(num_classical_coordinates):
+            dh_qc_dzc[j, i, i] = gamma[i, j]
+    dh_qc_dzc = dh_qc_dzc[np.newaxis, :, :, :] + np.zeros(
+        (batch_size, num_classical_coordinates, num_states, num_states),
+        dtype=complex,
+    )
+    inds = np.where(dh_qc_dzc != 0)
+    mels = dh_qc_dzc[inds]
+    shape = np.shape(dh_qc_dzc)
+    return inds, mels, shape
 
 
 def harmonic_oscillator_hop_function(model, parameters, **kwargs):
@@ -331,7 +319,7 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
     the shift becomes zero and the boolean is False.
 
     Required constants:
-        - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
+        - `harmonic_frequency`: Array of harmonic frequencies.
     """
     del parameters
     z = kwargs["z"]
@@ -341,14 +329,14 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
     zc = np.conj(z)
     a_const = 0.25 * (
         (
-            (model.constants.harmonic_oscillator_frequency**2)
+            (model.constants.harmonic_frequency**2)
             / model.constants.classical_coordinate_weight
         )
         - model.constants.classical_coordinate_weight
     )
     b_const = 0.25 * (
         (
-            (model.constants.harmonic_oscillator_frequency**2)
+            (model.constants.harmonic_frequency**2)
             / model.constants.classical_coordinate_weight
         )
         + model.constants.classical_coordinate_weight
@@ -435,12 +423,12 @@ def harmonic_oscillator_boltzmann_init_classical(model, parameters, **kwargs):
 
     Required constants:
         - `kBT`: Thermal quantum.
-        - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
+        - `harmonic_frequency`: Array of harmonic frequencies.
     """
     del parameters
     seed = kwargs.get("seed", None)
     kBT = model.constants.kBT
-    w = model.constants.harmonic_oscillator_frequency
+    w = model.constants.harmonic_frequency
     m = model.constants.classical_coordinate_mass
     out = np.zeros(
         (len(seed), model.constants.num_classical_coordinates), dtype=complex
@@ -469,12 +457,12 @@ def harmonic_oscillator_wigner_init_classical(model, parameters, **kwargs):
 
     Required constants:
         - `kBT`: Thermal quantum.
-        - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
+        - `harmonic_frequency`: Array of harmonic frequencies.
     """
     del parameters
     seed = kwargs.get("seed", None)
     m = model.constants.classical_coordinate_mass
-    w = model.constants.harmonic_oscillator_frequency
+    w = model.constants.harmonic_frequency
     kBT = model.constants.kBT
     out = np.zeros(
         (len(seed), model.constants.num_classical_coordinates), dtype=complex
@@ -537,13 +525,13 @@ def harmonic_oscillator_coherent_state_wigner_init_classical(
 
     Required constants:
         - `coherent_state_displacement`: Array of complex displacement parameter for the coherent state.
-        - `harmonic_oscillator_frequency`: Array of harmonic oscillator frequencies.
+        - `harmonic_frequency`: Array of harmonic frequencies.
     """
     del parameters
     seed = kwargs.get("seed", None)
     a = model.constants.coherent_state_displacement
     m = model.constants.classical_coordinate_mass
-    w = model.constants.harmonic_oscillator_frequency
+    w = model.constants.harmonic_frequency
     out = np.zeros(
         (len(seed), model.constants.num_classical_coordinates), dtype=complex
     )
