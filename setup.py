@@ -38,7 +38,6 @@ class develop(_develop):
 class build_py(_build_py):
     def run(self):
         target = os.path.join(self.build_lib, "qc_lab", "_config.py")
-        print(target)
         os.makedirs(os.path.dirname(target), exist_ok=True)
         with open(target, "w") as f:
             f.write(f"DISABLE_NUMBA = {DISABLE_NUMBA}\n")
