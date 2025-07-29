@@ -243,9 +243,6 @@ def dh_qc_dzc_finite_differences(model, parameters, **kwargs):
     inds = np.where(dh_qc_dzc != 0)
     mels = dh_qc_dzc[inds]
     shape = np.shape(dh_qc_dzc)
-    model.dh_qc_dzc_inds = inds
-    model.dh_qc_dzc_mels = dh_qc_dzc[inds]
-    model.dh_qc_dzc_shape = shape
     return inds, mels, shape
 
 

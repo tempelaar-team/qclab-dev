@@ -27,7 +27,8 @@ class Model:
         self.update_dh_qc_dzc = True
 
     def get(self, ingredient_name):
-        """Retrieve an ingredient by name.
+        """
+        Retrieve an ingredient by name.
 
         Args:
             ingredient_name (str): Name of the ingredient to search for.

@@ -1,3 +1,5 @@
+"""Model for Tully's second problem, a dual avoided crossing."""
+
 import numpy as np
 from qc_lab.model import Model
 from qc_lab import ingredients

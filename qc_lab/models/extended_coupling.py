@@ -1,4 +1,4 @@
-"""Model for Tully's third problem with extended coupling and reflection."""
+"""Model for Tully's third problem, an extended coupling with reflection."""
 
 import numpy as np
 from qc_lab.model import Model

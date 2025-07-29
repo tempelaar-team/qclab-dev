@@ -15,7 +15,8 @@ class Variable:
         self.seed = None
 
     def __getattr__(self, name):
-        """Return ``None`` for missing attributes.
+        """
+        Return ``None`` for missing attributes.
 
         Args:
             name (str): Attribute name.
@@ -28,7 +29,8 @@ class Variable:
         return None
 
     def collect_outputs(self, names):
-        """Collect attributes into the output dictionary.
+        """
+        Collect attributes into the output dictionary.
 
         Args:
             names (Iterable[str]): List of attribute names.
@@ -37,7 +39,8 @@ class Variable:
             self.output_dict[var] = getattr(self, var)
 
     def __getstate__(self):
-        """Support pickling of the object.
+        """
+        Support pickling of the object.
 
         Returns:
             dict: The instance dictionary used for pickling.
@@ -55,7 +58,8 @@ class Variable:
 
 
 def initialize_variable_objects(sim, seeds):
-    """Generate the ``parameter`` and ``state`` variables for a simulation.
+    """
+    Generate the ``parameter`` and ``state`` variables for a simulation.
 
     Args:
         sim (Simulation): The simulation instance.
@@ -76,4 +80,3 @@ def initialize_variable_objects(sim, seeds):
             setattr(state_variable, name, new_obj)
     parameter_variable = Variable()
     return parameter_variable, state_variable
-

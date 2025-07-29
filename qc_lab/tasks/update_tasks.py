@@ -15,7 +15,7 @@ def update_t(algorithm, sim, parameters, state):
         - None.
     """
     batch_size = len(parameters.seed)
-    # the variable should store the time in each trajectory and should therefore be 
+    # the variable should store the time in each trajectory and should therefore be
     # and array with length batch_size.
     state.t = np.ones(batch_size) * sim.t_ind * sim.settings.dt_update
     return parameters, state
@@ -48,7 +48,7 @@ def update_dh_qc_dzc(algorithm, sim, parameters, state, **kwargs):
     """
     z = kwargs["z"]
     if state.dh_qc_dzc is None or sim.model.update_dh_qc_dzc:
-        # If dh_qc_dzc has not been claculated yet, or if the 
+        # If dh_qc_dzc has not been claculated yet, or if the
         # model requires it to be updated, calculate it.
         dh_qc_dzc, has_dh_qc_dzc = sim.model.get("dh_qc_dzc")
         if has_dh_qc_dzc:
@@ -733,10 +733,6 @@ def update_z_rk4(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     wf = kwargs["wf"]
     use_gauge_field_force = kwargs.get("use_gauge_field_force", False)
-    # if hasattr(sim.model, "update_dh_qc_dzc"):
-    #     update_quantum_classical_forces_bool = sim.model.update_dh_qc_dzc
-    # else:
-    #     update_quantum_classical_forces_bool = True
     z_0 = kwargs["z"]
     output_name = kwargs["output_name"]
     parameters, state = update_classical_forces(
@@ -755,7 +751,6 @@ def update_z_rk4(algorithm, sim, parameters, state, **kwargs):
     parameters, state = update_classical_forces(
         algorithm, sim, parameters, state, z=z_0 + 0.5 * dt_update * k1
     )
-    # if update_quantum_classical_forces_bool:
     parameters, state = update_quantum_classical_forces(
         algorithm,
         sim,
@@ -769,7 +764,6 @@ def update_z_rk4(algorithm, sim, parameters, state, **kwargs):
     parameters, state = update_classical_forces(
         algorithm, sim, parameters, state, z=z_0 + 0.5 * dt_update * k2
     )
-    # if update_quantum_classical_forces_bool:
     parameters, state = update_quantum_classical_forces(
         algorithm,
         sim,
@@ -783,7 +777,6 @@ def update_z_rk4(algorithm, sim, parameters, state, **kwargs):
     parameters, state = update_classical_forces(
         algorithm, sim, parameters, state, z=z_0 + dt_update * k3
     )
-    # if update_quantum_classical_forces_bool:
     parameters, state = update_quantum_classical_forces(
         algorithm,
         sim,
@@ -802,7 +795,7 @@ def update_z_rk4(algorithm, sim, parameters, state, **kwargs):
 
 def update_dm_db_mf(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the density matrix in the mean-field approximation.
+    Update the diabatic density matrix for mean-field dynamics.
 
     Required constants:
         - None.

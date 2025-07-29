@@ -20,7 +20,8 @@ class Data:
 
 
     def add_output_to_data_dict(self, sim, state, t_ind):
-        """Add data to the output dictionary (data_dict).
+        """
+        Add data to the output dictionary (data_dict).
 
         Args:
             sim (Simulation): The simulation object containing settings and
@@ -49,7 +50,8 @@ class Data:
 
 
     def add_data(self, new_data):
-        """Add new data to the existing data dictionary.
+        """
+        Add new data to the existing data dictionary.
 
         Args:
             new_data (Data): A ``Data`` instance containing the new data to
@@ -75,7 +77,8 @@ class Data:
 
 
     def save(self, filename):
-        """Save the data to disk.
+        """
+        Save the data to disk.
 
         If ``h5py`` is available the data is stored as an HDF5 archive; otherwise
         each variable is saved using :func:`numpy.savez`.
@@ -109,7 +112,8 @@ class Data:
 
 
     def _recursive_save(self, h5file, path, dic):
-        """Recursively save dictionary contents to an HDF5 group.
+        """
+        Recursively save dictionary contents to an HDF5 group.
 
         Args:
             h5file (h5py.File): The HDF5 file object to save data into.
@@ -141,7 +145,8 @@ class Data:
 
 
     def _recursive_load(self, h5file, path, dic):
-        """Recursively load dictionary contents from an HDF5 group.
+        """
+        Recursively load dictionary contents from an HDF5 group.
 
         Args:
             h5file (h5py.File): The HDF5 file object to load data from.

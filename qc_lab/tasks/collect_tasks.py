@@ -1,7 +1,5 @@
 """Tasks that collect simulation results into output structures."""
 
-import numpy as np
-
 
 def collect_t(algorithm, sim, parameters, state):
     """

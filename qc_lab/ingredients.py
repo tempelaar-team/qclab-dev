@@ -73,12 +73,10 @@ def vectorize_ingredient(ingredient):
                     kwargs_n[key] = kwargs[key]
             kwargs_list.append(kwargs_n)
         out = np.array(
-            [
-                ingredient(model, parameters, **kwargs_list[n])
-                for n in range(batch_size)
-            ]
+            [ingredient(model, parameters, **kwargs_list[n]) for n in range(batch_size)]
         )
         return out
+
     return vectorized_ingredient
 
 
@@ -127,7 +125,7 @@ def h_c_free(model, parameters, **kwargs):
 def dh_c_dzc_harmonic_jit(z, h, w):
     """
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to the conjugate `z` coordinate.
-    This is a low-level function accelerated using Numba. 
+    This is a low-level function accelerated using Numba.
     """
     a = (1 / 2) * (((w**2) / h) - h)
     b = (1 / 2) * (((w**2) / h) + h)
@@ -204,7 +202,7 @@ def h_q_two_level(model, parameters, **kwargs):
 
 def h_q_nearest_neighbor(model, parameters, **kwargs):
     """
-    Quantum Hamiltonian for a nearest-neighbor lattice. 
+    Quantum Hamiltonian for a nearest-neighbor lattice.
 
     Required constants:
         - `nearest_neighbor_hopping_energy`: Hopping energy between sites.
@@ -368,7 +366,7 @@ def hop_harmonic(model, parameters, **kwargs):
 
 def hop_free(model, parameters, **kwargs):
     """
-    FSSH hop function taking the classical coordinates to represent free particles. 
+    FSSH hop function taking the classical coordinates to represent free particles.
     Determines the shift in the classical coordinates required to conserve energy
     following a hop between quantum states. The quantity ev_diff = e_final - e_initial
     is the energy difference between the final and initial quantum states and
@@ -503,17 +501,14 @@ def init_classical_definite_position_momentum(model, parameters, **kwargs):
     seed = kwargs.get("seed", None)
     q = model.constants.init_position
     p = model.constants.init_momentum
-    z = np.zeros(
-        (len(seed), model.constants.num_classical_coordinates), dtype=complex)
+    z = np.zeros((len(seed), model.constants.num_classical_coordinates), dtype=complex)
     for s, seed_value in enumerate(seed):
         np.random.seed(seed_value)
         z[s] = qp_to_z(q, p, model.constants)
     return z
 
 
-def init_classical_wigner_coherent_state(
-    model, parameters, **kwargs
-):
+def init_classical_wigner_coherent_state(model, parameters, **kwargs):
     """
     Initialize classical coordinates according to the Wigner distribution of a coherent state of a harmonic oscillator.
 
