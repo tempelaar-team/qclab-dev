@@ -24,9 +24,7 @@ class FMOComplex(Model):
             "A": 200,
         }
         super().__init__(self.default_constants, constants)
-        self.dh_qc_dzc_inds = None
-        self.dh_qc_dzc_mels = None
-        self.dh_qc_dzc_shape = None
+
         self.update_dh_qc_dzc = False
         self.update_h_q = False
 
