@@ -126,7 +126,7 @@ constants we define in the functions are dictated by the requirements of the ing
         Initialize the constants for the classical Hamiltonian.
         """
         w = self.constants.get("w", self.default_constants.get("w"))
-        self.constants.harmonic_oscillator_frequency = w
+        self.constants.harmonic_frequency = w
 
 
     def initialize_constants_h_qc(self):
@@ -272,7 +272,7 @@ The full minimal model looks like this:
             Initialize the constants for the classical Hamiltonian.
             """
             w = self.constants.get("w", self.default_constants.get("w"))
-            self.constants.harmonic_oscillator_frequency = w
+            self.constants.harmonic_frequency = w
 
 
         def initialize_constants_h_qc(self):
@@ -316,7 +316,7 @@ The full minimal model looks like this:
         @ingredients.vectorize_ingredient
         def h_c(self, parameters, **kwargs):
             z_coord = kwargs['z_coord']
-            w = self.constants.harmonic_oscillator_frequency
+            w = self.constants.harmonic_frequency
             return np.sum(w * np.conj(z_coord) * z_coord)
 
 Upgrading the Model Class
@@ -379,7 +379,7 @@ provided, the `batch_size` is compared to the number of seeds in the simulation.
             batch_size = len(z)
 
         h = self.constants.classical_coordinate_weight[np.newaxis, :]
-        w = self.constants.harmonic_oscillator_frequency[np.newaxis, :]
+        w = self.constants.harmonic_frequency[np.newaxis, :]
         m = self.constants.classical_coordinate_mass[np.newaxis, :]
         q = np.sqrt(2 / (m * h)) * np.real(z)
         p = np.sqrt(2 * m * h) * np.imag(z)
@@ -412,7 +412,7 @@ which can be implemented in a vectorized fashion as:
         else:
             batch_size = len(z)
         h = self.constants.classical_coordinate_weight
-        w = self.constants.harmonic_oscillator_frequency
+        w = self.constants.harmonic_frequency
         a = (1 / 4) * (
             ((w**2) / h) - h
         )
@@ -505,7 +505,7 @@ This is accomplished by defining an ingredient called `init_classical` which has
         seed = kwargs.get("seed", None)
         kBT = self.constants.kBT
         h = self.constants.classical_coordinate_weight
-        w = self.constants.harmonic_oscillator_frequency
+        w = self.constants.harmonic_frequency
         m = self.constants.classical_coordinate_mass
         out = np.zeros((len(seed), self.constants.num_classical_coordinates), dtype=complex)
         for s, seed_value in enumerate(seed):

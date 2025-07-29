@@ -51,7 +51,7 @@ class SpinBoson(Model):
         """
         Initialize the constants for the classical Hamiltonian.
         """
-        self.constants.harmonic_oscillator_frequency = self.constants.get("w")
+        self.constants.harmonic_frequency = self.constants.get("w")
 
     def initialize_constants_h_qc(self):
         """
@@ -76,16 +76,16 @@ class SpinBoson(Model):
         """
         Initialize the constants for the quantum Hamiltonian.
         """
-        self.constants.two_level_system_00 = self.constants.get(
+        self.constants.two_level_00 = self.constants.get(
             "E", self.default_constants.get("E")
         )
-        self.constants.two_level_system_11 = -self.constants.get(
+        self.constants.two_level_11 = -self.constants.get(
             "E", self.default_constants.get("E")
         )
-        self.constants.two_level_system_01_re = self.constants.get(
+        self.constants.two_level_01_re = self.constants.get(
             "V", self.default_constants.get("V")
         )
-        self.constants.two_level_system_01_im = 0
+        self.constants.two_level_01_im = 0
 
     initialization_functions = [
         initialize_constants_model,
@@ -94,11 +94,11 @@ class SpinBoson(Model):
         initialize_constants_h_q,
     ]
     ingredients = [
-        ("h_q", ingredients.two_level_system_h_q),
-        ("h_qc", ingredients.diagonal_linear_h_qc),
-        ("h_c", ingredients.harmonic_oscillator_h_c),
-        ("dh_qc_dzc", ingredients.diagonal_linear_dh_qc_dzc),
-        ("dh_c_dzc", ingredients.harmonic_oscillator_dh_c_dzc),
-        ("init_classical", ingredients.harmonic_oscillator_boltzmann_init_classical),
-        ("hop_function", ingredients.harmonic_oscillator_hop_function),
+        ("h_q", ingredients.h_q_two_level),
+        ("h_qc", ingredients.h_qc_diagonal_linear),
+        ("h_c", ingredients.h_c_harmonic),
+        ("dh_qc_dzc", ingredients.dh_qc_dzc_diagonal_linear),
+        ("dh_c_dzc", ingredients.dh_c_dzc_harmonic),
+        ("init_classical", ingredients.init_classical_boltzmann_harmonic),
+        ("hop_function", ingredients.hop_harmonic),
     ]

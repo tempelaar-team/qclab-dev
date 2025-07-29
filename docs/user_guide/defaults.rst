@@ -55,7 +55,7 @@ the required number of initial conditions are drawn uniformly. At a minimum, one
      - Number of samples to collect from which initial conditions are drawn. To ensure a full exploration of the phase-space this should be as large as practical.
      - 100000
    * - `mcmc_h_c_separable`
-     - A boolean indicating if the classical Hamiltonian is separable into independent terms for each coordinate. If True each coordinate will be independently sampled improving the performance of the algorithm. If False the sampling will occur in the full dimensional space. 
+     - A Boolean indicating if the classical Hamiltonian is separable into independent terms for each coordinate. If True each coordinate will be independently sampled improving the performance of the algorithm. If False the sampling will occur in the full dimensional space. 
      - True
    * - `mcmc_init_z`
      - The initial coordinate that the random walker is initialized at. 

@@ -129,11 +129,11 @@ class DualAvoidedCrossing(Model):
         initialize_constants_h_qc,
     ]
     ingredients = [
-        ("h_q", ingredients.two_level_system_h_q),
+        ("h_q", ingredients.h_q_two_level),
         ("h_qc", h_qc),
-        ("h_c", ingredients.free_particle_h_c),
+        ("h_c", ingredients.h_c_free),
         ("dh_qc_dzc", dh_qc_dzc),
-        ("dh_c_dzc", ingredients.free_particle_dh_c_dzc),
-        ("init_classical", ingredients.definite_position_momentum_init_classical),
-        ("hop_function", ingredients.free_particle_hop_function),
+        ("dh_c_dzc", ingredients.dh_c_dzc_free),
+        ("init_classical", ingredients.init_classical_definite_position_momentum),
+        ("hop_function", ingredients.hop_free),
     ]

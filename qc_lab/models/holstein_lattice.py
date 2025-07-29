@@ -50,8 +50,8 @@ class HolsteinLattice(Model):
         periodic_boundary = self.constants.get(
             "periodic_boundary", self.default_constants.get("periodic_boundary")
         )
-        self.constants.nearest_neighbor_lattice_hopping_energy = J
-        self.constants.nearest_neighbor_lattice_periodic_boundary = periodic_boundary
+        self.constants.nearest_neighbor_hopping_energy = J
+        self.constants.nearest_neighbor_periodic_boundary = periodic_boundary
 
     def initialize_constants_h_qc(self):
         N = self.constants.get("N", self.default_constants.get("N"))
@@ -65,7 +65,7 @@ class HolsteinLattice(Model):
     def initialize_constants_h_c(self):
         N = self.constants.get("N", self.default_constants.get("N"))
         w = self.constants.get("w", self.default_constants.get("w"))
-        self.constants.harmonic_oscillator_frequency = w * np.ones(N)
+        self.constants.harmonic_frequency = w * np.ones(N)
 
     initialization_functions = [
         initialize_constants_model,
@@ -74,11 +74,11 @@ class HolsteinLattice(Model):
         initialize_constants_h_q,
     ]
     ingredients = [
-        ("h_q", ingredients.nearest_neighbor_lattice_h_q),
-        ("h_qc", ingredients.diagonal_linear_h_qc),
-        ("h_c", ingredients.harmonic_oscillator_h_c),
-        ("dh_qc_dzc", ingredients.diagonal_linear_dh_qc_dzc),
-        ("dh_c_dzc", ingredients.harmonic_oscillator_dh_c_dzc),
-        ("init_classical", ingredients.harmonic_oscillator_boltzmann_init_classical),
-        ("hop_function", ingredients.harmonic_oscillator_hop_function),
+        ("h_q", ingredients.h_q_nearest_neighbor),
+        ("h_qc", ingredients.h_qc_diagonal_linear),
+        ("h_c", ingredients.h_c_harmonic),
+        ("dh_qc_dzc", ingredients.dh_qc_dzc_diagonal_linear),
+        ("dh_c_dzc", ingredients.dh_c_dzc_harmonic),
+        ("init_classical", ingredients.init_classical_boltzmann_harmonic),
+        ("hop_function", ingredients.hop_harmonic),
     ]

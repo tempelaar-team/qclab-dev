@@ -19,15 +19,15 @@ An ingredient that generates the quantum Hamiltonian for a two-level system migh
 
 .. code-block:: python
 
-    def two_level_system_h_q(model, parameters, **kwargs):
+    def h_q_two_level(model, parameters, **kwargs):
         """
         Quantum Hamiltonian for a two-level system.
 
         Required constants:
-            - two_level_system_00: Energy of the first level.
-            - two_level_system_11: Energy of the second level.
-            - two_level_system_01_re: Real part of the coupling between levels.
-            - two_level_system_01_im: Imaginary part of the coupling between levels.
+            - two_level_00: Energy of the first level.
+            - two_level_11: Energy of the second level.
+            - two_level_01_re: Real part of the coupling between levels.
+            - two_level_01_im: Imaginary part of the coupling between levels.
 
         Keyword Arguments:
             - batch_size: (Optional) Number of batches for vectorized computation.
@@ -37,10 +37,10 @@ An ingredient that generates the quantum Hamiltonian for a two-level system migh
         else:
             batch_size = len(parameters.seed)
         h_q = np.zeros((batch_size, 2, 2), dtype=complex)
-        h_q[:, 0, 0] = model.constants.two_level_system_00
-        h_q[:, 1, 1] = model.constants.two_level_system_11
-        h_q[:, 0, 1] = model.constants.two_level_sysmtem_c + 1j * model.constants.two_level_system_01_im
-        h_q[:, 1, 0] = model.constants.two_level_system_01_re - 1j * model.constants.two_level_system_01_im
+        h_q[:, 0, 0] = model.constants.two_level_00
+        h_q[:, 1, 1] = model.constants.two_level_11
+        h_q[:, 0, 1] = model.constants.two_level_sysmtem_c + 1j * model.constants.two_level_01_im
+        h_q[:, 1, 0] = model.constants.two_level_01_re - 1j * model.constants.two_level_01_im
         return h_q
 
 
@@ -108,46 +108,46 @@ Quantum Hamiltonian (`h_q`)
 ---------------------------------
 
 .. automodule:: qc_lab.ingredients
-    :members: two_level_system_h_q, nearest_neighbor_lattice_h_q
+    :members: h_q_two_level, h_q_nearest_neighbor
 
 
 Quantum-Classical Hamiltonian (`h_qc`)
 --------------------------------------------
 
 .. automodule:: qc_lab.ingredients
-    :members: diagonal_linear_h_qc
+    :members: h_qc_diagonal_linear
 
 Classical Hamiltonian (`h_c`)
 -----------------------------------
 
 .. automodule:: qc_lab.ingredients
-    :members: harmonic_oscillator_h_c
+    :members: h_c_harmonic
 
 Classical Initialization (`init_classical`)
 -------------------------------------------------
 
 .. automodule:: qc_lab.ingredients
-    :members: harmonic_oscillator_boltzmann_init_classical, harmonic_oscillator_wigner_init_classical, harmonic_oscillator_coherent_state_wigner_init_classical
+    :members: init_classical_boltzmann_harmonic, init_classical_wigner_harmonic, init_classical_wigner_coherent_state
 
 
 Quantum-Classical Gradients (`dh_qc_dzc`)
 -------------------------------------------------
 
 .. automodule:: qc_lab.ingredients
-    :members: diagonal_linear_dh_qc_dzc
+    :members: dh_qc_dzc_diagonal_linear
 
 
 Classical Gradients (`dh_c_dzc`)
 ---------------------------------
 
 .. automodule:: qc_lab.ingredients
-    :members: harmonic_oscillator_dh_c_dzc
+    :members: dh_c_dzc_harmonic
 
 FSSH Hop Function (`hop_function`)
 --------------------------------------
 
 .. automodule:: qc_lab.ingredients
-    :members: harmonic_oscillator_hop_function
+    :members: hop_harmonic
 
 FSSH Rescaling Direction (`rescaling_direction_fssh`)
 -------------------------------------------------

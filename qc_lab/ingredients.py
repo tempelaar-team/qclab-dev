@@ -305,23 +305,22 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
     return inds, mels, shape
 
 
-def harmonic_oscillator_hop_function(model, parameters, **kwargs):
+def hop_harmonic(model, parameters, **kwargs):
     """
-    FSSH hop function for a harmonic oscillator. Determines the
-    shift in the classical coordinates required to conserve energy
-    following a hop between quantum states. ev_diff = e_final - e_initial
+    FSSH hop function for taking the classical coordinates to represent harmonic oscillators.
+    Determines the shift in the classical coordinates required to conserve energy
+    following a hop between quantum states. The quantity ev_diff = e_final - e_initial
     is the energy difference between the final and initial quantum states and
     delta_z is the rescaling direction of the z coordinate.
 
     If enough energy is available, the function returns the shift in the classical
-    coordinates such that the new classical coordinate is z + shift and a boolean
-    indicating that the hop has occurred. If not enough energy is available,
-    the shift becomes zero and the boolean is False.
+    coordinates such that the new classical coordinate is z + shift and a Boolean
+    equaling True if the hop has occurred. If not enough energy is available,
+    the shift becomes zero and the Boolean is False.
 
     Required constants:
         - `harmonic_frequency`: Array of harmonic frequencies.
     """
-    del parameters
     z = kwargs["z"]
     delta_z = kwargs["delta_z"]
     ev_diff = kwargs["ev_diff"]
@@ -367,18 +366,18 @@ def harmonic_oscillator_hop_function(model, parameters, **kwargs):
     return shift, False
 
 
-def free_particle_hop_function(model, parameters, **kwargs):
+def hop_free(model, parameters, **kwargs):
     """
-    FSSH hop function for a free particle. Determines the
-    shift in the classical coordinates required to conserve energy
-    following a hop between quantum states. ev_diff = e_final - e_initial
+    FSSH hop function taking the classical coordinates to represent free particles. 
+    Determines the shift in the classical coordinates required to conserve energy
+    following a hop between quantum states. The quantity ev_diff = e_final - e_initial
     is the energy difference between the final and initial quantum states and
     delta_z is the rescaling direction of the z coordinate.
 
     If enough energy is available, the function returns the shift in the classical
-    coordinates such that the new classical coordinate is z + shift and a boolean
-    indicating that the hop has occurred. If not enough energy is available,
-    the shift becomes zero and the boolean is False.
+    coordinates such that the new classical coordinate is z + shift and a Boolean
+    equaling True if the hop has occurred. If not enough energy is available,
+    the shift becomes zero and the Boolean is False.
 
     Required constants:
         - `classical_coordinate_weight`: Mass of the classical coordinates.
@@ -417,15 +416,15 @@ def free_particle_hop_function(model, parameters, **kwargs):
     return shift, False
 
 
-def harmonic_oscillator_boltzmann_init_classical(model, parameters, **kwargs):
+def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
     """
-    Initialize classical coordinates according to Boltzmann statistics for the harmonic oscillator.
+    Initialize classical coordinates according to Boltzmann statistics taking the classical
+    coordinates to represent harmonic oscillators.
 
     Required constants:
         - `kBT`: Thermal quantum.
         - `harmonic_frequency`: Array of harmonic frequencies.
     """
-    del parameters
     seed = kwargs.get("seed", None)
     kBT = model.constants.kBT
     w = model.constants.harmonic_frequency
@@ -451,7 +450,7 @@ def harmonic_oscillator_boltzmann_init_classical(model, parameters, **kwargs):
     return out
 
 
-def harmonic_oscillator_wigner_init_classical(model, parameters, **kwargs):
+def init_classical_wigner_harmonic(model, parameters, **kwargs):
     """
     Initialize classical coordinates according to the Wigner distribution of the ground state of a harmonic oscillator.
 
@@ -490,18 +489,17 @@ def harmonic_oscillator_wigner_init_classical(model, parameters, **kwargs):
     return out
 
 
-def definite_position_momentum_init_classical(model, parameters, **kwargs):
+def init_classical_definite_position_momentum(model, parameters, **kwargs):
     """
     Initialize classical coordinates with definite position and momentum.
-    init_position and init_momentum are the initial position and momentum and
-    so should be numpy arrays of shape (num_classical_coordinates).
+    The quantities init_position and init_momentum are the initial position and momentum,
+    and so should be numpy arrays of shape (num_classical_coordinates).
 
     Required constants:
         - `classical_coordinate_mass`: Mass of the classical coordinates.
         - `start_position`: Initial position of the classical coordinates.
         - `start_momentum`: Initial momentum of the classical coordinates.
     """
-    del parameters
     seed = kwargs.get("seed", None)
     q = model.constants.init_position
     p = model.constants.init_momentum
@@ -513,13 +511,13 @@ def definite_position_momentum_init_classical(model, parameters, **kwargs):
     return z
 
 
-def harmonic_oscillator_coherent_state_wigner_init_classical(
+def init_classical_wigner_coherent_state(
     model, parameters, **kwargs
 ):
     """
     Initialize classical coordinates according to the Wigner distribution of a coherent state of a harmonic oscillator.
 
-    :math:`exp(a * b^{\dagger} - a^* * b)`
+    :math:`exp(a\hat{b}^{\dagger} - a^{*}\hat{b})\vert 0\rangle`
 
     where `a` is the complex displacement parameter of the coherent state.
 
@@ -527,7 +525,6 @@ def harmonic_oscillator_coherent_state_wigner_init_classical(
         - `coherent_state_displacement`: Array of complex displacement parameter for the coherent state.
         - `harmonic_frequency`: Array of harmonic frequencies.
     """
-    del parameters
     seed = kwargs.get("seed", None)
     a = model.constants.coherent_state_displacement
     m = model.constants.classical_coordinate_mass

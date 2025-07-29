@@ -614,7 +614,7 @@ def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
     """
     Executes the hopping function for the hopping trajectories.
     It stores the rescaled coordinates in state.z_rescaled
-    and the a boolean registering if the hop was successful in state.hop_successful.
+    and the a Boolean registering if the hop was successful in state.hop_successful.
     """
 
     hop_ind = state.hop_ind
