@@ -17,6 +17,9 @@ class Data:
         if seeds is None:
             seeds = np.array([], dtype=int)
         self.data_dict = {"seed": seeds, "norm_factor": 0}
+        # Store log messages captured during a simulation run. This attribute is
+        # populated by the drivers when they return the ``Data`` object.
+        self.log = ""
 
 
     def add_output_to_data_dict(self, sim, state, t_ind):
@@ -74,6 +77,9 @@ class Data:
                 else:
                     self.data_dict[key] = val
         self.data_dict["norm_factor"] = new_norm_factor
+        # Append any log messages stored in ``new_data`` to this instance's log.
+        if getattr(new_data, "log", ""):
+            self.log += new_data.log
 
 
     def save(self, filename):
@@ -87,10 +93,11 @@ class Data:
             filename (str): The file name to save the data to.
         """
         if DISABLE_H5PY:
-            np.savez(filename, **self.data_dict)
+            np.savez(filename, log=self.log, **self.data_dict)
         else:
             with h5py.File(filename, "w") as h5file:
                 self._recursive_save(h5file, "/", self.data_dict)
+                h5file["log"] = self.log
 
 
     def load(self, filename):
@@ -104,10 +111,15 @@ class Data:
         """
         if DISABLE_H5PY:
             loaded = np.load(filename)
-            self.data_dict = {key: loaded[key] for key in loaded.files}
+            self.data_dict = {key: loaded[key] for key in loaded.files if key != "log"}
+            self.log = str(loaded.get("log", ""))
             return self
         with h5py.File(filename, "r") as h5file:
             self._recursive_load(h5file, "/", self.data_dict)
+            if "log" in h5file:
+                self.log = h5file["log"][()]
+                if isinstance(self.log, bytes):
+                    self.log = self.log.decode("utf-8")
         return self
 
 

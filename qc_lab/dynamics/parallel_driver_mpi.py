@@ -8,6 +8,7 @@ import numpy as np
 import qc_lab.dynamics as dynamics
 from qc_lab.data import Data
 from qc_lab.variable import initialize_variable_objects
+from qc_lab.logger_utils import get_log_output
 
 logger = logging.getLogger(__name__)
 
@@ -90,4 +91,7 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
             data.add_data(result)
         data.data_dict["seed"] = seeds
 
+    # Attach collected log output on root rank
+    if rank == 0:
+        data.log = get_log_output()
     return data
