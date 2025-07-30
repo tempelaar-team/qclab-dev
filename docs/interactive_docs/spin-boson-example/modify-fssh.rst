@@ -58,7 +58,7 @@ QC Lab makes this particularly easy to do by using Python's built-in list method
 .. code-block:: python
 
     # Insert the function for reversing velocities as a task into the update recipe.
-    sim.model.algorithm.update_recipe.insert(10, update_z_reverse_frustrated_fssh)
+    sim.algorithm.update_recipe.insert(10, update_z_reverse_frustrated_fssh)
     # Now we can verify we put it in the right place by printing the update recipe again.
     for ind, task in enumerate(sim.model.algorithm.update_recipe):
         print(f"Task #{ind}", task)

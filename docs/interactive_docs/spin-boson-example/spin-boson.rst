@@ -31,7 +31,7 @@ Next, we will set up the simulation object and equip it with the model and algor
     sim.algorithm = MeanField()
     # Initialize the diabatic wavevector. 
     # Here, the first vector element refers to the upper state and the second
-    # element refers to the lower state..
+    # element refers to the lower state.
     sim.state.wf_db = np.array([1, 0], dtype=complex)
     
 
@@ -99,3 +99,11 @@ I want to use a different coupling term.
 .. container:: toggle
 
     .. include:: change-coupling.rst    
+
+
+Putting it all together.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. container:: toggle
+
+    .. include:: full-example.rst

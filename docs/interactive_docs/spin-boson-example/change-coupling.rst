@@ -41,8 +41,9 @@ using finite differences.
 .. code-block:: python
 
 
+    # Add the new coupling term to the model's ingredients.
     sim.model.ingredients.append(("h_qc", h_qc))
-
+    # Overwrite the analytic gradient ingredient, which is no longer correct for the new coupling.
     sim.model.ingredients.append(("dh_qc_dzc", None))
 
 
