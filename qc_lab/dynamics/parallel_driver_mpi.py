@@ -2,13 +2,14 @@
 This module contains the parallel MPI driver for the dynamics simulation in QC Lab.
 """
 
-import warnings
+import logging
 import copy
 import numpy as np
 import qc_lab.dynamics as dynamics
 from qc_lab.data import Data
 from qc_lab.variable import initialize_variable_objects
 
+logger = logging.getLogger(__name__)
 
 def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     """
@@ -35,9 +36,8 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
         num_trajs = sim.settings.num_trajs
     else:
         num_trajs = len(seeds)
-        warnings.warn(
-            "Setting sim.settings.num_trajs to the number of provided seeds.",
-            UserWarning,
+        logger.warning(
+            "Setting sim.settings.num_trajs to the number of provided seeds."
         )
         sim.settings.num_trajs = num_trajs
         if data is None:

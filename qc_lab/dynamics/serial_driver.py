@@ -2,12 +2,13 @@
 This module contains the serial driver for the dynamics core.
 """
 
-import warnings
+import logging
 import numpy as np
 from qc_lab.data import Data
 from qc_lab.variable import initialize_variable_objects
 import qc_lab.dynamics as dynamics
 
+logger = logging.getLogger(__name__)
 
 def serial_driver(sim, seeds=None, data=None):
     """
@@ -26,9 +27,8 @@ def serial_driver(sim, seeds=None, data=None):
         num_trajs = sim.settings.num_trajs
     else:
         num_trajs = len(seeds)
-        warnings.warn(
-            "Setting sim.settings.num_trajs to the number of provided seeds.",
-            UserWarning,
+        logger.warning(
+            "Setting sim.settings.num_trajs to the number of provided seeds."
         )
         sim.settings.num_trajs = num_trajs
     # Determine the number of simulations required to execute the total number of trajectories.

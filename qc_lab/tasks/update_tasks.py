@@ -1,10 +1,11 @@
 """Tasks that update the simulation state during propagation."""
 
 import numpy as np
-import warnings
+import logging
 from qc_lab.jit import njit
 from qc_lab.tasks.default_ingredients import *
 
+logger = logging.getLogger(__name__)
 
 def update_t(algorithm, sim, parameters, state):
     """
@@ -161,7 +162,7 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
         plus = np.zeros_like(ev_diff)
         if np.any(np.abs(ev_diff) < 1e-10):
             plus[np.where(np.abs(ev_diff) < 1e-10)] = 1
-            warnings.warn("Degenerate eigenvalues detected.")
+            logger.error("Degenerate eigenvalues detected.")
         der_couple_zc = np.zeros(
             (
                 sim.settings.batch_size,
@@ -266,9 +267,8 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
     }
     gauge_fixing_value = gauge_fixing_numerical_values[gauge_fixing]
     if gauge_fixing_value >= 1:
-        phase = np.exp(
-            -1.0j * np.angle(np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2))
-        )
+        overlap = np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2)
+        phase = np.exp(-1.0j * np.angle(overlap))
         eigvecs = np.einsum("tai,ti->tai", eigvecs, phase, optimize="greedy")
     if gauge_fixing_value >= 2:
         z = kwargs["z"]
@@ -280,21 +280,16 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
             "tai,ti->tai", eigvecs, np.conj(der_couple_q_phase), optimize="greedy"
         )
     if gauge_fixing_value >= 0:
-        signs = np.sign(np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2))
+        overlap = np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2)
+        signs = np.sign(overlap)
         eigvecs = np.einsum("tai,ti->tai", eigvecs, signs, optimize="greedy")
     if gauge_fixing_value == 2:
         der_couple_q_phase_new, der_couple_p_phase_new = analytic_der_couple_phase(
             algorithm, sim, parameters, state, eigvals, eigvecs
         )
-        if (
-            np.sum(
-                np.abs(np.imag(der_couple_q_phase_new)) ** 2
-                + np.abs(np.imag(der_couple_p_phase_new)) ** 2
-            )
-            > 1e-10
-        ):
-            warnings.warn(
-                "Phase error encountered when fixing gauge analytically.", UserWarning
+        if (np.sum(np.abs(np.imag(der_couple_q_phase_new)) ** 2 + np.abs(np.imag(der_couple_p_phase_new)) ** 2) > 1e-10):
+            logger.error(
+                "Phase error encountered when fixing gauge analytically."
             )
     setattr(state, output_eigvecs_name, eigvecs)
     return parameters, state
@@ -523,17 +518,15 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
         np.abs(dkj_q[max_pos_q]) > 1e-8
         and np.abs(np.sin(np.angle(dkj_q[max_pos_q]))) > 1e-2
     ):
-        warnings.warn(
-            "dkj_q Nonadiabatic coupling is complex, needs gauge fixing!",
-            UserWarning,
+        logger.error(
+            "dkj_q Nonadiabatic coupling is complex, needs gauge fixing!"
         )
     if (
         np.abs(dkj_p[max_pos_p]) > 1e-8
         and np.abs(np.sin(np.angle(dkj_p[max_pos_p]))) > 1e-2
     ):
-        warnings.warn(
-            "dkj_p Nonadiabatic coupling is complex, needs gauge fixing!",
-            UserWarning,
+        logger.error(
+            "dkj_p Nonadiabatic coupling is complex, needs gauge fixing!"
         )
     delta_z = dkj_zc
     return delta_z
@@ -564,6 +557,10 @@ def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
         state.eigvecs_previous,
         optimize="greedy",
     )
+    if np.any(state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind_flat] == 0):
+        logger.critical(
+            "Wavefunction in active surface is zero, cannot calculate hopping probabilities."
+        )
     hop_prob = -2 * np.real(
         prod
         * state.wf_adb
@@ -671,9 +668,7 @@ def update_z_hop_fssh(algorithm, sim, parameters, state, **kwargs):
     Executes the post-hop updates for FSSH, rescaling the z coordinates and updating
     the active surface indices, and wavefunctions.
     """
-    # idx = state.hop_ind[state.hop_successful]
-    # dz = state.z_shift[state.hop_successful]
-    state.z[state.hop_ind] += state.z_shift  # [idx] += dz
+    state.z[state.hop_ind] += state.z_shift
     return parameters, state
 
 
