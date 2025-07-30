@@ -9,6 +9,7 @@ import numpy as np
 import qc_lab.dynamics as dynamics
 from qc_lab.data import Data
 from qc_lab.variable import initialize_variable_objects
+from qc_lab.logger_utils import get_log_output
 
 logger = logging.getLogger(__name__)
 
@@ -63,4 +64,6 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
         results = pool.starmap(dynamics.dynamics, input_data)
     for result in results:
         data.add_data(result)
+    # Attach collected log output
+    data.log = get_log_output()
     return data

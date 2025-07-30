@@ -7,6 +7,7 @@ import numpy as np
 from qc_lab.data import Data
 from qc_lab.variable import initialize_variable_objects
 import qc_lab.dynamics as dynamics
+from qc_lab.logger_utils import get_log_output
 
 logger = logging.getLogger(__name__)
 
@@ -46,4 +47,6 @@ def serial_driver(sim, seeds=None, data=None):
         new_data.data_dict["seed"] = state.seed
         new_data = dynamics.dynamics(sim, parameters, state, new_data)
         data.add_data(new_data)
+    # Attach the collected log output to the data object before returning.
+    data.log = get_log_output()
     return data
