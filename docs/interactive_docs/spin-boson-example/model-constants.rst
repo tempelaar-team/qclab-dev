@@ -16,13 +16,16 @@ Using the same simulation object from the previous example, we can modify the `l
     sim.model.constants.l_reorg = 0.05
 
 
+The output changes to (dash shows previous result):
+
+
 .. image:: mf_lreorg.png
     :alt: Population dynamics.
     :align: center
     :width: 50%
 
 
-For a complete list of model constants and their descriptions, please refer to the `Spin-Boson model documentation <../../user_guide/models/spin_boson_model.html>`_.
+For a complete list of model constants and their descriptions, please refer to the `Spin-Boson Model documentation <../../user_guide/models/spin_boson_model.html>`_.
 
 
 

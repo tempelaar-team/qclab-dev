@@ -85,7 +85,7 @@ I want to use FSSH instead.
     .. include:: change-algorithm.rst
 
 
-I want to invert velocities after frustrated hops.
+I want to reverse velocities upon frustrated hops.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. container:: toggle

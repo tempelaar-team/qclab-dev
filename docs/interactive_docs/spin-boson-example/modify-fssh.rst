@@ -5,7 +5,8 @@ Modifying the FSSH Algorithm
 ============================
 
 Let's try modifying the FSSH algorithm so that the directions of the velocities of frustrated trajectories are reversed.
-In the complex coordinate formalism, this means conjugating the z coordinate of the frustrated trajectories.
+In the `complex coordinate formalism <https://doi.org/10.1021/acs.jctc.4c00555>`_, this means conjugating the `z` coordinate of the frustrated trajectories.
+To this end, we write the following function:
 
 .. code-block:: python
 
@@ -14,23 +15,23 @@ In the complex coordinate formalism, this means conjugating the z coordinate of 
         """
         Reverse the velocities of frustrated trajectories in the FSSH algorithm.
         """
-        # get the indices of trajectories that were frustrated
-        # (i.e., did not successfully hop but were eligible to hop)
+        # Get the indices of trajectories that were frustrated
+        # (i.e., did not successfully hop but were eligible to hop).
         frustrated_indices = state.hop_ind[~state.hop_successful]
-        # reverse the velocities for these indices, in the complex calssical coordinate 
-        # formalism, this means conjugating the z coordiante.
+        # Reverse the velocities for these indices, in the complex classical coordinate 
+        # formalism, this means conjugating the z coordinate.
         state.z[frustrated_indices] = state.z[frustrated_indices].conj()
         return parameters, state
 
 
-Now we can insert this task into an instance of the FSSH algorithm object. To know where we should insert it, we can look 
-at the `update_recipe` attribute of the FSSH algorithm object.
+Now we can insert this function as a task into an instance of the FSSH algorithm object. To know where we should insert it, we can look 
+at the `update_recipe <../../user_guide/FSSH_recipe.html>`_ attribute of the FSSH algorithm object.
 
 
 
 .. code-block:: python
 
-    # Print the update recipe to see where to insert our task
+    # Print the update recipe to see where to insert our task.
     for ind, task in enumerate(sim.model.algorithm.update_recipe):
         print(f"Task #{ind}", task)
 
@@ -51,14 +52,14 @@ at the `update_recipe` attribute of the FSSH algorithm object.
     Task #10 <function update_act_surf_hop_fssh at 0x777d902d1630>
     Task #11 <function update_act_surf_wf at 0x777d902d0e50>
 
-A good place to invert the velocities of frustrated trajectories is after the `update_z_hop_fssh` task, which updates the z coordinates after a hop.
-QC Lab makes this particularly easy to do by using python's built-in list methods to insert out new task into the correct position.
+A good place to invert the velocities of frustrated trajectories is after the `update_z_hop_fssh` task, which updates the `z` coordinates after a hop.
+QC Lab makes this particularly easy to do by using Python's built-in list methods to insert our new task into the correct position.
 
 .. code-block:: python
 
-    # Insert the new task into the update recipe
+    # Insert the function for reversing velocities as a task into the update recipe.
     sim.model.algorithm.update_recipe.insert(10, update_z_reverse_frustrated_fssh)
-    # Now we can verify we put it in the right place by printing the update recipe again
+    # Now we can verify we put it in the right place by printing the update recipe again.
     for ind, task in enumerate(sim.model.algorithm.update_recipe):
         print(f"Task #{ind}", task)
 
@@ -80,7 +81,7 @@ QC Lab makes this particularly easy to do by using python's built-in list method
     Task #12 <function update_act_surf_wf at 0x777d902d0e50>
 
 
-Now we can easily compare the results of the modified FSSH algorithm with the original one.
+The output has now changed to:
 
 
 .. image:: fssh_lreorg_inv_vel.png
