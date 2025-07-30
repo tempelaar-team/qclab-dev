@@ -6,7 +6,7 @@ for low-level operations.
 
 import functools
 import numpy as np
-from qc_lab.jit import njit
+from qc_lab.utils import njit
 
 
 def z_to_qp(z, constants):
