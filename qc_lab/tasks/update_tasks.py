@@ -2,7 +2,7 @@
 
 import numpy as np
 import logging
-from qc_lab.jit import njit
+from qc_lab.utils import njit
 from qc_lab.tasks.default_ingredients import *
 
 logger = logging.getLogger(__name__)

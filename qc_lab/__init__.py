@@ -12,7 +12,7 @@ from qc_lab.constants import Constants
 # Configure logging to capture all messages in memory. This needs to happen
 # on import so that any module using the standard logging facilities will have
 # its messages captured without printing to ``stdout``.
-from qc_lab.logger_utils import configure_memory_logger, get_log_output
+from qc_lab.utils import configure_memory_logger, get_log_output
 
 # Set up the logger with INFO level by default. The handler returned by this
 # function keeps all log messages in memory so they can later be attached to a
