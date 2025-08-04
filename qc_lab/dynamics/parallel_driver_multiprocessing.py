@@ -31,17 +31,24 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
     else:
         num_trajs = len(seeds)
         logger.warning(
-            "Setting sim.settings.num_trajs to the number of provided seeds."
+            "Setting sim.settings.num_trajs to the number of provided seeds: %s",
+            num_trajs
         )
         sim.settings.num_trajs = num_trajs
     if num_tasks is None:
         size = multiprocessing.cpu_count()
     else:
         size = num_tasks
+    logger.info("Using %s CPU cores for parallel processing.", size)
     if sim.settings.num_trajs % sim.settings.batch_size == 0:
         num_sims = sim.settings.num_trajs // sim.settings.batch_size
     else:
         num_sims = sim.settings.num_trajs // sim.settings.batch_size + 1
+    logger.info(
+        "Running %s simulations with %s seeds in each batch.",
+        num_sims,
+        sim.settings.batch_size
+    )
     batch_seeds_list = (
         np.zeros((num_sims * sim.settings.batch_size), dtype=int) + np.nan
     )
@@ -60,6 +67,11 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
     ]
     for i in range(num_sims):
         input_data[i][0].settings.batch_size = len(input_data[i][2].seed)
+        logger.info(
+            "Running simulation %s with seeds %s.",
+            i + 1,
+            input_data[i][2].seed
+        )
     with multiprocessing.Pool(processes=size) as pool:
         results = pool.starmap(dynamics.dynamics, input_data)
     for result in results:

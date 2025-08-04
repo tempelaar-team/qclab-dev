@@ -3,10 +3,12 @@ This module defines the Data class, which is used to handle the collection and s
 output from algorithms in QC Lab.
 """
 
+import logging
 import numpy as np
 import h5py
 from qc_lab._config import DISABLE_H5PY
 
+logger = logging.getLogger(__name__)
 
 class Data:
     """
@@ -36,15 +38,27 @@ class Data:
         # Check if the norm_factor is zero. If it is, save it from the state object.
         if self.data_dict["norm_factor"] == 0:
             if not (hasattr(state, "norm_factor")):
+                logger.critical(
+                    "The state object does not have a norm_factor attribute. "
+                    "This is required to normalize the data."
+                )
                 raise ValueError(
                     "The state object does not have a norm_factor attribute."
                 )
+            logger.info(
+                "Setting norm_factor to %s from state object.", state.norm_factor
+            )
             self.data_dict["norm_factor"] = state.norm_factor
         for key, val in state.output_dict.items():
             if not (key in self.data_dict):
                 # If the key is not in the data_dict, initialize it with zeros.
                 self.data_dict[key] = np.zeros(
                     (len(sim.settings.tdat_output), *np.shape(val)[1:]), dtype=val.dtype
+                )
+                logger.info(
+                    "Initializing data_dict[%s] with shape %s.",
+                    key,
+                    self.data_dict[key].shape
                 )
             # Store the data in the data_dict at the correct time index.
             self.data_dict[key][t_ind // sim.settings.dt_collect_n] = (

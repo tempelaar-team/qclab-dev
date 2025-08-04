@@ -2,10 +2,12 @@
 This module defines the Simulation class as well as the default settings for a simulation in QC Lab.
 """
 
+import logging
 import numpy as np
 from qc_lab.constants import Constants
 from qc_lab.variable import Variable
 
+logger = logging.getLogger(__name__)
 
 class Simulation:
     """
@@ -47,8 +49,18 @@ class Simulation:
             "dt_collect", self.default_settings.get("dt_collect")
         )
 
+        logger.info(
+            "Initializing timesteps with tmax=%s, dt_update=%s, dt_collect=%s",
+            tmax,
+            dt_update,
+            dt_collect,
+        )
+
         if dt_update > dt_collect:
             dt_collect = dt_update
+            logger.warning(
+                "dt_update is greater than dt_collect, setting dt_collect to dt_update."
+            )
 
         tmax_n = np.round(tmax / dt_update).astype(int)
         dt_collect_n = np.round(dt_collect / dt_update).astype(int)
@@ -70,4 +82,11 @@ class Simulation:
             0,
             self.settings.tmax_n + self.settings.dt_collect_n,
             self.settings.dt_collect_n,
+        )
+        logger.info(
+            "Timesteps initialized: tmax_n=%s, dt_collect_n=%s, tdat=%s, tdat_n=%s",
+            self.settings.tmax_n,
+            self.settings.dt_collect_n,
+            self.settings.tdat,
+            self.settings.tdat_n,
         )

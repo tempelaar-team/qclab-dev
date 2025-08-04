@@ -2,7 +2,10 @@
 This module defines the Variable class, which is used to store time-dependent variables in QC Lab.
 """
 
+import logging
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 class Variable:
@@ -12,7 +15,6 @@ class Variable:
 
     def __init__(self):
         self.output_dict = {}
-        self.seed = None
 
     def __getattr__(self, name):
         """
@@ -70,13 +72,28 @@ def initialize_variable_objects(sim, seeds):
     """
     state_variable = Variable()
     state_variable.seed = seeds
+    logger.info(
+        "Initializing state variable with seed %s.",
+        state_variable.seed
+    )
     for name in sim.state.__dict__.keys():
         obj = getattr(sim.state, name)
         if isinstance(obj, np.ndarray) and name[0] != "_":
             init_shape = np.shape(obj)
             new_obj = (
-                np.zeros((len(seeds), *init_shape), dtype=obj.dtype) + obj[np.newaxis]
+                np.zeros((len(seeds), *init_shape),
+                         dtype=obj.dtype) + obj[np.newaxis]
+            )
+            logger.info(
+                "Initializing state variable %s with shape %s.",
+                name,
+                new_obj.shape
             )
             setattr(state_variable, name, new_obj)
+        elif name[0] != "_":
+            logger.warning(
+                "Variable %s in sim.state is not an array, " \
+                "skipping initialization in state Variable object.", name
+            )
     parameter_variable = Variable()
     return parameter_variable, state_variable
