@@ -34,7 +34,7 @@ Welcome to the QC Lab documentation! Use the buttons below to navigate to the se
 
     I want a comprehensive manual.
 
-.. button-link:: cite.html
+.. button-link:: ../user_guide/cite.html
     :color: primary
     :shadow:
     :align: center
