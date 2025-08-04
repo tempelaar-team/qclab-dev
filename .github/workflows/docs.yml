@@ -39,6 +39,8 @@ jobs:
         cd docs
         make clean
         make html
+        ls _build/html
+        ls _build/html/_images/
     # - name: Upload artifacts
     #   uses: actions/upload-artifact@v4
     #   with:
