@@ -7,6 +7,13 @@ from qc_lab.tasks.default_ingredients import *
 
 logger = logging.getLogger(__name__)
 
+
+def update_variables(algorithm, sim, parameters, state):
+    algorithm.state = state
+    algorithm.parameters = parameters
+    return parameters, state
+
+
 def update_t(algorithm, sim, parameters, state):
     """
     Update the time in the state object with the time index in each trajectory
@@ -66,7 +73,7 @@ def update_classical_forces(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    z = kwargs["z"]
+    z = eval(kwargs["z"])
     parameters, state = update_dh_c_dzc(algorithm, sim, parameters, state, z=z)
     state.classical_forces = state.dh_c_dzc
     return parameters, state
@@ -101,8 +108,8 @@ def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs)
     Required constants:
         - None.
     """
-    z = kwargs["z"]
-    wf = kwargs["wf"]
+    z = eval(kwargs["z"])
+    wf = eval(kwargs["wf"])
     use_gauge_field_force = kwargs.get("use_gauge_field_force", False)
     parameters, state = update_dh_qc_dzc(algorithm, sim, parameters, state, z=z)
     inds, mels, shape = state.dh_qc_dzc
@@ -117,12 +124,12 @@ def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs)
 
 def diagonalize_matrix(algorithm, sim, parameters, state, **kwargs):
     """
-    Diagonalizes a given matrix and stores the eigenvalues and eigenvectors in the state object.
+    Diagonalizes a given matrix from the state object and stores the eigenvalues and eigenvectors in the state object.
 
     Required constants:
         - None.
     """
-    matrix = kwargs["matrix"]
+    matrix = eval(kwargs["matrix"])
     eigvals_name = kwargs["eigvals_name"]
     eigvecs_name = kwargs["eigvecs_name"]
     eigvals, eigvecs = np.linalg.eigh(matrix)
@@ -255,11 +262,11 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    eigvals = kwargs["eigvals"]
-    eigvecs = kwargs["eigvecs"]
-    eigvecs_previous = kwargs["eigvecs_previous"]
+    eigvals = eval(kwargs["eigvals"])
+    eigvecs = eval(kwargs["eigvecs"])
+    eigvecs_previous = eval(kwargs["eigvecs_previous"])
     output_eigvecs_name = kwargs["output_eigvecs_name"]
-    gauge_fixing = kwargs["gauge_fixing"]
+    gauge_fixing = kwargs.get("gauge_fixing", sim.algorithm.settings.gauge_fixing)
     gauge_fixing_numerical_values = {
         "sign_overlap": 0,
         "phase_overlap": 1,
@@ -271,7 +278,7 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
         phase = np.exp(-1.0j * np.angle(overlap))
         eigvecs = np.einsum("tai,ti->tai", eigvecs, phase, optimize="greedy")
     if gauge_fixing_value >= 2:
-        z = kwargs["z"]
+        z = eval(kwargs["z"])
         parameters, state = update_dh_qc_dzc(algorithm, sim, parameters, state, z=z)
         der_couple_q_phase, _ = analytic_der_couple_phase(
             algorithm, sim, parameters, state, eigvals, eigvecs
@@ -287,10 +294,14 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
         der_couple_q_phase_new, der_couple_p_phase_new = analytic_der_couple_phase(
             algorithm, sim, parameters, state, eigvals, eigvecs
         )
-        if (np.sum(np.abs(np.imag(der_couple_q_phase_new)) ** 2 + np.abs(np.imag(der_couple_p_phase_new)) ** 2) > 1e-10):
-            logger.error(
-                "Phase error encountered when fixing gauge analytically."
+        if (
+            np.sum(
+                np.abs(np.imag(der_couple_q_phase_new)) ** 2
+                + np.abs(np.imag(der_couple_p_phase_new)) ** 2
             )
+            > 1e-10
+        ):
+            logger.error("Phase error encountered when fixing gauge analytically.")
     setattr(state, output_eigvecs_name, eigvecs)
     return parameters, state
 
@@ -303,8 +314,8 @@ def basis_transform_vec(algorithm, sim, parameters, state, **kwargs):
         - None.
     """
     # Default transformation is adiabatic to diabatic.
-    input_vec = kwargs["input_vec"]
-    basis = kwargs["basis"]
+    input_vec = eval(kwargs["input_vec"])
+    basis = eval(kwargs["basis"])
     output_name = kwargs["output_name"]
     setattr(
         state,
@@ -364,19 +375,18 @@ def update_wf_db_eigs(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    wf_db = kwargs["wf_db"]
     adb_name = kwargs["adb_name"]
     output_name = kwargs["output_name"]
-    eigvals = kwargs["eigvals"]
-    eigvecs = kwargs["eigvecs"]
-    evals_exp = np.exp(-1.0j * eigvals * sim.settings.dt_update)
+    state.update_wf_db_eigvals = eval(kwargs["eigvals"])
+    state.update_wf_db_eigvecs = eval(kwargs["eigvecs"])
+    evals_exp = np.exp(-1.0j * state.update_wf_db_eigvals * sim.settings.dt_update)
     parameters, state = basis_transform_vec(
         algorithm,
         sim=sim,
         parameters=parameters,
         state=state,
-        input_vec=wf_db,
-        basis=np.einsum("...ij->...ji", eigvecs).conj(),
+        input_vec=kwargs["wf_db"],
+        basis="np.einsum('...ij->...ji', state.update_wf_db_eigvecs).conj()",
         output_name=adb_name,
     )
     setattr(state, adb_name, (state.wf_adb * evals_exp))
@@ -385,8 +395,8 @@ def update_wf_db_eigs(algorithm, sim, parameters, state, **kwargs):
         sim=sim,
         parameters=parameters,
         state=state,
-        input_vec=state.wf_adb,
-        basis=eigvecs,
+        input_vec="state.wf_adb",
+        basis="state.update_wf_db_eigvecs",
         output_name=output_name,
     )
     return parameters, state
@@ -518,16 +528,12 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
         np.abs(dkj_q[max_pos_q]) > 1e-8
         and np.abs(np.sin(np.angle(dkj_q[max_pos_q]))) > 1e-2
     ):
-        logger.error(
-            "dkj_q Nonadiabatic coupling is complex, needs gauge fixing!"
-        )
+        logger.error("dkj_q Nonadiabatic coupling is complex, needs gauge fixing!")
     if (
         np.abs(dkj_p[max_pos_p]) > 1e-8
         and np.abs(np.sin(np.angle(dkj_p[max_pos_p]))) > 1e-2
     ):
-        logger.error(
-            "dkj_p Nonadiabatic coupling is complex, needs gauge fixing!"
-        )
+        logger.error("dkj_p Nonadiabatic coupling is complex, needs gauge fixing!")
     delta_z = dkj_zc
     return delta_z
 
@@ -557,7 +563,9 @@ def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
         state.eigvecs_previous,
         optimize="greedy",
     )
-    if np.any(state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind_flat] == 0):
+    if np.any(
+        state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind_flat] == 0
+    ):
         logger.critical(
             "Wavefunction in active surface is zero, cannot calculate hopping probabilities."
         )
@@ -704,7 +712,7 @@ def update_h_quantum(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    z = kwargs.get("z", state.z)
+    z = eval(kwargs.get("z"))
     h_q, _ = sim.model.get("h_q")
     h_qc, _ = sim.model.get("h_qc")
     if sim.model.update_h_q or state.h_q is None:
@@ -713,6 +721,52 @@ def update_h_quantum(algorithm, sim, parameters, state, **kwargs):
     # Update the quantum-classical Hamiltonian.
     state.h_qc = h_qc(sim.model, parameters, z=z)
     state.h_quantum = state.h_q + state.h_qc
+    return parameters, state
+
+
+def update_z_rk4_k1(algorithm, sim, parameters, state, **kwargs):
+    dt_update = sim.settings.dt_update
+    z_0 = eval(kwargs["z"])
+    output_name = kwargs["output_name"]
+    k1 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
+    setattr(state, output_name, z_0 + 0.5 * dt_update * k1)
+    state.z_rk4_k1 = k1
+    return parameters, state
+
+
+def update_z_rk4_k2(algorithm, sim, parameters, state, **kwargs):
+    dt_update = sim.settings.dt_update
+    z_0 = eval(kwargs["z"])
+    output_name = kwargs["output_name"]
+    k2 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
+    setattr(state, output_name, z_0 + 0.5 * dt_update * k2)
+    state.z_rk4_k2 = k2
+    return parameters, state
+
+
+def update_z_rk4_k3(algorithm, sim, parameters, state, **kwargs):
+    dt_update = sim.settings.dt_update
+    z_0 = eval(kwargs["z"])
+    output_name = kwargs["output_name"]
+    k3 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
+    setattr(state, output_name, z_0 + dt_update * k3)
+    state.z_rk4_k3 = k3
+    return parameters, state
+
+
+def update_z_rk4_k4(algorithm, sim, parameters, state, **kwargs):
+    dt_update = sim.settings.dt_update
+    z_0 = eval(kwargs["z"])
+    output_name = kwargs["output_name"]
+    k4 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
+    setattr(
+        state,
+        output_name,
+        z_0
+        + dt_update
+        * 0.166667
+        * (state.z_rk4_k1 + 2 * state.z_rk4_k2 + 2 * state.z_rk4_k3 + k4),
+    )
     return parameters, state
 
 
@@ -807,7 +861,7 @@ def update_classical_energy(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    z = kwargs["z"]
+    z = eval(kwargs["z"])
     h_c, _ = sim.model.get("h_c")
     state.classical_energy = np.real(h_c(sim.model, parameters, z=z, batch_size=len(z)))
     return parameters, state
@@ -820,7 +874,7 @@ def update_classical_energy_fssh(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    z = kwargs["z"]
+    z = eval(kwargs["z"])
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
     else:
@@ -831,7 +885,8 @@ def update_classical_energy_fssh(algorithm, sim, parameters, state, **kwargs):
     if sim.algorithm.settings.fssh_deterministic:
         state.classical_energy = 0
         branch_weights = np.sqrt(
-            num_branches * np.einsum(
+            num_branches
+            * np.einsum(
                 "tbbb->tb",
                 state.dm_adb_0.reshape(
                     (batch_size, num_branches, num_states, num_states)
@@ -871,7 +926,7 @@ def update_quantum_energy(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    wf = kwargs["wf"]
+    wf = eval(kwargs["wf"])
     state.quantum_energy = np.real(
         np.einsum("ti,tij,tj->t", np.conj(wf), state.h_quantum, wf, optimize="greedy")
     )
@@ -885,14 +940,15 @@ def update_quantum_energy_fssh(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    wf = kwargs["wf"]
+    wf = eval(kwargs["wf"])
 
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
         batch_size = sim.settings.batch_size // num_branches
         num_states = sim.model.constants.num_quantum_states
         wf = wf * np.sqrt(
-            num_branches * np.einsum(
+            num_branches
+            * np.einsum(
                 "tbbb->tb",
                 state.dm_adb_0.reshape(
                     (batch_size, num_branches, num_states, num_states)
