@@ -52,12 +52,8 @@ class DualAvoidedCrossing(Model):
         C = self.constants.C
         D = self.constants.D
         E_0 = self.constants.E_0
-
-        if kwargs.get("batch_size") is not None:
-            batch_size = kwargs.get("batch_size")
-        else:
-            batch_size = len(parameters.seed)
         z = kwargs["z"]
+        batch_size = kwargs.get("batch_size", len(z))
 
         q = ((z + np.conj(z)) / 2) / ((mass * h / 2) ** (1 / 2))
 
@@ -83,11 +79,8 @@ class DualAvoidedCrossing(Model):
         C = self.constants.C
         D = self.constants.D
 
-        if kwargs.get("batch_size") is not None:
-            batch_size = kwargs.get("batch_size")
-        else:
-            batch_size = len(parameters.seed)
         z = kwargs["z"]
+        batch_size = kwargs.get("batch_size", len(z))
 
         dh_qc_dzc = np.zeros(
             (

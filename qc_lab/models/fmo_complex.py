@@ -83,10 +83,7 @@ class FMOComplex(Model):
         """
 
     def h_q(self, parameters, **kwargs):
-        if kwargs.get("batch_size") is not None:
-            batch_size = kwargs.get("batch_size")
-        else:
-            batch_size = len(parameters.seed)
+        batch_size = kwargs.get("batch_size", len(parameters.seed))
         if hasattr(self, "h_q_mat"):
             if self.h_q_mat is not None:
                 if len(self.h_q_mat) == batch_size:

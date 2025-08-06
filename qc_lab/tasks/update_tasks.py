@@ -703,7 +703,7 @@ def update_h_quantum(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    z = getattr(state, kwargs.get("z"))
+    z = getattr(state, kwargs["z"])
     h_q, _ = sim.model.get("h_q")
     h_qc, _ = sim.model.get("h_qc")
     if sim.model.update_h_q or state.h_q is None:
@@ -717,7 +717,7 @@ def update_h_quantum(algorithm, sim, parameters, state, **kwargs):
 
 def update_z_rk4_k1(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
-    z_0 = getattr(state, kwargs.get("z"))
+    z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
     k1 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     setattr(state, output_name, z_0 + 0.5 * dt_update * k1)
@@ -727,7 +727,7 @@ def update_z_rk4_k1(algorithm, sim, parameters, state, **kwargs):
 
 def update_z_rk4_k2(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
-    z_0 = getattr(state, kwargs.get("z"))
+    z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
     k2 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     setattr(state, output_name, z_0 + 0.5 * dt_update * k2)
@@ -737,7 +737,7 @@ def update_z_rk4_k2(algorithm, sim, parameters, state, **kwargs):
 
 def update_z_rk4_k3(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
-    z_0 = getattr(state, kwargs.get("z"))
+    z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
     k3 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     setattr(state, output_name, z_0 + dt_update * k3)
@@ -747,7 +747,7 @@ def update_z_rk4_k3(algorithm, sim, parameters, state, **kwargs):
 
 def update_z_rk4_k4(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
-    z_0 = getattr(state, kwargs.get("z"))
+    z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
     k4 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
     setattr(
@@ -852,7 +852,7 @@ def update_classical_energy(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    z = getattr(state, kwargs.get("z"))
+    z = getattr(state, kwargs["z"])
     h_c, _ = sim.model.get("h_c")
     state.classical_energy = np.real(h_c(sim.model, parameters, z=z, batch_size=len(z)))
     return parameters, state
@@ -865,7 +865,7 @@ def update_classical_energy_fssh(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    z = getattr(state, kwargs.get("z"))
+    z = getattr(state, kwargs["z"])
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
     else:

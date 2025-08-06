@@ -58,10 +58,11 @@ def vectorize_ingredient(ingredient):
     @functools.wraps(ingredient)
     def vectorized_ingredient(*args, **kwargs):
         (model, parameters) = args
-        if kwargs.get("batch_size") is not None:
-            batch_size = kwargs.get("batch_size")
-        else:
-            batch_size = len(parameters.seed)
+        batch_size = kwargs.get("batch_size", len(parameters.seed))
+        # if kwargs.get("batch_size") is not None:
+        #     batch_size = kwargs.get("batch_size")
+        # else:
+        #     batch_size = len(parameters.seed)
         keys = kwargs.keys()
         kwargs_list = []
         for n in range(batch_size):
@@ -88,12 +89,7 @@ def h_c_harmonic(model, parameters, **kwargs):
         - `harmonic_frequency`: Array of harmonic frequencies.
     """
     del parameters
-    z = kwargs.get("z")
-    if kwargs.get("batch_size") is not None:
-        batch_size = kwargs.get("batch_size")
-        assert len(z) == batch_size
-    else:
-        batch_size = len(z)
+    z = kwargs["z"]
     w = model.constants.harmonic_frequency[np.newaxis, :]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     q, p = z_to_qp(z, model.constants)
@@ -109,12 +105,7 @@ def h_c_free(model, parameters, **kwargs):
         - `classical_coordinate_mass`: Mass of the classical coordinates.
     """
     del parameters
-    z = kwargs.get("z")
-    if kwargs.get("batch_size") is not None:
-        batch_size = kwargs.get("batch_size")
-        assert len(z) == batch_size
-    else:
-        batch_size = len(z)
+    z = kwargs["z"]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     _, p = z_to_qp(z, model.constants)
     h_c = np.sum((1 / (2 * m)) * (p**2), axis=-1)
@@ -141,13 +132,7 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
     Required constants:
         - `harmonic_frequency`: Array of harmonic frequencies.
     """
-    del parameters
-    z = kwargs.get("z")
-    if kwargs.get("batch_size") is not None:
-        batch_size = kwargs.get("batch_size")
-        assert len(z) == batch_size
-    else:
-        batch_size = len(z)
+    z = kwargs["z"]
     h = model.constants.classical_coordinate_weight
     w = model.constants.harmonic_frequency
     return dh_c_dzc_harmonic_jit(z, h, w)
@@ -161,12 +146,7 @@ def dh_c_dzc_free(model, parameters, **kwargs):
         - `classical_coordinate_mass`: Mass of the classical coordinates.
     """
     del parameters
-    z = kwargs.get("z")
-    if kwargs.get("batch_size") is not None:
-        batch_size = kwargs.get("batch_size")
-        assert len(z) == batch_size
-    else:
-        batch_size = len(z)
+    z = kwargs["z"]
     h = model.constants.classical_coordinate_weight
     return -(h[..., :] / 2) * (np.conj(z) - z)
 
@@ -184,10 +164,7 @@ def h_q_two_level(model, parameters, **kwargs):
         - `two_level_01_re`: Real part of the coupling between levels.
         - `two_level_01_im`: Imaginary part of the coupling between levels.
     """
-    if kwargs.get("batch_size") is not None:
-        batch_size = kwargs.get("batch_size")
-    else:
-        batch_size = len(parameters.seed)
+    batch_size = kwargs.get("batch_size", len(parameters.seed))
     h_q = np.zeros((batch_size, 2, 2), dtype=complex)
     h_q[:, 0, 0] = model.constants.get("two_level_00", 0.0)
     h_q[:, 1, 1] = model.constants.get("two_level_11", 0.0)
@@ -208,10 +185,7 @@ def h_q_nearest_neighbor(model, parameters, **kwargs):
         - `nearest_neighbor_hopping_energy`: Hopping energy between sites.
         - `nearest_neighbor_periodic_boundary`: Boolean indicating periodic boundary conditions.
     """
-    if kwargs.get("batch_size") is not None:
-        batch_size = kwargs.get("batch_size")
-    else:
-        batch_size = len(parameters.seed)
+    batch_size = kwargs.get("batch_size", len(parameters.seed))
     num_sites = model.constants.num_quantum_states
     hopping_energy = model.constants.nearest_neighbor_hopping_energy
     periodic_boundary = model.constants.nearest_neighbor_periodic_boundary
@@ -260,11 +234,7 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
     """
     del parameters
     z = kwargs["z"]
-    if kwargs.get("batch_size") is not None:
-        batch_size = kwargs.get("batch_size")
-        assert len(z) == batch_size
-    else:
-        batch_size = len(z)
+    batch_size = kwargs.get("batch_size", len(z))
     num_sites = model.constants.num_quantum_states
     num_classical_coordinates = model.constants.num_classical_coordinates
     gamma = model.constants.diagonal_linear_coupling
@@ -280,10 +250,7 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
     Required constants:
         - `diagonal_linear_coupling`: Array of coupling constants (num_quantum_states, num_classical_coordinates).
     """
-    if kwargs.get("batch_size") is not None:
-        batch_size = kwargs.get("batch_size")
-    else:
-        batch_size = len(parameters.seed)
+    batch_size = kwargs.get("batch_size", len(parameters.seed))
     num_states = model.constants.num_quantum_states
     num_classical_coordinates = model.constants.num_classical_coordinates
     gamma = model.constants.diagonal_linear_coupling
@@ -423,7 +390,7 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
         - `kBT`: Thermal quantum.
         - `harmonic_frequency`: Array of harmonic frequencies.
     """
-    seed = kwargs.get("seed", None)
+    seed = kwargs["seed"]
     kBT = model.constants.kBT
     w = model.constants.harmonic_frequency
     m = model.constants.classical_coordinate_mass
@@ -457,7 +424,7 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
         - `harmonic_frequency`: Array of harmonic frequencies.
     """
     del parameters
-    seed = kwargs.get("seed", None)
+    seed = kwargs["seed"]
     m = model.constants.classical_coordinate_mass
     w = model.constants.harmonic_frequency
     kBT = model.constants.kBT
@@ -498,7 +465,7 @@ def init_classical_definite_position_momentum(model, parameters, **kwargs):
         - `start_position`: Initial position of the classical coordinates.
         - `start_momentum`: Initial momentum of the classical coordinates.
     """
-    seed = kwargs.get("seed", None)
+    seed = kwargs["seed"]
     q = model.constants.init_position
     p = model.constants.init_momentum
     z = np.zeros((len(seed), model.constants.num_classical_coordinates), dtype=complex)
@@ -520,7 +487,7 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
         - `coherent_state_displacement`: Array of complex displacement parameter for the coherent state.
         - `harmonic_frequency`: Array of harmonic frequencies.
     """
-    seed = kwargs.get("seed", None)
+    seed = kwargs["seed"]
     a = model.constants.coherent_state_displacement
     m = model.constants.classical_coordinate_mass
     w = model.constants.harmonic_frequency

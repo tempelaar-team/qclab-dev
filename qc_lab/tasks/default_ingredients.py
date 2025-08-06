@@ -46,7 +46,7 @@ def numerical_boltzmann_mcmc_init_classical(model, parameters, **kwargs):
         - mcmc_init_z (np.ndarray): Initial sample. Default: None.
         - kBT (float): Thermal quantum. Default: None.
     """
-    seed = kwargs.get("seed", None)
+    seed = kwargs["seed"]
     burn_in_size = model.constants.get("mcmc_burn_in_size", 1000)
     sample_size = model.constants.get("mcmc_sample_size", 10000)
     mcmc_h_c_separable = model.constants.get("mcmc_h_c_separable", True)
@@ -188,10 +188,7 @@ def dh_qc_dzc_finite_differences(model, parameters, **kwargs):
         - finite_difference_dz (float): Step size for finite differences. Default: 1e-6.
     """
     z = kwargs["z"]
-    if kwargs.get("batch_size") is not None:
-        batch_size = kwargs.get("batch_size")
-    else:
-        batch_size = len(parameters.seed)
+    batch_size = kwargs.get("batch_size", len(z))
     delta_z = model.constants.get("dh_qc_dzc_finite_difference_delta", 1e-6)
     num_classical_coordinates = model.constants.num_classical_coordinates
     num_quantum_states = model.constants.num_quantum_states

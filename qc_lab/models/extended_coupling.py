@@ -44,11 +44,8 @@ class ExtendedCoupling(Model):
         B = self.constants.B
         C = self.constants.C
 
-        if kwargs.get("batch_size") is not None:
-            batch_size = kwargs.get("batch_size")
-        else:
-            batch_size = len(parameters.seed)
         z = kwargs["z"]
+        batch_size = kwargs.get("batch_size", len(z))
 
         q = ((z + np.conj(z)) / 2) / ((mass * h / 2) ** (1 / 2))
 
@@ -76,12 +73,8 @@ class ExtendedCoupling(Model):
         gradient_weight = self.constants.gradient_weight
         B = self.constants.B
         C = self.constants.C
-
-        if kwargs.get("batch_size") is not None:
-            batch_size = kwargs.get("batch_size")
-        else:
-            batch_size = len(parameters.seed)
         z = kwargs["z"]
+        batch_size = kwargs.get("batch_size", len(z))
 
         dh_qc_dzc = np.zeros(
             (
