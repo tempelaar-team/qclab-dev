@@ -61,7 +61,7 @@ def initialize_z(algorithm, sim, parameters, state, **kwargs):
     Required constants:
         - None.
     """
-    seed = eval(kwargs["seed"])
+    seed = getattr(state, kwargs["seed"])
     init_classical, has_init_classical = sim.model.get("init_classical")
     if has_init_classical:
         state.z = init_classical(sim.model, parameters, seed=seed)
@@ -86,22 +86,17 @@ def state_to_parameters(algorithm, sim, parameters, state, **kwargs):
     """
     Copy the value of the state variable "state_name" to the parameters object with the name "parameters_name".
     """
-    state_name = kwargs["state_name"]
-    parameters_name = kwargs["parameters_name"]
-    val = getattr(state, state_name)
-    setattr(parameters, parameters_name, val)
+    setattr(parameters, kwargs["parameters_name"], getattr(state, kwargs["state_name"]))
     return parameters, state
 
-def assign_to_state(algorithm, sim, parameters, state, **kwargs):
+def copy_in_state(algorithm, sim, parameters, state, **kwargs):
     """
-    Creates a new state variable with the name "name" and the value "val".
+    Creates a copy of state.val with name state.name.
 
     Required constants:
         - None.
     """
-    name = kwargs["name"]
-    val = eval(kwargs["val"])
-    setattr(state, name, np.copy(val))
+    setattr(state, kwargs["name"], np.copy(getattr(state, kwargs["val"])))
     return parameters, state
 
 

@@ -19,49 +19,47 @@ class MeanField(Algorithm):
         super().__init__(self.default_settings, settings)
 
     initialization_recipe = [
-        tasks.update_variables,
         tasks.initialize_norm_factor,
         partial(tasks.state_to_parameters, state_name="seed", parameters_name="seed"),
-        tasks.update_variables,
-        partial(tasks.initialize_z, seed="state.seed"),
-        partial(tasks.update_h_quantum, z="state.z"),
+        partial(tasks.initialize_z, seed="seed"),
+        partial(tasks.update_h_quantum, z="z"),
     ]
 
     update_recipe = [
-        partial(tasks.update_h_quantum, z="state.z"),
+        partial(tasks.update_h_quantum, z="z"),
         ## Begin RK4 integration steps.
-        partial(tasks.update_classical_forces, z="state.z"),
+        partial(tasks.update_classical_forces, z="z"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="state.wf_db",
-            z="state.z",
+            wf="wf_db",
+            z="z",
             use_gauge_field_force=False,
         ),
-        partial(tasks.update_z_rk4_k1, z="state.z", output_name="z_1"),
-        partial(tasks.update_classical_forces, z="state.z_1"),
+        partial(tasks.update_z_rk4_k1, z="z", output_name="z_1"),
+        partial(tasks.update_classical_forces, z="z_1"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="state.wf_db",
-            z="state.z_1",
+            wf="wf_db",
+            z="z_1",
             use_gauge_field_force=False,
         ),
-        partial(tasks.update_z_rk4_k2, z="state.z", output_name="z_2"),
-        partial(tasks.update_classical_forces, z="state.z_2"),
+        partial(tasks.update_z_rk4_k2, z="z", output_name="z_2"),
+        partial(tasks.update_classical_forces, z="z_2"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="state.wf_db",
-            z="state.z_2",
+            wf="wf_db",
+            z="z_2",
             use_gauge_field_force=False,
         ),
-        partial(tasks.update_z_rk4_k3, z="state.z", output_name="z_3"),
-        partial(tasks.update_classical_forces, z="state.z_3"),
+        partial(tasks.update_z_rk4_k3, z="z", output_name="z_3"),
+        partial(tasks.update_classical_forces, z="z_3"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="state.wf_db",
-            z="state.z_3",
+            wf="wf_db",
+            z="z_3",
             use_gauge_field_force=False,
         ),
-        partial(tasks.update_z_rk4_k4, z="state.z", output_name="z"),
+        partial(tasks.update_z_rk4_k4, z="z", output_name="z"),
         ## End RK4 integration steps.
         tasks.update_wf_db_rk4,
     ]
@@ -69,8 +67,8 @@ class MeanField(Algorithm):
     collect_recipe = [
         tasks.update_t,
         tasks.update_dm_db_mf,
-        partial(tasks.update_quantum_energy, wf="state.wf_db"),
-        partial(tasks.update_classical_energy, z="state.z"),
+        partial(tasks.update_quantum_energy, wf="wf_db"),
+        partial(tasks.update_classical_energy, z="z"),
         tasks.collect_t,
         tasks.collect_dm_db,
         tasks.collect_classical_energy,
