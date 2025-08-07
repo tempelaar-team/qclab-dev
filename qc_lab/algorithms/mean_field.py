@@ -21,7 +21,7 @@ class MeanField(Algorithm):
     initialization_recipe = [
         tasks.initialize_norm_factor,
         partial(tasks.state_to_parameters, state_name="seed", parameters_name="seed"),
-        partial(tasks.initialize_z, seed="seed"),
+        partial(tasks.initialize_z, seed="seed", name="z"),
         partial(tasks.update_h_quantum, z="z"),
     ]
 

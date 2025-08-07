@@ -62,11 +62,12 @@ def initialize_z(algorithm, sim, parameters, state, **kwargs):
         - None.
     """
     seed = getattr(state, kwargs["seed"])
+    name = kwargs["name"]
     init_classical, has_init_classical = sim.model.get("init_classical")
     if has_init_classical:
-        state.z = init_classical(sim.model, parameters, seed=seed)
+        setattr(state, name, init_classical(sim.model, parameters, seed=seed))
         return parameters, state
-    state.z = numerical_boltzmann_mcmc_init_classical(sim.model, parameters, seed=seed)
+    setattr(state, name, numerical_boltzmann_mcmc_init_classical(sim.model, parameters, seed=seed))
     return parameters, state
 
 

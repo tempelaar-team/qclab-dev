@@ -87,7 +87,7 @@ Indeed, the only required ingredients are those that generate the Hamiltonian.
      - `batch_size` (optional), `z` (numpy.ndarray((batch_size, model.constants.num_classical_coordinates), dtype=complex))
      -  numpy.ndarray((batch_size, model.constants.num_classical_coordinates), dtype=complex)
      - Generates the gradient (with respect to the conjugate classical coordinate) of the classical Hamiltonian.
-   * - `hop_function`
+   * - `hop`
      - `z` (numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)), `delta_z` (numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)), `ev_diff` (float)
      - numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)
      - Computes the shift required to rescale a coordinate for a given classical Hamiltonian in FSSH.
@@ -143,7 +143,7 @@ Classical Gradients (`dh_c_dzc`)
 .. automodule:: qc_lab.ingredients
     :members: dh_c_dzc_harmonic
 
-FSSH Hop Function (`hop_function`)
+FSSH Hop Function (`hop`)
 --------------------------------------
 
 .. automodule:: qc_lab.ingredients

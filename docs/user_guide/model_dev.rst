@@ -836,7 +836,7 @@ performance of the FSSH algorithm.
 
 .. code-block:: python
 
-    model.hop_function = ingredients.init_classical_boltzmann_harmonic
+    model.hop = ingredients.init_classical_boltzmann_harmonic
 
 Lastly, we can add a flag to the model class that enables the RK4 solver in QC Lab to avoid recalculating gradients of the quantum-classical Hamiltonian 
 (which is a constant if the quantum-classical Hamiltonian is linear in `z`).
@@ -916,6 +916,6 @@ The full code for upgrading the `MinimalSpinBoson` using built-in ingredients is
 
     model.init_classical = ingredients.init_classical_boltzmann_harmonic
 
-    model.hop_function = ingredients.hop_harmonic
+    model.hop = ingredients.hop_harmonic
 
     model.linear_h_qc = True

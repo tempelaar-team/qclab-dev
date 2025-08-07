@@ -121,5 +121,5 @@ class ExtendedCoupling(Model):
         ("dh_qc_dzc", dh_qc_dzc),
         ("dh_c_dzc", ingredients.dh_c_dzc_free),
         ("init_classical", ingredients.init_classical_definite_position_momentum),
-        ("hop_function", ingredients.hop_free),
+        ("hop", ingredients.hop_free),
     ]

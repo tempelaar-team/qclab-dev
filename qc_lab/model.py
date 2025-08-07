@@ -46,8 +46,10 @@ class Model:
         """
         Initialize the constants for the model and ingredients.
         """
-        for func in self.initialization_functions:
-            func(self)
+        for ingredient in self.ingredients[::-1]:
+            if ingredient[0].startswith("_init_") and ingredient[1] is not None:
+                ingredient[1](self, None)
+        return
 
     initialization_functions = []
     ingredients = []

@@ -124,7 +124,7 @@ classical Hamiltonian, however, the output is in a sparse format.
 Surface Hopping Switching Algorithm
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. function:: sim.model.hop_function(model, constants, parameters, z=z, delta_z=delta_z, ev_diff=ev_diff)
+.. function:: sim.model.hop(model, constants, parameters, z=z, delta_z=delta_z, ev_diff=ev_diff)
 
     :param z: Complex-valued classical coordinate (in a single trajectory).
     :type z: np.ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)

@@ -132,5 +132,5 @@ class FMOComplex(Model):
         ("dh_qc_dzc", ingredients.dh_qc_dzc_diagonal_linear),
         ("dh_c_dzc", ingredients.dh_c_dzc_harmonic),
         ("init_classical", ingredients.init_classical_boltzmann_harmonic),
-        ("hop_function", ingredients.hop_harmonic),
+        ("hop", ingredients.hop_harmonic),
     ]

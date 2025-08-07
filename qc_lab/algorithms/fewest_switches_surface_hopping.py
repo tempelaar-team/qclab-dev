@@ -24,7 +24,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
     initialization_recipe = [
         tasks.initialize_norm_factor,
         tasks.initialize_branch_seeds,
-        partial(tasks.initialize_z, seed="seed"),
+        partial(tasks.initialize_z, seed="seed", name="z"),
         partial(tasks.update_h_quantum, z="z"),
         partial(
             tasks.diagonalize_matrix,

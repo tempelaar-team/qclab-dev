@@ -24,7 +24,7 @@ def update_t(algorithm, sim, parameters, state):
     return parameters, state
 
 
-def update_dh_c_dzc(algorithm, sim, parameters, state, **kwargs):
+def update_classical_forces(algorithm, sim, parameters, state, **kwargs):
     """
     Update the gradient of the classical Hamiltonian
     w.r.t the conjugate classical coordinate.
@@ -35,9 +35,9 @@ def update_dh_c_dzc(algorithm, sim, parameters, state, **kwargs):
     z = getattr(state, kwargs["z"])
     dh_c_dzc, has_dh_c_dzc = sim.model.get("dh_c_dzc")
     if has_dh_c_dzc:
-        state.dh_c_dzc = dh_c_dzc(sim.model, parameters, z=z)
+        state.classical_forces = dh_c_dzc(sim.model, parameters, z=z)
         return parameters, state
-    state.dh_c_dzc = dh_c_dzc_finite_differences(sim.model, parameters, z=z)
+    state.classical_forces = dh_c_dzc_finite_differences(sim.model, parameters, z=z)
     return parameters, state
 
 
@@ -60,17 +60,6 @@ def update_dh_qc_dzc(algorithm, sim, parameters, state, **kwargs):
         state.dh_qc_dzc = dh_qc_dzc_finite_differences(sim.model, parameters, z=z)
     return parameters, state
 
-
-def update_classical_forces(algorithm, sim, parameters, state, **kwargs):
-    """
-    Update the classical forces.
-
-    Required constants:
-        - None.
-    """
-    parameters, state = update_dh_c_dzc(algorithm, sim, parameters, state, z=kwargs["z"])
-    state.classical_forces = state.dh_c_dzc
-    return parameters, state
 
 
 @njit
@@ -639,9 +628,9 @@ def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
             final_state_ind=final_state_ind,
             init_state_ind=init_state_ind,
         )
-        hop_function, has_hop_function = sim.model.get("hop_function")
-        if has_hop_function:
-            z_shift, hopped = hop_function(
+        hop, has_hop = sim.model.get("hop")
+        if has_hop:
+            z_shift, hopped = hop(
                 sim.model,
                 parameters,
                 z=z[traj_ind],
