@@ -28,7 +28,7 @@ class FMOComplex(Model):
         self.update_dh_qc_dzc = False
         self.update_h_q = False
 
-    def _init_model(self):
+    def _init_model(self, parameters, **kwargs):
         """
         Initialize the model-specific constants.
         """
@@ -51,13 +51,13 @@ class FMOComplex(Model):
             self.constants.num_classical_coordinates
         )
 
-    def _init_h_c(self):
+    def _init_h_c(self, parameters, **kwargs):
         """
         Initialize the constants for the classical Hamiltonian.
         """
         self.constants.harmonic_frequency = self.constants.w
 
-    def _init_h_qc(self):
+    def _init_h_qc(self, parameters, **kwargs):
         """
         Initialize the constants for the quantum-classical coupling Hamiltonian.
         """
@@ -77,7 +77,7 @@ class FMOComplex(Model):
                 w * np.sqrt(2 * l_reorg / A) * (1 / np.sqrt(2 * m * h))
             )[n * A : (n + 1) * A]
 
-    def _init_h_q(self):
+    def _init_h_q(self, parameters, **kwargs):
         """
         Initialize the constants for the quantum Hamiltonian.
         """
