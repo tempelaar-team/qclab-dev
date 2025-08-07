@@ -30,7 +30,6 @@ class SpinBoson(Model):
         self.update_dh_qc_dzc = False
         self.update_h_q = False
 
-    
     def _init_hq(self, parameters, **kwargs):
         self.constants.two_level_00 = self.constants.get(
             "E", self.default_constants.get("E")
@@ -42,8 +41,8 @@ class SpinBoson(Model):
             "V", self.default_constants.get("V")
         )
         self.constants.two_level_01_im = 0
-        return 
-    
+        return
+
     def _init_hqc(self, parameters, **kwargs):
         A = self.constants.get("A", self.default_constants.get("A"))
         l_reorg = self.constants.get("l_reorg", self.default_constants.get("l_reorg"))
@@ -60,13 +59,15 @@ class SpinBoson(Model):
             -w * np.sqrt(2 * l_reorg / A) * (1 / np.sqrt(2 * boson_mass * h))
         )
         return
-    
+
     def _init_hc(self, parameters, **kwargs):
         A = self.constants.get("A", self.default_constants.get("A"))
         W = self.constants.get("W", self.default_constants.get("W"))
-        self.constants.harmonic_frequency = W * np.tan(((np.arange(A) + 1) - 0.5) * np.pi / (2 * A))
+        self.constants.harmonic_frequency = W * np.tan(
+            ((np.arange(A) + 1) - 0.5) * np.pi / (2 * A)
+        )
         return
-    
+
     def _init_model(self, parameters, **kwargs):
         """
         Initialize the model-specific constants.
@@ -81,7 +82,6 @@ class SpinBoson(Model):
         self.constants.num_quantum_states = 2
         self.constants.classical_coordinate_weight = self.constants.w
         self.constants.classical_coordinate_mass = boson_mass * np.ones(A)
-        
 
     ingredients = [
         ("h_q", ingredients.h_q_two_level),

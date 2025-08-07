@@ -27,7 +27,7 @@ class SimpleAvoidedCrossing(Model):
         self.update_dh_qc_dzc = True
         self.update_h_q = False
 
-    def initialize_constants_model(self):
+    def _init_model(self):
         self.constants.num_quantum_states = 2
         self.constants.num_classical_coordinates = 1
         self.constants.classical_coordinate_mass = np.array(
@@ -35,7 +35,7 @@ class SimpleAvoidedCrossing(Model):
         )
         self.constants.classical_coordinate_weight = np.array([1])
 
-    def initialize_constants_h_qc(self):
+    def _init_h_qc(self):
         self.constants.gradient_weight = 1 / np.sqrt(
             2
             * self.constants.classical_coordinate_mass
@@ -121,16 +121,8 @@ class SimpleAvoidedCrossing(Model):
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]
         shape = np.shape(dh_qc_dzc)
-        self.dh_qc_dzc_inds = inds
-        self.dh_qc_dzc_mels = dh_qc_dzc[inds]
-        self.dh_qc_dzc_shape = shape
 
         return inds, mels, shape
-
-    initialization_functions = [
-        initialize_constants_model,
-        initialize_constants_h_qc,
-    ]
 
     ingredients = [
         ("h_q", ingredients.h_q_two_level),
@@ -140,4 +132,6 @@ class SimpleAvoidedCrossing(Model):
         ("dh_c_dzc", ingredients.dh_c_dzc_free),
         ("init_classical", ingredients.init_classical_definite_position_momentum),
         ("hop", ingredients.hop_free),
+        ("_init_h_qc", _init_h_qc),
+        ("_init_model", _init_model),
     ]

@@ -28,7 +28,7 @@ class FMOComplex(Model):
         self.update_dh_qc_dzc = False
         self.update_h_q = False
 
-    def initialize_constants_model(self):
+    def _init_model(self):
         """
         Initialize the model-specific constants.
         """
@@ -51,13 +51,13 @@ class FMOComplex(Model):
             self.constants.num_classical_coordinates
         )
 
-    def initialize_constants_h_c(self):
+    def _init_h_c(self):
         """
         Initialize the constants for the classical Hamiltonian.
         """
         self.constants.harmonic_frequency = self.constants.w
 
-    def initialize_constants_h_qc(self):
+    def _init_h_qc(self):
         """
         Initialize the constants for the quantum-classical coupling Hamiltonian.
         """
@@ -77,7 +77,7 @@ class FMOComplex(Model):
                 w * np.sqrt(2 * l_reorg / A) * (1 / np.sqrt(2 * m * h))
             )[n * A : (n + 1) * A]
 
-    def initialize_constants_h_q(self):
+    def _init_h_q(self):
         """
         Initialize the constants for the quantum Hamiltonian.
         """
@@ -119,12 +119,6 @@ class FMOComplex(Model):
         )
         return out
 
-    initialization_functions = [
-        initialize_constants_model,
-        initialize_constants_h_c,
-        initialize_constants_h_qc,
-        initialize_constants_h_q,
-    ]
     ingredients = [
         ("h_q", h_q),
         ("h_qc", ingredients.h_qc_diagonal_linear),
@@ -133,4 +127,8 @@ class FMOComplex(Model):
         ("dh_c_dzc", ingredients.dh_c_dzc_harmonic),
         ("init_classical", ingredients.init_classical_boltzmann_harmonic),
         ("hop", ingredients.hop_harmonic),
+        ("_init_h_q", _init_h_q),
+        ("_init_h_qc", _init_h_qc),
+        ("_init_h_c", _init_h_c),
+        ("_init_model", _init_model),
     ]

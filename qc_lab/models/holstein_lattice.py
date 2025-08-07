@@ -32,7 +32,7 @@ class HolsteinLattice(Model):
         self.update_dh_qc_dzc = False
         self.update_h_q = False
 
-    def initialize_constants_model(self):
+    def _init_model(self):
         N = self.constants.get("N", self.default_constants.get("N"))
         w = self.constants.get("w", self.default_constants.get("w"))
         phonon_mass = self.constants.get(
@@ -43,7 +43,7 @@ class HolsteinLattice(Model):
         self.constants.classical_coordinate_weight = w * np.ones(N)
         self.constants.classical_coordinate_mass = phonon_mass * np.ones(N)
 
-    def initialize_constants_h_q(self):
+    def _init_h_q(self):
         J = self.constants.get("J", self.default_constants.get("J"))
         periodic_boundary = self.constants.get(
             "periodic_boundary", self.default_constants.get("periodic_boundary")
@@ -51,7 +51,7 @@ class HolsteinLattice(Model):
         self.constants.nearest_neighbor_hopping_energy = J
         self.constants.nearest_neighbor_periodic_boundary = periodic_boundary
 
-    def initialize_constants_h_qc(self):
+    def _init_h_qc(self):
         N = self.constants.get("N", self.default_constants.get("N"))
         w = self.constants.get("w", self.default_constants.get("w"))
         g = self.constants.get("g", self.default_constants.get("g"))
@@ -60,17 +60,11 @@ class HolsteinLattice(Model):
             g * w * np.sqrt(h / w) * np.ones(N)
         )
 
-    def initialize_constants_h_c(self):
+    def _init_h_c(self):
         N = self.constants.get("N", self.default_constants.get("N"))
         w = self.constants.get("w", self.default_constants.get("w"))
         self.constants.harmonic_frequency = w * np.ones(N)
 
-    initialization_functions = [
-        initialize_constants_model,
-        initialize_constants_h_c,
-        initialize_constants_h_qc,
-        initialize_constants_h_q,
-    ]
     ingredients = [
         ("h_q", ingredients.h_q_nearest_neighbor),
         ("h_qc", ingredients.h_qc_diagonal_linear),
@@ -79,4 +73,8 @@ class HolsteinLattice(Model):
         ("dh_c_dzc", ingredients.dh_c_dzc_harmonic),
         ("init_classical", ingredients.init_classical_boltzmann_harmonic),
         ("hop", ingredients.hop_harmonic),
+        ("_init_h_q", _init_h_q),
+        ("_init_h_qc", _init_h_qc),
+        ("_init_h_c", _init_h_c),
+        ("_init_model", _init_model),
     ]
