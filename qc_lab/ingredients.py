@@ -207,7 +207,7 @@ def h_qc_diagonal_linear_jit(
     """
     Low level function to generate the diagonal linear quantum-classical Hamiltonian.
     """
-    h_qc = np.zeros((batch_size, num_sites, num_sites)) + 0.0j
+    h_qc = np.zeros((batch_size, num_sites, num_sites), dtype=np.complex128)
     for b in range(batch_size):
         for i in range(num_sites):
             for j in range(num_classical_coordinates):

@@ -27,7 +27,7 @@ def update_t(algorithm, sim, parameters, state):
 def update_classical_forces(algorithm, sim, parameters, state, **kwargs):
     """
     Update the gradient of the classical Hamiltonian
-    w.r.t the conjugate classical coordinate.
+    w.r.t. the conjugate classical coordinate.
 
     Required constants:
         - None.
@@ -44,7 +44,7 @@ def update_classical_forces(algorithm, sim, parameters, state, **kwargs):
 def update_dh_qc_dzc(algorithm, sim, parameters, state, **kwargs):
     """
     Update the gradient of the quantum-classical Hamiltonian
-    w.r.t the conjugate classical coordinate.
+    w.r.t. the conjugate classical coordinate.
 
     Required constants:
         - None.
@@ -70,7 +70,7 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l, vec_r):
     Required constants:
         - None.
     """
-    out = np.zeros((shape[:2])) + 0.0j
+    out = np.zeros((shape[:2]), dtype=np.complex128)
     for i in range(len(inds[0])):
         out[inds[0][i], inds[1][i]] = (
             out[inds[0][i], inds[1][i]]
@@ -83,7 +83,7 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l, vec_r):
 
 def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the quantum-classical forces w.r.t the state defined by wf.
+    Update the quantum-classical forces w.r.t. the state defined by wf.
 
     If the model has a gauge_field_force ingredient, this term will be added
     to the quantum-classical forces.
@@ -390,10 +390,10 @@ def matprod(mat, vec):
     Required constants:
         - None.
     """
-    out = np.zeros(np.shape(vec)) + 0.0j
+    out = np.zeros(np.shape(vec), dtype=np.complex128)
     for t in range(len(mat)):
         for i in range(len(mat[0])):
-            accum = 0 + 0.0j
+            accum = 0.0 + 0.0j
             for j in range(len(mat[0,])):
                 accum = accum + mat[t, i, j] * vec[t, j]
             out[t, i] = accum
@@ -901,7 +901,7 @@ def update_classical_energy_fssh(algorithm, sim, parameters, state, **kwargs):
 
 def update_quantum_energy(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the quantum energy w.r.t the wavefunction specified by wf.
+    Update the quantum energy w.r.t. the wavefunction specified by wf.
 
     Required constants:
         - None.
@@ -915,7 +915,7 @@ def update_quantum_energy(algorithm, sim, parameters, state, **kwargs):
 
 def update_quantum_energy_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the quantum energy w.r.t the wavefunction specified by wf.
+    Update the quantum energy w.r.t. the wavefunction specified by wf.
 
     Required constants:
         - None.
