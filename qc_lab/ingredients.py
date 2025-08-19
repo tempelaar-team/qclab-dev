@@ -15,8 +15,8 @@ def z_to_qp(z, constants):
     """
     h = constants.classical_coordinate_weight
     m = constants.classical_coordinate_mass
-    q = np.real((1 / np.sqrt(2 * m * h)) * (z + np.conj(z)))
-    p = np.real(1.0j * np.sqrt((m * h) / 2) * (np.conj(z) - z))
+    q = np.real((1.0 / np.sqrt(2.0 * m * h)) * (z + np.conj(z)))
+    p = np.real(1.0j * np.sqrt(0.5 * m * h) * (np.conj(z) - z))
     return q, p
 
 
@@ -26,7 +26,7 @@ def qp_to_z(q, p, constants):
     """
     h = constants.classical_coordinate_weight
     m = constants.classical_coordinate_mass
-    z = np.sqrt((m * h) / 2) * q + 1.0j * np.sqrt(1 / (2 * m * h)) * p
+    z = np.sqrt(0.5 * m * h) * q + 1.0j * np.sqrt(0.5 / (m * h)) * p
     return z
 
 
@@ -59,10 +59,6 @@ def vectorize_ingredient(ingredient):
     def vectorized_ingredient(*args, **kwargs):
         (model, parameters) = args
         batch_size = kwargs.get("batch_size", len(parameters.seed))
-        # if kwargs.get("batch_size") is not None:
-        #     batch_size = kwargs.get("batch_size")
-        # else:
-        #     batch_size = len(parameters.seed)
         keys = kwargs.keys()
         kwargs_list = []
         for n in range(batch_size):
@@ -93,7 +89,7 @@ def h_c_harmonic(model, parameters, **kwargs):
     w = model.constants.harmonic_frequency[np.newaxis, :]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     q, p = z_to_qp(z, model.constants)
-    h_c = np.sum((1 / 2) * (((p**2) / m) + m * (w**2) * (q**2)), axis=-1)
+    h_c = np.sum(0.5 * (((p**2) / m) + m * (w**2) * (q**2)), axis=-1)
     return h_c
 
 
@@ -108,7 +104,7 @@ def h_c_free(model, parameters, **kwargs):
     z = kwargs["z"]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     _, p = z_to_qp(z, model.constants)
-    h_c = np.sum((1 / (2 * m)) * (p**2), axis=-1)
+    h_c = np.sum((0.5 / m) * (p**2), axis=-1)
     return h_c
 
 
@@ -118,8 +114,8 @@ def dh_c_dzc_harmonic_jit(z, h, w):
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to the conjugate `z` coordinate.
     This is a low-level function accelerated using Numba.
     """
-    a = (1 / 2) * (((w**2) / h) - h)
-    b = (1 / 2) * (((w**2) / h) + h)
+    a = 0.5 * (((w**2) / h) - h)
+    b = 0.5 * (((w**2) / h) + h)
     out = b[..., :] * z + a[..., :] * np.conj(z)
     return out
 
@@ -148,7 +144,7 @@ def dh_c_dzc_free(model, parameters, **kwargs):
     del parameters
     z = kwargs["z"]
     h = model.constants.classical_coordinate_weight
-    return -(h[..., :] / 2) * (np.conj(z) - z)
+    return -(0.5 * h[..., :]) * (np.conj(z) - z)
 
 
 def h_q_two_level(model, parameters, **kwargs):
@@ -308,14 +304,14 @@ def hop_harmonic(model, parameters, **kwargs):
     # Here, akj_z, bkj_z, ckj_z are the coefficients of the quadratic equation
     # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0
     akj_z = np.sum(
-        2 * delta_zc * delta_z * b_const - a_const * (delta_z**2 + delta_zc**2)
+        2.0 * delta_zc * delta_z * b_const - a_const * (delta_z**2 + delta_zc**2)
     )
-    bkj_z = 2j * np.sum(
+    bkj_z = 2.0j * np.sum(
         (z * delta_z - delta_zc * zc) * a_const
         + (delta_z * zc - delta_zc * z) * b_const
     )
     ckj_z = ev_diff
-    disc = bkj_z**2 - 4 * akj_z * ckj_z
+    disc = bkj_z**2 - 4.0 * akj_z * ckj_z
     if disc >= 0:
         if bkj_z < 0:
             gamma = bkj_z + np.sqrt(disc)
@@ -324,7 +320,7 @@ def hop_harmonic(model, parameters, **kwargs):
         if akj_z == 0:
             gamma = 0
         else:
-            gamma = gamma / (2 * akj_z)
+            gamma = 0.5 * gamma / akj_z
         shift = -1.0j * gamma * delta_z
         return shift, True
     shift = np.zeros_like(z)
@@ -361,11 +357,11 @@ def hop_free(model, parameters, **kwargs):
     # Here, akj_z, bkj_z, ckj_z are the coefficients of the quadratic equation
     # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0
 
-    akj_z = np.sum((h / 4) * f * f)
-    bkj_z = -np.sum((h / 2) * f * g)
+    akj_z = np.sum(0.25 * h * f * f)
+    bkj_z = -np.sum(0.5 * h * f * g)
     ckj_z = -ev_diff
 
-    disc = bkj_z**2 - 4 * akj_z * ckj_z
+    disc = bkj_z**2 - 4.0 * akj_z * ckj_z
     if disc >= 0:
         if bkj_z < 0:
             gamma = bkj_z + np.sqrt(disc)
@@ -374,7 +370,7 @@ def hop_free(model, parameters, **kwargs):
         if akj_z == 0:
             gamma = 0
         else:
-            gamma = gamma / (2 * akj_z)
+            gamma = 0.5 * gamma / akj_z
         shift = -1.0j * gamma * delta_z
         return shift, True
     shift = np.zeros_like(z)
@@ -436,11 +432,11 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
 
         # Calculate the standard deviations for q and p.
         if kBT > 0:
-            std_q = np.sqrt(1 / (2 * w * m * np.tanh(w / (2 * (kBT)))))
-            std_p = np.sqrt((m * w) / (2 * np.tanh(w / (2 * (kBT)))))
+            std_q = np.sqrt(0.5 / (w * m * np.tanh(0.5 * w / kBT)))
+            std_p = np.sqrt(0.5 * m * w / np.tanh(0.5 * w / kBT))
         else:
-            std_q = np.sqrt(1 / (2 * w * m))
-            std_p = np.sqrt((m * w) / (2))
+            std_q = np.sqrt(0.5 / (w * m))
+            std_p = np.sqrt(0.5 * m * w)
         # Generate random q and p values.
         q = np.random.normal(
             loc=0, scale=std_q, size=model.constants.num_classical_coordinates
@@ -497,10 +493,10 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
     for s, seed_value in enumerate(seed):
         np.random.seed(seed_value)
         # Calculate the standard deviations for q and p.
-        std_q = np.sqrt(1 / (2 * w * m))
-        std_p = np.sqrt((m * w) / (2))
-        mu_q = np.sqrt(2 / (m * w)) * np.real(a)
-        mu_p = np.sqrt(2 / (m * w)) * np.imag(a)
+        std_q = np.sqrt(0.5 / (w * m))
+        std_p = np.sqrt(0.5 * m * w)
+        mu_q = np.sqrt(2.0 / (m * w)) * np.real(a)
+        mu_p = np.sqrt(2.0 / (m * w)) * np.imag(a)
         # Generate random q and p values.
         q = np.random.normal(
             loc=mu_q, scale=std_q, size=model.constants.num_classical_coordinates
