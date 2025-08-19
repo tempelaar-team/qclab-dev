@@ -15,8 +15,7 @@ class Model:
     def __init__(self, default_constants=None, constants=None):
         if constants is None:
             constants = {}
-        internal_defaults = {}
-        constants = {**internal_defaults, **default_constants, **constants}
+        constants = {**default_constants, **constants}
         self.constants = Constants(self.initialize_constants)
         for key, val in constants.items():
             setattr(self.constants, key, val)
