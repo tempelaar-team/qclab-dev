@@ -34,7 +34,7 @@ QC Lab's built-in vectorization decorator to automatically vectorize it.
         h_qc[1, 0] = np.conj(h_qc[0, 1])
         return h_qc
 
-Next we can add the ingredient to the model's ingredients list, and overwrite the analytic gradient ingredient
+Next we can add the ingredient to the model's ingredients list, and overwrite the analytical gradient ingredient
 which is no longer correct for the new coupling. QC Lab will automatically differentiate the new coupling term 
 using finite differences.
 
@@ -43,13 +43,13 @@ using finite differences.
 
     # Add the new coupling term to the model's ingredients.
     sim.model.ingredients.append(("h_qc", h_qc))
-    # Overwrite the analytic gradient ingredient, which is no longer correct for the new coupling.
+    # Overwrite the analytical gradient ingredient, which is no longer correct for the new coupling.
     sim.model.ingredients.append(("dh_qc_dzc", None))
 
 
 Now we can run the simulation with the new coupling term and compare the results to the previous simulation. 
 You'll notice a small decrease in the performance of the simulation due to the numerical calculation of the gradients. 
-If you'd like to speed up the simulation, you can implement an analytic gradient for the new coupling term by following the 
+If you'd like to speed up the simulation, you can implement an analytical gradient for the new coupling term by following the 
 `model development guide <../../developer_guide/model_dev/model_dev.html>`_.
 
 

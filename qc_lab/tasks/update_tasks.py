@@ -121,7 +121,7 @@ def diagonalize_matrix(algorithm, sim, parameters, state, **kwargs):
 
 def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvecs):
     """
-    Calculates the phase change needed to fix the gauge using analytic derivative couplings.
+    Calculates the phase change needed to fix the gauge using analytical derivative couplings.
 
     Required constants:
         - None.

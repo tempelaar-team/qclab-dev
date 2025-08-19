@@ -7,7 +7,7 @@ This page will guide you in the construction of a new Model Class for use in QC 
 
 The model class describes a physical model as a set of functions referred to as "ingredients". 
 QC Lab is designed to accommodate a minimal model that consists of only a quantum-classical Hamiltonian. 
-However, by incorporating additional ingredients, such as analytic gradients, the performance of QC Lab can be greatly improved. 
+However, by incorporating additional ingredients, such as analytical gradients, the performance of QC Lab can be greatly improved. 
 We will first describe the construction of a minimal model class, and then discuss how to incorporate additional ingredients.
 
 .. contents:: Table of Contents
@@ -388,12 +388,12 @@ provided, the `batch_size` is compared to the number of seeds in the simulation.
 
 
 
-Analytic Gradients
+analytical Gradients
 ~~~~~~~~~~~~~~~~~~
 
 
 By Default, QC Lab calculates gradients numerically with finite differences. This can in many cases be avoided by providing ingredients
-that return the gradients based on analytic formulas. The gradient of the classical Hamiltonian in the spin-boson model is given by 
+that return the gradients based on analytical formulas. The gradient of the classical Hamiltonian in the spin-boson model is given by 
 
 .. math::
 

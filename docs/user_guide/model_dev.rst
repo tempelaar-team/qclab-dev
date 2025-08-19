@@ -7,7 +7,7 @@ This page will guide you in the construction of a new Model Class for use in QC 
 
 The model class describes a physical model as a set of functions referred to as "ingredients". 
 QC Lab is designed to accommodate a minimal model that consists of only a quantum-classical Hamiltonian. 
-However, by incorporating additional ingredients, such as analytic gradients, the performance of QC Lab can be greatly improved. 
+However, by incorporating additional ingredients, such as analytical gradients, the performance of QC Lab can be greatly improved. 
 We will first describe the construction of a minimal model class, and then discuss how to incorporate additional ingredients.
 
 .. contents:: Table of Contents
@@ -52,7 +52,7 @@ of the model ingredients to run.
 
 In the above example, the `__init__` method takes an optional `constants` dictionary which is added to the `default_constants` dictionary by 
 `super().__init__`. The `default_constants` dictionary contains the default input constants for the model. These constants are independent from the 
-internal constants required by QC Lab to function and are instead drawn from the analytic formulation of the spin-boson model. 
+internal constants required by QC Lab to function and are instead drawn from the analytical formulation of the spin-boson model. 
 
 .. math::
     
@@ -383,13 +383,13 @@ provided, the `batch_size` is compared to the number of seeds in the simulation.
 
 
 
-Analytic Gradients
+analytical Gradients
 ~~~~~~~~~~~~~~~~~~
 
 
 Derivatives of the Hamiltonian with respect to each classical coordinate (refered to here as gradients) are automatically calculated in QC Lab using a 
 finite difference method. This can cause significant computational overhead and can be avoided by providing ingredients
-that return the gradients based on analytic formulas. The gradient of the classical Hamiltonian in the spin-boson model is given by 
+that return the gradients based on analytical formulas. The gradient of the classical Hamiltonian in the spin-boson model is given by 
 
 .. math::
 
@@ -718,7 +718,7 @@ The full code for the `UpgradedSpinBoson` model is:
 
 
 .. note::
-    The upgraded model still relies on numerical hopping for FSSH simulations. Below we will see how to use the analytic hopping ingredient for the harmonic oscillator.
+    The upgraded model still relies on numerical hopping for FSSH simulations. Below we will see how to use the analytical hopping ingredient for the harmonic oscillator.
 
 
 Using Built-in Ingredients
@@ -786,7 +786,7 @@ Next we can load the classical Hamiltonian as the built-in harmonic oscillator H
     model.initialize_constants_h_c = initialize_constants_h_c
     model.swap_initialization_function(model, 'initialize_constants_h_c', initialize_constants_h_c)
     
-We can also load analytic gradients for the classical Hamiltonian (which relies
+We can also load analytical gradients for the classical Hamiltonian (which relies
 on the same constants has the classical Hamiltonian).
 
 .. code-block:: python

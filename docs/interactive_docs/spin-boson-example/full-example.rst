@@ -56,7 +56,7 @@ This is what the final code looks like:
     sim.model.constants.l_reorg = 0.05
     # Add the new coupling term to the model's ingredients.
     sim.model.ingredients.append(("h_qc", h_qc))
-    # Overwrite the analytic gradient ingredient, which is no longer correct for the new coupling.
+    # Overwrite the analytical gradient ingredient, which is no longer correct for the new coupling.
     sim.model.ingredients.append(("dh_qc_dzc", None))
     # Attach the FSSH algorithm.
     sim.algorithm = FewestSwitchesSurfaceHopping()
