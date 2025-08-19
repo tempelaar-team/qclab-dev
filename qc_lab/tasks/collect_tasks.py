@@ -1,4 +1,7 @@
-"""Tasks that collect simulation results into output structures."""
+"""
+This module contains the collect tasks which are used to collect data from the state 
+or parameters objects into the output dictionary of the state object.
+"""
 
 
 def collect_t(algorithm, sim, parameters, state):

@@ -20,7 +20,7 @@ def _gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
         rand = np.random.rand()
     std_re = constants.get("mcmc_std", 1)
     std_im = constants.get("mcmc_std", 1)
-    # Generate random real and imaginary parts of z
+    # Generate random real and imaginary parts of z.
     z_re = np.random.normal(loc=0, scale=std_re, size=num_classical_coordinates)
     z_im = np.random.normal(loc=0, scale=std_im, size=num_classical_coordinates)
     z = z_re + 1.0j * z_im
@@ -248,14 +248,14 @@ def numerical_fssh_hop(model, parameters, **kwargs):
     Determines the coordinate rescaling in FSSH numerically.
 
     Required constants:
-        - numerical_fssh_hop_gamma_range (float): Range for gamma. Default: 5.
+        - numerical_fssh_hop_gamma_range (float): Range for gamma. Default: 5.0.
         - numerical_fssh_hop_num_iter (int): Number of iterations. Default: 10.
         - numerical_fssh_hop_num_points (int): Number of points. Default: 10.
     """
     z = kwargs["z"]
     delta_z = kwargs["delta_z"]
     ev_diff = kwargs["ev_diff"]
-    gamma_range = model.constants.get("numerical_fssh_hop_gamma_range", 5)
+    gamma_range = model.constants.get("numerical_fssh_hop_gamma_range", 5.0)
     max_iter = model.constants.get("numerical_fssh_hop_max_iter", 20)
     num_points = model.constants.get("numerical_fssh_hop_num_points", 10)
     thresh = model.constants.get("numerical_fssh_hop_threshold", 1e-6)
@@ -287,7 +287,7 @@ def numerical_fssh_hop(model, parameters, **kwargs):
         )
         min_gamma = gamma_list[np.argmin(new_energies)]
         min_energy = np.min(new_energies)
-        gamma_range = gamma_range / 2
+        gamma_range = gamma_range * 0.5
         num_iter += 1
     if min_energy > thresh:
         return np.zeros_like(z), False

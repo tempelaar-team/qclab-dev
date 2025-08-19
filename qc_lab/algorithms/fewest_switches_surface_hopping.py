@@ -41,7 +41,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             z="z",
             gauge_fixing="phase_der_couple",
         ),
-        partial(tasks.copy_in_state, name="eigvecs_previous", val="eigvecs"),
+        partial(tasks.copy_in_state, dest_name="eigvecs_previous", orig_name="eigvecs"),
         partial(
             tasks.basis_transform_vec,
             input_vec="wf_db",
@@ -55,7 +55,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
     ]
 
     update_recipe = [
-        partial(tasks.copy_in_state, name="eigvecs_previous", val="eigvecs"),
+        partial(tasks.copy_in_state, dest_name="eigvecs_previous", orig_name="eigvecs"),
         ## Begin RK4 integration steps.
         partial(tasks.update_classical_forces, z="z"),
         partial(

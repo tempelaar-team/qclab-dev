@@ -1,4 +1,7 @@
-"""Tasks used to initialize simulation parameters and state objects."""
+"""
+This module contains the tasks used to initialize quantities in the state or parameters objects.
+These are typically used in the initialization recipe of the algorithm object.
+"""
 
 import numpy as np
 from qc_lab.tasks.default_ingredients import *
@@ -6,24 +9,24 @@ from qc_lab.tasks.default_ingredients import *
 
 def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
     """
-    Assign the normalization factor to the state object. 
+    Assign the normalization factor to the state object.
 
     Required constants:
         - None.
     """
-
     state.norm_factor = sim.settings.batch_size
     return parameters, state
 
+
 def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     """
-    Convert seeds into branch seeds for deterministic surface hopping. 
-    This is done by first assumign that the number of branches is equal to the number of quantum states. 
-    Then, a branch index (state.branch_ind) is created which gives the branch index of each seed in the batch. 
-    Then a new set of seeds is created by floor dividing the original seeds by the number of branches so that 
+    Convert seeds into branch seeds for deterministic surface hopping.
+    This is done by first assumign that the number of branches is equal to the number of quantum states.
+    Then, a branch index (state.branch_ind) is created which gives the branch index of each seed in the batch.
+    Then a new set of seeds is created by floor dividing the original seeds by the number of branches so that
     the seeds corresponding to different branches within the same trajectory are the same.
 
-    Notably, this leads to the number of unique classical initial conditions being equal to the number of 
+    Notably, this leads to the number of unique classical initial conditions being equal to the number of
     trajectories divided by the number of branches in deterministic surface hopping.
 
     Required constants:
@@ -67,37 +70,33 @@ def initialize_z(algorithm, sim, parameters, state, **kwargs):
     if has_init_classical:
         setattr(state, name, init_classical(sim.model, parameters, seed=seed))
         return parameters, state
-    setattr(state, name, numerical_boltzmann_mcmc_init_classical(sim.model, parameters, seed=seed))
+    setattr(
+        state,
+        name,
+        numerical_boltzmann_mcmc_init_classical(sim.model, parameters, seed=seed),
+    )
     return parameters, state
 
-
-def assign_to_parameters(algorithm, sim, parameters, state, **kwargs):
-    """
-    Assign the value of the variable "val" to the parameters object with the name "name".
-
-    Required constants:
-        - None.
-    """
-    name = kwargs["name"]
-    val = kwargs["val"]
-    setattr(parameters, name, val)
-    return parameters, state
 
 def state_to_parameters(algorithm, sim, parameters, state, **kwargs):
     """
-    Copy the value of the state variable "state_name" to the parameters object with the name "parameters_name".
+    Set parameters.parameters_name to state.state_name
+
+    Required constants:
+        - None.
     """
     setattr(parameters, kwargs["parameters_name"], getattr(state, kwargs["state_name"]))
     return parameters, state
 
+
 def copy_in_state(algorithm, sim, parameters, state, **kwargs):
     """
-    Creates a copy of state.val with name state.name.
+    Set state.dest_name to state.orig_name
 
     Required constants:
         - None.
     """
-    setattr(state, kwargs["name"], np.copy(getattr(state, kwargs["val"])))
+    setattr(state, kwargs["dest_name"], np.copy(getattr(state, kwargs["orig_name"])))
     return parameters, state
 
 
