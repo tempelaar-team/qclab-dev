@@ -25,7 +25,7 @@ class HolsteinLattice(Model):
             "N": 10,
             "J": 1.0,
             "phonon_mass": 1.0,
-            "periodic_boundary": True,
+            "periodic": True,
         }
         super().__init__(self.default_constants, constants)
 
@@ -43,9 +43,9 @@ class HolsteinLattice(Model):
 
     def _init_h_q(self, parameters, **kwargs):
         J = self.constants.get("J")
-        periodic_boundary = self.constants.get("periodic_boundary")
+        periodic = self.constants.get("periodic")
         self.constants.nearest_neighbor_hopping_energy = J
-        self.constants.nearest_neighbor_periodic_boundary = periodic_boundary
+        self.constants.nearest_neighbor_periodic = periodic
 
     def _init_h_qc(self, parameters, **kwargs):
         N = self.constants.get("N")

@@ -179,19 +179,19 @@ def h_q_nearest_neighbor(model, parameters, **kwargs):
 
     Required constants:
         - `nearest_neighbor_hopping_energy`: Hopping energy between sites.
-        - `nearest_neighbor_periodic_boundary`: Boolean indicating periodic boundary conditions.
+        - `nearest_neighbor_periodic`: Boolean indicating periodic boundary conditions.
     """
     batch_size = kwargs.get("batch_size", len(parameters.seed))
     num_sites = model.constants.num_quantum_states
     hopping_energy = model.constants.nearest_neighbor_hopping_energy
-    periodic_boundary = model.constants.nearest_neighbor_periodic_boundary
+    periodic = model.constants.nearest_neighbor_periodic
     h_q = np.zeros((num_sites, num_sites), dtype=complex)
     # Fill the Hamiltonian matrix with hopping energies.
     for n in range(num_sites - 1):
         h_q[n, n + 1] += -hopping_energy
         h_q[n + 1, n] += np.conj(h_q[n, n + 1])
     # Apply periodic boundary conditions if specified.
-    if periodic_boundary:
+    if periodic:
         h_q[0, num_sites - 1] += -hopping_energy
         h_q[num_sites - 1, 0] += np.conj(h_q[0, num_sites - 1])
     out = h_q[np.newaxis, :, :] + np.zeros(
