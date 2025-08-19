@@ -21,7 +21,6 @@ class Model:
         for key, val in constants.items():
             setattr(self.constants, key, val)
         self.constants._init_complete = True
-        self.initialization_functions = copy.deepcopy(self.initialization_functions)
         self.ingredients = copy.deepcopy(self.ingredients)
         self.update_h_q = True
         self.update_dh_qc_dzc = True
@@ -51,5 +50,4 @@ class Model:
                 ingredient[1](self, None)
         return
 
-    initialization_functions = []
     ingredients = []

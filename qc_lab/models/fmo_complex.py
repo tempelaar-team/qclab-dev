@@ -17,9 +17,9 @@ class FMOComplex(Model):
         if constants is None:
             constants = {}
         self.default_constants = {
-            "kBT": 1,
-            "boson_mass": 1,
-            "l_reorg": 35 * 0.00509506,  # reorganization energy
+            "kBT": 1.0,
+            "boson_mass": 1.0,
+            "l_reorg": 35.0 * 0.00509506,  # reorganization energy
             "W": 106.14 * 0.00509506,  # characteristic frequency
             "A": 200,
         }

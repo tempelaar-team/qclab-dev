@@ -17,13 +17,13 @@ class SpinBoson(Model):
             constants = {}
 
         self.default_constants = {
-            "kBT": 1,
+            "kBT": 1.0,
             "V": 0.5,
             "E": 0.5,
             "A": 100,
             "W": 0.1,
             "l_reorg": 0.005,
-            "boson_mass": 1,
+            "boson_mass": 1.0,
         }
         super().__init__(self.default_constants, constants)
 

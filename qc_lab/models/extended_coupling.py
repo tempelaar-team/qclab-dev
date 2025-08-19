@@ -1,4 +1,6 @@
-"""Model for Tully's third problem, an extended coupling with reflection."""
+"""
+Model class for Tully's third problem, an extended coupling with reflection.
+"""
 
 import numpy as np
 from qc_lab.model import Model
@@ -6,15 +8,22 @@ from qc_lab import ingredients
 
 
 class ExtendedCoupling(Model):
-    """Tully's third problem, an extended coupling with reflection."""
+    """
+    Extended coupling with reflection model class.
+    """
 
     def __init__(self, constants=None):
         if constants is None:
             constants = {}
 
-        self.default_constants = dict(
-            init_momentum=10, init_position=-25, mass=2000, A=0.0006, B=0.1, C=0.9
-        )
+        self.default_constants = {
+            "init_momentum": 10.0,
+            "init_position": -25.0,
+            "mass": 2000.0,
+            "A": 0.0006,
+            "B": 0.1,
+            "C": 0.9,
+        }
 
         super().__init__(self.default_constants, constants)
 

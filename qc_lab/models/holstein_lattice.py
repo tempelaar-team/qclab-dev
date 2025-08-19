@@ -19,12 +19,12 @@ class HolsteinLattice(Model):
             constants = {}
 
         self.default_constants = {
-            "kBT": 1,
+            "kBT": 1.0,
             "g": 0.5,
             "w": 0.5,
             "N": 10,
-            "J": 1,
-            "phonon_mass": 1,
+            "J": 1.0,
+            "phonon_mass": 1.0,
             "periodic_boundary": True,
         }
         super().__init__(self.default_constants, constants)

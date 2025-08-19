@@ -1,4 +1,6 @@
-"""Model for Tully's second problem, a dual avoided crossing."""
+"""
+Model class for Tully's second problem, a dual avoided crossing.
+"""
 
 import numpy as np
 from qc_lab.model import Model
@@ -6,22 +8,24 @@ from qc_lab import ingredients
 
 
 class DualAvoidedCrossing(Model):
-    """Tully's second problem, a dual avoided crossing."""
+    """
+    Dual avoided crossing model class.
+    """
 
     def __init__(self, constants=None):
         if constants is None:
             constants = {}
 
-        self.default_constants = dict(
-            init_momentum=10,
-            init_position=-25,
-            mass=2000,
-            A=0.1,
-            B=0.28,
-            C=0.015,
-            D=0.06,
-            E_0=0.05,
-        )
+        self.default_constants = {
+            "init_momentum": 10.0,
+            "init_position": -25.0,
+            "mass": 2000.0,
+            "A": 0.1,
+            "B": 0.28,
+            "C": 0.015,
+            "D": 0.06,
+            "E_0": 0.05,
+        }
 
         super().__init__(self.default_constants, constants)
 
@@ -34,19 +38,17 @@ class DualAvoidedCrossing(Model):
         self.constants.classical_coordinate_mass = np.array(
             [self.constants.get("mass", self.default_constants.get("mass"))]
         )
-        self.constants.classical_coordinate_weight = np.array([1])
+        self.constants.classical_coordinate_weight = np.array([1.0])
 
     def _init_h_qc(self, parameters, **kwargs):
-        self.constants.gradient_weight = 1 / np.sqrt(
-            2
+        self.constants.gradient_weight = 1.0 / np.sqrt(
+            2.0
             * self.constants.classical_coordinate_mass
             * self.constants.classical_coordinate_weight
         )
 
     def h_qc(self, parameters, **kwargs):
         num_quantum_states = self.constants.num_quantum_states
-        mass = self.constants.classical_coordinate_mass.flatten()
-        h = self.constants.classical_coordinate_weight.flatten()
         A = self.constants.A
         B = self.constants.B
         C = self.constants.C
@@ -55,14 +57,14 @@ class DualAvoidedCrossing(Model):
         z = kwargs["z"]
         batch_size = kwargs.get("batch_size", len(z))
 
-        q = ((z + np.conj(z)) / 2) / ((mass * h / 2) ** (1 / 2))
+        q, _ = ingredients.z_to_qp(z, self.constants)
 
         h_qc = np.zeros(
             (batch_size, num_quantum_states, num_quantum_states), dtype=complex
         )
 
-        V_12 = C * (np.exp(-1 * D * (q**2)))
-        V_22 = -1 * A * (np.exp(-1 * B * (q**2))) + E_0
+        V_12 = C * (np.exp(-1.0 * D * (q**2)))
+        V_22 = -1.0 * A * (np.exp(-1.0 * B * (q**2))) + E_0
 
         h_qc[:, 0, 1] = V_12.flatten()
         h_qc[:, 1, 0] = V_12.flatten()
