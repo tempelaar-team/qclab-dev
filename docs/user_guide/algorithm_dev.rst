@@ -126,7 +126,7 @@ We can then run a simulation and calculate the corresponding spectral function,
     # plot the data.
     print('calculated quantities:', data.data_dic.keys())
     response_function = data.data_dict['response_function']
-    time = sim.settings.tdat_output
+    time = sim.settings.t_collect
     plt.plot(time, np.real(response_function), label='R(t)')
     plt.xlabel('time')
     plt.ylabel('response function')
@@ -215,7 +215,7 @@ We can then run a simulation and plot the populations. Note that since the spin-
     quantum_energy = data.data_dict['quantum_energy']
     populations = np.real(np.einsum('tii->ti', data.data_dict['dm_db']))
     adiabatic_populations = np.real(data.data_dict['pops_adb'])
-    time = sim.settings.tdat_output
+    time = sim.settings.t_collect
     plt.plot(time, adiabatic_populations[:,0], label='adiabatic state 0')
     plt.plot(time, adiabatic_populations[:,1], label='adiabatic state 1')
     plt.xlabel('time')

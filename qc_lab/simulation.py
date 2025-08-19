@@ -9,6 +9,7 @@ from qc_lab.variable import Variable
 
 logger = logging.getLogger(__name__)
 
+
 class Simulation:
     """
     The simulation object represents the entire simulation process.
@@ -37,17 +38,12 @@ class Simulation:
         Initialize the timesteps for the simulation based on the parameters.
 
         First ensures that dt_collect >= dt_update, if not it adjusts dt_collect to be equal to dt_update.
-        Then adjusts tmax to be the closest integer multiple of dt_update.
-        Then adjusts dt_collect to be the closest integer multiple of dt_update as well.
-        Then adjusts tmax to be the closest point on the grid defined by dt_collect.
+        Then adjusts dt_collect to be the closest integer multiple of dt_update.
+        Then adjusts tmax to be the closest integer multiple of dt_collect.
         """
-        tmax = self.settings.get("tmax", self.default_settings.get("tmax"))
-        dt_update = self.settings.get(
-            "dt_update", self.default_settings.get("dt_update")
-        )
-        dt_collect = self.settings.get(
-            "dt_collect", self.default_settings.get("dt_collect")
-        )
+        tmax = self.settings.get("tmax")
+        dt_update = self.settings.get("dt_update")
+        dt_collect = self.settings.get("dt_collect")
 
         logger.info(
             "Initializing timesteps with tmax=%s, dt_update=%s, dt_collect=%s",
@@ -62,31 +58,29 @@ class Simulation:
                 "dt_update is greater than dt_collect, setting dt_collect to dt_update."
             )
 
-        tmax_n = np.round(tmax / dt_update).astype(int)
+        # dt_collect_n is the number of update timesteps that defines a collect timestep.
         dt_collect_n = np.round(dt_collect / dt_update).astype(int)
-        tmax_n = np.round(tmax_n / dt_collect_n).astype(int) * dt_collect_n
-
-        self.settings.tmax_n = tmax_n
+        # tmax_n is the number of update timesteps that defines the total simulation time.
+        self.settings.tmax_n = np.round(tmax / dt_collect).astype(int) * dt_collect_n
+        self.settings.tmax = self.settings.tmax_n * dt_update
         self.settings.dt_collect_n = dt_collect_n
-        self.settings.tdat = np.arange(0, self.settings.tmax_n + 1, 1) * dt_update
-        self.settings.tdat_n = np.arange(0, self.settings.tmax_n + 1, 1)
-        self.settings.tdat_output = (
-            np.arange(
-                0,
-                self.settings.tmax_n + self.settings.dt_collect_n,
-                self.settings.dt_collect_n,
-            )
-            * dt_update
-        )
-        self.settings.tdat_output_n = np.arange(
+        self.settings.dt_collect = dt_collect_n * dt_update
+        # t_update is the update time array for the simulation.
+        self.settings.t_update = np.arange(0, self.settings.tmax_n + 1, 1) * dt_update
+        # t_update_n is the update time array in terms of the number of update steps.
+        self.settings.t_update_n = np.arange(0, self.settings.tmax_n + 1, 1)
+        # t_collect_n is the collect time array for the simulation in terms of the number of update steps.
+        self.settings.t_collect_n = np.arange(
             0,
             self.settings.tmax_n + self.settings.dt_collect_n,
             self.settings.dt_collect_n,
         )
+        # t_collect is the collect time array for the simulation.
+        self.settings.t_collect = self.settings.t_collect_n * dt_update
+
         logger.info(
-            "Timesteps initialized: tmax_n=%s, dt_collect_n=%s, tdat=%s, tdat_n=%s",
-            self.settings.tmax_n,
-            self.settings.dt_collect_n,
-            self.settings.tdat,
-            self.settings.tdat_n,
+            "Initialization finished with tmax=%s, dt_update=%s, dt_collect=%s",
+            self.settings.tmax,
+            self.settings.get("dt_update"),
+            self.settings.dt_collect,
         )

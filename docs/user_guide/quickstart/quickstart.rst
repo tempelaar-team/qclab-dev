@@ -127,7 +127,7 @@ The time axis can be retrieved from the simulation object through its settings.
 
 .. code-block:: python
 
-    time = sim.settings.tdat_output 
+    time = sim.settings.t_collect 
 
 Plotting Results
 ^^^^^^^^^^^^^^^^

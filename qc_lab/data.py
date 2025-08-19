@@ -53,7 +53,7 @@ class Data:
             if not (key in self.data_dict):
                 # If the key is not in the data_dict, initialize it with zeros.
                 self.data_dict[key] = np.zeros(
-                    (len(sim.settings.tdat_output), *np.shape(val)[1:]), dtype=val.dtype
+                    (len(sim.settings.t_collect), *np.shape(val)[1:]), dtype=val.dtype
                 )
                 logger.info(
                     "Initializing data_dict[%s] with shape %s.",

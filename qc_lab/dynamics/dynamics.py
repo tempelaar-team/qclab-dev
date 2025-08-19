@@ -11,7 +11,7 @@ def dynamics(sim, parameter, state, data):
     Dynamics core for QC Lab.
     """
     # Iterate over each time step.
-    for sim.t_ind in tqdm(sim.settings.tdat_n):
+    for sim.t_ind in tqdm(sim.settings.t_update_n):
         if sim.t_ind == 0:
             # Execute initialization recipe.
             parameter, state = sim.algorithm.execute_recipe(
