@@ -37,7 +37,8 @@ class Algorithm:
     collect_recipe = []
 
     def execute_recipe(self, sim, parameter, state, recipe):
-        """Execute the given recipe for the simulation.
+        """
+        Execute the given recipe for the simulation.
 
         Args:
             sim (Simulation): The simulation instance.

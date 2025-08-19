@@ -10,6 +10,7 @@ from qc_lab._config import DISABLE_H5PY
 
 logger = logging.getLogger(__name__)
 
+
 class Data:
     """
     The data object handles the collection of data from the dynamics driver.
@@ -22,7 +23,6 @@ class Data:
         # Store log messages captured during a simulation run. This attribute is
         # populated by the drivers when they return the ``Data`` object.
         self.log = ""
-
 
     def add_output_to_data_dict(self, sim, state, t_ind):
         """
@@ -58,13 +58,12 @@ class Data:
                 logger.info(
                     "Initializing data_dict[%s] with shape %s.",
                     key,
-                    self.data_dict[key].shape
+                    self.data_dict[key].shape,
                 )
             # Store the data in the data_dict at the correct time index.
             self.data_dict[key][t_ind // sim.settings.dt_collect_n] = (
                 np.sum(val, axis=0) / self.data_dict["norm_factor"]
             )
-
 
     def add_data(self, new_data):
         """
@@ -95,7 +94,6 @@ class Data:
         if getattr(new_data, "log", ""):
             self.log += new_data.log
 
-
     def save(self, filename):
         """
         Save the data to disk.
@@ -113,9 +111,9 @@ class Data:
                 self._recursive_save(h5file, "/", self.data_dict)
                 h5file["log"] = self.log
 
-
     def load(self, filename):
-        """Load a :class:`Data` object from ``filename``.
+        """
+        Load a :class:`Data` object from ``filename``.
 
         Args:
             filename (str): The file name to load the data from.
@@ -135,7 +133,6 @@ class Data:
                 if isinstance(self.log, bytes):
                     self.log = self.log.decode("utf-8")
         return self
-
 
     def _recursive_save(self, h5file, path, dic):
         """
@@ -168,7 +165,6 @@ class Data:
                 h5file[path + key] = np.array(item)
             else:
                 raise ValueError(f"Cannot save {key} with type {type(item)}.")
-
 
     def _recursive_load(self, h5file, path, dic):
         """
