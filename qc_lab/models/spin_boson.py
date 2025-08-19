@@ -61,9 +61,6 @@ class SpinBoson(Model):
         return
 
     def _init_model(self, parameters, **kwargs):
-        """
-        Initialize the model-specific constants.
-        """
         A = self.constants.get("A")
         boson_mass = self.constants.get("boson_mass")
         self.constants.num_classical_coordinates = A

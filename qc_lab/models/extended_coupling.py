@@ -37,6 +37,7 @@ class ExtendedCoupling(Model):
             [self.constants.get("mass", self.default_constants.get("mass"))]
         )
         self.constants.classical_coordinate_weight = np.array([1])
+        return
 
     def _init_h_qc(self, parameters, **kwargs):
         self.constants.gradient_weight = 1.0 / np.sqrt(
@@ -44,6 +45,7 @@ class ExtendedCoupling(Model):
             * self.constants.classical_coordinate_mass
             * self.constants.classical_coordinate_weight
         )
+        return
 
     def h_qc(self, parameters, **kwargs):
         num_quantum_states = self.constants.num_quantum_states

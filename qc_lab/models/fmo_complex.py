@@ -48,17 +48,13 @@ class FMOComplex(Model):
         self.constants.classical_coordinate_mass = boson_mass * np.ones(
             self.constants.num_classical_coordinates
         )
+        return
 
     def _init_h_c(self, parameters, **kwargs):
-        """
-        Initialize the constants for the classical Hamiltonian.
-        """
         self.constants.harmonic_frequency = self.constants.w
+        return
 
     def _init_h_qc(self, parameters, **kwargs):
-        """
-        Initialize the constants for the quantum-classical coupling Hamiltonian.
-        """
         A = self.constants.get("A")
         l_reorg = self.constants.get("l_reorg")
         m = self.constants.classical_coordinate_mass
@@ -74,11 +70,7 @@ class FMOComplex(Model):
             self.constants.diagonal_linear_coupling[n, n * A : (n + 1) * A] = (
                 w * np.sqrt(2 * l_reorg / A) * (1 / np.sqrt(2 * m * h))
             )[n * A : (n + 1) * A]
-
-    def _init_h_q(self, parameters, **kwargs):
-        """
-        Initialize the constants for the quantum Hamiltonian.
-        """
+        return
 
     def h_q(self, parameters, **kwargs):
         batch_size = kwargs.get("batch_size", len(parameters.seed))
@@ -125,7 +117,6 @@ class FMOComplex(Model):
         ("dh_c_dzc", ingredients.dh_c_dzc_harmonic),
         ("init_classical", ingredients.init_classical_boltzmann_harmonic),
         ("hop", ingredients.hop_harmonic),
-        ("_init_h_q", _init_h_q),
         ("_init_h_qc", _init_h_qc),
         ("_init_h_c", _init_h_c),
         ("_init_model", _init_model),

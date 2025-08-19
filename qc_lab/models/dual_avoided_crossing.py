@@ -39,6 +39,7 @@ class DualAvoidedCrossing(Model):
             [self.constants.get("mass")]
         )
         self.constants.classical_coordinate_weight = np.array([1.0])
+        return
 
     def _init_h_qc(self, parameters, **kwargs):
         self.constants.gradient_weight = 1.0 / np.sqrt(
@@ -46,6 +47,7 @@ class DualAvoidedCrossing(Model):
             * self.constants.classical_coordinate_mass
             * self.constants.classical_coordinate_weight
         )
+        return
 
     def h_qc(self, parameters, **kwargs):
         num_quantum_states = self.constants.num_quantum_states
