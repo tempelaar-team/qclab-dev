@@ -36,7 +36,7 @@ class DualAvoidedCrossing(Model):
         self.constants.num_quantum_states = 2
         self.constants.num_classical_coordinates = 1
         self.constants.classical_coordinate_mass = np.array(
-            [self.constants.get("mass", self.default_constants.get("mass"))]
+            [self.constants.get("mass")]
         )
         self.constants.classical_coordinate_weight = np.array([1.0])
 
@@ -49,11 +49,11 @@ class DualAvoidedCrossing(Model):
 
     def h_qc(self, parameters, **kwargs):
         num_quantum_states = self.constants.num_quantum_states
-        A = self.constants.A
-        B = self.constants.B
-        C = self.constants.C
-        D = self.constants.D
-        E_0 = self.constants.E_0
+        A = self.constants.get("A")
+        B = self.constants.get("B")
+        C = self.constants.get("C")
+        D = self.constants.get("D")
+        E_0 = self.constants.get("E_0")
         z = kwargs["z"]
         batch_size = kwargs.get("batch_size", len(z))
 
@@ -63,12 +63,12 @@ class DualAvoidedCrossing(Model):
             (batch_size, num_quantum_states, num_quantum_states), dtype=complex
         )
 
-        V_12 = C * (np.exp(-1.0 * D * (q**2)))
-        V_22 = -1.0 * A * (np.exp(-1.0 * B * (q**2))) + E_0
+        v_12 = C * (np.exp(-1.0 * D * (q**2)))
+        v_22 = -1.0 * A * (np.exp(-1.0 * B * (q**2))) + E_0
 
-        h_qc[:, 0, 1] = V_12.flatten()
-        h_qc[:, 1, 0] = V_12.flatten()
-        h_qc[:, 1, 1] = V_22.flatten()
+        h_qc[:, 0, 1] = v_12.flatten()
+        h_qc[:, 1, 0] = v_12.flatten()
+        h_qc[:, 1, 1] = v_22.flatten()
 
         return h_qc
 
@@ -76,10 +76,10 @@ class DualAvoidedCrossing(Model):
         num_quantum_states = self.constants.num_quantum_states
         num_classical_coordinates = self.constants.num_classical_coordinates
         gradient_weight = self.constants.gradient_weight
-        A = self.constants.A
-        B = self.constants.B
-        C = self.constants.C
-        D = self.constants.D
+        A = self.constants.get("A")
+        B = self.constants.get("B")
+        C = self.constants.get("C")
+        D = self.constants.get("D")
 
         z = kwargs["z"]
         batch_size = kwargs.get("batch_size", len(z))
@@ -94,20 +94,20 @@ class DualAvoidedCrossing(Model):
             dtype=complex,
         )
 
-        dV_12_dzc = (
+        dv_12_dzc = (
             (-2 * C * D * (gradient_weight**2))
             * (z + np.conj(z))
             * (np.exp(-1 * D * (((z + np.conj(z)) * gradient_weight) ** 2)))
         )
-        dV_22_dzc = (
+        dv_22_dzc = (
             (2 * A * B * (gradient_weight**2))
             * (z + np.conj(z))
             * (np.exp(-1 * B * (((z + np.conj(z)) * gradient_weight) ** 2)))
         )
 
-        dh_qc_dzc[:, 0, 0, 1] = dV_12_dzc.flatten()
-        dh_qc_dzc[:, 0, 1, 0] = dV_12_dzc.flatten()
-        dh_qc_dzc[:, 0, 1, 1] = dV_22_dzc.flatten()
+        dh_qc_dzc[:, 0, 0, 1] = dv_12_dzc.flatten()
+        dh_qc_dzc[:, 0, 1, 0] = dv_12_dzc.flatten()
+        dh_qc_dzc[:, 0, 1, 1] = dv_22_dzc.flatten()
 
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]

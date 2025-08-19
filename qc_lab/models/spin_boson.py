@@ -31,40 +31,32 @@ class SpinBoson(Model):
         self.update_h_q = False
 
     def _init_hq(self, parameters, **kwargs):
-        self.constants.two_level_00 = self.constants.get(
-            "E", self.default_constants.get("E")
-        )
-        self.constants.two_level_11 = -self.constants.get(
-            "E", self.default_constants.get("E")
-        )
-        self.constants.two_level_01_re = self.constants.get(
-            "V", self.default_constants.get("V")
-        )
+        self.constants.two_level_00 = self.constants.get("E")
+        self.constants.two_level_11 = -1.0 * self.constants.get("E")
+        self.constants.two_level_01_re = self.constants.get("V")
         self.constants.two_level_01_im = 0
         return
 
     def _init_hqc(self, parameters, **kwargs):
-        A = self.constants.get("A", self.default_constants.get("A"))
-        l_reorg = self.constants.get("l_reorg", self.default_constants.get("l_reorg"))
-        boson_mass = self.constants.get(
-            "boson_mass", self.default_constants.get("boson_mass")
-        )
+        A = self.constants.get("A")
+        l_reorg = self.constants.get("l_reorg")
+        boson_mass = self.constants.get("boson_mass")
         h = self.constants.classical_coordinate_weight
         w = self.constants.harmonic_frequency
         self.constants.diagonal_linear_coupling = np.zeros((2, A))
         self.constants.diagonal_linear_coupling[0] = (
-            w * np.sqrt(2 * l_reorg / A) * (1 / np.sqrt(2 * boson_mass * h))
+            w * np.sqrt(2.0 * l_reorg / A) * (1.0 / np.sqrt(2.0 * boson_mass * h))
         )
         self.constants.diagonal_linear_coupling[1] = (
-            -w * np.sqrt(2 * l_reorg / A) * (1 / np.sqrt(2 * boson_mass * h))
+            -w * np.sqrt(2.0 * l_reorg / A) * (1.0 / np.sqrt(2.0 * boson_mass * h))
         )
         return
 
     def _init_hc(self, parameters, **kwargs):
-        A = self.constants.get("A", self.default_constants.get("A"))
-        W = self.constants.get("W", self.default_constants.get("W"))
+        A = self.constants.get("A")
+        W = self.constants.get("W")
         self.constants.harmonic_frequency = W * np.tan(
-            ((np.arange(A) + 1) - 0.5) * np.pi / (2 * A)
+            ((np.arange(A) + 1) - 0.5) * np.pi * 0.5 / A
         )
         return
 
@@ -72,16 +64,13 @@ class SpinBoson(Model):
         """
         Initialize the model-specific constants.
         """
-        A = self.constants.get("A", self.default_constants.get("A"))
-        W = self.constants.get("W", self.default_constants.get("W"))
-        boson_mass = self.constants.get(
-            "boson_mass", self.default_constants.get("boson_mass")
-        )
-        self.constants.w = W * np.tan(((np.arange(A) + 1) - 0.5) * np.pi / (2 * A))
+        A = self.constants.get("A")
+        boson_mass = self.constants.get("boson_mass")
         self.constants.num_classical_coordinates = A
         self.constants.num_quantum_states = 2
-        self.constants.classical_coordinate_weight = self.constants.w
+        self.constants.classical_coordinate_weight = self.constants.harmonic_frequency
         self.constants.classical_coordinate_mass = boson_mass * np.ones(A)
+        return
 
     ingredients = [
         ("h_q", ingredients.h_q_two_level),
@@ -93,6 +82,6 @@ class SpinBoson(Model):
         ("hop", ingredients.hop_harmonic),
         ("_init_h_q", _init_hq),
         ("_init_h_qc", _init_hqc),
-        ("_init_h_c", _init_hc),
         ("_init_model", _init_model),
+        ("_init_h_c", _init_hc),
     ]

@@ -33,11 +33,9 @@ class FMOComplex(Model):
         Initialize the model-specific constants.
         """
         self.constants.num_quantum_states = 7
-        A = self.constants.get("A", self.default_constants.get("A"))
-        W = self.constants.get("W", self.default_constants.get("W"))
-        boson_mass = self.constants.get(
-            "boson_mass", self.default_constants.get("boson_mass")
-        )
+        A = self.constants.get("A")
+        W = self.constants.get("W")
+        boson_mass = self.constants.get("boson_mass")
 
         self.constants.w = (
             W
@@ -61,8 +59,8 @@ class FMOComplex(Model):
         """
         Initialize the constants for the quantum-classical coupling Hamiltonian.
         """
-        A = self.constants.get("A", self.default_constants.get("A"))
-        l_reorg = self.constants.get("l_reorg", self.default_constants.get("l_reorg"))
+        A = self.constants.get("A")
+        l_reorg = self.constants.get("l_reorg")
         m = self.constants.classical_coordinate_mass
         h = self.constants.classical_coordinate_weight
         w = self.constants.w

@@ -35,46 +35,44 @@ class SimpleAvoidedCrossing(Model):
         self.constants.num_quantum_states = 2
         self.constants.num_classical_coordinates = 1
         self.constants.classical_coordinate_mass = np.array(
-            [self.constants.get("mass", self.default_constants.get("mass"))]
+            [self.constants.get("mass")]
         )
-        self.constants.classical_coordinate_weight = np.array([1])
+        self.constants.classical_coordinate_weight = np.array([1.0])
 
     def _init_h_qc(self, parameters, **kwargs):
-        self.constants.gradient_weight = 1 / np.sqrt(
-            2
+        self.constants.gradient_weight = 1.0 / np.sqrt(
+            2.0
             * self.constants.classical_coordinate_mass
             * self.constants.classical_coordinate_weight
         )
 
     def h_qc(self, parameters, **kwargs):
         num_quantum_states = self.constants.num_quantum_states
-        mass = self.constants.classical_coordinate_mass.flatten()
-        h = self.constants.classical_coordinate_weight.flatten()
-        A = self.constants.A
-        B = self.constants.B
-        C = self.constants.C
-        D = self.constants.D
+        A = self.constants.get("A")
+        B = self.constants.get("B")
+        C = self.constants.get("C")
+        D = self.constants.get("D")
 
         z = kwargs["z"]
         batch_size = kwargs.get("batch_size", len(z))
 
-        q = ((z + np.conj(z)) / 2) / ((mass * h / 2) ** (1 / 2))
+        q, _ = ingredients.z_to_qp(z, self.constants)
 
         h_qc = np.zeros(
             (batch_size, num_quantum_states, num_quantum_states), dtype=complex
         )
 
-        V_11 = np.zeros(np.shape(z), dtype=complex)
-        indices_pos = np.real(z) >= 0
-        V_11[indices_pos] = A * (1 - np.exp(-1 * B * q[indices_pos]))
-        indices_neg = np.real(z) < 0
-        V_11[indices_neg] = -1 * A * (1 - np.exp(B * q[indices_neg]))
-        V_12 = C * (np.exp(-1 * D * (q**2)))
+        v_11 = np.zeros(np.shape(z), dtype=complex)
+        indices_pos = np.real(z) >= 0.0
+        v_11[indices_pos] = A * (1.0 - np.exp(-1.0 * B * q[indices_pos]))
+        indices_neg = np.real(z) < 0.0
+        v_11[indices_neg] = -1.0 * A * (1.0 - np.exp(B * q[indices_neg]))
+        v_12 = C * (np.exp(-1.0 * D * (q**2)))
 
-        h_qc[:, 0, 0] = V_11.flatten()
-        h_qc[:, 0, 1] = V_12.flatten()
-        h_qc[:, 1, 0] = V_12.flatten()
-        h_qc[:, 1, 1] = -1 * V_11.flatten()
+        h_qc[:, 0, 0] = v_11.flatten()
+        h_qc[:, 0, 1] = v_12.flatten()
+        h_qc[:, 1, 0] = v_12.flatten()
+        h_qc[:, 1, 1] = -1.0 * v_11.flatten()
 
         return h_qc
 
@@ -82,10 +80,10 @@ class SimpleAvoidedCrossing(Model):
         num_quantum_states = self.constants.num_quantum_states
         num_classical_coordinates = self.constants.num_classical_coordinates
         gradient_weight = self.constants.gradient_weight
-        A = self.constants.A
-        B = self.constants.B
-        C = self.constants.C
-        D = self.constants.D
+        A = self.constants.get("A")
+        B = self.constants.get("B")
+        C = self.constants.get("C")
+        D = self.constants.get("D")
 
         z = kwargs["z"]
         batch_size = kwargs.get("batch_size", len(z))
@@ -100,27 +98,28 @@ class SimpleAvoidedCrossing(Model):
             dtype=complex,
         )
 
-        dV_11_dzc = np.zeros(np.shape(z), dtype=complex)
-        indices_pos = np.real(z) >= 0
-        dV_11_dzc[indices_pos] = (A * B * gradient_weight) * (
+        dv_11_dzc = np.zeros(np.shape(z), dtype=complex)
+        indices_pos = np.real(z) >= 0.0
+        dv_11_dzc[indices_pos] = (A * B * gradient_weight) * (
             np.exp(
-                (-1 * B * gradient_weight) * (np.conj(z[indices_pos]) + z[indices_pos])
+                (-1.0 * B * gradient_weight)
+                * (np.conj(z[indices_pos]) + z[indices_pos])
             )
         )
-        indices_neg = np.real(z) < 0
-        dV_11_dzc[indices_neg] = (A * B * gradient_weight) * (
+        indices_neg = np.real(z) < 0.0
+        dv_11_dzc[indices_neg] = (A * B * gradient_weight) * (
             np.exp((B * gradient_weight) * (np.conj(z[indices_neg]) + z[indices_neg]))
         )
-        dV_12_dzc = (
-            (-2 * C * D * (gradient_weight**2))
+        dv_12_dzc = (
+            (-2.0 * C * D * (gradient_weight**2))
             * (z + np.conj(z))
-            * (np.exp(-1 * D * (((z + np.conj(z)) * gradient_weight) ** 2)))
+            * (np.exp(-1.0 * D * (((z + np.conj(z)) * gradient_weight) ** 2)))
         )
 
-        dh_qc_dzc[:, 0, 0, 0] = dV_11_dzc.flatten()
-        dh_qc_dzc[:, 0, 0, 1] = dV_12_dzc.flatten()
-        dh_qc_dzc[:, 0, 1, 0] = dV_12_dzc.flatten()
-        dh_qc_dzc[:, 0, 1, 1] = -1 * dV_11_dzc.flatten()
+        dh_qc_dzc[:, 0, 0, 0] = dv_11_dzc.flatten()
+        dh_qc_dzc[:, 0, 0, 1] = dv_12_dzc.flatten()
+        dh_qc_dzc[:, 0, 1, 0] = dv_12_dzc.flatten()
+        dh_qc_dzc[:, 0, 1, 1] = -1.0 * dv_11_dzc.flatten()
 
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]
