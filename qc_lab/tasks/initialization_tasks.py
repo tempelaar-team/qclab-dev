@@ -4,8 +4,7 @@ These are typically used in the initialization recipe of the algorithm object.
 """
 
 import numpy as np
-#from qc_lab.tasks.default_ingredients import *
-from qc_lab.tasks.task_functions import _gen_sample_gaussian
+from qc_lab.tasks.task_functions import *
 
 
 def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
@@ -85,7 +84,7 @@ def initialize_z_mcmc(algorithm, sim, parameters, state, **kwargs):
     for s, seed_s in enumerate(seed):
         np.random.seed(seed_s)
         save_inds[s] = np.random.randint(0, sample_size)
-    mcmc_init_z, _ = _gen_sample_gaussian(
+    mcmc_init_z, _ = gen_sample_gaussian(
         sim.model.constants, z0=None, seed=0, separable=False
     )
     sample = sim.model.constants.get("mcmc_init_z", mcmc_init_z)
@@ -95,7 +94,7 @@ def initialize_z_mcmc(algorithm, sim, parameters, state, **kwargs):
             last_sample = np.copy(sample)
             last_z = np.diag(last_sample)
             last_e = h_c(sim.model, parameters, z=last_z, batch_size=len(last_z))
-            proposed_sample, rand = _gen_sample_gaussian(
+            proposed_sample, rand = gen_sample_gaussian(
                 sim.model.constants, z0=last_sample, seed=seed_s, separable=True
             )
             new_z = np.diag(proposed_sample)
@@ -109,7 +108,7 @@ def initialize_z_mcmc(algorithm, sim, parameters, state, **kwargs):
             last_sample = np.copy(sample)
             last_z = np.diag(last_sample)
             last_e = h_c(sim.model, parameters, z=last_z, batch_size=len(last_z))
-            proposed_sample, rand = _gen_sample_gaussian(
+            proposed_sample, rand = gen_sample_gaussian(
                 sim.model.constants, z0=last_sample, seed=seed_s, separable=True
             )
             new_z = np.diag(proposed_sample)
@@ -126,7 +125,7 @@ def initialize_z_mcmc(algorithm, sim, parameters, state, **kwargs):
     for s, seed_s in enumerate(burn_in_seeds):
         last_sample = np.copy(sample)
         last_e = h_c(sim.model, parameters, z=last_sample, batch_size=len(last_sample))
-        proposed_sample, rand = _gen_sample_gaussian(
+        proposed_sample, rand = gen_sample_gaussian(
             sim.model.constants, z0=last_sample, seed=seed_s, separable=False
         )
         new_e = h_c(
@@ -141,7 +140,7 @@ def initialize_z_mcmc(algorithm, sim, parameters, state, **kwargs):
     for s, seed_s in enumerate(sample_seeds):
         last_sample = np.copy(sample)
         last_e = h_c(sim.model, parameters, z=last_sample, batch_size=len(last_sample))
-        proposed_sample, rand = _gen_sample_gaussian(
+        proposed_sample, rand = gen_sample_gaussian(
             sim.model.constants, z0=last_sample, seed=seed_s, separable=False
         )
         new_e = h_c(

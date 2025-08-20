@@ -541,23 +541,6 @@ def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
             final_state_ind=final_state_ind,
             init_state_ind=init_state_ind,
         )
-        # hop, has_hop = sim.model.get("hop")
-        # if has_hop:
-        #     z_shift, hopped = hop(
-        #         sim.model,
-        #         parameters,
-        #         z=z[traj_ind],
-        #         delta_z=delta_z,
-        #         ev_diff=ev_diff,
-        #     )
-        # else:
-        #     z_shift, hopped = numerical_fssh_hop(
-        #         sim.model,
-        #         parameters,
-        #         z=z[traj_ind],
-        #         delta_z=delta_z,
-        #         ev_diff=ev_diff,
-        #     )
         parameters, state = update_z_shift_fssh(
             algorithm,
             sim,

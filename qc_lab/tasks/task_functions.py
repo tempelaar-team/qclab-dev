@@ -8,7 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def _gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
+def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     """
     Generate a sample from a Gaussian distribution.
 
