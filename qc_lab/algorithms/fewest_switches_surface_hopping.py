@@ -60,7 +60,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         partial(tasks.update_classical_forces, z="z"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="wf_db",
+            wf="act_surf_wf",
             z="z",
             use_gauge_field_force=False,
         ),
