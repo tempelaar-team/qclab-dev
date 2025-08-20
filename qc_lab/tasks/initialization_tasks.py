@@ -4,7 +4,8 @@ These are typically used in the initialization recipe of the algorithm object.
 """
 
 import numpy as np
-from qc_lab.tasks.default_ingredients import *
+#from qc_lab.tasks.default_ingredients import *
+from qc_lab.tasks.task_functions import _gen_sample_gaussian
 
 
 def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
@@ -57,6 +58,106 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     return parameters, state
 
 
+def initialize_z_mcmc(algorithm, sim, parameters, state, **kwargs):
+    """
+    Initialize classical coordinates according to Boltzmann statistics using Markov-Chain
+    Monte Carlo with a Metropolis-Hastings algorithm.
+
+    Required constants:
+        - num_classical_coordinates (int): Number of classical coordinates. Default: None.
+        - mcmc_burn_in_size (int): Number of burn-in steps. Default: 5000.
+        - mcmc_std (float): Standard deviation for sampling. Default: 1.
+        - mcmc_h_c_separable (bool): If the classical Hamiltonian is separable. Default: True.
+        - mcmc_init_z (np.ndarray): Initial sample. Default: None.
+        - kBT (float): Thermal quantum. Default: None.
+    """
+    seed = getattr(state, kwargs["seed"])
+    name = kwargs["name"]
+    burn_in_size = sim.model.constants.get("mcmc_burn_in_size", 1000)
+    sample_size = sim.model.constants.get("mcmc_sample_size", 10000)
+    mcmc_h_c_separable = sim.model.constants.get("mcmc_h_c_separable", True)
+    burn_in_seeds = np.arange(burn_in_size)
+    sample_seeds = np.arange(sample_size)
+    save_inds = np.zeros(len(seed), dtype=int)
+    out_tmp = np.zeros(
+        (sample_size, sim.model.constants.num_classical_coordinates), dtype=complex
+    )
+    for s, seed_s in enumerate(seed):
+        np.random.seed(seed_s)
+        save_inds[s] = np.random.randint(0, sample_size)
+    mcmc_init_z, _ = _gen_sample_gaussian(
+        sim.model.constants, z0=None, seed=0, separable=False
+    )
+    sample = sim.model.constants.get("mcmc_init_z", mcmc_init_z)
+    h_c, _ = sim.model.get("h_c")
+    if mcmc_h_c_separable:
+        for s, seed_s in enumerate(burn_in_seeds):
+            last_sample = np.copy(sample)
+            last_z = np.diag(last_sample)
+            last_e = h_c(sim.model, parameters, z=last_z, batch_size=len(last_z))
+            proposed_sample, rand = _gen_sample_gaussian(
+                sim.model.constants, z0=last_sample, seed=seed_s, separable=True
+            )
+            new_z = np.diag(proposed_sample)
+            new_e = h_c(sim.model, parameters, z=new_z, batch_size=len(new_z))
+            thresh = np.minimum(
+                np.ones(sim.model.constants.num_classical_coordinates),
+                np.exp(-(new_e - last_e) / sim.model.constants.kBT),
+            )
+            sample[rand < thresh] = proposed_sample[rand < thresh]
+        for s, seed_s in enumerate(sample_seeds):
+            last_sample = np.copy(sample)
+            last_z = np.diag(last_sample)
+            last_e = h_c(sim.model, parameters, z=last_z, batch_size=len(last_z))
+            proposed_sample, rand = _gen_sample_gaussian(
+                sim.model.constants, z0=last_sample, seed=seed_s, separable=True
+            )
+            new_z = np.diag(proposed_sample)
+            new_e = h_c(sim.model, parameters, z=new_z, batch_size=len(new_z))
+            thresh = np.minimum(
+                np.ones(sim.model.constants.num_classical_coordinates),
+                np.exp(-(new_e - last_e) / sim.model.constants.kBT),
+            )
+            sample[rand < thresh] = proposed_sample[rand < thresh]
+            out_tmp[s] = sample
+            setattr(state, name, out_tmp[save_inds])
+        return parameters, state
+    # If not separable, do the full MCMC.
+    for s, seed_s in enumerate(burn_in_seeds):
+        last_sample = np.copy(sample)
+        last_e = h_c(sim.model, parameters, z=last_sample, batch_size=len(last_sample))
+        proposed_sample, rand = _gen_sample_gaussian(
+            sim.model.constants, z0=last_sample, seed=seed_s, separable=False
+        )
+        new_e = h_c(
+            sim.model,
+            parameters,
+            z=proposed_sample,
+            batch_size=len(proposed_sample),
+        )
+        thresh = min(1, np.exp(-(new_e - last_e) / sim.model.constants.kBT))
+        if rand < thresh:
+            sample = proposed_sample
+    for s, seed_s in enumerate(sample_seeds):
+        last_sample = np.copy(sample)
+        last_e = h_c(sim.model, parameters, z=last_sample, batch_size=len(last_sample))
+        proposed_sample, rand = _gen_sample_gaussian(
+            sim.model.constants, z0=last_sample, seed=seed_s, separable=False
+        )
+        new_e = h_c(
+            sim.model,
+            parameters,
+            z=proposed_sample,
+            batch_size=len(proposed_sample),
+        )
+        thresh = min(1, np.exp(-(new_e - last_e) / sim.model.constants.kBT))
+        if rand < thresh:
+            sample = proposed_sample
+        out_tmp[s] = sample
+    setattr(state, name, out_tmp[save_inds])
+    return parameters, state
+
+
 def initialize_z(algorithm, sim, parameters, state, **kwargs):
     """
     Initialize the classical coordinate by using the init_classical function from the model object.
@@ -70,11 +171,7 @@ def initialize_z(algorithm, sim, parameters, state, **kwargs):
     if has_init_classical:
         setattr(state, name, init_classical(sim.model, parameters, seed=seed))
         return parameters, state
-    setattr(
-        state,
-        name,
-        numerical_boltzmann_mcmc_init_classical(sim.model, parameters, seed=seed),
-    )
+    parameters, state = initialize_z_mcmc(algorithm, sim, parameters, state, seed=kwargs["seed"], name=name)
     return parameters, state
 
 

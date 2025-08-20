@@ -68,7 +68,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         partial(tasks.update_classical_forces, z="z_1"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="wf_db",
+            wf="act_surf_wf",
             z="z_1",
             use_gauge_field_force=False,
         ),
@@ -76,7 +76,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         partial(tasks.update_classical_forces, z="z_2"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="wf_db",
+            wf="act_surf_wf",
             z="z_2",
             use_gauge_field_force=False,
         ),
@@ -84,7 +84,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         partial(tasks.update_classical_forces, z="z_3"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="wf_db",
+            wf="act_surf_wf",
             z="z_3",
             use_gauge_field_force=False,
         ),
@@ -126,8 +126,6 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         tasks.update_dm_db_fssh,
         partial(tasks.update_quantum_energy_fssh, wf="act_surf_wf"),
         partial(tasks.update_classical_energy_fssh, z="z"),
-        # _update_quantum_energy_fssh,
-        # _update_classical_energy_fssh,
         tasks.collect_t,
         tasks.collect_dm_db,
         tasks.collect_quantum_energy,
