@@ -12,6 +12,7 @@ from qc_lab.utils import get_log_output
 
 logger = logging.getLogger(__name__)
 
+
 def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     """
     Parallel driver for the dynamics core using the mpi4py library.

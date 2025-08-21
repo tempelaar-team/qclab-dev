@@ -170,7 +170,9 @@ def initialize_z(algorithm, sim, parameters, state, **kwargs):
     if has_init_classical:
         setattr(state, name, init_classical(sim.model, parameters, seed=seed))
         return parameters, state
-    parameters, state = initialize_z_mcmc(algorithm, sim, parameters, state, seed=kwargs["seed"], name=name)
+    parameters, state = initialize_z_mcmc(
+        algorithm, sim, parameters, state, seed=kwargs["seed"], name=name
+    )
     return parameters, state
 
 

@@ -63,28 +63,23 @@ def initialize_variable_objects(sim, seed):
     """
     state_variable = Variable()
     state_variable.seed = seed
-    logger.info(
-        "Initializing state variable with seed %s.",
-        state_variable.seed
-    )
+    logger.info("Initializing state variable with seed %s.", state_variable.seed)
     for name in sim.state.__dict__.keys():
         obj = getattr(sim.state, name)
         if isinstance(obj, np.ndarray) and name[0] != "_":
             init_shape = np.shape(obj)
             new_obj = (
-                np.zeros((len(seed), *init_shape),
-                         dtype=obj.dtype) + obj[np.newaxis]
+                np.zeros((len(seed), *init_shape), dtype=obj.dtype) + obj[np.newaxis]
             )
             logger.info(
-                "Initializing state variable %s with shape %s.",
-                name,
-                new_obj.shape
+                "Initializing state variable %s with shape %s.", name, new_obj.shape
             )
             setattr(state_variable, name, new_obj)
         elif name[0] != "_":
             logger.warning(
-                "Variable %s in sim.state is not an array, " \
-                "skipping initialization in state Variable object.", name
+                "Variable %s in sim.state is not an array, "
+                "skipping initialization in state Variable object.",
+                name,
             )
     parameter_variable = Variable()
     return parameter_variable, state_variable

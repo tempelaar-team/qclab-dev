@@ -11,6 +11,7 @@ from qc_lab.utils import get_log_output
 
 logger = logging.getLogger(__name__)
 
+
 def serial_driver(sim, seeds=None, data=None):
     """
     Serial driver for the dynamics core.
@@ -30,7 +31,7 @@ def serial_driver(sim, seeds=None, data=None):
         num_trajs = len(seeds)
         logger.warning(
             "Setting sim.settings.num_trajs to the number of provided seeds: %s",
-            num_trajs
+            num_trajs,
         )
         sim.settings.num_trajs = num_trajs
     # Determine the number of simulations required to execute the total number of trajectories.
@@ -39,7 +40,7 @@ def serial_driver(sim, seeds=None, data=None):
     logger.info(
         "Running %s simulations with %s seeds in each batch.",
         num_sims,
-        sim.settings.batch_size
+        sim.settings.batch_size,
     )
     for n in range(num_sims):
         batch_seeds = seeds[
@@ -47,11 +48,7 @@ def serial_driver(sim, seeds=None, data=None):
         ]
         if len(batch_seeds) == 0:
             break
-        logger.info(
-            "Running simulation %s with seeds %s.",
-            n + 1,
-            batch_seeds
-        )
+        logger.info("Running simulation %s with seeds %s.", n + 1, batch_seeds)
         sim.settings.batch_size = len(batch_seeds)
         sim.initialize_timesteps()
         parameters, state = initialize_variable_objects(sim, batch_seeds)

@@ -1,14 +1,11 @@
 """Utility helpers for optional JIT compilation and in-memory logging."""
 
-# Combine functionality from jit.py and logger_utils.py
-
 import logging
 from io import StringIO
 from ._config import DISABLE_NUMBA
 
 logger = logging.getLogger(__name__)
 
-# ----- JIT utilities -----
 
 def qc_lab_custom_jit(func=None, **kwargs):
     """Dummy jit decorator that does nothing if numba is not available."""
@@ -27,9 +24,7 @@ def qc_lab_custom_jit(func=None, **kwargs):
 
 def qc_lab_custom_njit(func=None, **kwargs):
     """Dummy njit decorator that does nothing if numba is not available."""
-    logger.info(
-        "Numba is disabled; using dummy njit decorator."
-    )
+    logger.info("Numba is disabled; using dummy njit decorator.")
 
     def decorator(func):
         return func
@@ -54,6 +49,7 @@ else:
 # ----- Logging utilities -----
 
 _log_stream = StringIO()
+
 
 class QCDataHandler(logging.Handler):
     """Logging handler that stores logs in memory."""
@@ -80,6 +76,7 @@ def configure_memory_logger(level=logging.INFO):
 def get_log_output() -> str:
     """Return all collected log messages."""
     return _log_stream.getvalue()
+
 
 __all__ = [
     "jit",

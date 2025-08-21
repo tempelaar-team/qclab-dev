@@ -8,6 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     """
     Generate a sample from a Gaussian distribution.
@@ -41,7 +42,7 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
 @njit
 def calc_sparse_inner_product(inds, mels, shape, vec_l, vec_r):
     """
-    Given the indices, matrix elements and shape of a sparse matrix, 
+    Given the indices, matrix elements and shape of a sparse matrix,
     calculate the expectation value with a vector.
 
     Required constants:
@@ -56,6 +57,7 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l, vec_r):
             * vec_r[inds[0][i], inds[3][i]]
         )
     return out
+
 
 def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvecs):
     """
@@ -162,7 +164,6 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
     return der_couple_q_phase, der_couple_p_phase
 
 
-
 @njit
 def matprod(mat, vec):
     """
@@ -179,8 +180,6 @@ def matprod(mat, vec):
                 accum = accum + mat[t, i, j] * vec[t, j]
             out[t, i] = accum
     return out
-
-
 
 
 @njit
@@ -304,9 +303,7 @@ def numerical_fssh_hop(model, parameters, **kwargs):
     num_points = model.constants.get("numerical_fssh_hop_num_points", 10)
     thresh = model.constants.get("numerical_fssh_hop_threshold", 1e-6)
     h_c, _ = model.get("h_c")
-    init_energy = h_c(
-        model, parameters, z=np.array([z]), batch_size=1
-    )[0]
+    init_energy = h_c(model, parameters, z=np.array([z]), batch_size=1)[0]
     min_gamma = 0
     num_iter = 0
     min_energy = 1

@@ -13,6 +13,7 @@ from qc_lab.utils import get_log_output
 
 logger = logging.getLogger(__name__)
 
+
 def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
     """
     Parallel driver for the dynamics core using the python library multiprocessing.
@@ -32,7 +33,7 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
         num_trajs = len(seeds)
         logger.warning(
             "Setting sim.settings.num_trajs to the number of provided seeds: %s",
-            num_trajs
+            num_trajs,
         )
         sim.settings.num_trajs = num_trajs
     if num_tasks is None:
@@ -47,7 +48,7 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
     logger.info(
         "Running %s simulations with %s seeds in each batch.",
         num_sims,
-        sim.settings.batch_size
+        sim.settings.batch_size,
     )
     batch_seeds_list = (
         np.zeros((num_sims * sim.settings.batch_size), dtype=int) + np.nan
@@ -68,9 +69,7 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
     for i in range(num_sims):
         input_data[i][0].settings.batch_size = len(input_data[i][2].seed)
         logger.info(
-            "Running simulation %s with seeds %s.",
-            i + 1,
-            input_data[i][2].seed
+            "Running simulation %s with seeds %s.", i + 1, input_data[i][2].seed
         )
     with multiprocessing.Pool(processes=size) as pool:
         results = pool.starmap(dynamics.dynamics, input_data)
