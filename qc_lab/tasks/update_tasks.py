@@ -182,8 +182,6 @@ def update_dh_qc_dzc(algorithm, sim, parameters, state, **kwargs):
     return parameters, state
 
 
-
-
 def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs):
     """
     Update the quantum-classical forces w.r.t. the state defined by wf.
@@ -222,9 +220,6 @@ def diagonalize_matrix(algorithm, sim, parameters, state, **kwargs):
     setattr(state, kwargs["eigvals"], eigvals)
     setattr(state, kwargs["eigvecs"], eigvecs)
     return parameters, state
-
-
-
 
 
 def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
@@ -387,8 +382,6 @@ def update_wf_db_eigs(algorithm, sim, parameters, state, **kwargs):
     return parameters, state
 
 
-
-
 def update_wf_db_rk4(algorithm, sim, parameters, state, **kwargs):
     """
     Update the wavefunction using the 4th-order Runge-Kutta method.
@@ -401,9 +394,6 @@ def update_wf_db_rk4(algorithm, sim, parameters, state, **kwargs):
     h_quantum = state.h_quantum
     state.wf_db = wf_db_rk4(h_quantum, wf_db, dt_update)
     return parameters, state
-
-
-
 
 
 def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
@@ -507,6 +497,7 @@ def update_z_shift_fssh(algorithm, sim, parameters, state, **kwargs):
     state.hop_successful_traj = hopped
     state.z_shift_traj = z_shift
     return parameters, state
+
 
 def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
     """
@@ -655,11 +646,9 @@ def update_z_rk4_k4(algorithm, sim, parameters, state, **kwargs):
     return parameters, state
 
 
-
-
 def update_dm_db_mf(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the diabatic density matrix for mean-field dynamics.
+    Update the diabatic density matrix based on the wavefunction.
 
     Required constants:
         - None.
@@ -684,7 +673,11 @@ def update_classical_energy(algorithm, sim, parameters, state, **kwargs):
 
 def update_classical_energy_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the classical energy as a sum of equally-weighted contributions from each branch.
+
+    Update the classical energy for FSSH simulations. If deterministic, the energy in each
+    branch is summed together with weights determined by the initial adiabatic populations.
+    If not deterministic (and so there is only one branch), the energy is computed for the
+    single branch.
 
     Required constants:
         - None.
@@ -698,38 +691,31 @@ def update_classical_energy_fssh(algorithm, sim, parameters, state, **kwargs):
     num_states = sim.model.constants.num_quantum_states
     h_c, _ = sim.model.get("h_c")
     if sim.algorithm.settings.fssh_deterministic:
-        state.classical_energy = 0
-        branch_weights = np.sqrt(
-            num_branches
-            * np.einsum(
-                "tbbb->tb",
-                state.dm_adb_0.reshape(
-                    (batch_size, num_branches, num_states, num_states)
-                ),
-            )
+        state.classical_energy = 0.0
+        branch_weights = num_branches * np.einsum(
+            "tbbb->tb",
+            state.dm_adb_0.reshape((batch_size, num_branches, num_states, num_states)),
         )
         for branch_ind in range(num_branches):
-            z_branch = (
-                z[state.branch_ind == branch_ind]
-                * branch_weights[:, branch_ind][:, np.newaxis]
-            )
-            state.classical_energy = state.classical_energy + h_c(
+            z_branch = z[state.branch_ind == branch_ind]
+            state.classical_energy = state.classical_energy + branch_weights[
+                :, branch_ind
+            ] * h_c(
                 sim.model,
                 parameters,
                 z=z_branch,
                 batch_size=len(z_branch),
             )
     else:
-        state.classical_energy = 0
-        for branch_ind in range(num_branches):
-            z_branch = z[state.branch_ind == branch_ind]
-            state.classical_energy = state.classical_energy + h_c(
-                sim.model,
-                parameters,
-                z=z_branch,
-                batch_size=len(z_branch),
-            )
-        state.classical_energy = state.classical_energy / num_branches
+        state.classical_energy = 0.0
+        z_branch = z[state.branch_ind == 0]
+        state.classical_energy = state.classical_energy + h_c(
+            sim.model,
+            parameters,
+            z=z_branch,
+            batch_size=len(z_branch),
+        )
+        state.classical_energy = state.classical_energy
     state.classical_energy = np.real(state.classical_energy)
     return parameters, state
 
