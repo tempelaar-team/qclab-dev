@@ -1,5 +1,6 @@
 """
 This module defines the Variable class, which is used to store time-dependent variables in QC Lab.
+It also defines a function to initialize parameter and state Variable objects for simulations.
 """
 
 import logging
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class Variable:
     """
-    The Variable class provides an object in which time-dependent quantities can be stored.
+    Variable class for storing time-dependent variables.
     """
 
     def __init__(self):
@@ -18,27 +19,17 @@ class Variable:
 
     def __getattr__(self, name):
         """
-        Return ``None`` for missing attributes.
+        Return `None` for missing attributes.
 
         Args:
             name (str): Attribute name.
 
         Returns:
-            Any | None: The attribute value if present, otherwise ``None``.
+            Any | None: The attribute value if present, otherwise `None`.
         """
         if name in self.__dict__:
             return self.__dict__[name]
         return None
-
-    def collect_outputs(self, names):
-        """
-        Collect attributes into the output dictionary.
-
-        Args:
-            names (Iterable[str]): List of attribute names.
-        """
-        for var in names:
-            self.output_dict[var] = getattr(self, var)
 
     def __getstate__(self):
         """
@@ -59,19 +50,19 @@ class Variable:
         self.__dict__.update(state)
 
 
-def initialize_variable_objects(sim, seeds):
+def initialize_variable_objects(sim, seed):
     """
-    Generate the ``parameter`` and ``state`` variables for a simulation.
+    Generate the `parameter` and `state` variables for a simulation.
 
     Args:
         sim (Simulation): The simulation instance.
-        seeds (Iterable[int]): Array of trajectory seeds.
+        seed (Iterable[int]): Array of trajectory seeds.
 
     Returns:
-        tuple[Variable, Variable]: The ``parameter`` and ``state`` objects.
+        tuple[Variable, Variable]: The `parameter` and `state` objects.
     """
     state_variable = Variable()
-    state_variable.seed = seeds
+    state_variable.seed = seed
     logger.info(
         "Initializing state variable with seed %s.",
         state_variable.seed
@@ -81,7 +72,7 @@ def initialize_variable_objects(sim, seeds):
         if isinstance(obj, np.ndarray) and name[0] != "_":
             init_shape = np.shape(obj)
             new_obj = (
-                np.zeros((len(seeds), *init_shape),
+                np.zeros((len(seed), *init_shape),
                          dtype=obj.dtype) + obj[np.newaxis]
             )
             logger.info(
