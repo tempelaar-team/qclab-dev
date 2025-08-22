@@ -25,8 +25,8 @@ def update_t(algorithm, sim, parameters, state):
         - None.
     """
     batch_size = len(parameters.seed)
-    # the variable should store the time in each trajectory and should therefore be
-    # and array with length batch_size.
+    # the variable should store the time in each trajectory and should
+    # therefore be an array with length batch_size.
     state.t = np.ones(batch_size) * sim.t_ind * sim.settings.dt_update
     return parameters, state
 
@@ -36,7 +36,8 @@ def update_dh_c_dzc_finite_differences(algorithm, sim, parameters, state, **kwar
     Calculate the gradient of the classical Hamiltonian using finite differences.
 
     Required constants:
-        - num_classical_coordinates (int): Number of classical coordinates. Default: None.
+        - num_classical_coordinates (int): Number of classical
+          coordinates. Default: None.
     """
     z = kwargs["z"]
     name = kwargs.get("name", "dh_c_dzc")
@@ -84,8 +85,8 @@ def update_dh_c_dzc_finite_differences(algorithm, sim, parameters, state, **kwar
 
 def update_classical_forces(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the gradient of the classical Hamiltonian
-    w.r.t. the conjugate classical coordinate.
+    Update the gradient of the classical Hamiltonian w.r.t. the conjugate classical
+    coordinate.
 
     Required constants:
         - None.
@@ -102,12 +103,15 @@ def update_classical_forces(algorithm, sim, parameters, state, **kwargs):
 
 def update_dh_qc_dzc_finite_differences(algorithm, sim, parameters, state, **kwargs):
     """
-    Calculate the gradient of the quantum-classical Hamiltonian using finite differences.
+    Calculate the gradient of the quantum-classical Hamiltonian using finite
+    differences.
 
     Required constants:
-        - num_classical_coordinates (int): Number of classical coordinates. Default: None.
+        - num_classical_coordinates (int): Number of classical
+          coordinates. Default: None.
         - num_quantum_states (int): Number of quantum states. Default: None.
-        - finite_difference_dz (float): Step size for finite differences. Default: 1e-6.
+        - finite_difference_dz (float): Step size for finite differences.
+          Default: 1e-6.
     """
     z = kwargs["z"]
     batch_size = kwargs.get("batch_size", len(z))
@@ -168,8 +172,8 @@ def update_dh_qc_dzc_finite_differences(algorithm, sim, parameters, state, **kwa
 
 def update_dh_qc_dzc(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the gradient of the quantum-classical Hamiltonian
-    w.r.t. the conjugate classical coordinate.
+    Update the gradient of the quantum-classical Hamiltonian w.r.t. the conjugate
+    classical coordinate.
 
     Required constants:
         - None.
@@ -218,7 +222,8 @@ def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs)
 
 def diagonalize_matrix(algorithm, sim, parameters, state, **kwargs):
     """
-    Diagonalizes a given matrix from the state object and stores the eigenvalues and eigenvectors in the state object.
+    Diagonalizes a given matrix from the state object and stores the eigenvalues and
+    eigenvectors in the state object.
 
     Required constants:
         - None.
@@ -243,8 +248,9 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
         with the previous eigenvector and used to maximize the overlap.
 
     if gauge_fixing == "phase_der_couple":
-        The phase of the eigenvector is determined by calculating the derivative couplings
-        and changed so that all the derivative couplings are real-valued.
+        The phase of the eigenvector is determined by calculating the
+        derivative couplings and changed so that all the derivative
+        couplings are real-valued.
 
     Required constants:
         - None.
@@ -316,9 +322,8 @@ def basis_transform_vec(algorithm, sim, parameters, state, **kwargs):
 
 def basis_transform_mat(algorithm, sim, parameters, state, **kwargs):
     """
-    Transforms a matrix "input_mat" to a new basis
-    defined by "basis" and stores it in the state object
-    with name "output_name".
+    Transforms a matrix "input_mat" to a new basis defined by "basis" and stores it in
+    the state object with name "output_name".
 
     Required constants:
         - None.
@@ -433,7 +438,8 @@ def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
         state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind_flat] == 0
     ):
         logger.critical(
-            "Wavefunction in active surface is zero, cannot calculate hopping probabilities."
+            "Wavefunction in active surface is zero, cannot calculate "
+            "hopping probabilities."
         )
     hop_prob = -2.0 * np.real(
         prod
@@ -450,11 +456,12 @@ def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
 
 def update_hop_inds_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    Determines which trajectories hop based on the hopping probabilities and which state they hop to.
-    Note that these will only hop if they are not frustrated by the hopping function.
+    Determines which trajectories hop based on the hopping probabilities and which state
+    they hop to. Note that these will only hop if they are not frustrated by the hopping
+    function.
 
-    Stores the indices of the hopping trajectories in state.hop_ind.
-    Stores the destination indices of the hops in state.hop_dest.
+    Stores the indices of the hopping trajectories in state.hop_ind. Stores the
+    destination indices of the hops in state.hop_dest.
     """
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -510,8 +517,9 @@ def update_z_shift_fssh(algorithm, sim, parameters, state, **kwargs):
 def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
     """
     Executes the hopping function for the hopping trajectories.
-    It stores the rescaled coordinates in state.z_rescaled
-    and the a Boolean registering if the hop was successful in state.hop_successful.
+
+    It stores the rescaled coordinates in state.z_rescaled and the a Boolean registering
+    if the hop was successful in state.hop_successful.
     """
 
     hop_ind = state.hop_ind
@@ -557,8 +565,8 @@ def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
 
 def update_z_hop_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    Executes the post-hop updates for FSSH, rescaling the z coordinates and updating
-    the active surface indices, and wavefunctions.
+    Executes the post-hop updates for FSSH, rescaling the z coordinates and updating the
+    active surface indices, and wavefunctions.
     """
     state.z[state.hop_ind] += state.z_shift
     return parameters, state
@@ -568,7 +576,6 @@ def update_act_surf_hop_fssh(algorithm, sim, parameters, state, **kwargs):
     """
     Update the active surface, active surface index, and active surface wavefunction
     following a hop in FSSH.
-
     """
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -681,11 +688,10 @@ def update_classical_energy(algorithm, sim, parameters, state, **kwargs):
 
 def update_classical_energy_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-
-    Update the classical energy for FSSH simulations. If deterministic, the energy in each
-    branch is summed together with weights determined by the initial adiabatic populations.
-    If not deterministic (and so there is only one branch), the energy is computed for the
-    single branch.
+    Update the classical energy for FSSH simulations. If deterministic, the energy in
+    each branch is summed together with weights determined by the initial adiabatic
+    populations. If not deterministic (and so there is only one branch), the energy is
+    computed for the single branch.
 
     Required constants:
         - None.

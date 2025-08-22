@@ -10,6 +10,7 @@ from qc_lab import ingredients
 class FMOComplex(Model):
     """
     A model representing a Fenna-Matthews-Olson (FMO) complex.
+
     All unitless quantities in this model are taken to be in units of kBT at 298.15 K.
     """
 
@@ -93,13 +94,15 @@ class FMOComplex(Model):
         )
 
         # To convert wavenumbers to units of kBT at T=298.15K we
-        # multiply by each value by 0.00509506 = (1/8065.544)[eV/cm^-1] / 0.0243342[eV]
+        # multiply each value by 0.00509506 =
+        # (1/8065.544)[eV/cm^-1] / 0.0243342[eV]
         # where 0.0243342[eV] is the value of kBT at 298.15K
-        # note that all other constants in this model must also be assumed to be
-        # in units of kBT at 298.15K.
+        # note that all other constants in this model must also be assumed to
+        # be in units of kBT at 298.15K.
         matrix_elements *= 0.00509506
 
-        # to reduce numerical errors we can offset the diagonal elements by their minimum value
+        # to reduce numerical errors we can offset the diagonal elements by
+        # their minimum value
         matrix_elements = matrix_elements - np.min(
             np.diag(matrix_elements)
         ) * np.identity(self.constants.num_quantum_states)

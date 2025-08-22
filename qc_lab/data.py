@@ -1,6 +1,6 @@
 """
-This module defines the Data class, which is used to handle the collection and storage of data
-output from algorithms in QC Lab.
+This module defines the Data class, which is used to handle the collection and storage
+of data output from algorithms in QC Lab.
 """
 
 import logging

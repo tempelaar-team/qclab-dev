@@ -9,9 +9,8 @@ from qc_lab import ingredients
 
 class HolsteinLattice(Model):
     """
-    A model representing a nearest-neighbor tight-binding model
-    with Holstein-type electron-phonon coupling with a
-    single optical mode.
+    A model representing a nearest-neighbor tight-binding model with Holstein-type
+    electron-phonon coupling with a single optical mode.
     """
 
     def __init__(self, constants=None):

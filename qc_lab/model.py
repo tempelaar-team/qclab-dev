@@ -8,8 +8,8 @@ from qc_lab.constants import Constants
 
 class Model:
     """
-    The Model object provides the framework for defining the default constants of a model and
-    retrieving the ingredients of the model.
+    The Model object provides the framework for defining the default constants of a
+    model and retrieving the ingredients of the model.
     """
 
     def __init__(self, default_constants=None, constants=None):

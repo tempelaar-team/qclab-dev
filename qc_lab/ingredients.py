@@ -1,7 +1,7 @@
 """
 This module contains ingredients for use in Model classes.
-It also contains any functions that the ingredients depend on
-for low-level operations.
+
+It also contains any functions that the ingredients depend on for low-level operations.
 """
 
 import functools
@@ -32,8 +32,8 @@ def qp_to_z(q, p, constants):
 
 def make_ingredient_sparse(ingredient):
     """
-    Wrapper that converts a vectorized ingredient output to a sparse format
-    consisting of the indices (inds), nonzero elements (mels), and shape.
+    Wrapper that converts a vectorized ingredient output to a sparse format consisting
+    of the indices (inds), nonzero elements (mels), and shape.
     """
 
     @functools.wraps(ingredient)
@@ -51,8 +51,9 @@ def make_ingredient_sparse(ingredient):
 def vectorize_ingredient(ingredient):
     """
     Wrapper that vectorize an ingredient function.
-    It assumes that any kwarg is an numpy.ndarray that is vectorized over its first index.
-    Other kwargs are assumed to not be vectorized.
+
+    It assumes that any kwarg is an numpy.ndarray that is vectorized over its first
+    index. Other kwargs are assumed to not be vectorized.
     """
 
     @functools.wraps(ingredient)
@@ -111,7 +112,9 @@ def h_c_free(model, parameters, **kwargs):
 @njit()
 def dh_c_dzc_harmonic_jit(z, h, w):
     """
-    Derivative of the harmonic oscillator classical Hamiltonian function with respect to the conjugate `z` coordinate.
+    Derivative of the harmonic oscillator classical Hamiltonian function with respect to
+    the conjugate `z` coordinate.
+
     This is a low-level function accelerated using Numba.
     """
     a = 0.5 * (((w**2) / h) - h)
@@ -122,8 +125,9 @@ def dh_c_dzc_harmonic_jit(z, h, w):
 
 def dh_c_dzc_harmonic(model, parameters, **kwargs):
     """
-    Derivative of the harmonic oscillator classical Hamiltonian function with respect to the conjugate `z` coordinate.
-    This is an ingredient that calls the low-level function `dh_c_dzc_harmonic_jit`.
+    Derivative of the harmonic oscillator classical Hamiltonian function with respect to
+    the conjugate `z` coordinate. This is an ingredient that calls the low-level
+    function `dh_c_dzc_harmonic_jit`.
 
     Required constants:
         - `harmonic_frequency`: Array of harmonic frequencies.
@@ -136,7 +140,8 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
 
 def dh_c_dzc_free(model, parameters, **kwargs):
     """
-    Derivative of the free particle classical Hamiltonian function with respect to the conjugate `z` coordinate.
+    Derivative of the free particle classical Hamiltonian function with respect to the
+    conjugate `z` coordinate.
 
     Required constants:
         - `classical_coordinate_mass`: Mass of the classical coordinates.
@@ -226,7 +231,8 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
     :math:`H_{ii} = \sum_{j} \gamma_{ij} (z_{j} + z_{j}^*)`
 
     Required constants:
-        - `diagonal_linear_coupling`: Array of coupling constants (num_quantum_states, num_classical_coordinates).
+        - `diagonal_linear_coupling`: Array of coupling constants
+          (num_quantum_states, num_classical_coordinates).
     """
     del parameters
     z = kwargs["z"]
@@ -244,7 +250,8 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
     Gradient of the diagonal linear quantum-classical coupling Hamiltonian.
 
     Required constants:
-        - `diagonal_linear_coupling`: Array of coupling constants (num_quantum_states, num_classical_coordinates).
+        - `diagonal_linear_coupling`: Array of coupling constants
+          (num_quantum_states, num_classical_coordinates).
     """
     batch_size = kwargs.get("batch_size", len(parameters.seed))
     num_states = model.constants.num_quantum_states
@@ -268,7 +275,9 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
 
 def hop_harmonic(model, parameters, **kwargs):
     """
-    FSSH hop function for taking the classical coordinates to represent harmonic oscillators.
+    FSSH hop function for taking the classical coordinates to represent harmonic
+    oscillators.
+
     Determines the shift in the classical coordinates required to conserve energy
     following a hop between quantum states. The quantity ev_diff = e_final - e_initial
     is the energy difference between the final and initial quantum states and
@@ -330,6 +339,7 @@ def hop_harmonic(model, parameters, **kwargs):
 def hop_free(model, parameters, **kwargs):
     """
     FSSH hop function taking the classical coordinates to represent free particles.
+
     Determines the shift in the classical coordinates required to conserve energy
     following a hop between quantum states. The quantity ev_diff = e_final - e_initial
     is the energy difference between the final and initial quantum states and
@@ -379,8 +389,8 @@ def hop_free(model, parameters, **kwargs):
 
 def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
     """
-    Initialize classical coordinates according to Boltzmann statistics taking the classical
-    coordinates to represent harmonic oscillators.
+    Initialize classical coordinates according to Boltzmann statistics taking the
+    classical coordinates to represent harmonic oscillators.
 
     Required constants:
         - `kBT`: Thermal quantum.
@@ -413,7 +423,8 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
 
 def init_classical_wigner_harmonic(model, parameters, **kwargs):
     """
-    Initialize classical coordinates according to the Wigner distribution of the ground state of a harmonic oscillator.
+    Initialize classical coordinates according to the Wigner distribution of the ground
+    state of a harmonic oscillator.
 
     Required constants:
         - `kBT`: Thermal quantum.
@@ -452,9 +463,9 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
 
 def init_classical_definite_position_momentum(model, parameters, **kwargs):
     """
-    Initialize classical coordinates with definite position and momentum.
-    The quantities init_position and init_momentum are the initial position and momentum,
-    and so should be numpy arrays of shape (num_classical_coordinates).
+    Initialize classical coordinates with definite position and momentum. The quantities
+    init_position and init_momentum are the initial position and momentum, and so should
+    be numpy arrays of shape (num_classical_coordinates).
 
     Required constants:
         - `classical_coordinate_mass`: Mass of the classical coordinates.
@@ -473,14 +484,16 @@ def init_classical_definite_position_momentum(model, parameters, **kwargs):
 
 def init_classical_wigner_coherent_state(model, parameters, **kwargs):
     """
-    Initialize classical coordinates according to the Wigner distribution of a coherent state of a harmonic oscillator.
+    Initialize classical coordinates according to the Wigner distribution of a coherent
+    state of a harmonic oscillator.
 
     :math:`exp(a\hat{b}^{\dagger} - a^{*}\hat{b})\vert 0\rangle`
 
     where `a` is the complex displacement parameter of the coherent state.
 
     Required constants:
-        - `coherent_state_displacement`: Array of complex displacement parameter for the coherent state.
+        - `coherent_state_displacement`: Array of complex displacement
+          parameter for the coherent state.
         - `harmonic_frequency`: Array of harmonic frequencies.
     """
     seed = kwargs["seed"]

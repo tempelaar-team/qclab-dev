@@ -15,7 +15,8 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     Generate a sample from a Gaussian distribution.
 
     Required constants:
-        - num_classical_coordinates (int): Number of classical coordinates. Default: None.
+        - num_classical_coordinates (int): Number of classical coordinates.
+          Default: None.
         - mcmc_std (float): Standard deviation for sampling. Default: 1.
     """
     if seed is not None:
@@ -43,8 +44,8 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
 @njit
 def calc_sparse_inner_product(inds, mels, shape, vec_l, vec_r):
     """
-    Given the indices, matrix elements and shape of a sparse matrix,
-    calculate the expectation value with a vector.
+    Given the indices, matrix elements and shape of a sparse matrix, calculate the
+    expectation value with a vector.
 
     Required constants:
         - None.
@@ -62,7 +63,8 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l, vec_r):
 
 def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvecs):
     """
-    Calculates the phase change needed to fix the gauge using analytical derivative couplings.
+    Calculates the phase change needed to fix the gauge using analytical derivative
+    couplings.
 
     Required constants:
         - None.

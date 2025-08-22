@@ -1,5 +1,7 @@
 """
-This module contains the tasks used to initialize quantities in the state or parameters objects.
+This module contains the tasks used to initialize quantities in the state or parameters
+objects.
+
 These are typically used in the initialization recipe of the algorithm object.
 """
 
@@ -20,14 +22,16 @@ def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
 
 def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     """
-    Convert seeds into branch seeds for deterministic surface hopping.
-    This is done by first assumign that the number of branches is equal to the number of quantum states.
-    Then, a branch index (state.branch_ind) is created which gives the branch index of each seed in the batch.
-    Then a new set of seeds is created by floor dividing the original seeds by the number of branches so that
-    the seeds corresponding to different branches within the same trajectory are the same.
+    Convert seeds into branch seeds for deterministic surface hopping. This is done by
+    first assumign that the number of branches is equal to the number of quantum states.
+    Then, a branch index (state.branch_ind) is created which gives the branch index of
+    each seed in the batch. Then a new set of seeds is created by floor dividing the
+    original seeds by the number of branches so that the seeds corresponding to
+    different branches within the same trajectory are the same.
 
-    Notably, this leads to the number of unique classical initial conditions being equal to the number of
-    trajectories divided by the number of branches in deterministic surface hopping.
+    Notably, this leads to the number of unique classical initial conditions
+    being equal to the number of trajectories divided by the number of
+    branches in deterministic surface hopping.
 
     Required constants:
         - num_quantum_states (int): Number of quantum states. Default: None.
@@ -38,9 +42,10 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     else:
         num_branches = 1
     batch_size = sim.settings.batch_size
-    assert (
-        batch_size % num_branches == 0
-    ), "Batch size must be divisible by number of quantum states for deterministic surface hopping."
+    assert batch_size % num_branches == 0, (
+        "Batch size must be divisible by number of quantum states for"
+        " deterministic surface hopping."
+    )
     # Next, determine the number of trajectories that have been run by assuming that
     # the minimum seed in the current batch of seeds is the number of trajectories
     # that have been run modulo num_branches.
@@ -59,14 +64,16 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
 
 def initialize_z_mcmc(algorithm, sim, parameters, state, **kwargs):
     """
-    Initialize classical coordinates according to Boltzmann statistics using Markov-Chain
-    Monte Carlo with a Metropolis-Hastings algorithm.
+    Initialize classical coordinates according to Boltzmann statistics using Markov-
+    Chain Monte Carlo with a Metropolis-Hastings algorithm.
 
     Required constants:
-        - num_classical_coordinates (int): Number of classical coordinates. Default: None.
+        - num_classical_coordinates (int): Number of classical coordinates.
+          Default: None.
         - mcmc_burn_in_size (int): Number of burn-in steps. Default: 5000.
         - mcmc_std (float): Standard deviation for sampling. Default: 1.
-        - mcmc_h_c_separable (bool): If the classical Hamiltonian is separable. Default: True.
+        - mcmc_h_c_separable (bool): If the classical Hamiltonian is
+          separable. Default: True.
         - mcmc_init_z (np.ndarray): Initial sample. Default: None.
         - kBT (float): Thermal quantum. Default: None.
     """
@@ -159,7 +166,8 @@ def initialize_z_mcmc(algorithm, sim, parameters, state, **kwargs):
 
 def initialize_z(algorithm, sim, parameters, state, **kwargs):
     """
-    Initialize the classical coordinate by using the init_classical function from the model object.
+    Initialize the classical coordinate by using the init_classical function from the
+    model object.
 
     Required constants:
         - None.
@@ -178,7 +186,7 @@ def initialize_z(algorithm, sim, parameters, state, **kwargs):
 
 def state_to_parameters(algorithm, sim, parameters, state, **kwargs):
     """
-    Set parameters.parameters_name to state.state_name
+    Set parameters.parameters_name to state.state_name.
 
     Required constants:
         - None.
@@ -189,7 +197,7 @@ def state_to_parameters(algorithm, sim, parameters, state, **kwargs):
 
 def copy_in_state(algorithm, sim, parameters, state, **kwargs):
     """
-    Set state.dest_name to state.orig_name
+    Set state.dest_name to state.orig_name.
 
     Required constants:
         - None.
@@ -200,9 +208,8 @@ def copy_in_state(algorithm, sim, parameters, state, **kwargs):
 
 def initialize_active_surface(algorithm, sim, parameters, state, **kwargs):
     """
-    Initializes the active surface (act_surf), active surface index
-    (act_surf_ind) and initial active surface index (act_surf_ind_0)
-    for FSSH.
+    Initializes the active surface (act_surf), active surface index (act_surf_ind) and
+    initial active surface index (act_surf_ind_0) for FSSH.
 
     If fssh_deterministic is true it will set act_surf_ind_0 to be the same as
     the branch index and assert that the number of branches (num_branches)
