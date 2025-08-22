@@ -640,7 +640,7 @@ def update_z_rk4_k4(algorithm, sim, parameters, state, **kwargs):
         output_name,
         z_0
         + dt_update
-        * 0.166667
+        * (1.0 / 6)
         * (state.z_rk4_k1 + 2 * state.z_rk4_k2 + 2 * state.z_rk4_k3 + k4),
     )
     return parameters, state
