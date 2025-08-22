@@ -15,7 +15,7 @@ def z_to_qp(z, constants):
     """
     h = constants.classical_coordinate_weight
     m = constants.classical_coordinate_mass
-    q = np.real((1.0 / np.sqrt(2.0 * m * h)) * (z + np.conj(z)))
+    q = np.real((1 / np.sqrt(2 * m * h)) * (z + np.conj(z)))
     p = np.real(1.0j * np.sqrt(0.5 * m * h) * (np.conj(z) - z))
     return q, p
 

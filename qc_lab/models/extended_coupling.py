@@ -36,12 +36,12 @@ class ExtendedCoupling(Model):
         self.constants.classical_coordinate_mass = np.array(
             [self.constants.get("mass", self.default_constants.get("mass"))]
         )
-        self.constants.classical_coordinate_weight = np.array([1])
+        self.constants.classical_coordinate_weight = np.array([1.0])
         return
 
     def _init_h_qc(self, parameters, **kwargs):
-        self.constants.gradient_weight = 1.0 / np.sqrt(
-            2.0
+        self.constants.gradient_weight = 1 / np.sqrt(
+            2
             * self.constants.classical_coordinate_mass
             * self.constants.classical_coordinate_weight
         )
@@ -65,14 +65,14 @@ class ExtendedCoupling(Model):
         v_11 = np.ones(np.shape(z)) * A
         v_12 = np.zeros(np.shape(z), dtype=complex)
         indices_pos = np.real(z) >= 0.0
-        v_12[indices_pos] = B * (2.0 - np.exp(-1.0 * C * q[indices_pos]))
+        v_12[indices_pos] = B * (2 - np.exp(-C * q[indices_pos]))
         indices_neg = np.real(z) < 0.0
         v_12[indices_neg] = B * np.exp(C * q[indices_neg])
 
         h_qc[:, 0, 0] = v_11.flatten()
         h_qc[:, 0, 1] = v_12.flatten()
         h_qc[:, 1, 0] = v_12.flatten()
-        h_qc[:, 1, 1] = -1.0 * v_11.flatten()
+        h_qc[:, 1, 1] = -v_11.flatten()
 
         return h_qc
 
@@ -99,7 +99,7 @@ class ExtendedCoupling(Model):
         indices_pos = np.real(z) >= 0.0
         dv_12_dzc[indices_pos] = (B * C * gradient_weight) * (
             np.exp(
-                -1.0 * C * gradient_weight * (z[indices_pos] + np.conj(z[indices_pos]))
+                -C * gradient_weight * (z[indices_pos] + np.conj(z[indices_pos]))
             )
         )
         indices_neg = np.real(z) < 0.0

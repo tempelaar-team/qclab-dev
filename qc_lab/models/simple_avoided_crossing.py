@@ -41,8 +41,8 @@ class SimpleAvoidedCrossing(Model):
         return
 
     def _init_h_qc(self, parameters, **kwargs):
-        self.constants.gradient_weight = 1.0 / np.sqrt(
-            2.0
+        self.constants.gradient_weight = 1 / np.sqrt(
+            2
             * self.constants.classical_coordinate_mass
             * self.constants.classical_coordinate_weight
         )
@@ -66,15 +66,15 @@ class SimpleAvoidedCrossing(Model):
 
         v_11 = np.zeros(np.shape(z), dtype=complex)
         indices_pos = np.real(z) >= 0.0
-        v_11[indices_pos] = A * (1.0 - np.exp(-1.0 * B * q[indices_pos]))
+        v_11[indices_pos] = A * (1 - np.exp(-B * q[indices_pos]))
         indices_neg = np.real(z) < 0.0
-        v_11[indices_neg] = -1.0 * A * (1.0 - np.exp(B * q[indices_neg]))
-        v_12 = C * (np.exp(-1.0 * D * (q**2)))
+        v_11[indices_neg] = -A * (1 - np.exp(B * q[indices_neg]))
+        v_12 = C * np.exp(-D * (q**2))
 
         h_qc[:, 0, 0] = v_11.flatten()
         h_qc[:, 0, 1] = v_12.flatten()
         h_qc[:, 1, 0] = v_12.flatten()
-        h_qc[:, 1, 1] = -1.0 * v_11.flatten()
+        h_qc[:, 1, 1] = -v_11.flatten()
 
         return h_qc
 
@@ -104,8 +104,7 @@ class SimpleAvoidedCrossing(Model):
         indices_pos = np.real(z) >= 0.0
         dv_11_dzc[indices_pos] = (A * B * gradient_weight) * (
             np.exp(
-                (-1.0 * B * gradient_weight)
-                * (np.conj(z[indices_pos]) + z[indices_pos])
+                -B * gradient_weight * (np.conj(z[indices_pos]) + z[indices_pos])
             )
         )
         indices_neg = np.real(z) < 0.0
@@ -113,15 +112,15 @@ class SimpleAvoidedCrossing(Model):
             np.exp((B * gradient_weight) * (np.conj(z[indices_neg]) + z[indices_neg]))
         )
         dv_12_dzc = (
-            (-2.0 * C * D * (gradient_weight**2))
+            (-2 * C * D * (gradient_weight**2))
             * (z + np.conj(z))
-            * (np.exp(-1.0 * D * (((z + np.conj(z)) * gradient_weight) ** 2)))
+            * np.exp(-D * (((z + np.conj(z)) * gradient_weight) ** 2))
         )
 
         dh_qc_dzc[:, 0, 0, 0] = dv_11_dzc.flatten()
         dh_qc_dzc[:, 0, 0, 1] = dv_12_dzc.flatten()
         dh_qc_dzc[:, 0, 1, 0] = dv_12_dzc.flatten()
-        dh_qc_dzc[:, 0, 1, 1] = -1.0 * dv_11_dzc.flatten()
+        dh_qc_dzc[:, 0, 1, 1] = -dv_11_dzc.flatten()
 
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]

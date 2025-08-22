@@ -32,7 +32,7 @@ class SpinBoson(Model):
 
     def _init_hq(self, parameters, **kwargs):
         self.constants.two_level_00 = self.constants.get("E")
-        self.constants.two_level_11 = -1.0 * self.constants.get("E")
+        self.constants.two_level_11 = -self.constants.get("E")
         self.constants.two_level_01_re = self.constants.get("V")
         self.constants.two_level_01_im = 0
         return
@@ -45,10 +45,10 @@ class SpinBoson(Model):
         w = self.constants.harmonic_frequency
         self.constants.diagonal_linear_coupling = np.zeros((2, A))
         self.constants.diagonal_linear_coupling[0] = (
-            w * np.sqrt(2.0 * l_reorg / A) * (1.0 / np.sqrt(2.0 * boson_mass * h))
+            w * np.sqrt(2 * l_reorg / A) * (1 / np.sqrt(2 * boson_mass * h))
         )
         self.constants.diagonal_linear_coupling[1] = (
-            -w * np.sqrt(2.0 * l_reorg / A) * (1.0 / np.sqrt(2.0 * boson_mass * h))
+            -w * np.sqrt(2 * l_reorg / A) * (1 / np.sqrt(2 * boson_mass * h))
         )
         return
 
