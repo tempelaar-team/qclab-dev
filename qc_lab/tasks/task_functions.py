@@ -194,7 +194,7 @@ def wf_db_rk4(h_quantum, wf_db, dt_update):
     k2 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt_update * k1))
     k3 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt_update * k2))
     k4 = -1j * matprod(h_quantum, (wf_db + dt_update * k3))
-    return wf_db + dt_update * 0.166667 * (k1 + 2 * k2 + 2 * k3 + k4)
+    return wf_db + dt_update * (1.0 / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
 
 
 def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
