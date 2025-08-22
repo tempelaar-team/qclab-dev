@@ -46,7 +46,7 @@ def update_dh_c_dzc_finite_differences(algorithm, sim, parameters, state, **kwar
     )
     offset_z_im = (
         z[:, np.newaxis, :]
-        + 1.0j * np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
+        + 1j * np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
     ).reshape(
         (
             batch_size * num_classical_coordinates,
@@ -69,7 +69,7 @@ def update_dh_c_dzc_finite_differences(algorithm, sim, parameters, state, **kwar
     ).reshape(batch_size, num_classical_coordinates)
     diff_re = (h_c_offset_re - h_c_0[:, np.newaxis]) / delta_z
     diff_im = (h_c_offset_im - h_c_0[:, np.newaxis]) / delta_z
-    dh_c_dzc = 0.5 * (diff_re + 1.0j * diff_im)
+    dh_c_dzc = 0.5 * (diff_re + 1j * diff_im)
     setattr(state, name, dh_c_dzc)
     return parameters, state
 
@@ -117,7 +117,7 @@ def update_dh_qc_dzc_finite_differences(algorithm, sim, parameters, state, **kwa
     )
     offset_z_im = (
         z[:, np.newaxis, :]
-        + 1.0j * np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
+        + 1j * np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
     ).reshape(
         (
             batch_size * num_classical_coordinates,
@@ -150,7 +150,7 @@ def update_dh_qc_dzc_finite_differences(algorithm, sim, parameters, state, **kwa
     )
     diff_re = (h_qc_offset_re - h_qc_0[:, np.newaxis, :, :]) / delta_z
     diff_im = (h_qc_offset_im - h_qc_0[:, np.newaxis, :, :]) / delta_z
-    dh_qc_dzc = 0.5 * (diff_re + 1.0j * diff_im)
+    dh_qc_dzc = 0.5 * (diff_re + 1j * diff_im)
     inds = np.where(dh_qc_dzc != 0)
     mels = dh_qc_dzc[inds]
     shape = np.shape(dh_qc_dzc)
@@ -253,7 +253,7 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
     gauge_fixing_value = gauge_fixing_numerical_values[gauge_fixing]
     if gauge_fixing_value >= 1:
         overlap = np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2)
-        phase = np.exp(-1.0j * np.angle(overlap))
+        phase = np.exp(-1j * np.angle(overlap))
         eigvecs = np.einsum("tai,ti->tai", eigvecs, phase, optimize="greedy")
     if gauge_fixing_value >= 2:
         parameters, state = update_dh_qc_dzc(
@@ -357,7 +357,7 @@ def update_wf_db_eigs(algorithm, sim, parameters, state, **kwargs):
     """
     adb_name = kwargs["adb_name"]
     update_wf_db_eigvals = getattr(state, kwargs["eigvals"])
-    evals_exp = np.exp(-1.0j * update_wf_db_eigvals * sim.settings.dt_update)
+    evals_exp = np.exp(-1j * update_wf_db_eigvals * sim.settings.dt_update)
     parameters, state = basis_transform_vec(
         algorithm,
         sim=sim,
@@ -604,7 +604,7 @@ def update_z_rk4_k1(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    k1 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
+    k1 = -1j * (state.classical_forces + state.quantum_classical_forces)
     setattr(state, output_name, z_0 + 0.5 * dt_update * k1)
     state.z_rk4_k1 = k1
     return parameters, state
@@ -614,7 +614,7 @@ def update_z_rk4_k2(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    k2 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
+    k2 = -1j * (state.classical_forces + state.quantum_classical_forces)
     setattr(state, output_name, z_0 + 0.5 * dt_update * k2)
     state.z_rk4_k2 = k2
     return parameters, state
@@ -624,7 +624,7 @@ def update_z_rk4_k3(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    k3 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
+    k3 = -1j * (state.classical_forces + state.quantum_classical_forces)
     setattr(state, output_name, z_0 + dt_update * k3)
     state.z_rk4_k3 = k3
     return parameters, state
@@ -634,7 +634,7 @@ def update_z_rk4_k4(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    k4 = -1.0j * (state.classical_forces + state.quantum_classical_forces)
+    k4 = -1j * (state.classical_forces + state.quantum_classical_forces)
     setattr(
         state,
         output_name,

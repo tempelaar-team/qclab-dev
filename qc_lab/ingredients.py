@@ -16,7 +16,7 @@ def z_to_qp(z, constants):
     h = constants.classical_coordinate_weight
     m = constants.classical_coordinate_mass
     q = np.real((1.0 / np.sqrt(2.0 * m * h)) * (z + np.conj(z)))
-    p = np.real(1.0j * np.sqrt(0.5 * m * h) * (np.conj(z) - z))
+    p = np.real(1j * np.sqrt(0.5 * m * h) * (np.conj(z) - z))
     return q, p
 
 
@@ -26,7 +26,7 @@ def qp_to_z(q, p, constants):
     """
     h = constants.classical_coordinate_weight
     m = constants.classical_coordinate_mass
-    z = np.sqrt(0.5 * m * h) * q + 1.0j * np.sqrt(0.5 / (m * h)) * p
+    z = np.sqrt(0.5 * m * h) * q + 1j * np.sqrt(0.5 / (m * h)) * p
     return z
 
 
@@ -321,7 +321,7 @@ def hop_harmonic(model, parameters, **kwargs):
             gamma = 0
         else:
             gamma = 0.5 * gamma / akj_z
-        shift = -1.0j * gamma * delta_z
+        shift = -1j * gamma * delta_z
         return shift, True
     shift = np.zeros_like(z)
     return shift, False
@@ -349,7 +349,7 @@ def hop_free(model, parameters, **kwargs):
     delta_zc = np.conj(delta_z)
     zc = np.conj(z)
 
-    f = 1.0j * (delta_zc + delta_z)
+    f = 1j * (delta_zc + delta_z)
     g = zc - z
 
     h = model.constants.classical_coordinate_weight
@@ -371,7 +371,7 @@ def hop_free(model, parameters, **kwargs):
             gamma = 0
         else:
             gamma = 0.5 * gamma / akj_z
-        shift = -1.0j * gamma * delta_z
+        shift = -1j * gamma * delta_z
         return shift, True
     shift = np.zeros_like(z)
     return shift, False

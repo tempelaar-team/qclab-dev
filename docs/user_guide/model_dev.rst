@@ -520,7 +520,7 @@ This is accomplished by defining an ingredient called `init_classical` which has
                 loc=0, scale=std_p, size=constants.num_classical_coordinates
             )
             # Calculate the complex-valued classical coordinate.
-            z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
+            z = np.sqrt(h * m / 2) * (q + 1j * (p / (h * m)))
             out[s] = z
         return out
 
@@ -712,7 +712,7 @@ The full code for the `UpgradedSpinBoson` model is:
                     loc=0, scale=std_p, size=constants.num_classical_coordinates
                 )
                 # Calculate the complex-valued classical coordinate.
-                z = np.sqrt(h * m / 2) * (q + 1.0j * (p / (h * m)))
+                z = np.sqrt(h * m / 2) * (q + 1j * (p / (h * m)))
                 out[s] = z
             return out
 
