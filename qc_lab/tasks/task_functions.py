@@ -29,11 +29,11 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     # Generate random real and imaginary parts of z.
     z_re = np.random.normal(loc=0, scale=std_re, size=num_classical_coordinates)
     z_im = np.random.normal(loc=0, scale=std_im, size=num_classical_coordinates)
-    z = z_re + 1.0j * z_im
+    z = z_re + 1j * z_im
     if z0 is None:
         return (
             np.random.rand(num_classical_coordinates)
-            + 1.0j * np.random.rand(num_classical_coordinates),
+            + 1j * np.random.rand(num_classical_coordinates),
             rand,
         )
     return z0 + z, rand
@@ -123,7 +123,7 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
             / ((ev_diff + plus)[inds[0]]),
         )
         der_couple_p = (
-            1.0j
+            1j
             * np.sqrt(
                 1
                 / (
@@ -154,11 +154,11 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
         der_couple_q_angle[np.where(np.abs(der_couple_q_angle) < 1e-12)] = 0
         der_couple_p_angle[np.where(np.abs(der_couple_p_angle) < 1e-12)] = 0
         der_couple_q_phase[..., i + 1 :] = (
-            np.exp(1.0j * der_couple_q_angle[..., np.newaxis])
+            np.exp(1j * der_couple_q_angle[..., np.newaxis])
             * der_couple_q_phase[..., i + 1 :]
         )
         der_couple_p_phase[..., i + 1 :] = (
-            np.exp(1.0j * der_couple_p_angle[..., np.newaxis])
+            np.exp(1j * der_couple_p_angle[..., np.newaxis])
             * der_couple_p_phase[..., i + 1 :]
         )
     return der_couple_q_phase, der_couple_p_phase
@@ -252,7 +252,7 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
         / ev_diff,
     )
     dkj_p = (
-        1.0j
+        1j
         * np.sqrt(
             1
             / (
@@ -319,7 +319,7 @@ def numerical_fssh_hop(model, parameters, **kwargs):
                     - h_c(
                         model,
                         parameters,
-                        z=np.array([z - 1.0j * gamma * delta_z]),
+                        z=np.array([z - 1j * gamma * delta_z]),
                         batch_size=1,
                     )[0]
                     for gamma in gamma_list
@@ -332,4 +332,4 @@ def numerical_fssh_hop(model, parameters, **kwargs):
         num_iter += 1
     if min_energy > thresh:
         return np.zeros_like(z), False
-    return -1.0j * min_gamma * delta_z, True
+    return -1j * min_gamma * delta_z, True
