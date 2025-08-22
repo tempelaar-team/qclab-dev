@@ -222,9 +222,9 @@ def initialize_active_surface(algorithm, sim, parameters, state, **kwargs):
     num_states = sim.model.constants.num_quantum_states
     num_trajs = sim.settings.batch_size // num_branches
     if sim.algorithm.settings.fssh_deterministic:
-        act_surf_ind_0 = np.arange(num_branches, dtype=int)[np.newaxis, :] + np.zeros(
-            (num_trajs, num_branches)
-        ).astype(int)
+        act_surf_ind_0 = np.tile(
+            np.arange(num_branches, dtype=int), (num_trajs, 1)
+        )
     else:
         intervals = np.cumsum(
             np.real(
@@ -237,20 +237,10 @@ def initialize_active_surface(algorithm, sim, parameters, state, **kwargs):
     state.act_surf_ind_0 = np.copy(act_surf_ind_0)
     state.act_surf_ind = np.copy(act_surf_ind_0)
     act_surf = np.zeros((num_trajs, num_branches, num_states), dtype=int)
-    traj_inds = (
-        (np.arange(num_trajs)[:, np.newaxis] * np.ones((num_trajs, num_branches)))
-        .flatten()
-        .astype(int)
-    )
-    branch_inds = (
-        (np.arange(num_branches)[np.newaxis, :] * np.ones((num_trajs, num_branches)))
-        .flatten()
-        .astype(int)
-    )
+    traj_inds = np.repeat(np.arange(num_trajs), num_branches)
+    branch_inds = np.tile(np.arange(num_branches), num_trajs)
     act_surf[traj_inds, branch_inds, act_surf_ind_0.flatten()] = 1
-    state.act_surf = act_surf.astype(int).reshape(
-        (num_trajs * num_branches, num_states)
-    )
+    state.act_surf = act_surf.reshape((num_trajs * num_branches, num_states))
     parameters.act_surf_ind = state.act_surf_ind
     return parameters, state
 
