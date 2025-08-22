@@ -1,6 +1,9 @@
 """
-This module defines the Variable class, which is used to store time-dependent variables in QC Lab.
-It also defines a function to initialize parameter and state Variable objects for simulations.
+This module defines the Variable class, which is used to store time-dependent variables
+in QC Lab.
+
+It also defines a function to initialize parameter and state Variable objects for
+simulations.
 """
 
 import logging
@@ -42,7 +45,8 @@ class Variable:
         return state
 
     def __setstate__(self, state):
-        """Restore state during unpickling.
+        """
+        Restore state during unpickling.
 
         Args:
             state (dict): Object state.

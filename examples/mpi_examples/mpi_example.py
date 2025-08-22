@@ -1,7 +1,8 @@
 """
 This is an example of how to use the parallel_driver_mpi function in QC Lab.
 
-This script can either be executed by a scheduler like SLURM or can be called in terminal by running
+This script can either be executed by a scheduler like SLURM or can be called in
+terminal by running
 
 mpirun -n num_tasks python mpi_example.py
 

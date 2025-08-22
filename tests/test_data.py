@@ -1,4 +1,6 @@
-"""Tests for :class:`qc_lab.data.Data` save and load functionality."""
+"""
+Tests for :class:`qc_lab.data.Data` save and load functionality.
+"""
 
 import numpy as np
 
@@ -6,7 +8,9 @@ from qc_lab import Data
 
 
 def test_save_load_numpy_scalars_and_iterables(tmp_path):
-    """Ensure numpy scalar types and iterables persist through save/load."""
+    """
+    Ensure numpy scalar types and iterables persist through save/load.
+    """
 
     data = Data()
     data.data_dict = {
@@ -35,4 +39,3 @@ def test_save_load_numpy_scalars_and_iterables(tmp_path):
     assert isinstance(nested["inner_int32"], np.int32)
     assert nested["inner_int32"] == np.int32(7)
     assert np.array_equal(nested["inner_list"], np.asarray([8, 9]))
-

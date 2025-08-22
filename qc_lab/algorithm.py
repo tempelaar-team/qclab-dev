@@ -1,5 +1,6 @@
 """
-This module contains the Algorithm class, which is the base class for Algorithm objects in QC Lab.
+This module contains the Algorithm class, which is the base class for Algorithm objects
+in QC Lab.
 """
 
 import copy
@@ -22,14 +23,17 @@ class Algorithm:
             setattr(self.settings, key, val)
         self.settings._init_complete = True
         self.update_algorithm_settings()
-        # Copy the recipes and output variables to ensure they are not shared across instances.
+        # Copy the recipes and output variables to ensure they are not shared
+        # across instances.
         self.initialization_recipe = copy.copy(self.initialization_recipe)
         self.update_recipe = copy.copy(self.update_recipe)
         self.collect_recipe = copy.copy(self.collect_recipe)
 
     def update_algorithm_settings(self):
         """
-        Update algorithm settings. This method should be overridden by subclasses.
+        Update algorithm settings.
+
+        This method should be overridden by subclasses.
         """
 
     initialization_recipe = []

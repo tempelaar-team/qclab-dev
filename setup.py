@@ -26,6 +26,7 @@ if DISABLE_H5PY:
 
 install_requires = DEPENDENCIES
 
+
 class develop(_develop):
     def run(self):
         target = os.path.join(self.install_lib, "qc_lab", "_config.py")
@@ -35,6 +36,7 @@ class develop(_develop):
             f.write(f"DISABLE_H5PY = {DISABLE_H5PY}\n")
         super().run()
 
+
 class build_py(_build_py):
     def run(self):
         target = os.path.join(self.build_lib, "qc_lab", "_config.py")
@@ -43,7 +45,6 @@ class build_py(_build_py):
             f.write(f"DISABLE_NUMBA = {DISABLE_NUMBA}\n")
             f.write(f"DISABLE_H5PY = {DISABLE_H5PY}\n")
         super().run()
-
 
 
 setup(

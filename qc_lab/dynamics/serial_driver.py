@@ -34,7 +34,8 @@ def serial_driver(sim, seeds=None, data=None):
             num_trajs,
         )
         sim.settings.num_trajs = num_trajs
-    # Determine the number of simulations required to execute the total number of trajectories.
+    # Determine the number of simulations required to execute the total number
+    # of trajectories.
     num_sims = int(num_trajs / sim.settings.batch_size) + 1
 
     logger.info(

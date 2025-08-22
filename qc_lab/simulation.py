@@ -1,5 +1,6 @@
 """
-This module defines the Simulation class as well as the default settings for a simulation in QC Lab.
+This module defines the Simulation class as well as the default settings for a
+simulation in QC Lab.
 """
 
 import logging
@@ -37,9 +38,10 @@ class Simulation:
         """
         Initialize the timesteps for the simulation based on the parameters.
 
-        First ensures that dt_collect >= dt_update, if not it adjusts dt_collect to be equal to dt_update.
-        Then adjusts dt_collect to be the closest integer multiple of dt_update.
-        Then adjusts tmax to be the closest integer multiple of dt_collect.
+        First ensures that dt_collect >= dt_update, if not it adjusts dt_collect to be
+        equal to dt_update. Then adjusts dt_collect to be the closest integer multiple
+        of dt_update. Then adjusts tmax to be the closest integer multiple of
+        dt_collect.
         """
         tmax = self.settings.get("tmax")
         dt_update = self.settings.get("dt_update")
@@ -58,9 +60,11 @@ class Simulation:
                 "dt_update is greater than dt_collect, setting dt_collect to dt_update."
             )
 
-        # dt_collect_n is the number of update timesteps that defines a collect timestep.
+        # dt_collect_n is the number of update timesteps that defines a collect
+        # timestep.
         dt_collect_n = np.round(dt_collect / dt_update).astype(int)
-        # tmax_n is the number of update timesteps that defines the total simulation time.
+        # tmax_n is the number of update timesteps that defines the total
+        # simulation time.
         self.settings.tmax_n = np.round(tmax / dt_collect).astype(int) * dt_collect_n
         self.settings.tmax = self.settings.tmax_n * dt_update
         self.settings.dt_collect_n = dt_collect_n
@@ -69,7 +73,8 @@ class Simulation:
         self.settings.t_update = np.arange(0, self.settings.tmax_n + 1, 1) * dt_update
         # t_update_n is the update time array in terms of the number of update steps.
         self.settings.t_update_n = np.arange(0, self.settings.tmax_n + 1, 1)
-        # t_collect_n is the collect time array for the simulation in terms of the number of update steps.
+        # t_collect_n is the collect time array for the simulation in terms of
+        # the number of update steps.
         self.settings.t_collect_n = np.arange(
             0,
             self.settings.tmax_n + self.settings.dt_collect_n,

@@ -1,6 +1,6 @@
 """
-This module defines the Constants class, which is used to handle
-quantities that define simulation settings and model constants.
+This module defines the Constants class, which is used to handle quantities that define
+simulation settings and model constants.
 
 It also includes numerical constants.
 """
@@ -20,8 +20,8 @@ class Constants:
 
     def __setattr__(self, name, value):
         """
-        Overrides attribute setting to call the update function after the attribute is changed,
-        preventing recursion.
+        Overrides attribute setting to call the update function after the attribute is
+        changed, preventing recursion.
         """
         super().__setattr__(name, value)
         if not self._updating and name not in {
