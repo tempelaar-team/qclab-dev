@@ -39,7 +39,7 @@ class FMOComplex(Model):
 
         self.constants.w = (
             W
-            * np.tan(((np.arange(A) + 1) - 0.5) * np.pi / (2 * A))[np.newaxis, :]
+            * np.tan(((np.arange(A) + 1) - 0.5) * np.pi * 0.5 / (A))[np.newaxis, :]
             * np.ones((self.constants.num_quantum_states, A))
         ).flatten()
         self.constants.num_classical_coordinates = self.constants.num_quantum_states * A
@@ -68,7 +68,7 @@ class FMOComplex(Model):
         )
         for n in range(self.constants.num_quantum_states):
             self.constants.diagonal_linear_coupling[n, n * A : (n + 1) * A] = (
-                w * np.sqrt(2 * l_reorg / A) * (1 / np.sqrt(2 * m * h))
+                w * np.sqrt(2.0 * l_reorg / A) * (1.0 / np.sqrt(2.0 * m * h))
             )[n * A : (n + 1) * A]
         return
 

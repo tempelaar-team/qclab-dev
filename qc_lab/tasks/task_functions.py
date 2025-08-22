@@ -2,9 +2,9 @@
 This module contains functions used by tasks.
 """
 
+import logging
 import numpy as np
 from numba import njit
-import logging
 from qc_lab.constants import SMALL
 
 logger = logging.getLogger(__name__)
@@ -263,8 +263,8 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
         * (dkj_z - dkj_zc)
     )
     dkj_q = np.sqrt(
-        0.5 *
-        sim.model.constants.classical_coordinate_weight
+        0.5
+        * sim.model.constants.classical_coordinate_weight
         * sim.model.constants.classical_coordinate_mass
     ) * (dkj_z + dkj_zc)
 

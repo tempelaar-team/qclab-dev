@@ -2,8 +2,8 @@
 This module contains the Algorithm class, which is the base class for Algorithm objects in QC Lab.
 """
 
-from qc_lab.constants import Constants
 import copy
+from qc_lab.constants import Constants
 
 
 class Algorithm:

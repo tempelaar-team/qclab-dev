@@ -64,9 +64,9 @@ class ExtendedCoupling(Model):
 
         v_11 = np.ones(np.shape(z)) * A
         v_12 = np.zeros(np.shape(z), dtype=complex)
-        indices_pos = np.real(z) >= 0.0
+        indices_pos = np.real(z) >= 0
         v_12[indices_pos] = B * (2.0 - np.exp(-1.0 * C * q[indices_pos]))
-        indices_neg = np.real(z) < 0.0
+        indices_neg = np.real(z) < 0
         v_12[indices_neg] = B * np.exp(C * q[indices_neg])
 
         h_qc[:, 0, 0] = v_11.flatten()
@@ -96,13 +96,13 @@ class ExtendedCoupling(Model):
         )
 
         dv_12_dzc = np.zeros(np.shape(z), dtype=complex)
-        indices_pos = np.real(z) >= 0.0
+        indices_pos = np.real(z) >= 0
         dv_12_dzc[indices_pos] = (B * C * gradient_weight) * (
             np.exp(
                 -1.0 * C * gradient_weight * (z[indices_pos] + np.conj(z[indices_pos]))
             )
         )
-        indices_neg = np.real(z) < 0.0
+        indices_neg = np.real(z) < 0
         dv_12_dzc[indices_neg] = (B * C * gradient_weight) * (
             np.exp(C * gradient_weight * (z[indices_neg] + np.conj(z[indices_neg])))
         )

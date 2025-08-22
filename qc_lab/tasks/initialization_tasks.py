@@ -4,7 +4,7 @@ These are typically used in the initialization recipe of the algorithm object.
 """
 
 import numpy as np
-from qc_lab.tasks.task_functions import *
+from qc_lab.tasks.task_functions import gen_sample_gaussian
 
 
 def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
@@ -222,9 +222,7 @@ def initialize_active_surface(algorithm, sim, parameters, state, **kwargs):
     num_states = sim.model.constants.num_quantum_states
     num_trajs = sim.settings.batch_size // num_branches
     if sim.algorithm.settings.fssh_deterministic:
-        act_surf_ind_0 = np.tile(
-            np.arange(num_branches, dtype=int), (num_trajs, 1)
-        )
+        act_surf_ind_0 = np.tile(np.arange(num_branches, dtype=int), (num_trajs, 1))
     else:
         intervals = np.cumsum(
             np.real(

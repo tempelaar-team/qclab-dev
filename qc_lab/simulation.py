@@ -24,7 +24,6 @@ class Simulation:
             "dt_collect": 0.1,
             "num_trajs": 100,
             "batch_size": 25,
-            "small": 1e-6,
         }
         settings = {**self.default_settings, **settings}
         self.settings = Constants()

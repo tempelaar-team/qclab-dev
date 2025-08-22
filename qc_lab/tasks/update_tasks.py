@@ -1,8 +1,16 @@
-"""Tasks that update the simulation state during propagation."""
+"""
+Tasks that update the simulation state during propagation.
+"""
 
-import numpy as np
 import logging
-from qc_lab.tasks.task_functions import *
+import numpy as np
+from qc_lab.tasks.task_functions import (
+    calc_sparse_inner_product,
+    analytic_der_couple_phase,
+    numerical_fssh_hop,
+    wf_db_rk4,
+    calc_delta_z_fssh,
+)
 from qc_lab.constants import SMALL
 
 logger = logging.getLogger(__name__)

@@ -99,12 +99,12 @@ class DualAvoidedCrossing(Model):
         dv_12_dzc = (
             (-2 * C * D * (gradient_weight**2))
             * (z + np.conj(z))
-            * (np.exp(-1 * D * (((z + np.conj(z)) * gradient_weight) ** 2)))
+            * (np.exp(-1.0 * D * (((z + np.conj(z)) * gradient_weight) ** 2)))
         )
         dv_22_dzc = (
-            (2 * A * B * (gradient_weight**2))
+            (2.0 * A * B * (gradient_weight**2))
             * (z + np.conj(z))
-            * (np.exp(-1 * B * (((z + np.conj(z)) * gradient_weight) ** 2)))
+            * (np.exp(-1.0 * B * (((z + np.conj(z)) * gradient_weight) ** 2)))
         )
 
         dh_qc_dzc[:, 0, 0, 1] = dv_12_dzc.flatten()
