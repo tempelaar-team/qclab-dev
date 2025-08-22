@@ -5,6 +5,7 @@ This module contains functions used by tasks.
 import numpy as np
 from numba import njit
 import logging
+from qc_lab.constants import SMALL
 
 logger = logging.getLogger(__name__)
 
@@ -88,8 +89,8 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
         eval_j = eigvals[..., j]
         ev_diff = eval_j - eval_i
         plus = np.zeros_like(ev_diff)
-        if np.any(np.abs(ev_diff) < 1e-10):
-            plus[np.where(np.abs(ev_diff) < 1e-10)] = 1
+        if np.any(np.abs(ev_diff) < SMALL):
+            plus[np.where(np.abs(ev_diff) < SMALL)] = 1
             logger.error("Degenerate eigenvalues detected.")
         der_couple_zc = np.zeros(
             (
@@ -125,10 +126,9 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
         der_couple_p = (
             1j
             * np.sqrt(
-                1
+                0.5
                 / (
-                    2
-                    * sim.model.constants.classical_coordinate_weight
+                    sim.model.constants.classical_coordinate_weight
                     * sim.model.constants.classical_coordinate_mass
                 )
             )[..., :]
@@ -137,7 +137,7 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
         der_couple_q = np.sqrt(
             sim.model.constants.classical_coordinate_weight
             * sim.model.constants.classical_coordinate_mass
-            / 2
+            * 0.5
         )[..., :] * (der_couple_z + der_couple_zc)
         der_couple_q_angle = np.angle(
             der_couple_q[
@@ -151,8 +151,8 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
                 np.argmax(np.abs(der_couple_p), axis=-1),
             ]
         )
-        der_couple_q_angle[np.where(np.abs(der_couple_q_angle) < 1e-12)] = 0
-        der_couple_p_angle[np.where(np.abs(der_couple_p_angle) < 1e-12)] = 0
+        der_couple_q_angle[np.where(np.abs(der_couple_q_angle) < SMALL)] = 0
+        der_couple_p_angle[np.where(np.abs(der_couple_p_angle) < SMALL)] = 0
         der_couple_q_phase[..., i + 1 :] = (
             np.exp(1j * der_couple_q_angle[..., np.newaxis])
             * der_couple_q_phase[..., i + 1 :]
@@ -175,7 +175,7 @@ def matprod(mat, vec):
     out = np.zeros(np.shape(vec), dtype=np.complex128)
     for t in range(len(mat)):
         for i in range(len(mat[0])):
-            accum = 0.0 + 0.0j
+            accum = 0j
             for j in range(len(mat[0,])):
                 accum = accum + mat[t, i, j] * vec[t, j]
             out[t, i] = accum
@@ -194,7 +194,7 @@ def wf_db_rk4(h_quantum, wf_db, dt_update):
     k2 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt_update * k1))
     k3 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt_update * k2))
     k4 = -1j * matprod(h_quantum, (wf_db + dt_update * k3))
-    return wf_db + dt_update * (1.0 / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
+    return wf_db + dt_update * (1.0 / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
 
 
 def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
@@ -254,32 +254,31 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
     dkj_p = (
         1j
         * np.sqrt(
-            1
+            0.5
             / (
-                2
-                * sim.model.constants.classical_coordinate_weight
+                sim.model.constants.classical_coordinate_weight
                 * sim.model.constants.classical_coordinate_mass
             )
         )
         * (dkj_z - dkj_zc)
     )
     dkj_q = np.sqrt(
+        0.5 *
         sim.model.constants.classical_coordinate_weight
         * sim.model.constants.classical_coordinate_mass
-        / 2
     ) * (dkj_z + dkj_zc)
 
     max_pos_q = np.argmax(np.abs(dkj_q))
     max_pos_p = np.argmax(np.abs(dkj_p))
     # Check for complex nonadiabatic couplings.
     if (
-        np.abs(dkj_q[max_pos_q]) > 1e-8
-        and np.abs(np.sin(np.angle(dkj_q[max_pos_q]))) > 1e-2
+        np.abs(dkj_q[max_pos_q]) > SMALL
+        and np.abs(np.sin(np.angle(dkj_q[max_pos_q]))) > SMALL
     ):
         logger.error("dkj_q Nonadiabatic coupling is complex, needs gauge fixing!")
     if (
-        np.abs(dkj_p[max_pos_p]) > 1e-8
-        and np.abs(np.sin(np.angle(dkj_p[max_pos_p]))) > 1e-2
+        np.abs(dkj_p[max_pos_p]) > SMALL
+        and np.abs(np.sin(np.angle(dkj_p[max_pos_p]))) > SMALL
     ):
         logger.error("dkj_p Nonadiabatic coupling is complex, needs gauge fixing!")
     delta_z = dkj_zc
@@ -292,7 +291,7 @@ def numerical_fssh_hop(model, parameters, **kwargs):
 
     Required constants:
         - numerical_fssh_hop_gamma_range (float): Range for gamma. Default: 5.0.
-        - numerical_fssh_hop_num_iter (int): Number of iterations. Default: 10.
+        - numerical_fssh_hop_num_iter (int): Number of iterations. Default: 20.
         - numerical_fssh_hop_num_points (int): Number of points. Default: 10.
     """
     z = kwargs["z"]
@@ -304,9 +303,9 @@ def numerical_fssh_hop(model, parameters, **kwargs):
     thresh = model.constants.get("numerical_fssh_hop_threshold", 1e-6)
     h_c, _ = model.get("h_c")
     init_energy = h_c(model, parameters, z=np.array([z]), batch_size=1)[0]
-    min_gamma = 0
+    min_gamma = 0.0
     num_iter = 0
-    min_energy = 1
+    min_energy = 1.0
     while min_energy > thresh and num_iter < max_iter:
         gamma_list = np.linspace(
             min_gamma - gamma_range, min_gamma + gamma_range, num_points

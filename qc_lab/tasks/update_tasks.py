@@ -2,8 +2,8 @@
 
 import numpy as np
 import logging
-from qc_lab.utils import njit
 from qc_lab.tasks.task_functions import *
+from qc_lab.constants import SMALL
 
 logger = logging.getLogger(__name__)
 
@@ -278,7 +278,7 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
                 np.abs(np.imag(der_couple_q_phase_new)) ** 2
                 + np.abs(np.imag(der_couple_p_phase_new)) ** 2
             )
-            > 1e-10
+            > SMALL
         ):
             logger.error("Phase error encountered when fixing gauge analytically.")
     setattr(state, kwargs["output_eigvecs_name"], eigvecs)
@@ -427,14 +427,14 @@ def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
         logger.critical(
             "Wavefunction in active surface is zero, cannot calculate hopping probabilities."
         )
-    hop_prob = -2 * np.real(
+    hop_prob = -2.0 * np.real(
         prod
         * state.wf_adb
         / state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind_flat][
             :, np.newaxis
         ]
     )
-    hop_prob[np.arange(num_branches * num_trajs), act_surf_ind_flat] *= 0
+    hop_prob[np.arange(num_branches * num_trajs), act_surf_ind_flat] *= 0.0
     state.hop_prob = hop_prob
 
     return parameters, state
@@ -640,8 +640,8 @@ def update_z_rk4_k4(algorithm, sim, parameters, state, **kwargs):
         output_name,
         z_0
         + dt_update
-        * (1.0 / 6)
-        * (state.z_rk4_k1 + 2 * state.z_rk4_k2 + 2 * state.z_rk4_k3 + k4),
+        * (1.0 / 6.0)
+        * (state.z_rk4_k1 + 2.0 * state.z_rk4_k2 + 2.0 * state.z_rk4_k3 + k4),
     )
     return parameters, state
 

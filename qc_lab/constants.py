@@ -1,8 +1,12 @@
 """
 This module defines the Constants class, which is used to handle
 quantities that define simulation settings and model constants.
+
+It also includes numerical constants.
 """
 
+
+SMALL = 1e-10
 
 class Constants:
     """
