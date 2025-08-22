@@ -19,11 +19,12 @@ class Simulation:
         if settings is None:
             settings = {}
         self.default_settings = {
-            "tmax": 10,
+            "tmax": 10.0,
             "dt_update": 0.001,
             "dt_collect": 0.1,
             "num_trajs": 100,
             "batch_size": 25,
+            "small": 1e-6,
         }
         settings = {**self.default_settings, **settings}
         self.settings = Constants()

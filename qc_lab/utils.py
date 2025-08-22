@@ -1,4 +1,6 @@
-"""Utility helpers for optional JIT compilation and in-memory logging."""
+"""
+Utility helpers for optional JIT compilation and in-memory logging.
+"""
 
 import logging
 from io import StringIO
@@ -8,7 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 def qc_lab_custom_jit(func=None, **kwargs):
-    """Dummy jit decorator that does nothing if numba is not available."""
+    """
+    Dummy jit decorator that does nothing if numba is not available.
+    """
     logger.info(
         "Numba is disabled; using dummy jit decorator.",
     )
@@ -23,7 +27,9 @@ def qc_lab_custom_jit(func=None, **kwargs):
 
 
 def qc_lab_custom_njit(func=None, **kwargs):
-    """Dummy njit decorator that does nothing if numba is not available."""
+    """
+    Dummy njit decorator that does nothing if numba is not available.
+    """
     logger.info("Numba is disabled; using dummy njit decorator.")
 
     def decorator(func):
@@ -52,7 +58,9 @@ _log_stream = StringIO()
 
 
 class QCDataHandler(logging.Handler):
-    """Logging handler that stores logs in memory."""
+    """
+    Logging handler that stores logs in memory.
+    """
 
     def emit(self, record):
         msg = self.format(record)
@@ -60,7 +68,9 @@ class QCDataHandler(logging.Handler):
 
 
 def configure_memory_logger(level=logging.INFO):
-    """Configure root logger to store logs without printing."""
+    """
+    Configure root logger to store logs without printing.
+    """
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
     # Remove existing handlers to avoid duplicate output
@@ -74,7 +84,9 @@ def configure_memory_logger(level=logging.INFO):
 
 
 def get_log_output() -> str:
-    """Return all collected log messages."""
+    """
+    Return all collected log messages.
+    """
     return _log_stream.getvalue()
 
 
