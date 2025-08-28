@@ -5,7 +5,7 @@ Model class for Tully's third problem, an extended coupling with reflection.
 import numpy as np
 from qc_lab.model import Model
 from qc_lab import ingredients
-
+from qc_lab import functions
 
 class ExtendedCoupling(Model):
     """
@@ -56,7 +56,10 @@ class ExtendedCoupling(Model):
         z = kwargs["z"]
         batch_size = kwargs.get("batch_size", len(z))
 
-        q, _ = ingredients.z_to_qp(z, self.constants)
+        m = self.constants.classical_coordinate_mass[np.newaxis, :]
+        h = self.constants.classical_coordinate_weight[np.newaxis, :]
+
+        q = functions.z_to_q(z, m, h)
 
         h_qc = np.zeros(
             (batch_size, num_quantum_states, num_quantum_states), dtype=complex

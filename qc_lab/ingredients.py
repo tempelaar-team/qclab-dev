@@ -27,8 +27,9 @@ def h_c_harmonic(model, parameters, **kwargs):
     z = kwargs["z"]
     w = model.constants.harmonic_frequency[np.newaxis, :]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
-    q = z_to_q(z, model.constants)
-    p = z_to_p(z, model.constants)
+    h = model.constants.classical_coordinate_weight[np.newaxis, :]
+    q = z_to_q(z, m, h)
+    p = z_to_p(z, m, h)
     h_c = np.sum(0.5 * (((p**2) / m) + m * (w**2) * (q**2)), axis=-1)
     return h_c
 
@@ -43,11 +44,10 @@ def h_c_free(model, parameters, **kwargs):
     del parameters
     z = kwargs["z"]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
-    p = z_to_p(z, model.constants)
+    h = model.constants.classical_coordinate_weight[np.newaxis, :]
+    p = z_to_p(z, m, h)
     h_c = np.sum((0.5 / m) * (p**2), axis=-1)
     return h_c
-
-
 
 
 def dh_c_dzc_harmonic(model, parameters, **kwargs):
@@ -75,8 +75,11 @@ def dh_c_dzc_free(model, parameters, **kwargs):
     """
     del parameters
     z = kwargs["z"]
-    h = model.constants.classical_coordinate_weight
-    return -(0.5 * h[..., :]) * (np.conj(z) - z)
+    m = model.constants.classical_coordinate_mass[np.newaxis, :]
+    h = model.constants.classical_coordinate_weight[np.newaxis, :]
+    p = z_to_p(z, m, h)
+    # return -(0.5 * h[..., :]) * (np.conj(z) - z)
+    return p / m
 
 
 def h_q_two_level(model, parameters, **kwargs):
@@ -310,14 +313,15 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
     kBT = model.constants.kBT
     w = model.constants.harmonic_frequency
     m = model.constants.classical_coordinate_mass
+    h = model.constants.classical_coordinate_weight
     out = np.zeros(
         (len(seed), model.constants.num_classical_coordinates), dtype=complex
     )
+    # Calculate the standard deviations for q and p.
+    std_q = np.sqrt(kBT / (m * (w**2)))
+    std_p = np.sqrt(m * kBT)
     for s, seed_value in enumerate(seed):
         np.random.seed(seed_value)
-        # Calculate the standard deviations for q and p.
-        std_q = np.sqrt(kBT / (m * (w**2)))
-        std_p = np.sqrt(m * kBT)
         # Generate random q and p values.
         q = np.random.normal(
             loc=0, scale=std_q, size=model.constants.num_classical_coordinates
@@ -326,8 +330,7 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
             loc=0, scale=std_p, size=model.constants.num_classical_coordinates
         )
         # Calculate the complex-valued classical coordinate.
-        z = qp_to_z(q, p, model.constants)
-        out[s] = z
+        out[s] = qp_to_z(q, p, m, h)
     return out
 
 
@@ -342,22 +345,22 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
     """
     del parameters
     seed = kwargs["seed"]
-    m = model.constants.classical_coordinate_mass
     w = model.constants.harmonic_frequency
+    m = model.constants.classical_coordinate_mass
+    h = model.constants.classical_coordinate_weight
     kBT = model.constants.kBT
     out = np.zeros(
         (len(seed), model.constants.num_classical_coordinates), dtype=complex
     )
+    # Calculate the standard deviations for q and p.
+    if kBT > 0:
+        std_q = np.sqrt(0.5 / (w * m * np.tanh(0.5 * w / kBT)))
+        std_p = np.sqrt(0.5 * m * w / np.tanh(0.5 * w / kBT))
+    else:
+        std_q = np.sqrt(0.5 / (w * m))
+        std_p = np.sqrt(0.5 * m * w)
     for s, seed_value in enumerate(seed):
         np.random.seed(seed_value)
-
-        # Calculate the standard deviations for q and p.
-        if kBT > 0:
-            std_q = np.sqrt(0.5 / (w * m * np.tanh(0.5 * w / kBT)))
-            std_p = np.sqrt(0.5 * m * w / np.tanh(0.5 * w / kBT))
-        else:
-            std_q = np.sqrt(0.5 / (w * m))
-            std_p = np.sqrt(0.5 * m * w)
         # Generate random q and p values.
         q = np.random.normal(
             loc=0, scale=std_q, size=model.constants.num_classical_coordinates
@@ -366,8 +369,7 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
             loc=0, scale=std_p, size=model.constants.num_classical_coordinates
         )
         # Calculate the complex-valued classical coordinate.
-        z = qp_to_z(q, p, model.constants)
-        out[s] = z
+        out[s] = qp_to_z(q, p, m, h)
     return out
 
 
@@ -385,10 +387,12 @@ def init_classical_definite_position_momentum(model, parameters, **kwargs):
     seed = kwargs["seed"]
     q = model.constants.init_position
     p = model.constants.init_momentum
+    m = model.constants.classical_coordinate_mass
+    h = model.constants.classical_coordinate_weight
     z = np.zeros((len(seed), model.constants.num_classical_coordinates), dtype=complex)
     for s, seed_value in enumerate(seed):
         np.random.seed(seed_value)
-        z[s] = qp_to_z(q, p, model.constants)
+        z[s] = qp_to_z(q, p, m, h)
     return z
 
 
@@ -408,18 +412,19 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
     """
     seed = kwargs["seed"]
     a = model.constants.coherent_state_displacement
-    m = model.constants.classical_coordinate_mass
     w = model.constants.harmonic_frequency
+    m = model.constants.classical_coordinate_mass
+    h = model.constants.classical_coordinate_weight
     out = np.zeros(
         (len(seed), model.constants.num_classical_coordinates), dtype=complex
     )
+    # Calculate the standard deviations for q and p.
+    std_q = np.sqrt(0.5 / (w * m))
+    std_p = np.sqrt(0.5 * m * w)
+    mu_q = np.sqrt(2.0 / (m * w)) * np.real(a)
+    mu_p = np.sqrt(2.0 / (m * w)) * np.imag(a)
     for s, seed_value in enumerate(seed):
         np.random.seed(seed_value)
-        # Calculate the standard deviations for q and p.
-        std_q = np.sqrt(0.5 / (w * m))
-        std_p = np.sqrt(0.5 * m * w)
-        mu_q = np.sqrt(2.0 / (m * w)) * np.real(a)
-        mu_p = np.sqrt(2.0 / (m * w)) * np.imag(a)
         # Generate random q and p values.
         q = np.random.normal(
             loc=mu_q, scale=std_q, size=model.constants.num_classical_coordinates
@@ -428,6 +433,6 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
             loc=mu_p, scale=std_p, size=model.constants.num_classical_coordinates
         )
         # Calculate the complex-valued classical coordinate.
-        z = qp_to_z(q, p, model.constants)
+        z = qp_to_z(q, p, m, h)
         out[s] = z
     return out

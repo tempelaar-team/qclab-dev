@@ -10,32 +10,28 @@ from qc_lab.constants import SMALL
 logger = logging.getLogger(__name__)
 
 
-def z_to_q(z, constants):
+@njit()
+def z_to_q(z, m, h):
     """
     Convert complex coordinates to position coordinate.
     """
-    h = constants.classical_coordinate_weight
-    m = constants.classical_coordinate_mass
     return np.real((1.0 / np.sqrt(2.0 * m * h)) * (z + np.conj(z)))
 
 
-def z_to_p(z, constants):
+@njit()
+def z_to_p(z, m, h):
     """
     Convert complex coordinates to momentum coordinate.
     """
-    h = constants.classical_coordinate_weight
-    m = constants.classical_coordinate_mass
     return np.real(1j * np.sqrt(0.5 * m * h) * (np.conj(z) - z))
 
 
-def qp_to_z(q, p, constants):
+@njit()
+def qp_to_z(q, p, m, h):
     """
     Convert real coordinates to complex coordinates.
     """
-    h = constants.classical_coordinate_weight
-    m = constants.classical_coordinate_mass
-    z = np.sqrt(0.5 * m * h) * q + 1j * np.sqrt(0.5 / (m * h)) * p
-    return z
+    return np.sqrt(0.5 * m * h) * q + 1j * np.sqrt(0.5 / (m * h)) * p
 
 
 def make_ingredient_sparse(ingredient):
