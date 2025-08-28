@@ -4,7 +4,7 @@ Tasks that update the simulation state during propagation.
 
 import logging
 import numpy as np
-from qc_lab.tasks.task_functions import (
+from qc_lab.functions import (
     calc_sparse_inner_product,
     analytic_der_couple_phase,
     numerical_fssh_hop,

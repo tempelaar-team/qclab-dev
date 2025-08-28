@@ -6,7 +6,7 @@ These are typically used in the initialization recipe of the algorithm object.
 """
 
 import numpy as np
-from qc_lab.tasks.task_functions import gen_sample_gaussian
+from qc_lab.functions import gen_sample_gaussian
 
 
 def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
