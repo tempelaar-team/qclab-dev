@@ -8,9 +8,9 @@ from qc_lab import ingredients
 from qc_lab import functions
 
 
-class DualAvoidedCrossing(Model):
+class TullyProblemTwo(Model):
     """
-    Dual avoided crossing model class.
+    Tully's second problem: a dual avoided crossing.
     """
 
     def __init__(self, constants=None):
