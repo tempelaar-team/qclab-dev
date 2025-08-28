@@ -10,6 +10,113 @@ from qc_lab.constants import SMALL
 logger = logging.getLogger(__name__)
 
 
+def z_to_q(z, constants):
+    """
+    Convert complex coordinates to position coordinate.
+    """
+    h = constants.classical_coordinate_weight
+    m = constants.classical_coordinate_mass
+    return np.real((1.0 / np.sqrt(2.0 * m * h)) * (z + np.conj(z)))
+
+
+def z_to_p(z, constants):
+    """
+    Convert complex coordinates to momentum coordinate.
+    """
+    h = constants.classical_coordinate_weight
+    m = constants.classical_coordinate_mass
+    return np.real(1j * np.sqrt(0.5 * m * h) * (np.conj(z) - z))
+
+
+def qp_to_z(q, p, constants):
+    """
+    Convert real coordinates to complex coordinates.
+    """
+    h = constants.classical_coordinate_weight
+    m = constants.classical_coordinate_mass
+    z = np.sqrt(0.5 * m * h) * q + 1j * np.sqrt(0.5 / (m * h)) * p
+    return z
+
+
+def make_ingredient_sparse(ingredient):
+    """
+    Wrapper that converts a vectorized ingredient output to a sparse format consisting
+    of the indices (inds), nonzero elements (mels), and shape.
+    """
+
+    @functools.wraps(ingredient)
+    def sparse_ingredient(*args, **kwargs):
+        (model, constants, parameters) = args
+        out = ingredient(model, constants, parameters, **kwargs)
+        inds = np.where(out != 0)
+        mels = out[inds]
+        shape = np.shape(out)
+        return inds, mels, shape
+
+    return sparse_ingredient
+
+
+def vectorize_ingredient(ingredient):
+    """
+    Wrapper that vectorize an ingredient function.
+
+    It assumes that any kwarg is an numpy.ndarray that is vectorized over its first
+    index. Other kwargs are assumed to not be vectorized.
+    """
+
+    @functools.wraps(ingredient)
+    def vectorized_ingredient(*args, **kwargs):
+        (model, parameters) = args
+        batch_size = kwargs.get("batch_size", len(parameters.seed))
+        keys = kwargs.keys()
+        kwargs_list = []
+        for n in range(batch_size):
+            kwargs_n = {}
+            for key in keys:
+                if isinstance(kwargs[key], np.ndarray):
+                    kwargs_n[key] = kwargs[key][n]
+                else:
+                    kwargs_n[key] = kwargs[key]
+            kwargs_list.append(kwargs_n)
+        out = np.array(
+            [ingredient(model, parameters, **kwargs_list[n]) for n in range(batch_size)]
+        )
+        return out
+
+    return vectorized_ingredient
+
+
+@njit()
+def dh_c_dzc_harmonic_jit(z, h, w):
+    """
+    Derivative of the harmonic oscillator classical Hamiltonian function with respect to
+    the conjugate `z` coordinate.
+
+    This is a low-level function accelerated using Numba.
+    """
+    a = 0.5 * (((w**2) / h) - h)
+    b = 0.5 * (((w**2) / h) + h)
+    out = b[..., :] * z + a[..., :] * np.conj(z)
+    return out
+
+
+@njit()
+def h_qc_diagonal_linear_jit(
+    batch_size, num_sites, num_classical_coordinates, z, gamma
+):
+    """
+    Low level function to generate the diagonal linear quantum-classical Hamiltonian.
+    """
+    h_qc = np.zeros((batch_size, num_sites, num_sites), dtype=np.complex128)
+    for b in range(batch_size):
+        for i in range(num_sites):
+            for j in range(num_classical_coordinates):
+                h_qc[b, i, i] = h_qc[b, i, i] + gamma[i, j] * (
+                    z[b, j] + np.conj(z[b, j])
+                )
+    return h_qc
+
+
 def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     """
     Generate a sample from a Gaussian distribution.
