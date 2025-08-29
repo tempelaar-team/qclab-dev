@@ -5,8 +5,11 @@ objects.
 These are typically used in the initialization recipe of the algorithm object.
 """
 
+import logging
 import numpy as np
 from qc_lab.functions import gen_sample_gaussian
+
+logger = logging.getLogger(__name__)
 
 
 def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
@@ -23,7 +26,7 @@ def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
 def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     """
     Convert seeds into branch seeds for deterministic surface hopping. This is done by
-    first assumign that the number of branches is equal to the number of quantum states.
+    first assumigng that the number of branches is equal to the number of quantum states.
     Then, a branch index (state.branch_ind) is created which gives the branch index of
     each seed in the batch. Then a new set of seeds is created by floor dividing the
     original seeds by the number of branches so that the seeds corresponding to
@@ -42,10 +45,11 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     else:
         num_branches = 1
     batch_size = sim.settings.batch_size
-    assert batch_size % num_branches == 0, (
-        "Batch size must be divisible by number of quantum states for"
-        " deterministic surface hopping."
-    )
+
+    if batch_size % num_branches != 0:
+        logger.error("Batch size must be divisible by number of branches.")
+        raise ValueError("Batch size must be divisible by number of branches.")
+
     # Next, determine the number of trajectories that have been run by assuming that
     # the minimum seed in the current batch of seeds is the number of trajectories
     # that have been run modulo num_branches.
