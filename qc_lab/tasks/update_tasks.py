@@ -312,7 +312,7 @@ def basis_transform_vec(algorithm, sim, parameters, state, **kwargs):
     input_vec = getattr(state, kwargs["input_vec"])
     basis = getattr(state, kwargs["basis"])
     if kwargs.get("db_to_adb", False):
-        basis = np.einsum("...ij->...ji", basis).conj()
+        basis = np.einsum("tij->tji", basis, optimize="greedy").conj()
 
     setattr(
         state,
@@ -794,6 +794,7 @@ def update_quantum_energy_fssh(algorithm, sim, parameters, state, **kwargs):
                 state.dm_adb_0.reshape(
                     (batch_size, num_branches, num_states, num_states)
                 ),
+                optimize="greedy",
             ).flatten()[:, np.newaxis]
         )
         state.quantum_energy = np.einsum(
