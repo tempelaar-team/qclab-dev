@@ -209,13 +209,16 @@ def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs)
     z = getattr(state, kwargs["z"])
     wf = getattr(state, kwargs["wf"])
     use_gauge_field_force = kwargs.get("use_gauge_field_force", False)
+    # Update the gradient of h_qc.
     parameters, state = update_dh_qc_dzc(
         algorithm, sim, parameters, state, z=kwargs["z"]
     )
     inds, mels, shape = state.dh_qc_dzc
+    # Calculate the expectation value w.r.t. the wavefunction.
     state.quantum_classical_forces = calc_sparse_inner_product(
         inds, mels, shape, wf.conj(), wf
     )
+    # Add the gauge field force if it exists and is requested.
     gauge_field_force, has_gauge_field_force = sim.model.get("gauge_field_force")
     if has_gauge_field_force and use_gauge_field_force:
         state.quantum_classical_forces += gauge_field_force(parameters, z=z, wf=wf)
@@ -242,7 +245,7 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
     Fixes the gauge of the eigenvectors as specified by the gauge_fixing parameter.
 
     if gauge_fixing == "sign_overlap":
-        Only the sign of the eigenvector is changed so its overlap
+        The sign of the eigenvector is changed so its overlap
         with the previous eigenvector is positive.
 
     if gauge_fixing == "phase_overlap":
