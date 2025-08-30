@@ -149,13 +149,8 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
     """
     del parameters
     z = kwargs["z"]
-    batch_size = kwargs.get("batch_size", len(z))
-    num_sites = model.constants.num_quantum_states
-    num_classical_coordinates = model.constants.num_classical_coordinates
     gamma = model.constants.diagonal_linear_coupling
-    return h_qc_diagonal_linear_jit(
-        batch_size, num_sites, num_classical_coordinates, z, gamma
-    )
+    return h_qc_diagonal_linear_jit(z, gamma)
 
 
 def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):

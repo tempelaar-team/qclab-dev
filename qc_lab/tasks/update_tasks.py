@@ -10,6 +10,8 @@ from qc_lab.functions import (
     numerical_fssh_hop,
     wf_db_rk4,
     calc_delta_z_fssh,
+    update_z_rk4_k123_sum,
+    update_z_rk4_k4_sum,
 )
 from qc_lab.constants import SMALL
 
@@ -212,7 +214,7 @@ def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs)
     )
     inds, mels, shape = state.dh_qc_dzc
     state.quantum_classical_forces = calc_sparse_inner_product(
-        inds, mels, shape, wf, wf
+        inds, mels, shape, wf.conj(), wf
     )
     gauge_field_force, has_gauge_field_force = sim.model.get("gauge_field_force")
     if has_gauge_field_force and use_gauge_field_force:
@@ -619,8 +621,10 @@ def update_z_rk4_k1(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    k1 = -1j * (state.classical_forces + state.quantum_classical_forces)
-    setattr(state, output_name, z_0 + 0.5 * dt_update * k1)
+    out, k1 = update_z_rk4_k123_sum(
+        z_0, state.classical_forces, state.quantum_classical_forces, 0.5 * dt_update
+    )
+    setattr(state, output_name, out)
     state.z_rk4_k1 = k1
     return parameters, state
 
@@ -629,8 +633,10 @@ def update_z_rk4_k2(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    k2 = -1j * (state.classical_forces + state.quantum_classical_forces)
-    setattr(state, output_name, z_0 + 0.5 * dt_update * k2)
+    out, k2 = update_z_rk4_k123_sum(
+        z_0, state.classical_forces, state.quantum_classical_forces, 0.5 * dt_update
+    )
+    setattr(state, output_name, out)
     state.z_rk4_k2 = k2
     return parameters, state
 
@@ -639,8 +645,10 @@ def update_z_rk4_k3(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    k3 = -1j * (state.classical_forces + state.quantum_classical_forces)
-    setattr(state, output_name, z_0 + dt_update * k3)
+    out, k3 = update_z_rk4_k123_sum(
+        z_0, state.classical_forces, state.quantum_classical_forces, dt_update
+    )
+    setattr(state, output_name, out)
     state.z_rk4_k3 = k3
     return parameters, state
 
@@ -649,15 +657,33 @@ def update_z_rk4_k4(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    k4 = -1j * (state.classical_forces + state.quantum_classical_forces)
-    setattr(
-        state,
-        output_name,
-        z_0
-        + dt_update
-        * (1.0 / 6.0)
-        * (state.z_rk4_k1 + 2.0 * state.z_rk4_k2 + 2.0 * state.z_rk4_k3 + k4),
+    out = update_z_rk4_k4_sum(
+        z_0,
+        state.z_rk4_k1,
+        state.z_rk4_k2,
+        state.z_rk4_k3,
+        state.classical_forces,
+        state.quantum_classical_forces,
+        dt_update,
     )
+    # out = np.ascontiguousarray(np.empty_like(z_0))
+    # np.copyto(out, z_0)
+    # dt_fac = dt_update * (1.0 / 6.0)
+    # np.add(out, dt_fac * state.z_rk4_k1, out = out)
+    # np.add(out, dt_fac * 2.0*state.z_rk4_k2, out = out)
+    # np.add(out, dt_fac * 2.0*state.z_rk4_k3, out = out)
+    # np.add(out, dt_fac * -1j*state.classical_forces, out = out)
+    # np.add(out, dt_fac * -1j*state.quantum_classical_forces, out = out)
+    setattr(state, output_name, out)
+    # k4 = -1j * (state.classical_forces + state.quantum_classical_forces)
+    # setattr(
+    #     state,
+    #     output_name,
+    #     z_0
+    #     + dt_update
+    #     * (1.0 / 6.0)
+    #     * (state.z_rk4_k1 + 2.0 * state.z_rk4_k2 + 2.0 * state.z_rk4_k3 + k4),
+    # )
     return parameters, state
 
 

@@ -3,11 +3,39 @@ This module contains functions used by tasks.
 """
 
 import logging
+import functools
 import numpy as np
 from numba import njit
 from qc_lab.constants import SMALL
 
 logger = logging.getLogger(__name__)
+
+
+@njit
+def update_z_rk4_k123_sum(z_0, classical_forces, quantum_classical_forces, dt_update):
+    batch_size, num_classical_coordinates = z_0.shape
+    k = np.empty((batch_size, num_classical_coordinates), dtype=np.complex128)
+    out = np.empty((batch_size, num_classical_coordinates), dtype=np.complex128)
+    for i in range(z_0.shape[0]):
+        for j in range(z_0.shape[1]):
+            k[i, j] = -1j * (classical_forces[i, j] + quantum_classical_forces[i, j])
+            out[i, j] = z_0[i, j] + dt_update * k[i, j]
+    return out, k
+
+
+@njit
+def update_z_rk4_k4_sum(
+    z_0, k1, k2, k3, classical_forces, quantum_classical_forces, dt_update
+):
+    for i in range(z_0.shape[0]):
+        for j in range(z_0.shape[1]):
+            z_0[i, j] = z_0[i, j] + (dt_update / 6.0) * (
+                k1[i, j]
+                + 2.0 * k2[i, j]
+                + 2.0 * k3[i, j]
+                - 1j * (classical_forces[i, j] + quantum_classical_forces[i, j])
+            )
+    return z_0
 
 
 @njit()
@@ -90,26 +118,36 @@ def dh_c_dzc_harmonic_jit(z, h, w):
 
     This is a low-level function accelerated using Numba.
     """
-    a = 0.5 * (((w**2) / h) - h)
-    b = 0.5 * (((w**2) / h) + h)
-    out = b[..., :] * z + a[..., :] * np.conj(z)
+    # a = 0.5 * (((w**2) / h) - h)
+    # b = 0.5 * (((w**2) / h) + h)
+    # out = b[..., :] * z + a[..., :] * np.conj(z)
+
+    batch_size, num_classical_coordinates = z.shape
+    out = np.empty((batch_size, num_classical_coordinates), dtype=np.complex128)
+    w2_over_h = (w**2) / h
+    for i in range(batch_size):
+        for j in range(num_classical_coordinates):
+            zij = z[i, j]
+            out[i, j] = complex(w2_over_h[j] * zij.real, h[j] * zij.imag)
+
     return out
 
 
 @njit()
-def h_qc_diagonal_linear_jit(
-    batch_size, num_sites, num_classical_coordinates, z, gamma
-):
+def h_qc_diagonal_linear_jit(z, gamma):
     """
     Low level function to generate the diagonal linear quantum-classical Hamiltonian.
     """
+    batch_size = z.shape[0]
+    num_classical_coordinates = z.shape[1]
+    num_sites = gamma.shape[0]
     h_qc = np.zeros((batch_size, num_sites, num_sites), dtype=np.complex128)
     for b in range(batch_size):
         for i in range(num_sites):
+            acc = 0.0
             for j in range(num_classical_coordinates):
-                h_qc[b, i, i] = h_qc[b, i, i] + gamma[i, j] * (
-                    z[b, j] + np.conj(z[b, j])
-                )
+                acc += gamma[i, j] * (2.0 * z[b, j].real)
+            h_qc[b, i, i] = acc
     return h_qc
 
 
@@ -144,24 +182,38 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     return z0 + z, rand
 
 
-@njit
-def calc_sparse_inner_product(inds, mels, shape, vec_l, vec_r):
-    """
-    Given the indices, matrix elements and shape of a sparse matrix, calculate the
-    expectation value with a vector.
 
-    Required constants:
-        - None.
+@njit(cache=True)
+def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r):
     """
-    out = np.zeros((shape[:2]), dtype=np.complex128)
-    for i in range(len(inds[0])):
-        out[inds[0][i], inds[1][i]] = (
-            out[inds[0][i], inds[1][i]]
-            + np.conj(vec_l[inds[0][i], inds[2][i]])
-            * mels[i]
-            * vec_r[inds[0][i], inds[3][i]]
-        )
-    return out
+    Take a sparse gradient of a matrix (batch_size, num_classical_coordinates,
+    num_quantum_state, num_quantum_states) and calculate the matrix element of
+    the vectors vec_l_conj and vec_r with  shape (batch_size, num_quantum_states).
+    """
+    batch_size, num_classical_coordinates, num_quantum_states = (
+        shape[0],
+        shape[1],
+        shape[2],
+    )
+    r = inds[0]
+    c = inds[1]
+    a = inds[2]
+    b = inds[3]
+
+    out = np.zeros(batch_size * num_classical_coordinates, dtype=np.complex128)
+
+    l_flat = vec_l_conj.reshape(batch_size * num_quantum_states)
+    r_flat = vec_r.reshape(batch_size * num_quantum_states)
+
+    for i in range(mels.shape[0]):
+        ri = r[i]
+        ci = c[i]
+        idx_out = ri * num_classical_coordinates + ci
+        idx_l = ri * num_quantum_states + a[i]
+        idx_r = ri * num_quantum_states + b[i]
+        out[idx_out] += l_flat[idx_l] * mels[i] * r_flat[idx_r]
+
+    return out.reshape((batch_size, num_classical_coordinates))
 
 
 def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvecs):
