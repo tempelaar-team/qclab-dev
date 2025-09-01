@@ -409,14 +409,37 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
     )
     # Check positions where the nonadiabatic coupling is greater than SMALL.
     big_pos = dkj_zc[np.abs(dkj_zc) > SMALL]
+    # Calculate a weighting factor to rescale real and imaginary parts appropriately.
+    imag_weight = np.sqrt(
+        0.5
+        / (
+            sim.model.constants.classical_coordinate_weight
+            * sim.model.constants.classical_coordinate_mass
+        )
+    )
+    real_weight = np.sqrt(
+        0.5
+        * (
+            sim.model.constants.classical_coordinate_weight
+            * sim.model.constants.classical_coordinate_mass
+        )
+    )
+    # Determine if the real and imaginary parts are properly aligned.
     if not (
-        np.allclose(np.imag(dkj_z[big_pos]), -np.imag(dkj_zc[big_pos]), atol=SMALL)
+        np.allclose(
+            imag_weight * np.imag(dkj_z[big_pos]),
+            -imag_weight * np.imag(dkj_zc[big_pos]),
+            atol=SMALL,
+        )
     ) or not (
-        np.allclose(np.real(dkj_z[big_pos]), np.real(dkj_zc[big_pos]), atol=SMALL)
+        np.allclose(
+            real_weight * np.real(dkj_z[big_pos]),
+            real_weight * np.real(dkj_zc[big_pos]),
+            atol=SMALL,
+        )
     ):
         logger.error("Nonadiabatic coupling is complex, needs gauge fixing!")
-    delta_z = dkj_zc
-    return delta_z
+    return dkj_zc
 
 
 def numerical_fssh_hop(model, parameters, **kwargs):
