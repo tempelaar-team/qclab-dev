@@ -1,5 +1,6 @@
 """
-This module contains functions used by tasks.
+This module contains functions used in QC Lab. This includes
+functions that are used by tasks, ingredients, and drivers.
 """
 
 import logging

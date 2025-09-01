@@ -1,5 +1,6 @@
 """
-Tasks that update the simulation state during propagation.
+This module contains tasks that update the state and parameters objects
+during propagation.
 """
 
 import logging

@@ -1,5 +1,5 @@
 """
-This module defines the Holstein lattice Model class.
+This module contains the Holstein lattice Model class.
 """
 
 import numpy as np

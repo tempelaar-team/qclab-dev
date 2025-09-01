@@ -1,5 +1,5 @@
 """
-Utility helpers for optional JIT compilation and in-memory logging.
+This module contains utility helpers for optional JIT compilation and in-memory logging.
 """
 
 import logging
@@ -52,8 +52,6 @@ else:
         njit = qc_lab_custom_njit
 
 
-# ----- Logging utilities -----
-
 _log_stream = StringIO()
 
 
@@ -73,7 +71,7 @@ def configure_memory_logger(level=logging.INFO):
     """
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
-    # Remove existing handlers to avoid duplicate output
+    # Remove existing handlers to avoid duplicate output.
     for handler in list(root_logger.handlers):
         root_logger.removeHandler(handler)
     handler = QCDataHandler()

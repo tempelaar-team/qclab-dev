@@ -1,5 +1,5 @@
 """
-This module defines the Data class, which is used to handle the collection and storage
+This module contains the Data class, which is used to handle the collection and storage
 of data output from algorithms in QC Lab.
 """
 

@@ -1,13 +1,9 @@
 """
-This module defines the Variable class, which is used to store time-dependent variables
+This module contains the Variable class, which is used to store time-dependent variables
 in QC Lab.
-
-It also defines a function to initialize parameter and state Variable objects for
-simulations.
 """
 
 import logging
-import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -52,4 +48,3 @@ class Variable:
             state (dict): Object state.
         """
         self.__dict__.update(state)
-

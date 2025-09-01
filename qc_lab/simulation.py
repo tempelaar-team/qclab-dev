@@ -1,6 +1,5 @@
 """
-This module defines the Simulation class as well as the default settings for a
-simulation in QC Lab.
+This module contains the Simulation class in QC Lab.
 """
 
 import logging

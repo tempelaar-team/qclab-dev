@@ -1,5 +1,5 @@
 """
-Directory for dynamics core and drivers.
+This module imports the dynamics drivers to qc_lab.dynamics.
 """
 
 from qc_lab.dynamics.parallel_driver_multiprocessing import (

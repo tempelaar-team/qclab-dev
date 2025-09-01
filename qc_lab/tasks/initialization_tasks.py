@@ -1,5 +1,5 @@
 """
-This module contains the tasks used to initialize quantities in the state or parameters
+This module contains the tasks that initialize quantities in the state and parameters
 objects.
 
 These are typically used in the initialization recipe of the algorithm object.

@@ -1,5 +1,5 @@
 """
-This module contains the parallel driver for the dynamics simulation in QC Lab.
+This module contains the parallel driver.
 """
 
 import multiprocessing

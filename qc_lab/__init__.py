@@ -1,5 +1,5 @@
 """
-QC Lab package initialization.
+This module contains the QC Lab package initialization.
 """
 
 from qc_lab.simulation import Simulation

@@ -1,5 +1,5 @@
 """
-This module contains the MF algorithm class.
+This module contains the MeanField algorithm class.
 """
 
 from functools import partial

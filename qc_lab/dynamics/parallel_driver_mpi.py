@@ -1,5 +1,5 @@
 """
-This module contains the parallel MPI driver for the dynamics simulation in QC Lab.
+This module contains the parallel MPI driver.
 """
 
 import logging

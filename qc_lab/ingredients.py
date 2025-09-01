@@ -75,7 +75,7 @@ def dh_c_dzc_free(model, parameters, **kwargs):
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     h = model.constants.classical_coordinate_weight[np.newaxis, :]
     p = z_to_p(z, m, h)
-    return dqdp_to_dzc(np.zeros_like(p), p/m, m, h)
+    return dqdp_to_dzc(np.zeros_like(p), p / m, m, h)
 
 
 def h_q_two_level(model, parameters, **kwargs):
@@ -95,12 +95,12 @@ def h_q_two_level(model, parameters, **kwargs):
     h_q = np.zeros((2, 2), dtype=complex)
     h_q[0, 0] = model.constants.get("two_level_00", 0.0)
     h_q[1, 1] = model.constants.get("two_level_11", 0.0)
-    h_q[0, 1] = model.constants.get(
-        "two_level_01_re", 0.0
-    ) + 1j * model.constants.get("two_level_01_im", 0.0)
-    h_q[1, 0] = model.constants.get(
-        "two_level_01_re", 0.0
-    ) - 1j * model.constants.get("two_level_01_im", 0.0)
+    h_q[0, 1] = model.constants.get("two_level_01_re", 0.0) + 1j * model.constants.get(
+        "two_level_01_im", 0.0
+    )
+    h_q[1, 0] = model.constants.get("two_level_01_re", 0.0) - 1j * model.constants.get(
+        "two_level_01_im", 0.0
+    )
     # We use np.broadcast_to because each trajectory is identical.
     return np.broadcast_to(h_q, (batch_size, 2, 2))
 

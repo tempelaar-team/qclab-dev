@@ -1,5 +1,5 @@
 """
-This module contains the FSSH algorithm class.
+This module contains the FewestSwitchesSurfaceHopping algorithm class.
 """
 
 from functools import partial

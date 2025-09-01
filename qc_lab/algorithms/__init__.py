@@ -1,5 +1,5 @@
 """
-Directory for algorithms in QC Lab.
+This module imports the algorithm classes to qc_lab.algorithms.
 """
 
 from qc_lab.algorithms.mean_field import MeanField

@@ -1,5 +1,5 @@
 """
-This module defines the Model class for Tully's second problem, a dual avoided crossing.
+This module contains the Model class for Tully's second problem, a dual avoided crossing.
 """
 
 import numpy as np

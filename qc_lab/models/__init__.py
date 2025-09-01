@@ -1,5 +1,5 @@
 """
-Directory for models.
+This module imports the model classes to qc_lab.models.
 """
 
 from qc_lab.models.holstein_lattice import HolsteinLattice

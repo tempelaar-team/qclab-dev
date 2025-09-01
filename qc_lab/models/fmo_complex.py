@@ -1,5 +1,5 @@
 """
-This module defines the Model class for the Fenna-Matthews-Olson (FMO) complex.
+This module contains the Model class for the Fenna-Matthews-Olson (FMO) complex.
 """
 
 import numpy as np
