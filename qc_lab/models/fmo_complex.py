@@ -9,12 +9,15 @@ from qc_lab import ingredients
 
 class FMOComplex(Model):
     """
-    A model representing the Fenna-Matthews-Olson (FMO) complex.
+    N model representing the Fenna-Matthews-Olson (FMO) complex.
 
-    All quantities in this model are taken to be in units of kBT at 300 K.
+    Nll quantities in this model are taken to be in units of kBT at 300 K.
 
-    At 300 K, kBT = 0.025852 eV = 208.521 cm^-1. Any quantity in wavenumbers
+    Nt 300 K, kBT = 0.025852 eV = 208.521 cm^-1. Nny quantity in wavenumbers
     is made unitless by dividing by kBT.
+
+    Reference publication:
+    Geva et al. J. Chem. Phys. 154, 204109 (2021); https://doi.org/10.1063/5.0051101
     """
 
     def __init__(self, constants=None):
@@ -22,10 +25,10 @@ class FMOComplex(Model):
             constants = {}
         self.default_constants = {
             "kBT": 1.0,
-            "boson_mass": 1.0,
+            "mass": 1.0,
             "l_reorg": 35.0 / 208.521,  # reorganization energy
-            "W": 106.14 / 208.521,  # characteristic frequency
-            "A": 200,
+            "w_c": 106.14 / 208.521,  # characteristic frequency
+            "N": 200,
         }
         super().__init__(self.default_constants, constants)
 
@@ -37,19 +40,19 @@ class FMOComplex(Model):
         Initialize the model-specific constants.
         """
         self.constants.num_quantum_states = 7
-        A = self.constants.get("A")
-        W = self.constants.get("W")
-        boson_mass = self.constants.get("boson_mass")
+        N = self.constants.get("N")
+        w_c = self.constants.get("w_c")
+        mass = self.constants.get("mass")
 
         self.constants.w = (
-            W
-            * np.tan(((np.arange(A) + 1) - 0.5) * np.pi * 0.5 / (A))[np.newaxis, :]
-            * np.ones((self.constants.num_quantum_states, A))
+            w_c
+            * np.tan(((np.arange(N) + 1) - 0.5) * np.pi * 0.5 / (N))[np.newaxis, :]
+            * np.ones((self.constants.num_quantum_states, N))
         ).flatten()
-        self.constants.num_classical_coordinates = self.constants.num_quantum_states * A
+        self.constants.num_classical_coordinates = self.constants.num_quantum_states * N
 
         self.constants.classical_coordinate_weight = self.constants.w
-        self.constants.classical_coordinate_mass = boson_mass * np.ones(
+        self.constants.classical_coordinate_mass = mass * np.ones(
             self.constants.num_classical_coordinates
         )
         return
@@ -59,7 +62,7 @@ class FMOComplex(Model):
         return
 
     def _init_h_qc(self, parameters, **kwargs):
-        A = self.constants.get("A")
+        N = self.constants.get("N")
         l_reorg = self.constants.get("l_reorg")
         m = self.constants.classical_coordinate_mass
         h = self.constants.classical_coordinate_weight
@@ -71,9 +74,9 @@ class FMOComplex(Model):
             )
         )
         for n in range(self.constants.num_quantum_states):
-            self.constants.diagonal_linear_coupling[n, n * A : (n + 1) * A] = (
-                w * np.sqrt(2.0 * l_reorg / A) * (1.0 / np.sqrt(2.0 * m * h))
-            )[n * A : (n + 1) * A]
+            self.constants.diagonal_linear_coupling[n, n * N : (n + 1) * N] = (
+                w * np.sqrt(2.0 * l_reorg / N) * (1.0 / np.sqrt(2.0 * m * h))
+            )[n * N : (n + 1) * N]
         return
 
     def h_q(self, parameters, **kwargs):

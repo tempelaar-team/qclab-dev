@@ -11,6 +11,9 @@ class HolsteinLattice(Model):
     """
     A model representing a nearest-neighbor tight-binding model with Holstein-type
     electron-phonon coupling with a single optical mode.
+
+    Reference publication:
+    Krotz. J. Chem. Phys. 154, 224101 (2021); https://doi.org/10.1063/5.0053177
     """
 
     def __init__(self, constants=None):

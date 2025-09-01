@@ -11,6 +11,9 @@ from qc_lab import functions
 class TullyProblemTwo(Model):
     """
     Tully's second problem: a dual avoided crossing.
+
+    Reference publication:
+    Tully. J. Chem. Phys. 93, 2, 1061-1071. (1990); https://doi.org/10.1063/1.459170
     """
 
     def __init__(self, constants=None):

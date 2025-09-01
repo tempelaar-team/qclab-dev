@@ -10,6 +10,9 @@ from qc_lab import ingredients
 class SpinBoson(Model):
     """
     Spin-Boson model class for the simulation framework.
+
+    Reference publication:
+    Tempelaar & Reichman. J. Chem. Phys. 148, 102309 (2018). https://doi.org/10.1063/1.5000843
     """
 
     def __init__(self, constants=None):
