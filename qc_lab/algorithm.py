@@ -51,7 +51,7 @@ class Algorithm:
             recipe (Iterable[callable]): Sequence of task functions.
 
         Returns:
-            tuple[Variable, Variable]: The updated ``parameter`` and ``state``
+            tuple[Variable, Variable]: The updated parameter and state
             objects.
         """
         for func in recipe:

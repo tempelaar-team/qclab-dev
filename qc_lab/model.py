@@ -32,7 +32,7 @@ class Model:
             ingredient_name (str): Name of the ingredient to search for.
 
         Returns:
-            tuple[callable | None, bool]: The ingredient function (or ``None`` if
+            tuple[callable | None, bool]: The ingredient function (or None if
             not found) and a flag indicating whether it exists.
         """
         for ingredient in self.ingredients[::-1]:

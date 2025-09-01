@@ -66,7 +66,7 @@ The following table lists all of the constants required by the `HolsteinLatticeM
      - 1
    * - `periodic`
      - Periodic boundary condition
-     - `True``
+     - `True`
 
      
 Example

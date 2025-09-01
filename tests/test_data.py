@@ -1,5 +1,5 @@
 """
-Tests for :class:`qc_lab.data.Data` save and load functionality.
+Tests for qc_lab.data.Data save and load functionality.
 """
 
 import numpy as np

@@ -21,7 +21,7 @@ class Data:
             seeds = np.array([], dtype=int)
         self.data_dict = {"seed": seeds, "norm_factor": 0}
         # Store log messages captured during a simulation run. This attribute is
-        # populated by the drivers when they return the ``Data`` object.
+        # populated by the drivers when they return the Data object.
         self.log = ""
 
     def add_output_to_data_dict(self, sim, state, t_ind):
@@ -70,7 +70,7 @@ class Data:
         Add new data to the existing data dictionary.
 
         Args:
-            new_data (Data): A ``Data`` instance containing the new data to
+            new_data (Data): A Data instance containing the new data to
                 merge.
         """
         new_norm_factor = (
@@ -90,7 +90,7 @@ class Data:
                 else:
                     self.data_dict[key] = val
         self.data_dict["norm_factor"] = new_norm_factor
-        # Append any log messages stored in ``new_data`` to this instance's log.
+        # Append any log messages stored in new_data to this instance's log.
         if getattr(new_data, "log", ""):
             self.log += new_data.log
 
@@ -98,8 +98,8 @@ class Data:
         """
         Save the data to disk.
 
-        If ``h5py`` is available the data is stored as an HDF5 archive; otherwise
-        each variable is saved using :func:`numpy.savez`.
+        If h5py is available the data is stored as an HDF5 archive; otherwise
+        each variable is saved using numpy.savez.
 
         Args:
             filename (str): The file name to save the data to.
@@ -113,7 +113,7 @@ class Data:
 
     def load(self, filename):
         """
-        Load a :class:`Data` object from ``filename``.
+        Load a Data object from filename.
 
         Args:
             filename (str): The file name to load the data from.
