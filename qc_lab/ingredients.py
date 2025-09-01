@@ -1,13 +1,12 @@
 """
 This module contains ingredients for use in Model classes.
-
-It also contains any functions that the ingredients depend on for low-level operations.
 """
 
 import functools
 import numpy as np
 from qc_lab.utils import njit
 from qc_lab.functions import (
+    dqdp_to_dzc,
     z_to_q,
     z_to_p,
     qp_to_z,
@@ -78,8 +77,7 @@ def dh_c_dzc_free(model, parameters, **kwargs):
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     h = model.constants.classical_coordinate_weight[np.newaxis, :]
     p = z_to_p(z, m, h)
-    # return -(0.5 * h[..., :]) * (np.conj(z) - z)
-    return p / m
+    return dqdp_to_dzc(np.zeros_like(p), p/m, m, h)
 
 
 def h_q_two_level(model, parameters, **kwargs):
