@@ -24,6 +24,7 @@ class Simulation:
             "dt_collect": 0.1,
             "num_trajs": 100,
             "batch_size": 25,
+            "progress_bar": True,
         }
         settings = {**self.default_settings, **settings}
         self.settings = Constants()
