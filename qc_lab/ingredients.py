@@ -2,9 +2,7 @@
 This module contains ingredients for use in Model classes.
 """
 
-import functools
 import numpy as np
-from qc_lab.utils import njit
 from qc_lab.functions import (
     dqdp_to_dzc,
     z_to_q,
@@ -94,16 +92,17 @@ def h_q_two_level(model, parameters, **kwargs):
         - `two_level_01_im`: Imaginary part of the coupling between levels.
     """
     batch_size = kwargs.get("batch_size", len(parameters.seed))
-    h_q = np.zeros((batch_size, 2, 2), dtype=complex)
-    h_q[:, 0, 0] = model.constants.get("two_level_00", 0.0)
-    h_q[:, 1, 1] = model.constants.get("two_level_11", 0.0)
-    h_q[:, 0, 1] = model.constants.get(
+    h_q = np.zeros((2, 2), dtype=complex)
+    h_q[0, 0] = model.constants.get("two_level_00", 0.0)
+    h_q[1, 1] = model.constants.get("two_level_11", 0.0)
+    h_q[0, 1] = model.constants.get(
         "two_level_01_re", 0.0
     ) + 1j * model.constants.get("two_level_01_im", 0.0)
-    h_q[:, 1, 0] = model.constants.get(
+    h_q[1, 0] = model.constants.get(
         "two_level_01_re", 0.0
     ) - 1j * model.constants.get("two_level_01_im", 0.0)
-    return h_q
+    # We use np.broadcast_to because each trajectory is identical.
+    return np.broadcast_to(h_q, (batch_size, 2, 2))
 
 
 def h_q_nearest_neighbor(model, parameters, **kwargs):
@@ -129,10 +128,8 @@ def h_q_nearest_neighbor(model, parameters, **kwargs):
     if periodic:
         h_q[0, num_sites - 1] = -hopping_energy
         h_q[num_sites - 1, 0] = np.conj(h_q[0, num_sites - 1])
-    out = h_q[np.newaxis, :, :] + np.zeros(
-        (batch_size, num_sites, num_sites), dtype=complex
-    )
-    return out
+    # We use np.broadcast_to because each trajectory is identical.
+    return np.broadcast_to(h_q, (batch_size, num_sites, num_sites))
 
 
 def h_qc_diagonal_linear(model, parameters, **kwargs):
