@@ -13,6 +13,10 @@ logger = logging.getLogger(__name__)
 
 @njit
 def update_z_rk4_k123_sum(z_0, classical_forces, quantum_classical_forces, dt_update):
+    """
+    Low-level function to calculate the intermediate z coordinate and k values
+    for RK4 update. Applies to steps 1-3.
+    """
     batch_size, num_classical_coordinates = z_0.shape
     k = np.empty((batch_size, num_classical_coordinates), dtype=np.complex128)
     out = np.empty((batch_size, num_classical_coordinates), dtype=np.complex128)
@@ -27,6 +31,9 @@ def update_z_rk4_k123_sum(z_0, classical_forces, quantum_classical_forces, dt_up
 def update_z_rk4_k4_sum(
     z_0, k1, k2, k3, classical_forces, quantum_classical_forces, dt_update
 ):
+    """
+    Low-level function to calculate the fourth and final step for the RK4 update.
+    """
     for i in range(z_0.shape[0]):
         for j in range(z_0.shape[1]):
             z_0[i, j] = z_0[i, j] + (dt_update / 6.0) * (
@@ -41,10 +48,10 @@ def update_z_rk4_k4_sum(
 @njit()
 def dqdp_to_dzc(dq, dp, m, h):
     """
-    Convert derivatives w.r.t. q and p (dq and dp, respectively) to 
+    Convert derivatives w.r.t. q and p (dq and dp, respectively) to
     the derivative w.r.t. zc.
     """
-    return np.sqrt(0.5/(m*h))*dq + 1j*np.sqrt(m*h/2)*dp
+    return np.sqrt(0.5 / (m * h)) * dq + 1j * np.sqrt(m * h / 2) * dp
 
 
 @njit()
@@ -417,7 +424,9 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
         / ev_diff,
     )
     # Check positions where the nonadiabatic coupling is greater than SMALL.
-    big_pos = np.arange(sim.model.constants.num_classical_coordinates,dtype=int)[np.abs(dkj_zc) > SMALL]
+    big_pos = np.arange(sim.model.constants.num_classical_coordinates, dtype=int)[
+        np.abs(dkj_zc) > SMALL
+    ]
     # Calculate a weighting factor to rescale real and imaginary parts appropriately.
     imag_weight = np.sqrt(
         0.5
