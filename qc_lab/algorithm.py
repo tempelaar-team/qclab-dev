@@ -25,9 +25,9 @@ class Algorithm:
         self.update_algorithm_settings()
         # Copy the recipes and output variables to ensure they are not shared
         # across instances.
-        self.initialization_recipe = copy.copy(self.initialization_recipe)
-        self.update_recipe = copy.copy(self.update_recipe)
-        self.collect_recipe = copy.copy(self.collect_recipe)
+        self.initialization_recipe = copy.deepcopy(self.initialization_recipe)
+        self.update_recipe = copy.deepcopy(self.update_recipe)
+        self.collect_recipe = copy.deepcopy(self.collect_recipe)
 
     initialization_recipe = []
     update_recipe = []
