@@ -29,16 +29,16 @@ class Algorithm:
         self.update_recipe = copy.copy(self.update_recipe)
         self.collect_recipe = copy.copy(self.collect_recipe)
 
+    initialization_recipe = []
+    update_recipe = []
+    collect_recipe = []
+
     def update_algorithm_settings(self):
         """
         Update algorithm settings.
 
         This method should be overridden by subclasses.
         """
-
-    initialization_recipe = []
-    update_recipe = []
-    collect_recipe = []
 
     def execute_recipe(self, sim, parameter, state, recipe):
         """
