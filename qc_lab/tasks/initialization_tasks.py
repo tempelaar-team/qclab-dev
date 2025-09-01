@@ -26,7 +26,7 @@ def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
 def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     """
     Convert seeds into branch seeds for deterministic surface hopping. This is done by
-    first assumigng that the number of branches is equal to the number of quantum states.
+    first assuming that the number of branches is equal to the number of quantum states.
     Then, a branch index (state.branch_ind) is created which gives the branch index of
     each seed in the batch. Then a new set of seeds is created by floor dividing the
     original seeds by the number of branches so that the seeds corresponding to
