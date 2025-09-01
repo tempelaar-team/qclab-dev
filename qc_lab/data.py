@@ -37,7 +37,7 @@ class Data:
         """
         # Check if the norm_factor is zero. If it is, save it from the state object.
         if self.data_dict["norm_factor"] == 0:
-            if not (hasattr(state, "norm_factor")):
+            if not hasattr(state, "norm_factor"):
                 logger.critical(
                     "The state object does not have a norm_factor attribute. "
                     "This is required to normalize the data."
@@ -50,7 +50,7 @@ class Data:
             )
             self.data_dict["norm_factor"] = state.norm_factor
         for key, val in state.output_dict.items():
-            if not (key in self.data_dict):
+            if not key in self.data_dict:
                 # If the key is not in the data_dict, initialize it with zeros.
                 self.data_dict[key] = np.zeros(
                     (len(sim.settings.t_collect), *np.shape(val)[1:]), dtype=val.dtype
