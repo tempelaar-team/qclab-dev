@@ -67,7 +67,7 @@ Update Tasks
     :members:
     :undoc-members:
     :show-inheritance:
-    :exclude-members: wf_db_rk4, matprod
+    :exclude-members: wf_rk4, matprod
 
 
 Collect Tasks

@@ -38,7 +38,11 @@ This construction is depicted diagramatically below, click on any component to l
         algo  [label="Algorithm Object",  URL="../../user_guide/algorithms/algorithms.html"];
         driver[label="Dynamics Driver",   URL="../../user_guide/drivers/drivers.html"];
         data  [label="Data Object",       URL="../../user_guide/data_object.html"];
+        ingredients [label="Ingredients", URL="../../user_guide/ingredients.html"];
+        tasks [label="Tasks", URL="../../user_guide/tasks.html"];
 
+        ingredients -> model [color="#f38c3c"];
+        tasks -> algo [color="#f38c3c"];
         model -> sim [color="#f38c3c"];
         algo  -> sim [color="#f38c3c"];
         sim   -> driver [color="#f38c3c"];
