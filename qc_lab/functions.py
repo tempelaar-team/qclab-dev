@@ -39,6 +39,15 @@ def update_z_rk4_k4_sum(
 
 
 @njit()
+def dqdp_to_dzc(dq, dp, m, h):
+    """
+    Convert derivatives w.r.t. q and p (dq and dp, respectively) to 
+    the derivative w.r.t. zc.
+    """
+    return np.sqrt(0.5/(m*h))*dq + 1j*np.sqrt(m*h/2)*dp
+
+
+@njit()
 def z_to_q(z, m, h):
     """
     Convert complex coordinates to position coordinate.
@@ -408,7 +417,7 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
         / ev_diff,
     )
     # Check positions where the nonadiabatic coupling is greater than SMALL.
-    big_pos = dkj_zc[np.abs(dkj_zc) > SMALL]
+    big_pos = np.arange(sim.model.constants.num_classical_coordinates,dtype=int)[np.abs(dkj_zc) > SMALL]
     # Calculate a weighting factor to rescale real and imaginary parts appropriately.
     imag_weight = np.sqrt(
         0.5
