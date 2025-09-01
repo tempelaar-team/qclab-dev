@@ -10,6 +10,7 @@ def dynamics(sim, parameter, state, data):
     """
     Dynamics core for QC Lab.
     """
+    # Define an update iterator using tqdm if progress_bar is True.
     t_update_iterator = sim.settings.t_update_n
     if getattr(sim.settings, "progress_bar", True):
         t_update_iterator = tqdm(t_update_iterator)
