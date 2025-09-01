@@ -446,14 +446,14 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
     # Determine if the real and imaginary parts are properly aligned.
     if not (
         np.allclose(
-            imag_weight * np.imag(dkj_z[big_pos]),
-            -imag_weight * np.imag(dkj_zc[big_pos]),
+            (imag_weight * np.imag(dkj_z))[big_pos],
+            (-imag_weight * np.imag(dkj_zc))[big_pos],
             atol=SMALL,
         )
     ) or not (
         np.allclose(
-            real_weight * np.real(dkj_z[big_pos]),
-            real_weight * np.real(dkj_zc[big_pos]),
+            (real_weight * np.real(dkj_z))[big_pos],
+            (real_weight * np.real(dkj_zc))[big_pos],
             atol=SMALL,
         )
     ):
