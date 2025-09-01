@@ -9,11 +9,11 @@ from qc_lab import ingredients
 
 class FMOComplex(Model):
     """
-    N model representing the Fenna-Matthews-Olson (FMO) complex.
+    A model representing the Fenna-Matthews-Olson (FMO) complex.
 
-    Nll quantities in this model are taken to be in units of kBT at 300 K.
+    All quantities in this model are taken to be in units of kBT at 300 K.
 
-    Nt 300 K, kBT = 0.025852 eV = 208.521 cm^-1. Nny quantity in wavenumbers
+    At 300 K, kBT = 0.025852 eV = 208.521 cm^-1. Any quantity in wavenumbers
     is made unitless by dividing by kBT.
 
     Reference publication:
