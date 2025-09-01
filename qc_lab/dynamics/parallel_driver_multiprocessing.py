@@ -75,6 +75,6 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
         results = pool.starmap(dynamics.dynamics, input_data)
     for result in results:
         data.add_data(result)
-    # Attach collected log output
+    # Attach collected log output.
     data.log = get_log_output()
     return data
