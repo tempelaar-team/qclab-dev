@@ -11,7 +11,10 @@ class FMOComplex(Model):
     """
     A model representing the Fenna-Matthews-Olson (FMO) complex.
 
-    All quantities in this model are taken to be in units of kBT at 298.15 K.
+    All quantities in this model are taken to be in units of kBT at 300 K.
+
+    At 300 K, kBT = 0.025852 eV = 208.521 cm^-1. Any quantity in wavenumbers
+    is made unitless by dividing by kBT.
     """
 
     def __init__(self, constants=None):
@@ -20,8 +23,8 @@ class FMOComplex(Model):
         self.default_constants = {
             "kBT": 1.0,
             "boson_mass": 1.0,
-            "l_reorg": 35.0 * 0.00509506,  # reorganization energy
-            "W": 106.14 * 0.00509506,  # characteristic frequency
+            "l_reorg": 35.0 / 208.521,  # reorganization energy
+            "W": 106.14 / 208.521,  # characteristic frequency
             "A": 200,
         }
         super().__init__(self.default_constants, constants)
@@ -75,27 +78,22 @@ class FMOComplex(Model):
 
     def h_q(self, parameters, **kwargs):
         batch_size = kwargs.get("batch_size", len(parameters.seed))
-        # These are in wavenumbers.
-        matrix_elements = np.array(
-            [
-                [12410, -87.7, 5.5, -5.9, 6.7, -13.7, -9.9],
-                [-87.7, 12530, 30.8, 8.2, 0.7, 11.8, 4.3],
-                [5.5, 30.8, 12210.0, -53.5, -2.2, -9.6, 6.0],
-                [-5.9, 8.2, -53.5, 12320, -70.7, -17.0, -63.3],
-                [6.7, 0.7, -2.2, -70.7, 12480, 81.1, -1.3],
-                [-13.7, 11.8, -9.6, -17.0, 81.1, 12630, 39.7],
-                [-9.9, 4.3, 6.0, -63.3, -1.3, 39.7, 12440],
-            ],
-            dtype=complex,
-        )
 
-        # To convert wavenumbers to units of kBT at T=298.15K we
-        # multiply each value by 0.00509506 =
-        # (1/8065.544)[eV/cm^-1] / 0.0243342[eV]
-        # where 0.0243342[eV] is the value of kBT at 298.15K
-        # note that all other constants in this model must also be assumed to
-        # be in units of kBT at 298.15K.
-        matrix_elements *= 0.00509506
+        matrix_elements = (
+            np.array(
+                [
+                    [12410, -87.7, 5.5, -5.9, 6.7, -13.7, -9.9],
+                    [-87.7, 12530, 30.8, 8.2, 0.7, 11.8, 4.3],
+                    [5.5, 30.8, 12210.0, -53.5, -2.2, -9.6, 6.0],
+                    [-5.9, 8.2, -53.5, 12320, -70.7, -17.0, -63.3],
+                    [6.7, 0.7, -2.2, -70.7, 12480, 81.1, -1.3],
+                    [-13.7, 11.8, -9.6, -17.0, 81.1, 12630, 39.7],
+                    [-9.9, 4.3, 6.0, -63.3, -1.3, 39.7, 12440],
+                ],
+                dtype=complex,
+            )
+            / 208.521
+        )
 
         # To reduce numerical errors we can offset the diagonal elements by
         # their minimum value.
