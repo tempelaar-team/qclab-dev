@@ -27,7 +27,7 @@ class MeanField(Algorithm):
 
     update_recipe = [
         partial(tasks.update_h_quantum, z="z"),
-        ## Begin RK4 integration steps.
+        # Begin RK4 integration steps.
         partial(tasks.update_classical_forces, z="z"),
         partial(
             tasks.update_quantum_classical_forces,
@@ -60,7 +60,7 @@ class MeanField(Algorithm):
             use_gauge_field_force=False,
         ),
         partial(tasks.update_z_rk4_k4, z="z", output_name="z"),
-        ## End RK4 integration steps.
+        # End RK4 integration steps.
         tasks.update_wf_db_rk4,
     ]
 
