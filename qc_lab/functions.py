@@ -6,7 +6,7 @@ functions that are used by tasks, ingredients, and drivers.
 import logging
 import functools
 import numpy as np
-from numba import njit
+from qc_lab.utils import njit
 from qc_lab.constants import SMALL
 from qc_lab.variable import Variable
 
