@@ -9,9 +9,9 @@ from qc_lab import ingredients
 
 class FMOComplex(Model):
     """
-    A model representing a Fenna-Matthews-Olson (FMO) complex.
+    A model representing the Fenna-Matthews-Olson (FMO) complex.
 
-    All unitless quantities in this model are taken to be in units of kBT at 298.15 K.
+    All quantities in this model are taken to be in units of kBT at 298.15 K.
     """
 
     def __init__(self, constants=None):
@@ -75,11 +75,7 @@ class FMOComplex(Model):
 
     def h_q(self, parameters, **kwargs):
         batch_size = kwargs.get("batch_size", len(parameters.seed))
-        if hasattr(self, "h_q_mat"):
-            if self.h_q_mat is not None:
-                if len(self.h_q_mat) == batch_size:
-                    return self.h_q_mat
-        # these are in wavenumbers
+        # These are in wavenumbers.
         matrix_elements = np.array(
             [
                 [12410, -87.7, 5.5, -5.9, 6.7, -13.7, -9.9],
@@ -101,16 +97,13 @@ class FMOComplex(Model):
         # be in units of kBT at 298.15K.
         matrix_elements *= 0.00509506
 
-        # to reduce numerical errors we can offset the diagonal elements by
-        # their minimum value
+        # To reduce numerical errors we can offset the diagonal elements by
+        # their minimum value.
         matrix_elements = matrix_elements - np.min(
             np.diag(matrix_elements)
-        ) * np.identity(self.constants.num_quantum_states)
+        ) * np.identity(7)
         # Finally we broadcast the array to the desired shape
-        out = matrix_elements[np.newaxis, :, :] + np.zeros(
-            (batch_size, 1, 1), dtype=complex
-        )
-        return out
+        return np.broadcast_to(matrix_elements, (batch_size, 7, 7))
 
     ingredients = [
         ("h_q", h_q),
