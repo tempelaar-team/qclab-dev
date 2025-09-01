@@ -33,14 +33,14 @@ class SpinBoson(Model):
         self.update_dh_qc_dzc = False
         self.update_h_q = False
 
-    def _init_hq(self, parameters, **kwargs):
+    def _init_h_q(self, parameters, **kwargs):
         self.constants.two_level_00 = self.constants.get("E")
         self.constants.two_level_11 = -1.0 * self.constants.get("E")
         self.constants.two_level_01_re = self.constants.get("V")
         self.constants.two_level_01_im = 0
         return
 
-    def _init_hqc(self, parameters, **kwargs):
+    def _init_h_qc(self, parameters, **kwargs):
         A = self.constants.get("A")
         l_reorg = self.constants.get("l_reorg")
         boson_mass = self.constants.get("boson_mass")
@@ -55,7 +55,7 @@ class SpinBoson(Model):
         )
         return
 
-    def _init_hc(self, parameters, **kwargs):
+    def _init_h_c(self, parameters, **kwargs):
         A = self.constants.get("A")
         W = self.constants.get("W")
         self.constants.harmonic_frequency = W * np.tan(
@@ -80,8 +80,8 @@ class SpinBoson(Model):
         ("dh_c_dzc", ingredients.dh_c_dzc_harmonic),
         ("init_classical", ingredients.init_classical_boltzmann_harmonic),
         ("hop", ingredients.hop_harmonic),
-        ("_init_h_q", _init_hq),
-        ("_init_h_qc", _init_hqc),
+        ("_init_h_q", _init_h_q),
+        ("_init_h_qc", _init_h_qc),
         ("_init_model", _init_model),
-        ("_init_h_c", _init_hc),
+        ("_init_h_c", _init_h_c),
     ]
