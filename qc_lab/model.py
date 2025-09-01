@@ -15,6 +15,8 @@ class Model:
     def __init__(self, default_constants=None, constants=None):
         if constants is None:
             constants = {}
+        if default_constants is None:
+            default_constants = {}
         constants = {**default_constants, **constants}
         self.constants = Constants(self.initialize_constants)
         for key, val in constants.items():
