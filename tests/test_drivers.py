@@ -16,6 +16,7 @@ def test_drivers_spinboson():
     )  # import dynamics driver
 
     sim = Simulation()
+    sim.settings.progress_bar = False
     sim.settings.num_trajs = 200
     sim.settings.batch_size = 50
     sim.settings.tmax = 10
@@ -69,6 +70,7 @@ def test_drivers_spinboson_mpi():
     )  # import dynamics driver
 
     sim = Simulation()
+    sim.settings.progress_bar = False
     sim.settings.num_trajs = 200
     sim.settings.batch_size = 50
     sim.settings.tmax = 10

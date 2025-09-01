@@ -10,8 +10,12 @@ def dynamics(sim, parameter, state, data):
     """
     Dynamics core for QC Lab.
     """
+    t_update_iterator = sim.settings.t_update_n
+    if getattr(sim.settings, "progress_bar", True):
+        t_update_iterator = tqdm(t_update_iterator)
+
     # Iterate over each time step.
-    for sim.t_ind in tqdm(sim.settings.t_update_n):
+    for sim.t_ind in t_update_iterator:
         if sim.t_ind == 0:
             # Execute initialization recipe.
             parameter, state = sim.algorithm.execute_recipe(
