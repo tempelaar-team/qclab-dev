@@ -8,7 +8,7 @@ import copy
 import numpy as np
 import qc_lab.dynamics as dynamics
 from qc_lab.data import Data
-from qc_lab.variable import initialize_variable_objects
+from qc_lab.functions import initialize_variable_objects
 from qc_lab.utils import get_log_output
 
 logger = logging.getLogger(__name__)
