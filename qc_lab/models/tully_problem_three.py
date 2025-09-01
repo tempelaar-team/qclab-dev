@@ -1,5 +1,5 @@
 """
-Model class for Tully's third problem, an extended coupling with reflection.
+This module defines the Model class for Tully's third problem, an extended coupling with reflection.
 """
 
 import numpy as np

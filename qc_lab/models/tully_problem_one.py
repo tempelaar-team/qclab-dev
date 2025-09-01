@@ -1,5 +1,5 @@
 """
-Model class for Tully's first problem, a simple avoided crossing.
+The module defines the Model class for Tully's first problem, a simple avoided crossing.
 """
 
 import numpy as np
