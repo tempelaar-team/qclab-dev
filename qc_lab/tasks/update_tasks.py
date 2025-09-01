@@ -245,12 +245,13 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
     Fixes the gauge of the eigenvectors as specified by the gauge_fixing parameter.
 
     if gauge_fixing == "sign_overlap":
-        The sign of the eigenvector is changed so its overlap
-        with the previous eigenvector is positive.
+        The sign of the eigenvector is changed so the real part of its
+        overlap with the previous eigenvector is positive.
 
     if gauge_fixing == "phase_overlap":
         The phase of the eigenvector is determined from its overlap
-        with the previous eigenvector and used to maximize the overlap.
+        with the previous eigenvector and used to maximize the real
+        part of the overlap.
 
     if gauge_fixing == "phase_der_couple":
         The phase of the eigenvector is determined by calculating the
@@ -286,7 +287,7 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
         )
     if gauge_fixing_value >= 0:
         overlap = np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2)
-        signs = np.sign(overlap)
+        signs = np.sign(np.real(overlap))
         eigvecs = np.einsum("tai,ti->tai", eigvecs, signs, optimize="greedy")
     if gauge_fixing_value == 2:
         der_couple_q_phase_new, der_couple_p_phase_new = analytic_der_couple_phase(
