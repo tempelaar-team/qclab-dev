@@ -5,6 +5,7 @@ simulation settings and model constants.
 It also includes numerical constants.
 """
 
+# Set the numerical threshold for near zero values.
 SMALL = 1e-10
 
 
