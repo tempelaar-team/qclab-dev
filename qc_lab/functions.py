@@ -182,7 +182,6 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     return z0 + z, rand
 
 
-
 @njit(cache=True)
 def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r):
     """
@@ -408,36 +407,14 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
         * evec_final_state[inds_traj_ind[2]]
         / ev_diff,
     )
-    dkj_p = (
-        1j
-        * np.sqrt(
-            0.5
-            / (
-                sim.model.constants.classical_coordinate_weight
-                * sim.model.constants.classical_coordinate_mass
-            )
-        )
-        * (dkj_z - dkj_zc)
-    )
-    dkj_q = np.sqrt(
-        0.5
-        * sim.model.constants.classical_coordinate_weight
-        * sim.model.constants.classical_coordinate_mass
-    ) * (dkj_z + dkj_zc)
-
-    max_pos_q = np.argmax(np.abs(dkj_q))
-    max_pos_p = np.argmax(np.abs(dkj_p))
-    # Check for complex nonadiabatic couplings.
-    if (
-        np.abs(dkj_q[max_pos_q]) > SMALL
-        and np.abs(np.sin(np.angle(dkj_q[max_pos_q]))) > SMALL
+    # Check positions where the nonadiabatic coupling is greater than SMALL.
+    big_pos = dkj_zc[np.abs(dkj_zc) > SMALL]
+    if not (
+        np.allclose(np.imag(dkj_z[big_pos]), -np.imag(dkj_zc[big_pos]), atol=SMALL)
+    ) or not (
+        np.allclose(np.real(dkj_z[big_pos]), np.real(dkj_zc[big_pos]), atol=SMALL)
     ):
-        logger.error("dkj_q Nonadiabatic coupling is complex, needs gauge fixing!")
-    if (
-        np.abs(dkj_p[max_pos_p]) > SMALL
-        and np.abs(np.sin(np.angle(dkj_p[max_pos_p]))) > SMALL
-    ):
-        logger.error("dkj_p Nonadiabatic coupling is complex, needs gauge fixing!")
+        logger.error("Nonadiabatic coupling is complex, needs gauge fixing!")
     delta_z = dkj_zc
     return delta_z
 
