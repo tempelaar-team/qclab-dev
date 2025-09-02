@@ -53,6 +53,11 @@ class TullyProblemThree(Model):
         return
 
     def h_qc(self, parameters, **kwargs):
+        """
+        Quantum-Classical Hamiltonian for Tully's third problem.
+        """
+        z = kwargs["z"]
+        batch_size = len(z)
         num_quantum_states = self.constants.num_quantum_states
         A = self.constants.get("A")
         B = self.constants.get("B")
@@ -63,28 +68,39 @@ class TullyProblemThree(Model):
 
         m = self.constants.classical_coordinate_mass[np.newaxis, :]
         h = self.constants.classical_coordinate_weight[np.newaxis, :]
+        q = functions.z_to_q(z, m, h)[:,0]
 
-        q = functions.z_to_q(z, m, h)
+        v_12 = np.zeros(batch_size, dtype=complex)
+
+        v_12[q >= 0] = B * (2.0 - np.exp(-C * q))[q >= 0]
+        v_12[q < 0] = B * np.exp(C * q)[q < 0]
+        v_11 = np.ones(batch_size) * A
 
         h_qc = np.zeros(
             (batch_size, num_quantum_states, num_quantum_states), dtype=complex
         )
 
-        v_11 = np.ones(np.shape(z)) * A
-        v_12 = np.zeros(np.shape(z), dtype=complex)
-        indices_pos = np.real(z) >= 0
-        v_12[indices_pos] = B * (2.0 - np.exp(-1.0 * C * q[indices_pos]))
-        indices_neg = np.real(z) < 0
-        v_12[indices_neg] = B * np.exp(C * q[indices_neg])
+        # v_11 = np.ones(np.shape(z)) * A
+        # v_12 = np.zeros(np.shape(z), dtype=complex)
+        # indices_pos = np.real(z) >= 0
+        # v_12[indices_pos] = B * (2.0 - np.exp(-1.0 * C * q[indices_pos]))
+        # indices_neg = np.real(z) < 0
+        # v_12[indices_neg] = B * np.exp(C * q[indices_neg])
 
-        h_qc[:, 0, 0] = v_11.flatten()
-        h_qc[:, 0, 1] = v_12.flatten()
-        h_qc[:, 1, 0] = v_12.flatten()
-        h_qc[:, 1, 1] = -1.0 * v_11.flatten()
+        h_qc[:, 0, 0] = v_11
+        h_qc[:, 0, 1] = v_12
+        h_qc[:, 1, 0] = v_12
+        h_qc[:, 1, 1] = -v_11
 
         return h_qc
 
     def dh_qc_dzc(self, parameters, **kwargs):
+        """
+        Gradient w.r.t. to the conjugate z coordinate of the quantum-classical Hamiltonian
+        for Tully's third problem.
+        """
+        z = kwargs["z"]
+        batch_size = len(z)
         num_quantum_states = self.constants.num_quantum_states
         num_classical_coordinates = self.constants.num_classical_coordinates
         gradient_weight = self.constants.gradient_weight
@@ -92,6 +108,10 @@ class TullyProblemThree(Model):
         C = self.constants.get("C")
         z = kwargs["z"]
         batch_size = kwargs.get("batch_size", len(z))
+
+        m = self.constants.classical_coordinate_mass[np.newaxis, :]
+        h = self.constants.classical_coordinate_weight[np.newaxis, :]
+        q = functions.z_to_q(z, m, h)[:,0]
 
         dh_qc_dzc = np.zeros(
             (
@@ -103,20 +123,14 @@ class TullyProblemThree(Model):
             dtype=complex,
         )
 
-        dv_12_dzc = np.zeros(np.shape(z), dtype=complex)
-        indices_pos = np.real(z) >= 0
-        dv_12_dzc[indices_pos] = (B * C * gradient_weight) * (
-            np.exp(
-                -1.0 * C * gradient_weight * (z[indices_pos] + np.conj(z[indices_pos]))
-            )
-        )
-        indices_neg = np.real(z) < 0
-        dv_12_dzc[indices_neg] = (B * C * gradient_weight) * (
-            np.exp(C * gradient_weight * (z[indices_neg] + np.conj(z[indices_neg])))
-        )
+        dv_12_dq = np.zeros(batch_size, dtype=complex)
+        dv_12_dq[q >= 0.0] = B * C * np.exp(-C * q)[q >= 0.0]
+        dv_12_dq[q < 0.0] = B * C * np.exp(C * q)[q < 0.0]
 
-        dh_qc_dzc[:, 0, 0, 1] = dv_12_dzc.flatten()
-        dh_qc_dzc[:, 0, 1, 0] = dv_12_dzc.flatten()
+        dv_12_dzc = functions.dqdp_to_dzc(dv_12_dq, None, m[0], h[0])
+
+        dh_qc_dzc[:, 0, 0, 1] = dv_12_dzc
+        dh_qc_dzc[:, 0, 1, 0] = dv_12_dzc
 
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]

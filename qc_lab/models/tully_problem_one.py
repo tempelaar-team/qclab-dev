@@ -87,7 +87,7 @@ class TullyProblemOne(Model):
 
     def dh_qc_dzc(self, parameters, **kwargs):
         """
-        Gradient w.r.t. z^{*} of the quantum-classical Hamiltonian
+        Gradient w.r.t. to the conjugate z coordinate of the quantum-classical Hamiltonian
         for Tully's first problem.
         """
         z = kwargs["z"]
@@ -110,8 +110,9 @@ class TullyProblemOne(Model):
         dv_11_dq[q < 0] = A * B * np.exp(B * q)[q < 0]
         dv_12_dq = -2 * C * D * q * np.exp(-D * q**2)
 
-        dv_11_dzc = functions.dqdp_to_dzc(dv_11_dq, None, m, h)
-        dv_12_dzc = functions.dqdp_to_dzc(dv_12_dq, None, m, h)
+        dv_11_dzc = functions.dqdp_to_dzc(dv_11_dq, None, m[0], h[0])
+        dv_12_dzc = functions.dqdp_to_dzc(dv_12_dq, None, m[0], h[0])
+
 
         dh_qc_dzc = np.zeros(
             (
@@ -122,10 +123,10 @@ class TullyProblemOne(Model):
             ),
             dtype=complex,
         )
-        dh_qc_dzc[:, :, 0, 0] = dv_11_dzc
-        dh_qc_dzc[:, :, 0, 1] = dv_12_dzc
-        dh_qc_dzc[:, :, 1, 0] = dv_12_dzc
-        dh_qc_dzc[:, :, 1, 1] = -dv_11_dzc
+        dh_qc_dzc[:, 0, 0, 0] = dv_11_dzc
+        dh_qc_dzc[:, 0, 0, 1] = dv_12_dzc
+        dh_qc_dzc[:, 0, 1, 0] = dv_12_dzc
+        dh_qc_dzc[:, 0, 1, 1] = -dv_11_dzc
 
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]

@@ -54,18 +54,21 @@ class TullyProblemTwo(Model):
         return
 
     def h_qc(self, parameters, **kwargs):
+        """
+        Quantum-Classical Hamiltonian for Tully's second problem.
+        """
+        z = kwargs["z"]
+        batch_size = len(z)
         num_quantum_states = self.constants.num_quantum_states
         A = self.constants.get("A")
         B = self.constants.get("B")
         C = self.constants.get("C")
         D = self.constants.get("D")
         E_0 = self.constants.get("E_0")
-        z = kwargs["z"]
-        batch_size = kwargs.get("batch_size", len(z))
 
         m = self.constants.classical_coordinate_mass[np.newaxis, :]
         h = self.constants.classical_coordinate_weight[np.newaxis, :]
-        q = functions.z_to_q(z, m, h)
+        q = functions.z_to_q(z, m, h)[:, 0]
 
         h_qc = np.zeros(
             (batch_size, num_quantum_states, num_quantum_states), dtype=complex
@@ -74,23 +77,34 @@ class TullyProblemTwo(Model):
         v_12 = C * (np.exp(-D * (q**2)))
         v_22 = -A * (np.exp(-B * (q**2))) + E_0
 
-        h_qc[:, 0, 1] = v_12.flatten()
-        h_qc[:, 1, 0] = v_12.flatten()
-        h_qc[:, 1, 1] = v_22.flatten()
+        h_qc[:, 0, 1] = v_12
+        h_qc[:, 1, 0] = v_12
+        h_qc[:, 1, 1] = v_22
 
         return h_qc
 
     def dh_qc_dzc(self, parameters, **kwargs):
+        """
+        Quantum-Classical Hamiltonian for Tully's second problem.
+        """
+        z = kwargs["z"]
+        batch_size = len(z)
         num_quantum_states = self.constants.num_quantum_states
         num_classical_coordinates = self.constants.num_classical_coordinates
-        gradient_weight = self.constants.gradient_weight
         A = self.constants.get("A")
         B = self.constants.get("B")
         C = self.constants.get("C")
         D = self.constants.get("D")
 
-        z = kwargs["z"]
-        batch_size = kwargs.get("batch_size", len(z))
+        m = self.constants.classical_coordinate_mass[np.newaxis, :]
+        h = self.constants.classical_coordinate_weight[np.newaxis, :]
+        q = functions.z_to_q(z, m, h)
+
+        dv_12_dq = -2 * C * D * q * np.exp(-D * q**2)
+        dv_22_dq = 2 * A * B * q * np.exp(-B * q**2)
+
+        dv_12_dzc = functions.dqdp_to_dzc(dv_12_dq, None, m, h)
+        dv_22_dzc = functions.dqdp_to_dzc(dv_22_dq, None, m, h)
 
         dh_qc_dzc = np.zeros(
             (
@@ -101,22 +115,9 @@ class TullyProblemTwo(Model):
             ),
             dtype=complex,
         )
-
-        dv_12_dzc = (
-            (-2 * C * D * (gradient_weight**2))
-            * (z + np.conj(z))
-            * (np.exp(-1.0 * D * (((z + np.conj(z)) * gradient_weight) ** 2)))
-        )
-        dv_22_dzc = (
-            (2.0 * A * B * (gradient_weight**2))
-            * (z + np.conj(z))
-            * (np.exp(-1.0 * B * (((z + np.conj(z)) * gradient_weight) ** 2)))
-        )
-
-        dh_qc_dzc[:, 0, 0, 1] = dv_12_dzc.flatten()
-        dh_qc_dzc[:, 0, 1, 0] = dv_12_dzc.flatten()
-        dh_qc_dzc[:, 0, 1, 1] = dv_22_dzc.flatten()
-
+        dh_qc_dzc[:, :, 0, 1] = dv_12_dzc
+        dh_qc_dzc[:, :, 1, 0] = dv_12_dzc
+        dh_qc_dzc[:, :, 1, 1] = dv_22_dzc
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]
         shape = np.shape(dh_qc_dzc)
