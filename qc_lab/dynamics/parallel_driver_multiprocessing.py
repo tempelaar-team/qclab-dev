@@ -41,10 +41,12 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
     else:
         size = num_tasks
     logger.info("Using %s CPU cores for parallel processing.", size)
-    if sim.settings.num_trajs % sim.settings.batch_size == 0:
-        num_sims = sim.settings.num_trajs // sim.settings.batch_size
+    # Determine the number of simulations required to execute the total number
+    # of trajectories.
+    if num_trajs % sim.settings.batch_size == 0:
+        num_sims = num_trajs // sim.settings.batch_size
     else:
-        num_sims = sim.settings.num_trajs // sim.settings.batch_size + 1
+        num_sims = num_trajs // sim.settings.batch_size + 1
     logger.info(
         "Running %s simulations with %s seeds in each batch.",
         num_sims,

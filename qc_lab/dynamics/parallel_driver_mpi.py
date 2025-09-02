@@ -50,10 +50,12 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
         size = comm.Get_size()
     else:
         size = num_tasks
-    if sim.settings.num_trajs % sim.settings.batch_size == 0:
-        num_sims = sim.settings.num_trajs // sim.settings.batch_size
+    # Determine the number of simulations required to execute the total number
+    # of trajectories.
+    if num_trajs % sim.settings.batch_size == 0:
+        num_sims = num_trajs // sim.settings.batch_size
     else:
-        num_sims = sim.settings.num_trajs // sim.settings.batch_size + 1
+        num_sims = num_trajs // sim.settings.batch_size + 1
     batch_seeds_list = (
         np.zeros((num_sims * sim.settings.batch_size), dtype=int) + np.nan
     )
