@@ -20,6 +20,7 @@ def test_output():
 
     for model_class in [SpinBoson, HolsteinLattice, FMOComplex, TullyProblemOne, TullyProblemTwo, TullyProblemThree]:
         for algorithm_class in [MeanField, FewestSwitchesSurfaceHopping]:
+            print(f"Testing {model_class.__name__} with {algorithm_class.__name__}")
             model_name = model_class.__name__
             algorithm_name = algorithm_class.__name__
             sim.model = model_class()
