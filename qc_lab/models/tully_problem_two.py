@@ -15,11 +15,9 @@ class TullyProblemTwo(Model):
     Reference publication:
     Tully. J. Chem. Phys. 93, 2, 1061-1071. (1990); https://doi.org/10.1063/1.459170
     """
-
     def __init__(self, constants=None):
         if constants is None:
             constants = {}
-
         self.default_constants = {
             "init_momentum": 10.0,
             "init_position": -25.0,
@@ -30,9 +28,7 @@ class TullyProblemTwo(Model):
             "D": 0.06,
             "E_0": 0.05,
         }
-
         super().__init__(self.default_constants, constants)
-
         self.update_dh_qc_dzc = True
         self.update_h_q = False
 

@@ -31,7 +31,6 @@ class FMOComplex(Model):
             "N": 200,
         }
         super().__init__(self.default_constants, constants)
-
         self.update_dh_qc_dzc = False
         self.update_h_q = False
 
@@ -43,7 +42,6 @@ class FMOComplex(Model):
         N = self.constants.get("N")
         w_c = self.constants.get("w_c")
         mass = self.constants.get("mass")
-
         self.constants.w = (
             w_c
             * np.tan(((np.arange(N) + 1) - 0.5) * np.pi * 0.5 / (N))[np.newaxis, :]
@@ -81,7 +79,6 @@ class FMOComplex(Model):
 
     def h_q(self, parameters, **kwargs):
         batch_size = kwargs.get("batch_size", len(parameters.seed))
-
         matrix_elements = (
             np.array(
                 [
@@ -97,7 +94,6 @@ class FMOComplex(Model):
             )
             / 208.521
         )
-
         # To reduce numerical errors we can offset the diagonal elements by
         # their minimum value.
         matrix_elements = matrix_elements - np.min(

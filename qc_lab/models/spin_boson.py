@@ -14,11 +14,9 @@ class SpinBoson(Model):
     Reference publication:
     Tempelaar & Reichman. J. Chem. Phys. 148, 102309 (2018). https://doi.org/10.1063/1.5000843
     """
-
     def __init__(self, constants=None):
         if constants is None:
             constants = {}
-
         self.default_constants = {
             "kBT": 1.0,
             "V": 0.5,
@@ -29,13 +27,12 @@ class SpinBoson(Model):
             "boson_mass": 1.0,
         }
         super().__init__(self.default_constants, constants)
-
         self.update_dh_qc_dzc = False
         self.update_h_q = False
 
     def _init_h_q(self, parameters, **kwargs):
         self.constants.two_level_00 = self.constants.get("E")
-        self.constants.two_level_11 = -1.0 * self.constants.get("E")
+        self.constants.two_level_11 = -self.constants.get("E")
         self.constants.two_level_01_re = self.constants.get("V")
         self.constants.two_level_01_im = 0
         return
@@ -59,7 +56,7 @@ class SpinBoson(Model):
         A = self.constants.get("A")
         W = self.constants.get("W")
         self.constants.harmonic_frequency = W * np.tan(
-            ((np.arange(A) + 1) - 0.5) * np.pi * 0.5 / A
+            np.arange(0.5, A + 0.5, 1.0) * np.pi * 0.5 / A
         )
         return
 

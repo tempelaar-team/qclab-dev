@@ -19,7 +19,6 @@ class HolsteinLattice(Model):
     def __init__(self, constants=None):
         if constants is None:
             constants = {}
-
         self.default_constants = {
             "kBT": 1.0,
             "g": 0.5,
@@ -30,7 +29,6 @@ class HolsteinLattice(Model):
             "periodic": True,
         }
         super().__init__(self.default_constants, constants)
-
         self.update_dh_qc_dzc = False
         self.update_h_q = False
 
