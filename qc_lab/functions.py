@@ -53,32 +53,16 @@ def dqdp_to_dzc(dq, dp, m, h):
     Convert derivatives w.r.t. q and p (dq and dp, respectively) to
     the derivative w.r.t. zc.
     """
-    # if dq is None:
-    #     return 1j * np.sqrt(m * h / 2) * dp
-    # if dp is None:
-    #     return np.sqrt(0.5 / (m * h)) * dq
-    # return np.sqrt(0.5 / (m * h)) * dq + 1j * np.sqrt(m * h / 2) * dp
-        # scales are real
-    sq = np.sqrt(0.5 / (m * h))
-    sp = np.sqrt(m * h / 2.0)
+    dp_present = dp is not None
+    dq_present = dq is not None
+    if dp_present:
+        return 1j * np.sqrt(m * h / 2) * dp
+    if dq_present:
+        return np.sqrt(0.5 / (m * h)) * dq + 0j
+    if dq_present and dp_present:
+        return np.sqrt(0.5 / (m * h)) * dq + 1j * np.sqrt(m * h / 2) * dp
+    raise ValueError("At least one of dq or dp must be provided.")
 
-    # choose a shape prototype from whichever array is present
-    if dq is not None:
-        proto = dq
-    else:
-        proto = dp
-
-    # always allocate complex output so all branches have same dtype
-    out = np.zeros_like(proto, dtype=np.complex128)
-
-    if dq is not None:
-        # add real contribution (promotes to complex via out's dtype)
-        out += sq * dq
-    if dp is not None:
-        # add imaginary contribution
-        out += 1j * sp * dp
-
-    return out
 
 @njit()
 def z_to_q(z, m, h):
@@ -533,7 +517,6 @@ def numerical_fssh_hop(model, parameters, **kwargs):
     if min_energy > thresh:
         return np.zeros_like(z), False
     return -1j * min_gamma * delta_z, True
-
 
 
 def initialize_variable_objects(sim, seed):
