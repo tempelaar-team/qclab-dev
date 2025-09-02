@@ -44,7 +44,7 @@ class FMOComplex(Model):
         mass = self.constants.get("mass")
         self.constants.w = (
             w_c
-            * np.tan(((np.arange(N) + 1) - 0.5) * np.pi * 0.5 / (N))[np.newaxis, :]
+            * np.tan(np.arange(0.5, N + 0.5, 1.0) * np.pi * 0.5 / (N))[np.newaxis, :]
             * np.ones((self.constants.num_quantum_states, N))
         ).flatten()
         self.constants.num_classical_coordinates = self.constants.num_quantum_states * N
