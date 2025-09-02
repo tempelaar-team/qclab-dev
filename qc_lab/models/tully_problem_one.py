@@ -71,9 +71,9 @@ class TullyProblemOne(Model):
         )
 
         v_11 = np.zeros(np.shape(z), dtype=complex)
-        indices_pos = np.real(z) >= 0.0
+        indices_pos = q >= 0.0
         v_11[indices_pos] = A * (1.0 - np.exp(-1.0 * B * q[indices_pos]))
-        indices_neg = np.real(z) < 0.0
+        indices_neg = q < 0.0
         v_11[indices_neg] = -1.0 * A * (1.0 - np.exp(B * q[indices_neg]))
         v_12 = C * (np.exp(-1.0 * D * (q**2)))
 
@@ -105,16 +105,18 @@ class TullyProblemOne(Model):
             ),
             dtype=complex,
         )
-
+        m = self.constants.classical_coordinate_mass[np.newaxis, :]
+        h = self.constants.classical_coordinate_weight[np.newaxis, :]
+        q = functions.z_to_q(z, m, h)
         dv_11_dzc = np.zeros(np.shape(z), dtype=complex)
-        indices_pos = np.real(z) >= 0.0
+        indices_pos = q >= 0.0
         dv_11_dzc[indices_pos] = (A * B * gradient_weight) * (
             np.exp(
                 (-1.0 * B * gradient_weight)
                 * (np.conj(z[indices_pos]) + z[indices_pos])
             )
         )
-        indices_neg = np.real(z) < 0.0
+        indices_neg = q < 0.0
         dv_11_dzc[indices_neg] = (A * B * gradient_weight) * (
             np.exp((B * gradient_weight) * (np.conj(z[indices_neg]) + z[indices_neg]))
         )
