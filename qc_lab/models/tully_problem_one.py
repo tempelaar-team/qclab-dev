@@ -56,33 +56,30 @@ class TullyProblemOne(Model):
         """
         Quantum-Classical Hamiltonian for Tully's first problem.
         """
-
         z = kwargs["z"]
         batch_size = len(z)
-
         num_quantum_states = self.constants.num_quantum_states
         A = self.constants.get("A")
         B = self.constants.get("B")
         C = self.constants.get("C")
         D = self.constants.get("D")
-
+        # Calculate q.
         m = self.constants.classical_coordinate_mass[np.newaxis, :]
         h = self.constants.classical_coordinate_weight[np.newaxis, :]
         q = functions.z_to_q(z, m, h)[:, 0]
-        h_qc = np.zeros(
-            (batch_size, num_quantum_states, num_quantum_states), dtype=complex
-        )
-
+        # Calculate matrix elements.
         v_11 = np.zeros(batch_size, dtype=complex)
         v_11[q >= 0.0] = A * (1.0 - np.exp(-B * q))[q >= 0.0]
         v_11[q < 0.0] = -A * (1.0 - np.exp(B * q))[q < 0.0]
         v_12 = C * np.exp(-D * (q**2))
-
+        # Assemble Hamiltonian.
+        h_qc = np.zeros(
+            (batch_size, num_quantum_states, num_quantum_states), dtype=complex
+        )
         h_qc[:, 0, 0] = v_11
         h_qc[:, 0, 1] = v_12
         h_qc[:, 1, 0] = v_12
         h_qc[:, 1, 1] = -v_11
-
         return h_qc
 
     def dh_qc_dzc(self, parameters, **kwargs):
@@ -92,46 +89,43 @@ class TullyProblemOne(Model):
         """
         z = kwargs["z"]
         batch_size = len(z)
-
         num_quantum_states = self.constants.num_quantum_states
         num_classical_coordinates = self.constants.num_classical_coordinates
-
         A = self.constants.get("A")
         B = self.constants.get("B")
         C = self.constants.get("C")
         D = self.constants.get("D")
-
+        # Calculate q.
         m = self.constants.classical_coordinate_mass[np.newaxis, :]
         h = self.constants.classical_coordinate_weight[np.newaxis, :]
         q = functions.z_to_q(z, m, h)[:, 0]
-
+        # Calculate phase-space gradients.
         dv_11_dq = np.zeros(batch_size, dtype=complex)
         dv_11_dq[q >= 0] = A * B * np.exp(-B * q)[q >= 0]
         dv_11_dq[q < 0] = A * B * np.exp(B * q)[q < 0]
         dv_12_dq = -2 * C * D * q * np.exp(-D * q**2)
-
+        # Convert to complex gradients.
         dv_11_dzc = functions.dqdp_to_dzc(dv_11_dq, None, m[0], h[0])
         dv_12_dzc = functions.dqdp_to_dzc(dv_12_dq, None, m[0], h[0])
-
-
-        dh_qc_dzc = np.zeros(
-            (
-                batch_size,
-                num_classical_coordinates,
-                num_quantum_states,
-                num_quantum_states,
-            ),
-            dtype=complex,
+        # Assemble indices.
+        batch_idx = np.repeat(np.arange(batch_size, dtype=int), 4)
+        coord_idx = np.zeros(4 * batch_size, dtype=int)
+        state_i_idx = np.tile(np.array([0, 0, 1, 1], dtype=int), batch_size)
+        state_j_idx = np.tile(np.array([0, 1, 0, 1], dtype=int), batch_size)
+        inds = (batch_idx, coord_idx, state_i_idx, state_j_idx)
+        # Assemble matrix elements.
+        mels = np.empty(4 * batch_size, dtype=complex)
+        mels[0::4] = dv_11_dzc
+        mels[1::4] = dv_12_dzc
+        mels[2::4] = dv_12_dzc
+        mels[3::4] = -dv_11_dzc
+        # Assemble shape.
+        shape = (
+            batch_size,
+            num_classical_coordinates,
+            num_quantum_states,
+            num_quantum_states,
         )
-        dh_qc_dzc[:, 0, 0, 0] = dv_11_dzc
-        dh_qc_dzc[:, 0, 0, 1] = dv_12_dzc
-        dh_qc_dzc[:, 0, 1, 0] = dv_12_dzc
-        dh_qc_dzc[:, 0, 1, 1] = -dv_11_dzc
-
-        inds = np.where(dh_qc_dzc != 0)
-        mels = dh_qc_dzc[inds]
-        shape = np.shape(dh_qc_dzc)
-
         return inds, mels, shape
 
     ingredients = [

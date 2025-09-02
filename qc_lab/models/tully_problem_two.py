@@ -65,22 +65,20 @@ class TullyProblemTwo(Model):
         C = self.constants.get("C")
         D = self.constants.get("D")
         E_0 = self.constants.get("E_0")
-
+        # Calculate q.
         m = self.constants.classical_coordinate_mass[np.newaxis, :]
         h = self.constants.classical_coordinate_weight[np.newaxis, :]
         q = functions.z_to_q(z, m, h)[:, 0]
-
+        # Calculate matrix elements.
+        v_12 = C * (np.exp(-D * (q**2)))
+        v_22 = -A * (np.exp(-B * (q**2))) + E_0
+        # Assemble Hamiltonian.
         h_qc = np.zeros(
             (batch_size, num_quantum_states, num_quantum_states), dtype=complex
         )
-
-        v_12 = C * (np.exp(-D * (q**2)))
-        v_22 = -A * (np.exp(-B * (q**2))) + E_0
-
         h_qc[:, 0, 1] = v_12
         h_qc[:, 1, 0] = v_12
         h_qc[:, 1, 1] = v_22
-
         return h_qc
 
     def dh_qc_dzc(self, parameters, **kwargs):
@@ -95,32 +93,34 @@ class TullyProblemTwo(Model):
         B = self.constants.get("B")
         C = self.constants.get("C")
         D = self.constants.get("D")
-
+        # Calculate q.
         m = self.constants.classical_coordinate_mass[np.newaxis, :]
         h = self.constants.classical_coordinate_weight[np.newaxis, :]
-        q = functions.z_to_q(z, m, h)
-
+        q = functions.z_to_q(z, m, h)[:, 0]
+        # Calculate phase-space gradients.
         dv_12_dq = -2 * C * D * q * np.exp(-D * q**2)
         dv_22_dq = 2 * A * B * q * np.exp(-B * q**2)
-
-        dv_12_dzc = functions.dqdp_to_dzc(dv_12_dq, None, m, h)
-        dv_22_dzc = functions.dqdp_to_dzc(dv_22_dq, None, m, h)
-
-        dh_qc_dzc = np.zeros(
-            (
-                batch_size,
-                num_classical_coordinates,
-                num_quantum_states,
-                num_quantum_states,
-            ),
-            dtype=complex,
+        # Convert to complex gradients.
+        dv_12_dzc = functions.dqdp_to_dzc(dv_12_dq, None, m[0], h[0])
+        dv_22_dzc = functions.dqdp_to_dzc(dv_22_dq, None, m[0], h[0])
+        # Assemble indices.
+        batch_idx = np.repeat(np.arange(batch_size, dtype=int), 3)
+        coord_idx = np.zeros(3 * batch_size, dtype=int)
+        state_i_idx = np.tile(np.array([0, 1, 1], dtype=int), batch_size)
+        state_j_idx = np.tile(np.array([1, 0, 1], dtype=int), batch_size)
+        inds = (batch_idx, coord_idx, state_i_idx, state_j_idx)
+        # Assemble matrix elements.
+        mels = np.empty(3 * batch_size, dtype=complex)
+        mels[0::3] = dv_12_dzc
+        mels[1::3] = dv_12_dzc
+        mels[2::3] = dv_22_dzc
+        # Assemble shape.
+        shape = (
+            batch_size,
+            num_classical_coordinates,
+            num_quantum_states,
+            num_quantum_states,
         )
-        dh_qc_dzc[:, :, 0, 1] = dv_12_dzc
-        dh_qc_dzc[:, :, 1, 0] = dv_12_dzc
-        dh_qc_dzc[:, :, 1, 1] = dv_22_dzc
-        inds = np.where(dh_qc_dzc != 0)
-        mels = dh_qc_dzc[inds]
-        shape = np.shape(dh_qc_dzc)
         return inds, mels, shape
 
     ingredients = [
