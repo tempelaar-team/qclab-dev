@@ -53,11 +53,32 @@ def dqdp_to_dzc(dq, dp, m, h):
     Convert derivatives w.r.t. q and p (dq and dp, respectively) to
     the derivative w.r.t. zc.
     """
-    if dq is None:
-        return 1j * np.sqrt(m * h / 2) * dp
-    if dp is None:
-        return (np.sqrt(0.5 / (m * h)) * dq).astype(np.complex128)
-    return np.sqrt(0.5 / (m * h)) * dq + 1j * np.sqrt(m * h / 2) * dp
+    # if dq is None:
+    #     return 1j * np.sqrt(m * h / 2) * dp
+    # if dp is None:
+    #     return np.sqrt(0.5 / (m * h)) * dq
+    # return np.sqrt(0.5 / (m * h)) * dq + 1j * np.sqrt(m * h / 2) * dp
+        # scales are real
+    sq = np.sqrt(0.5 / (m * h))
+    sp = np.sqrt(m * h / 2.0)
+
+    # choose a shape prototype from whichever array is present
+    if dq is not None:
+        proto = dq
+    else:
+        proto = dp
+
+    # always allocate complex output so all branches have same dtype
+    out = np.zeros_like(proto, dtype=np.complex128)
+
+    if dq is not None:
+        # add real contribution (promotes to complex via out's dtype)
+        out += sq * dq
+    if dp is not None:
+        # add imaginary contribution
+        out += 1j * sp * dp
+
+    return out
 
 @njit()
 def z_to_q(z, m, h):

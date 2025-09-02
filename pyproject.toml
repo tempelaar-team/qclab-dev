@@ -10,7 +10,6 @@ readme = "README.rst"
 requires-python = ">=3.6"
 license = { file = "LICENSE" }
 authors = [ { name="Tempelaar Team", email="roel.tempelaar@northwestern.edu" } ]
-dynamic = ["dependencies"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Education",
