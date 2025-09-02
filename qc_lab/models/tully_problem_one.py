@@ -53,14 +53,15 @@ class TullyProblemOne(Model):
         return
 
     def h_qc(self, parameters, **kwargs):
+
+        z = kwargs["z"]
+        batch_size = len(z)
+
         num_quantum_states = self.constants.num_quantum_states
         A = self.constants.get("A")
         B = self.constants.get("B")
         C = self.constants.get("C")
         D = self.constants.get("D")
-
-        z = kwargs["z"]
-        batch_size = kwargs.get("batch_size", len(z))
 
         m = self.constants.classical_coordinate_mass[np.newaxis, :]
         h = self.constants.classical_coordinate_weight[np.newaxis, :]
@@ -70,21 +71,23 @@ class TullyProblemOne(Model):
             (batch_size, num_quantum_states, num_quantum_states), dtype=complex
         )
 
-        v_11 = np.zeros(np.shape(z), dtype=complex)
-        indices_pos = q >= 0.0
-        v_11[indices_pos] = A * (1.0 - np.exp(-1.0 * B * q[indices_pos]))
-        indices_neg = q < 0.0
-        v_11[indices_neg] = -1.0 * A * (1.0 - np.exp(B * q[indices_neg]))
-        v_12 = C * (np.exp(-1.0 * D * (q**2)))
+        v_11 = np.zeros(batch_size, dtype=complex)
+        v_11[q >= 0.0] = A * (1.0 - np.exp(-B * q))[q >= 0.0]
+        v_11[q < 0.0] = -A * (1.0 - np.exp(B * q))[q < 0.0]
+        v_12 = C * np.exp(-D * (q**2))
 
-        h_qc[:, 0, 0] = v_11.flatten()
-        h_qc[:, 0, 1] = v_12.flatten()
-        h_qc[:, 1, 0] = v_12.flatten()
-        h_qc[:, 1, 1] = -1.0 * v_11.flatten()
+        h_qc[:, 0, 0] = v_11
+        h_qc[:, 0, 1] = v_12
+        h_qc[:, 1, 0] = v_12
+        h_qc[:, 1, 1] = -v_11
 
         return h_qc
 
     def dh_qc_dzc(self, parameters, **kwargs):
+
+        z = kwargs["z"]
+        batch_size = len(z)
+
         num_quantum_states = self.constants.num_quantum_states
         num_classical_coordinates = self.constants.num_classical_coordinates
         gradient_weight = self.constants.gradient_weight
@@ -93,8 +96,15 @@ class TullyProblemOne(Model):
         C = self.constants.get("C")
         D = self.constants.get("D")
 
-        z = kwargs["z"]
-        batch_size = kwargs.get("batch_size", len(z))
+        m = self.constants.classical_coordinate_mass[np.newaxis, :]
+        h = self.constants.classical_coordinate_weight[np.newaxis, :]
+        q = functions.z_to_q(z, m, h)
+
+        dv_11_dq = A * B * np.exp(-B * q)
+        dv_12_dq = -2 * C * D * q * np.exp(-D * q**2)
+
+        dv_11_dzc = functions.dqdp_to_dzc(dv_11_dq, None, m, h)
+        dv_12_dzc = functions.dqdp_to_dzc(dv_12_dq, None, m, h)
 
         dh_qc_dzc = np.zeros(
             (
@@ -105,31 +115,35 @@ class TullyProblemOne(Model):
             ),
             dtype=complex,
         )
-        m = self.constants.classical_coordinate_mass[np.newaxis, :]
-        h = self.constants.classical_coordinate_weight[np.newaxis, :]
-        q = functions.z_to_q(z, m, h)
-        dv_11_dzc = np.zeros(np.shape(z), dtype=complex)
-        indices_pos = q >= 0.0
-        dv_11_dzc[indices_pos] = (A * B * gradient_weight) * (
-            np.exp(
-                (-1.0 * B * gradient_weight)
-                * (np.conj(z[indices_pos]) + z[indices_pos])
-            )
-        )
-        indices_neg = q < 0.0
-        dv_11_dzc[indices_neg] = (A * B * gradient_weight) * (
-            np.exp((B * gradient_weight) * (np.conj(z[indices_neg]) + z[indices_neg]))
-        )
-        dv_12_dzc = (
-            (-2.0 * C * D * (gradient_weight**2))
-            * (z + np.conj(z))
-            * (np.exp(-1.0 * D * (((z + np.conj(z)) * gradient_weight) ** 2)))
-        )
+        dh_qc_dzc[:, :, 0, 0] = dv_11_dzc
+        dh_qc_dzc[:, :, 0, 1] = dv_12_dzc
+        dh_qc_dzc[:, :, 1, 0] = dv_12_dzc
+        dh_qc_dzc[:, :, 1, 1] = -dv_11_dzc
+        # m = self.constants.classical_coordinate_mass[np.newaxis, :]
+        # h = self.constants.classical_coordinate_weight[np.newaxis, :]
+        # q = functions.z_to_q(z, m, h)
+        # dv_11_dzc = np.zeros(np.shape(z), dtype=complex)
+        # indices_pos = q >= 0.0
+        # dv_11_dzc[indices_pos] = (A * B * gradient_weight) * (
+        #     np.exp(
+        #         (-1.0 * B * gradient_weight)
+        #         * (np.conj(z[indices_pos]) + z[indices_pos])
+        #     )
+        # )
+        # indices_neg = q < 0.0
+        # dv_11_dzc[indices_neg] = (A * B * gradient_weight) * (
+        #     np.exp((B * gradient_weight) * (np.conj(z[indices_neg]) + z[indices_neg]))
+        # )
+        # dv_12_dzc = (
+        #     (-2.0 * C * D * (gradient_weight**2))
+        #     * (z + np.conj(z))
+        #     * (np.exp(-1.0 * D * (((z + np.conj(z)) * gradient_weight) ** 2)))
+        # )
 
-        dh_qc_dzc[:, 0, 0, 0] = dv_11_dzc.flatten()
-        dh_qc_dzc[:, 0, 0, 1] = dv_12_dzc.flatten()
-        dh_qc_dzc[:, 0, 1, 0] = dv_12_dzc.flatten()
-        dh_qc_dzc[:, 0, 1, 1] = -1.0 * dv_11_dzc.flatten()
+        # dh_qc_dzc[:, 0, 0, 0] = dv_11_dzc.flatten()
+        # dh_qc_dzc[:, 0, 0, 1] = dv_12_dzc.flatten()
+        # dh_qc_dzc[:, 0, 1, 0] = dv_12_dzc.flatten()
+        # dh_qc_dzc[:, 0, 1, 1] = -1.0 * dv_11_dzc.flatten()
 
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]

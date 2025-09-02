@@ -71,8 +71,8 @@ class TullyProblemTwo(Model):
             (batch_size, num_quantum_states, num_quantum_states), dtype=complex
         )
 
-        v_12 = C * (np.exp(-1.0 * D * (q**2)))
-        v_22 = -1.0 * A * (np.exp(-1.0 * B * (q**2))) + E_0
+        v_12 = C * (np.exp(-D * (q**2)))
+        v_22 = -A * (np.exp(-B * (q**2))) + E_0
 
         h_qc[:, 0, 1] = v_12.flatten()
         h_qc[:, 1, 0] = v_12.flatten()

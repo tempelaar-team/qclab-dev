@@ -113,7 +113,7 @@ def dh_c_dzc_free(model, parameters, **kwargs):
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     h = model.constants.classical_coordinate_weight[np.newaxis, :]
     p = z_to_p(z, m, h)
-    return dqdp_to_dzc(np.zeros_like(p), p / m, m, h)
+    return dqdp_to_dzc(None, p / m, m, h)
 
 
 def h_q_two_level(model, parameters, **kwargs):
@@ -236,7 +236,8 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
     diagonal_linear_coupling : ndarray
         Coupling constants ``(num_quantum_states, num_classical_coordinates)``.
     """
-    batch_size = kwargs.get("batch_size", len(parameters.seed))
+    z = kwargs["z"]
+    batch_size = len(z)
     num_states = model.constants.num_quantum_states
     num_classical_coordinates = model.constants.num_classical_coordinates
     gamma = model.constants.diagonal_linear_coupling

@@ -53,8 +53,11 @@ def dqdp_to_dzc(dq, dp, m, h):
     Convert derivatives w.r.t. q and p (dq and dp, respectively) to
     the derivative w.r.t. zc.
     """
+    if dq is None:
+        return 1j * np.sqrt(m * h / 2) * dp
+    if dp is None:
+        return (np.sqrt(0.5 / (m * h)) * dq).astype(np.complex128)
     return np.sqrt(0.5 / (m * h)) * dq + 1j * np.sqrt(m * h / 2) * dp
-
 
 @njit()
 def z_to_q(z, m, h):
