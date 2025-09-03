@@ -795,7 +795,7 @@ def update_dm_db_fssh(algorithm, sim, parameters, state, **kwargs):
         - None.
     """
     dm_adb_branch = np.einsum(
-        "...i,...j->...ij",
+        "ti,tj->tij",
         state.wf_adb,
         np.conj(state.wf_adb),
         optimize="greedy",
@@ -807,7 +807,7 @@ def update_dm_db_fssh(algorithm, sim, parameters, state, **kwargs):
     batch_size = sim.settings.batch_size // num_branches
     num_quantum_states = sim.model.constants.num_quantum_states
     for nt, _ in enumerate(dm_adb_branch):
-        np.einsum("...jj->...j", dm_adb_branch[nt])[...] = state.act_surf[nt]
+        np.einsum("jj->j", dm_adb_branch[nt])[...] = state.act_surf[nt]
     if sim.algorithm.settings.fssh_deterministic:
         dm_adb_branch = (
             np.einsum(

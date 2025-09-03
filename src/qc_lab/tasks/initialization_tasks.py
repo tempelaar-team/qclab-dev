@@ -47,8 +47,12 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     batch_size = sim.settings.batch_size
 
     if batch_size % num_branches != 0:
-        logger.error("Batch size must be divisible by number of branches.")
-        raise ValueError("Batch size must be divisible by number of branches.")
+        logger.error(
+            "Batch size must be an integer multiple of sim.model.constants.num_quantum_states"
+        )
+        raise ValueError(
+            "Batch size must be an integer multiple of sim.model.constants.num_quantum_states"
+        )
 
     # Next, determine the number of trajectories that have been run by assuming that
     # the minimum seed in the current batch of seeds is the number of trajectories
@@ -283,7 +287,7 @@ def initialize_dm_adb_0_fssh(algorithm, sim, parameters, state, **kwargs):
         - None.
     """
     state.dm_adb_0 = np.einsum(
-        "...i,...j->...ij",
+        "ti,tj->tij",
         state.wf_adb,
         np.conj(state.wf_adb),
         optimize="greedy",
