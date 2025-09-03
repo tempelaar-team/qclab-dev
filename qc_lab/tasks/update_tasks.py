@@ -20,8 +20,6 @@ def update_t(algorithm, sim, parameters, state):
         - None.
     """
     batch_size = len(parameters.seed)
-    # the variable should store the time in each trajectory and should
-    # therefore be an array with length batch_size.
     state.t = np.ones(batch_size) * sim.t_ind * sim.settings.dt_update
     return parameters, state
 
