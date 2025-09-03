@@ -3,15 +3,7 @@ This module contains ingredients for use in Model classes.
 """
 
 import numpy as np
-from qc_lab.functions import (
-    dqdp_to_dzc,
-    z_to_q,
-    z_to_p,
-    qp_to_z,
-    dh_c_dzc_harmonic_jit,
-    h_qc_diagonal_linear_jit,
-)
-
+from qc_lab import functions
 
 def h_c_harmonic(model, parameters, **kwargs):
     """
@@ -36,8 +28,8 @@ def h_c_harmonic(model, parameters, **kwargs):
     w = model.constants.harmonic_frequency[np.newaxis, :]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     h = model.constants.classical_coordinate_weight[np.newaxis, :]
-    q = z_to_q(z, m, h)
-    p = z_to_p(z, m, h)
+    q = functions.z_to_q(z, m, h)
+    p = functions.z_to_p(z, m, h)
     h_c = np.sum(0.5 * (((p**2) / m) + m * (w**2) * (q**2)), axis=-1)
     return h_c
 
@@ -62,7 +54,7 @@ def h_c_free(model, parameters, **kwargs):
     z = kwargs["z"]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     h = model.constants.classical_coordinate_weight[np.newaxis, :]
-    p = z_to_p(z, m, h)
+    p = functions.z_to_p(z, m, h)
     h_c = np.sum((0.5 / m) * (p**2), axis=-1)
     return h_c
 
@@ -88,7 +80,7 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
     z = kwargs["z"]
     h = model.constants.classical_coordinate_weight
     w = model.constants.harmonic_frequency
-    return dh_c_dzc_harmonic_jit(z, h, w)
+    return functions.dh_c_dzc_harmonic_jit(z, h, w)
 
 
 def dh_c_dzc_free(model, parameters, **kwargs):
@@ -112,8 +104,8 @@ def dh_c_dzc_free(model, parameters, **kwargs):
     z = kwargs["z"]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     h = model.constants.classical_coordinate_weight[np.newaxis, :]
-    p = z_to_p(z, m, h)
-    return dqdp_to_dzc(None, p / m, m, h)
+    p = functions.z_to_p(z, m, h)
+    return functions.dqdp_to_dzc(None, p / m, m, h)
 
 
 def h_q_two_level(model, parameters, **kwargs):
@@ -211,7 +203,7 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
     del parameters
     z = kwargs["z"]
     gamma = model.constants.diagonal_linear_coupling
-    return h_qc_diagonal_linear_jit(z, gamma)
+    return functions.h_qc_diagonal_linear_jit(z, gamma)
 
 
 def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
@@ -432,7 +424,7 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
             loc=0, scale=std_p, size=model.constants.num_classical_coordinates
         )
         # Calculate the complex-valued classical coordinate.
-        out[s] = qp_to_z(q, p, m, h)
+        out[s] = functions.qp_to_z(q, p, m, h)
     return out
 
 
@@ -485,7 +477,7 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
             loc=0, scale=std_p, size=model.constants.num_classical_coordinates
         )
         # Calculate the complex-valued classical coordinate.
-        out[s] = qp_to_z(q, p, m, h)
+        out[s] = functions.qp_to_z(q, p, m, h)
     return out
 
 
@@ -521,7 +513,7 @@ def init_classical_definite_position_momentum(model, parameters, **kwargs):
     z = np.zeros((len(seed), model.constants.num_classical_coordinates), dtype=complex)
     for s, seed_value in enumerate(seed):
         np.random.seed(seed_value)
-        z[s] = qp_to_z(q, p, m, h)
+        z[s] = functions.qp_to_z(q, p, m, h)
     return z
 
 
@@ -575,6 +567,6 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
             loc=mu_p, scale=std_p, size=model.constants.num_classical_coordinates
         )
         # Calculate the complex-valued classical coordinate.
-        z = qp_to_z(q, p, m, h)
+        z = functions.qp_to_z(q, p, m, h)
         out[s] = z
     return out
