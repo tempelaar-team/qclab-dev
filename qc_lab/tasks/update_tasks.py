@@ -5,15 +5,7 @@ during propagation.
 
 import logging
 import numpy as np
-from qc_lab.functions import (
-    calc_sparse_inner_product,
-    analytic_der_couple_phase,
-    numerical_fssh_hop,
-    wf_db_rk4,
-    calc_delta_z_fssh,
-    update_z_rk4_k123_sum,
-    update_z_rk4_k4_sum,
-)
+from qc_lab import functions
 from qc_lab.constants import SMALL
 
 logger = logging.getLogger(__name__)
@@ -216,7 +208,7 @@ def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs)
     )
     inds, mels, shape = state.dh_qc_dzc
     # Calculate the expectation value w.r.t. the wavefunction.
-    state.quantum_classical_forces = calc_sparse_inner_product(
+    state.quantum_classical_forces = functions.calc_sparse_inner_product(
         inds, mels, shape, wf.conj(), wf
     )
     # Add the gauge field force if it exists and is requested.
@@ -280,7 +272,7 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
         parameters, state = update_dh_qc_dzc(
             algorithm, sim, parameters, state, z=kwargs["z"]
         )
-        der_couple_q_phase, _ = analytic_der_couple_phase(
+        der_couple_q_phase, _ = functions.analytic_der_couple_phase(
             algorithm, sim, parameters, state, eigvals, eigvecs
         )
         eigvecs = np.einsum(
@@ -291,7 +283,7 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
         signs = np.sign(np.real(overlap))
         eigvecs = np.einsum("tai,ti->tai", eigvecs, signs, optimize="greedy")
     if gauge_fixing_value == 2:
-        der_couple_q_phase_new, der_couple_p_phase_new = analytic_der_couple_phase(
+        der_couple_q_phase_new, der_couple_p_phase_new = functions.analytic_der_couple_phase(
             algorithm, sim, parameters, state, eigvals, eigvecs
         )
         if (
@@ -412,7 +404,7 @@ def update_wf_db_rk4(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     wf_db = state.wf_db
     h_quantum = state.h_quantum
-    state.wf_db = wf_db_rk4(h_quantum, wf_db, dt_update)
+    state.wf_db = functions.wf_db_rk4(h_quantum, wf_db, dt_update)
     return parameters, state
 
 
@@ -509,7 +501,7 @@ def update_z_shift_fssh(algorithm, sim, parameters, state, **kwargs):
             ev_diff=ev_diff,
         )
     else:
-        z_shift, hopped = numerical_fssh_hop(
+        z_shift, hopped = functions.numerical_fssh_hop(
             sim.model,
             parameters,
             z=z,
@@ -546,7 +538,7 @@ def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
         eval_init_state = eigvals_flat[traj_ind][init_state_ind]
         eval_final_state = eigvals_flat[traj_ind][final_state_ind]
         ev_diff = eval_final_state - eval_init_state
-        delta_z = calc_delta_z_fssh(
+        delta_z = functions.calc_delta_z_fssh(
             algorithm,
             sim,
             parameters,
@@ -626,7 +618,7 @@ def update_z_rk4_k1(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    out, k1 = update_z_rk4_k123_sum(
+    out, k1 = functions.update_z_rk4_k123_sum(
         z_0, state.classical_forces, state.quantum_classical_forces, 0.5 * dt_update
     )
     setattr(state, output_name, out)
@@ -638,7 +630,7 @@ def update_z_rk4_k2(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    out, k2 = update_z_rk4_k123_sum(
+    out, k2 = functions.update_z_rk4_k123_sum(
         z_0, state.classical_forces, state.quantum_classical_forces, 0.5 * dt_update
     )
     setattr(state, output_name, out)
@@ -650,7 +642,7 @@ def update_z_rk4_k3(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    out, k3 = update_z_rk4_k123_sum(
+    out, k3 = functions.update_z_rk4_k123_sum(
         z_0, state.classical_forces, state.quantum_classical_forces, dt_update
     )
     setattr(state, output_name, out)
@@ -662,7 +654,7 @@ def update_z_rk4_k4(algorithm, sim, parameters, state, **kwargs):
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
-    out = update_z_rk4_k4_sum(
+    out = functions.update_z_rk4_k4_sum(
         z_0,
         state.z_rk4_k1,
         state.z_rk4_k2,
@@ -671,24 +663,7 @@ def update_z_rk4_k4(algorithm, sim, parameters, state, **kwargs):
         state.quantum_classical_forces,
         dt_update,
     )
-    # out = np.ascontiguousarray(np.empty_like(z_0))
-    # np.copyto(out, z_0)
-    # dt_fac = dt_update * (1.0 / 6.0)
-    # np.add(out, dt_fac * state.z_rk4_k1, out = out)
-    # np.add(out, dt_fac * 2.0*state.z_rk4_k2, out = out)
-    # np.add(out, dt_fac * 2.0*state.z_rk4_k3, out = out)
-    # np.add(out, dt_fac * -1j*state.classical_forces, out = out)
-    # np.add(out, dt_fac * -1j*state.quantum_classical_forces, out = out)
     setattr(state, output_name, out)
-    # k4 = -1j * (state.classical_forces + state.quantum_classical_forces)
-    # setattr(
-    #     state,
-    #     output_name,
-    #     z_0
-    #     + dt_update
-    #     * (1.0 / 6.0)
-    #     * (state.z_rk4_k1 + 2.0 * state.z_rk4_k2 + 2.0 * state.z_rk4_k3 + k4),
-    # )
     return parameters, state
 
 
