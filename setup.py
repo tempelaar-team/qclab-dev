@@ -1,5 +1,6 @@
 import os
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 from setuptools.command.build_py import build_py as _build_py
 from setuptools.command.develop import develop as _develop
 
@@ -27,6 +28,26 @@ if DISABLE_H5PY:
 install_requires = DEPENDENCIES
 
 
+extras_require = {
+    "tests": [
+        "pytest",
+        "mpi4py",
+    ],
+    "docs": [
+        "sphinx",
+        "pydata-sphinx-theme",
+        "sphinx-design",
+        "sphinx-togglebutton",
+        "sphinxcontrib-mermaid",
+        "graphviz",
+    ],
+}
+
+
+with open("README.rst", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
+
 class develop(_develop):
     def run(self):
         target = os.path.join(self.install_lib, "qc_lab", "_config.py")
@@ -48,8 +69,28 @@ class build_py(_build_py):
 
 
 setup(
+    name="qc_lab",
+    version="0.1.0a3",
+    description="QC Lab: a python package for quantum-classical modeling.",
+    long_description=long_description,
+    long_description_content_type="text/x-rst",
+    python_requires=">=3.6",
+    license="Apache Software License",
+    license_files=["LICENSE"],
+    author="Tempelaar Team",
+    author_email="roel.tempelaar@northwestern.edu",
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Education",
+        "Programming Language :: Python :: 3",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: Linux :: Linux",
+        "License :: OSI Approved :: Apache Software License",
+    ],
     packages=find_packages(),
     install_requires=install_requires,
+    extras_require=extras_require,
     cmdclass={
         "develop": develop,
         "build_py": build_py,
