@@ -9,6 +9,8 @@ def h_c_harmonic(model, parameters, **kwargs):
     """
     Harmonic oscillator classical Hamiltonian function.
 
+    :math:`H_c = \sum_{n} \left( \frac{p_n^2}{2m_n} + \frac{1}{2} m_n \omega_n^2 q_n^2 \right)`
+
     Keyword Args
     ------------
     z : ndarray
@@ -38,6 +40,8 @@ def h_c_free(model, parameters, **kwargs):
     """
     Free particle classical Hamiltonian function.
 
+    :math:`H_c = \sum_{n} \left( \frac{p_n^2}{2m_n} \right)`
+
     Keyword Args
     ------------
     z : ndarray
@@ -62,8 +66,8 @@ def h_c_free(model, parameters, **kwargs):
 def dh_c_dzc_harmonic(model, parameters, **kwargs):
     """
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to
-    the conjugate `z` coordinate. This is an ingredient that calls the low-level
-    function `dh_c_dzc_harmonic_jit`.
+    the conjugate ``z`` coordinate. This is an ingredient that calls the low-level
+    function ``dh_c_dzc_harmonic_jit``.
 
     Keyword Args
     ------------
@@ -86,7 +90,7 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
 def dh_c_dzc_free(model, parameters, **kwargs):
     """
     Derivative of the free particle classical Hamiltonian function with respect to the
-    conjugate `z` coordinate.
+    conjugate ``z`` coordinate.
 
     Keyword Args
     ------------
@@ -112,8 +116,7 @@ def h_q_two_level(model, parameters, **kwargs):
     """
     Quantum Hamiltonian for a two-level system.
 
-    H = [[two_level_00, two_level_01_re + i * two_level_01_im],
-        [two_level_01_re - i * two_level_01_im, two_level_11]]
+    :math:`H_{nm} = \delta_{nm}\mathrm{two\_level\_nn}+(1-\delta_{nm})(\mathrm{two\_level\_nm\_re} + i \mathrm{two\_level\_nm\_im})`
 
     Keyword Args
     ------------
@@ -148,6 +151,8 @@ def h_q_two_level(model, parameters, **kwargs):
 def h_q_nearest_neighbor(model, parameters, **kwargs):
     """
     Quantum Hamiltonian for a nearest-neighbor lattice.
+
+    :math:`H_{nm} = -t (\delta_{n,m+1} + \delta_{n,m-1})`
 
     Keyword Args
     ------------
@@ -186,9 +191,7 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
     """
     Diagonal linear quantum-classical Hamiltonian.
 
-    Diagonal elements are given by
-
-    :math:`H_{ii} = \sum_{j} \gamma_{ij} (z_{j} + z_{j}^*)`
+    :math:`H_{nm} = \delta_{nm}\sum_{j} \gamma_{nj} (z_{j} + z_{j}^*)`
 
     Keyword Args
     ------------
@@ -212,7 +215,7 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
 
     :math:`[\partial_{z} H_{qc}]_{ijkl} = \delta_{kl}\gamma_{kj}`
 
-    where :math:`\gamma` is the constant diagonal_linear_coupling.
+    where :math:`\gamma` is the constant ``diagonal_linear_coupling``.
 
     Keyword Args
     ------------
@@ -248,12 +251,12 @@ def hop_harmonic(model, parameters, **kwargs):
     oscillators.
 
     Determines the shift in the classical coordinates required to conserve energy
-    following a hop between quantum states. The quantity ev_diff = e_final - e_initial
+    following a hop between quantum states. The quantity ``ev_diff = e_final - e_initial``
     is the energy difference between the final and initial quantum states and
-    delta_z is the rescaling direction of the z coordinate.
+    ``delta_z`` is the rescaling direction of the ``z`` coordinate.
 
     If enough energy is available, the function returns the shift in the classical
-    coordinates such that the new classical coordinate is z + shift and a Boolean
+    coordinates such that the new classical coordinate is ``z + shift`` and a Boolean
     equaling True if the hop has occurred. If not enough energy is available,
     the shift becomes zero and the Boolean is False.
 
@@ -323,12 +326,12 @@ def hop_free(model, parameters, **kwargs):
     FSSH hop function taking the classical coordinates to represent free particles.
 
     Determines the shift in the classical coordinates required to conserve energy
-    following a hop between quantum states. The quantity ev_diff = e_final - e_initial
+    following a hop between quantum states. The quantity ``ev_diff = e_final - e_initial``
     is the energy difference between the final and initial quantum states and
-    delta_z is the rescaling direction of the z coordinate.
+    ``delta_z`` is the rescaling direction of the ``z`` coordinate.
 
     If enough energy is available, the function returns the shift in the classical
-    coordinates such that the new classical coordinate is z + shift and a Boolean
+    coordinates such that the new classical coordinate is ``z + shift`` and a Boolean
     equaling True if the hop has occurred. If not enough energy is available,
     the shift becomes zero and the Boolean is False.
 
@@ -483,9 +486,7 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
 
 def init_classical_definite_position_momentum(model, parameters, **kwargs):
     """
-    Initialize classical coordinates with definite position and momentum. The quantities
-    init_position and init_momentum are the initial position and momentum, and so should
-    be numpy arrays of shape (num_classical_coordinates).
+    Initialize classical coordinates with definite position and momentum.
 
     Keyword Args
     ------------
@@ -524,7 +525,7 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
 
     :math:`exp(a\hat{b}^{\dagger} - a^{*}\hat{b})\vert 0\rangle`
 
-    where `a` is the complex displacement parameter of the coherent state.
+    where :math`a` is the complex displacement parameter of the coherent state.
 
     Keyword Args
     ------------
@@ -566,7 +567,7 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
         p = np.random.normal(
             loc=mu_p, scale=std_p, size=model.constants.num_classical_coordinates
         )
-        # Calculate the complex-valued classical coordinate.
+        # Calculate the z coordinate.
         z = functions.qp_to_z(q, p, m, h)
         out[s] = z
     return out
