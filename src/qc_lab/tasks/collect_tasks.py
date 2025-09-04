@@ -12,6 +12,10 @@ def collect_t(algorithm, sim, parameters, state):
     ------------------
     - None
 
+    Keyword Arguments
+    -----------------
+    - None
+
     Variable Modifications
     -------------------
     - ``state.output_dict["t"]``: stores the current time.
@@ -27,7 +31,11 @@ def collect_dm_db(algorithm, sim, parameters, state):
     Required Constants
     ------------------
     - None
-    
+
+    Keyword Arguments
+    -----------------
+    - None
+
     Variable Modifications
     -------------------
     - ``state.output_dict["dm_db"]``: stores the diabatic density matrix.
@@ -44,6 +52,10 @@ def collect_classical_energy(algorithm, sim, parameters, state):
     ------------------
     - None
 
+    Keyword Arguments
+    -----------------
+    - None
+
     Variable Modifications
     -------------------
     - ``state.output_dict["classical_energy"]``: stores the classical energy.
@@ -58,6 +70,10 @@ def collect_quantum_energy(algorithm, sim, parameters, state):
 
     Required Constants
     ------------------
+    - None
+
+    Keyword Arguments
+    -----------------
     - None
 
     Variable Modifications
