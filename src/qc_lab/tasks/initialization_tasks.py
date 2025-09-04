@@ -16,8 +16,13 @@ def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
     """
     Assign the normalization factor to the state object.
 
-    Required constants:
-        - None.
+    Required Constants
+    ------------------
+    - num_quantum_states (int): Number of quantum states.
+
+    Variable Modifications
+    -------------------
+    - ``state.norm_factor``: normalization factor for trajectory averages.
     """
     state.norm_factor = sim.settings.batch_size
     return parameters, state
@@ -36,8 +41,15 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     being equal to the number of trajectories divided by the number of
     branches in deterministic surface hopping.
 
-    Required constants:
-        - num_quantum_states (int): Number of quantum states. Default: None.
+    Required Constants
+    ------------------
+    - num_quantum_states (int): Number of quantum states.
+
+    State Modifications
+    -------------------
+    - ``state.branch_ind``: branch index for each trajectory.
+    - ``state.seed``: seeds remapped for branches.
+    - ``parameters.seed``: updated to branch-adjusted seeds.
     """
     # First ensure that the number of branches is correct.
     if sim.algorithm.settings.fssh_deterministic:
@@ -75,15 +87,20 @@ def initialize_z_mcmc(algorithm, sim, parameters, state, **kwargs):
     Initialize classical coordinates according to Boltzmann statistics using Markov-
     Chain Monte Carlo with a Metropolis-Hastings algorithm.
 
-    Required constants:
-        - num_classical_coordinates (int): Number of classical coordinates.
-          Default: None.
-        - mcmc_burn_in_size (int): Number of burn-in steps. Default: 5000.
-        - mcmc_std (float): Standard deviation for sampling. Default: 1.
-        - mcmc_h_c_separable (bool): If the classical Hamiltonian is
-          separable. Default: True.
-        - mcmc_init_z (np.ndarray): Initial sample. Default: None.
-        - kBT (float): Thermal quantum. Default: None.
+    Required Constants
+    ------------------
+    - num_classical_coordinates (int): Number of classical coordinates.
+    - mcmc_burn_in_size (int, default: 1000): Burn-in step count.
+    - mcmc_sample_size (int, default: 10000): Number of retained samples.
+    - mcmc_std (float, default: 1.0): Sampling standard deviation.
+    - mcmc_h_c_separable (bool, default: True): Whether the classical Hamiltonian is separable.
+    - mcmc_init_z (np.ndarray, default: output of ``gen_sample_gaussian``): Initial coordinate sample.
+    - kBT (float): Thermal energy factor.
+
+    Variable Modifications
+    -------------------
+    - ``state.{name}``: sampled classical coordinates, where ``name`` is
+      provided via ``kwargs``.
     """
     seed = getattr(state, kwargs["seed"])
     name = kwargs["name"]
@@ -177,8 +194,14 @@ def initialize_z(algorithm, sim, parameters, state, **kwargs):
     Initialize the classical coordinate by using the init_classical function from the
     model object.
 
-    Required constants:
-        - None.
+    Required Constants
+    ------------------
+    - None
+
+    Variable Modifications
+    -------------------
+    - ``state.{name}``: initialized classical coordinates, where ``name``
+      is supplied via ``kwargs``.
     """
     seed = getattr(state, kwargs["seed"])
     name = kwargs["name"]
@@ -196,8 +219,13 @@ def state_to_parameters(algorithm, sim, parameters, state, **kwargs):
     """
     Set parameters.parameters_name to state.state_name.
 
-    Required constants:
-        - None.
+    Required Constants
+    ------------------
+    - None
+
+    Variable Modifications
+    -------------------
+    - ``parameters.{parameters_name}``: receives value from state.{state_name}.
     """
     setattr(parameters, kwargs["parameters_name"], getattr(state, kwargs["state_name"]))
     return parameters, state
@@ -207,8 +235,13 @@ def copy_in_state(algorithm, sim, parameters, state, **kwargs):
     """
     Set state.dest_name to state.orig_name.
 
-    Required constants:
-        - None.
+    Required Constants
+    ------------------
+    - None
+
+    Variable Modifications
+    -------------------
+    - ``state.{dest_name}``: copy of the source state attribute ``state.{orig_name}``.
     """
     setattr(state, kwargs["dest_name"], np.copy(getattr(state, kwargs["orig_name"])))
     return parameters, state
@@ -227,8 +260,16 @@ def initialize_active_surface(algorithm, sim, parameters, state, **kwargs):
     surface from the density specified by the initial quantum wavefunction in the
     adiabatic basis.
 
-    Required constants:
-        - num_quantum_states (int): Number of quantum states. Default: None.
+    Required Constants
+    ------------------
+    - num_quantum_states (int): Number of quantum states.
+
+    Variable Modifications
+    -------------------
+    - ``state.act_surf_ind_0``: initial active surface index.
+    - ``state.act_surf_ind``: current active surface index.
+    - ``state.act_surf``: active surface indicator matrix.
+    - ``parameters.act_surf_ind``: stored copy of ``state.act_surf_ind``.
     """
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -262,8 +303,14 @@ def initialize_random_values_fssh(algorithm, sim, parameters, state, **kwargs):
     """
     Initialize a set of random variables using the trajectory seeds for FSSH.
 
-    Required constants:
-        - None.
+    Required Constants
+    ------------------
+    - None
+
+    Variable Modifications
+    -------------------
+    - ``state.hopping_probs_rand_vals``: random numbers for hop decisions.
+    - ``state.stochastic_sh_rand_vals``: random numbers for surface selection.
     """
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -283,8 +330,13 @@ def initialize_dm_adb_0_fssh(algorithm, sim, parameters, state, **kwargs):
     """
     Initialize the initial adiabatic density matrix for FSSH.
 
-    Required constants:
-        - None.
+    Required Constants
+    ------------------
+    - None
+
+    Variable Modifications
+    -------------------
+    - ``state.dm_adb_0``: initial adiabatic density matrix.
     """
     state.dm_adb_0 = np.einsum(
         "ti,tj->tij",
