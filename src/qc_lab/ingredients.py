@@ -4,12 +4,12 @@ This module contains ingredients for use in Model classes.
 
 import numpy as np
 from qc_lab import functions
-
+#H_c = \sum_{n} \left( \frac{p_n^2}{2m_n} + \frac{1}{2} m_n \omega_n^2 q_n^2 \right)
 def h_c_harmonic(model, parameters, **kwargs):
     """
     Harmonic oscillator classical Hamiltonian function.
 
-    :math:`H_c = \sum_{n} \left( \frac{p_n^2}{2m_n} + \frac{1}{2} m_n \omega_n^2 q_n^2 \right)`
+    :math:`H_c = \\frac{1}{2}\sum_{n} \\left( \\frac{p_n^2}{m_n} + m_n \omega_n^2 q_n^2 \\right)`
 
     Keyword Args
     ------------
@@ -40,7 +40,7 @@ def h_c_free(model, parameters, **kwargs):
     """
     Free particle classical Hamiltonian function.
 
-    :math:`H_c = \sum_{n} \left( \frac{p_n^2}{2m_n} \right)`
+    :math:`H_c = \sum_{n} \\left( \\frac{p_n^2}{2m_n} \\right)`
 
     Keyword Args
     ------------
@@ -523,9 +523,9 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
     Initialize classical coordinates according to the Wigner distribution of a coherent
     state of a harmonic oscillator.
 
-    :math:`exp(a\hat{b}^{\dagger} - a^{*}\hat{b})\vert 0\rangle`
+    :math:`\\vert a\\rangle = \exp(a\hat{b}^{\dagger} - a^{*}\hat{b})\\vert 0\\rangle`
 
-    where :math`a` is the complex displacement parameter of the coherent state.
+    where :math:`a` is the complex displacement parameter of the coherent state.
 
     Keyword Args
     ------------
