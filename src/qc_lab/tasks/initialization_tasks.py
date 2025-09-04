@@ -20,6 +20,10 @@ def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
     ------------------
     - num_quantum_states (int): Number of quantum states.
 
+    Keyword Arguments
+    -----------------
+    - None
+
     Variable Modifications
     -------------------
     - ``state.norm_factor``: normalization factor for trajectory averages.
@@ -44,6 +48,10 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     Required Constants
     ------------------
     - num_quantum_states (int): Number of quantum states.
+
+    Keyword Arguments
+    -----------------
+    - None
 
     State Modifications
     -------------------
@@ -96,6 +104,11 @@ def initialize_z_mcmc(algorithm, sim, parameters, state, **kwargs):
     - mcmc_h_c_separable (bool, default: True): Whether the classical Hamiltonian is separable.
     - mcmc_init_z (np.ndarray, default: output of ``gen_sample_gaussian``): Initial coordinate sample.
     - kBT (float): Thermal energy factor.
+
+    Keyword Arguments
+    -----------------
+    - seed (str): attribute name of the seeds array in ``state``.
+    - name (str): destination attribute name for sampled coordinates.
 
     Variable Modifications
     -------------------
@@ -198,6 +211,11 @@ def initialize_z(algorithm, sim, parameters, state, **kwargs):
     ------------------
     - None
 
+    Keyword Arguments
+    -----------------
+    - seed (str): attribute name of the seeds array in ``state``.
+    - name (str): destination attribute name for initialized coordinates.
+
     Variable Modifications
     -------------------
     - ``state.{name}``: initialized classical coordinates, where ``name``
@@ -223,6 +241,11 @@ def state_to_parameters(algorithm, sim, parameters, state, **kwargs):
     ------------------
     - None
 
+    Keyword Arguments
+    -----------------
+    - parameters_name (str): name of the attribute in ``parameters`` to set.
+    - state_name (str): name of the attribute in ``state`` to copy from.
+
     Variable Modifications
     -------------------
     - ``parameters.{parameters_name}``: receives value from state.{state_name}.
@@ -238,6 +261,11 @@ def copy_in_state(algorithm, sim, parameters, state, **kwargs):
     Required Constants
     ------------------
     - None
+
+    Keyword Arguments
+    -----------------
+    - dest_name (str): destination attribute name in ``state``.
+    - orig_name (str): source attribute name in ``state``.
 
     Variable Modifications
     -------------------
@@ -263,6 +291,10 @@ def initialize_active_surface(algorithm, sim, parameters, state, **kwargs):
     Required Constants
     ------------------
     - num_quantum_states (int): Number of quantum states.
+
+    Keyword Arguments
+    -----------------
+    - None
 
     Variable Modifications
     -------------------
@@ -307,6 +339,10 @@ def initialize_random_values_fssh(algorithm, sim, parameters, state, **kwargs):
     ------------------
     - None
 
+    Keyword Arguments
+    -----------------
+    - None
+
     Variable Modifications
     -------------------
     - ``state.hopping_probs_rand_vals``: random numbers for hop decisions.
@@ -332,6 +368,10 @@ def initialize_dm_adb_0_fssh(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
+    - None
+
+    Keyword Arguments
+    -----------------
     - None
 
     Variable Modifications
