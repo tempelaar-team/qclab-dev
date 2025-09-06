@@ -121,8 +121,8 @@ def h_q_two_level(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    batch_size : int, optional
-        Number of identical Hamiltonians to broadcast.
+    batch_size : int
+        Number of trajectories in a batch.
 
     Required Constants
     ------------------
@@ -135,7 +135,7 @@ def h_q_two_level(model, parameters, **kwargs):
     ``two_level_01_im`` : float
         Imaginary part of the off-diagonal coupling.
     """
-    batch_size = kwargs.get("batch_size", len(parameters.seed))
+    batch_size = kwargs["batch_size"]
     h_q = np.zeros((2, 2), dtype=complex)
     h_q[0, 0] = model.constants.get("two_level_00", 0.0)
     h_q[1, 1] = model.constants.get("two_level_11", 0.0)
@@ -157,8 +157,8 @@ def h_q_nearest_neighbor(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    batch_size : int, optional
-        Number of identical Hamiltonians to broadcast.
+    batch_size : int
+        Number of trajectories in a batch.
 
     Required Constants
     ------------------
@@ -169,7 +169,7 @@ def h_q_nearest_neighbor(model, parameters, **kwargs):
     ``nearest_neighbor_periodic`` : bool
         Whether to apply periodic boundary conditions.
     """
-    batch_size = kwargs.get("batch_size", len(parameters.seed))
+    batch_size = kwargs["batch_size"]
     num_sites = model.constants.num_quantum_states
     hopping_energy = model.constants.nearest_neighbor_hopping_energy
     periodic = model.constants.nearest_neighbor_periodic
@@ -218,8 +218,8 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    batch_size : int, optional
-        Number of gradient tensors to calculate.
+    z : ndarray
+        Classical phase-space coordinate.
 
     Required Constants
     ------------------

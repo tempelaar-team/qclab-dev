@@ -78,7 +78,7 @@ class FMOComplex(Model):
         return
 
     def h_q(self, parameters, **kwargs):
-        batch_size = kwargs.get("batch_size", len(parameters.seed))
+        batch_size = kwargs["batch_size"]
         matrix_elements = (
             np.array(
                 [

@@ -734,7 +734,7 @@ def update_h_quantum(algorithm, sim, parameters, state, **kwargs):
     h_qc, _ = sim.model.get("h_qc")
     if sim.model.update_h_q or state.h_q is None:
         # Update the quantum Hamiltonian if required or if it is not set.
-        state.h_q = h_q(sim.model, parameters)
+        state.h_q = h_q(sim.model, parameters, batch_size=sim.settings.batch_size)
     # Update the quantum-classical Hamiltonian.
     state.h_qc = h_qc(sim.model, parameters, z=z)
     state.h_quantum = state.h_q + state.h_qc
