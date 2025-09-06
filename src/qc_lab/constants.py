@@ -1,17 +1,11 @@
 """
-This module contains the Constants class, which is used to handle quantities that define
-simulation settings and model constants.
-
-It also includes numerical constants.
+This module contains the Constants class.
 """
-
-# Set the numerical threshold for near zero values.
-SMALL = 1e-10
 
 
 class Constants:
     """
-    Class to handle constants and trigger updates when constants change.
+    Constants class to define constants and trigger updates when they change.
     """
 
     def __init__(self, update_function=None):

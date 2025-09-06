@@ -1,13 +1,14 @@
 """
 This module contains functions used in QC Lab. This includes
-functions that are used by tasks, ingredients, and drivers.
+functions that are used by tasks, ingredients, and the 
+dynamics drivers.
 """
 
 import logging
 import functools
 import numpy as np
 from qc_lab.utils import njit
-from qc_lab.constants import SMALL
+from qc_lab.numerical_constants import SMALL
 from qc_lab.variable import Variable
 
 logger = logging.getLogger(__name__)
@@ -350,9 +351,6 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
 def matprod(mat, vec):
     """
     Perform matrix-vector multiplication.
-
-    Required constants:
-        - None.
     """
     out = np.zeros(np.shape(vec), dtype=np.complex128)
     for t in range(len(mat)):
@@ -368,9 +366,6 @@ def matprod(mat, vec):
 def wf_db_rk4(h_quantum, wf_db, dt_update):
     """
     Low-level function for quantum RK4 propagation.
-
-    Required constants:
-        - None.
     """
     k1 = -1j * matprod(h_quantum, wf_db)
     k2 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt_update * k1))

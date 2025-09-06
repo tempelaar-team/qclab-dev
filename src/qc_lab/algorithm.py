@@ -8,7 +8,7 @@ from qc_lab.constants import Constants
 
 class Algorithm:
     """
-    Base class for algorithms in QC Lab.
+    Algorithm class for defining and executing algorithm recipes.
     """
 
     def __init__(self, default_settings=None, settings=None):

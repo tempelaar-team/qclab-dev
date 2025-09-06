@@ -1,5 +1,5 @@
 """
-This module contains the Model class in QC Lab.
+This module contains the Model class.
 """
 
 import copy

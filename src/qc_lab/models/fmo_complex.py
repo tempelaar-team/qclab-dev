@@ -5,7 +5,7 @@ This module contains the Model class for the Fenna-Matthews-Olson (FMO) complex.
 import numpy as np
 from qc_lab.model import Model
 from qc_lab import ingredients
-
+from qc_lab.numerical_constants import invcm_to_300K
 
 class FMOComplex(Model):
     """
@@ -26,8 +26,8 @@ class FMOComplex(Model):
         self.default_constants = {
             "kBT": 1.0,
             "mass": 1.0,
-            "l_reorg": 35.0 / 208.521,  # reorganization energy
-            "w_c": 106.14 / 208.521,  # characteristic frequency
+            "l_reorg": 35.0 * invcm_to_300K,  # reorganization energy
+            "w_c": 106.14 * invcm_to_300K,  # characteristic frequency
             "N": 200,
         }
         super().__init__(self.default_constants, constants)
@@ -92,7 +92,7 @@ class FMOComplex(Model):
                 ],
                 dtype=complex,
             )
-            / 208.521
+            * invcm_to_300K
         )
         # To reduce numerical errors we can offset the diagonal elements by
         # their minimum value.
