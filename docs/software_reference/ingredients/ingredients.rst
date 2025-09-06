@@ -60,7 +60,6 @@ Indeed, the only required ingredients are those that generate the Hamiltonian.
    :header-rows: 1
 
    * - Ingredient Name
-     - kwargs
      - Output
      - Description
    * - `h_q`
