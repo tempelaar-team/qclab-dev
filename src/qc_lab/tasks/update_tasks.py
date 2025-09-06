@@ -11,6 +11,40 @@ from qc_lab.constants import SMALL
 logger = logging.getLogger(__name__)
 
 
+__all__ = [
+    "update_t",
+    "update_dh_c_dzc_finite_differences",
+    "update_classical_forces",
+    "update_dh_qc_dzc_finite_differences",
+    "update_dh_qc_dzc",
+    "update_quantum_classical_forces",
+    "diagonalize_matrix",
+    "gauge_fix_eigs",
+    "basis_transform_vec",
+    "basis_transform_mat",
+    "update_act_surf_wf",
+    "update_wf_db_eigs",
+    "update_wf_db_rk4",
+    "update_hop_probs_fssh",
+    "update_hop_inds_fssh",
+    "update_z_shift_fssh",
+    "update_hop_vals_fssh",
+    "update_z_hop_fssh",
+    "update_act_surf_hop_fssh",
+    "update_h_quantum",
+    "update_z_rk4_k1",
+    "update_z_rk4_k2",
+    "update_z_rk4_k3",
+    "update_z_rk4_k4",
+    "update_dm_db_mf",
+    "update_classical_energy",
+    "update_classical_energy_fssh",
+    "update_quantum_energy",
+    "update_quantum_energy_fssh",
+    "update_dm_db_fssh",
+]
+
+
 def update_t(algorithm, sim, parameters, state):
     """
     Update the time in the state object with the time index in each trajectory
@@ -321,8 +355,10 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
         signs = np.sign(np.real(overlap))
         eigvecs = np.einsum("tai,ti->tai", eigvecs, signs, optimize="greedy")
     if gauge_fixing_value == 2:
-        der_couple_q_phase_new, der_couple_p_phase_new = functions.analytic_der_couple_phase(
-            algorithm, sim, parameters, state, eigvals, eigvecs
+        der_couple_q_phase_new, der_couple_p_phase_new = (
+            functions.analytic_der_couple_phase(
+                algorithm, sim, parameters, state, eigvals, eigvecs
+            )
         )
         if (
             np.sum(

@@ -3,6 +3,13 @@ This module contains tasks that are used to collect data from the state or
 parameters objects into the output dictionary of the state object.
 """
 
+__all__ = [
+    "collect_t",
+    "collect_dm_db",
+    "collect_classical_energy",
+    "collect_quantum_energy",
+]
+
 
 def collect_t(algorithm, sim, parameters, state):
     """
