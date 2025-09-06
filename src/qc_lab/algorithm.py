@@ -23,8 +23,6 @@ class Algorithm:
         # Put settings from the dictionary into the Constants object.
         for key, val in settings.items():
             setattr(self.settings, key, val)
-        # Indicate that initialization is complete.
-        self.settings._init_complete = True
         # Copy the recipes and output variables to ensure they are not shared
         # across instances.
         self.initialization_recipe = copy.deepcopy(self.initialization_recipe)
