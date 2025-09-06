@@ -1,6 +1,5 @@
 """
-This module contains the Algorithm class, which is the base class for Algorithm objects
-in QC Lab.
+This module contains the Algorithm class.
 """
 
 import copy
@@ -17,11 +16,17 @@ class Algorithm:
             settings = {}
         if default_settings is None:
             default_settings = {}
+        # Merge default settings with user-provided settings.
         settings = {**default_settings, **settings}
+        # Construct a Constants object to hold settings.
+        # Pass a function to update settings when attributes change.
         self.settings = Constants(self.update_algorithm_settings)
+        # Put settings from the dictionary into the Constants object.
         for key, val in settings.items():
             setattr(self.settings, key, val)
+        # Indicate that initialization is complete.
         self.settings._init_complete = True
+        # Call the method to update algorithm settings.
         self.update_algorithm_settings()
         # Copy the recipes and output variables to ensure they are not shared
         # across instances.
@@ -42,17 +47,8 @@ class Algorithm:
 
     def execute_recipe(self, sim, parameter, state, recipe):
         """
-        Execute the given recipe for the simulation.
-
-        Args:
-            sim (Simulation): The simulation instance.
-            parameter (Variable): The parameter variable.
-            state (Variable): The state variable.
-            recipe (Iterable[callable]): Sequence of task functions.
-
-        Returns:
-            tuple[Variable, Variable]: The updated parameter and state
-            objects.
+        Carry out the given recipe for the simulation by running 
+        each task in the recipe.
         """
         for func in recipe:
             parameter, state = func(sim.algorithm, sim, parameter, state)
