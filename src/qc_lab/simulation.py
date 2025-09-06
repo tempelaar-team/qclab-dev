@@ -1,5 +1,5 @@
 """
-This module contains the Simulation class in QC Lab.
+This module contains the Simulation class.
 """
 
 import logging
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class Simulation:
     """
-    The simulation object represents the entire simulation process.
+    Simulation class for holding simulation components.
     """
 
     def __init__(self, settings=None):
@@ -26,22 +26,25 @@ class Simulation:
             "batch_size": 25,
             "progress_bar": True,
         }
+        # Merge default settings with user-provided settings.
         settings = {**self.default_settings, **settings}
+        # Construct a Constants object to hold settings.
         self.settings = Constants()
+        # Put settings from the dictionary into the Constants object.
         for key, val in settings.items():
             setattr(self.settings, key, val)
+        # Set the initial algorithm and model to None.
         self.algorithm = None
         self.model = None
+        # Initialize a Variable object to hold the initial state.
         self.state = Variable()
 
     def initialize_timesteps(self):
         """
         Initialize the timesteps for the simulation based on the parameters.
 
-        First ensures that dt_collect >= dt_update, if not it adjusts dt_collect to be
-        equal to dt_update. Then adjusts dt_collect to be the closest integer multiple
-        of dt_update. Then adjusts tmax to be the closest integer multiple of
-        dt_collect.
+        Adjusts dt_collect to be smallest integer multiple of dt_update that is nonzero.
+        Then adjusts tmax to be the closest integer multiple of dt_collect.
         """
         tmax = self.settings.get("tmax")
         dt_update = self.settings.get("dt_update")
@@ -54,15 +57,16 @@ class Simulation:
             dt_collect,
         )
 
-        if dt_update > dt_collect:
+        # dt_collect_n is the number of update timesteps that defines a collect
+        # timestep.
+        dt_collect_n = np.round(dt_collect / dt_update).astype(int)
+        if dt_collect_n == 0:
+            dt_collect_n = 1
             dt_collect = dt_update
             logger.warning(
                 "dt_update is greater than dt_collect, setting dt_collect to dt_update."
             )
 
-        # dt_collect_n is the number of update timesteps that defines a collect
-        # timestep.
-        dt_collect_n = np.round(dt_collect / dt_update).astype(int)
         # tmax_n is the number of update timesteps that defines the total
         # simulation time.
         self.settings.tmax_n = np.round(tmax / dt_collect).astype(int) * dt_collect_n
