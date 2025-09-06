@@ -8,3 +8,12 @@ from qc_lab.models.fmo_complex import FMOComplex
 from qc_lab.models.tully_problem_one import TullyProblemOne
 from qc_lab.models.tully_problem_three import TullyProblemThree
 from qc_lab.models.tully_problem_two import TullyProblemTwo
+
+__all__ = [
+    "HolsteinLattice",
+    "SpinBoson",
+    "FMOComplex",
+    "TullyProblemOne",
+    "TullyProblemThree",
+    "TullyProblemTwo",
+]
