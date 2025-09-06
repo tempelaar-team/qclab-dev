@@ -67,7 +67,7 @@ def h_c_free(model, parameters, **kwargs):
 def dh_c_dzc_harmonic(model, parameters, **kwargs):
     """
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to
-    the conjugate ``z`` coordinate. This is an ingredient that calls the low-level
+    the conjugate z coordinate. This is an ingredient that calls the low-level
     function ``dh_c_dzc_harmonic_jit``.
 
     Keyword Args
@@ -91,7 +91,7 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
 def dh_c_dzc_free(model, parameters, **kwargs):
     """
     Derivative of the free particle classical Hamiltonian function with respect to the
-    conjugate ``z`` coordinate.
+    conjugate z coordinate.
 
     Keyword Args
     ------------
@@ -165,7 +165,7 @@ def h_q_nearest_neighbor(model, parameters, **kwargs):
     ``num_quantum_states`` : int
         Number of lattice sites.
     ``nearest_neighbor_hopping_energy`` : float
-        Hopping energy between sites.
+        Hopping energy between sites :math:`t`.
     ``nearest_neighbor_periodic`` : bool
         Whether to apply periodic boundary conditions.
     """
@@ -202,7 +202,7 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
     Required Constants
     ------------------
     ``diagonal_linear_coupling`` : ndarray
-        Coupling constants (num_quantum_states, num_classical_coordinates).
+        Coupling constants :math:`\gamma` (num_quantum_states, num_classical_coordinates).
     """
     del parameters
     z = kwargs["z"]
@@ -216,8 +216,6 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
 
     :math:`[\partial_{z} H_{qc}]_{ijkl} = \delta_{kl}\gamma_{kj}`
 
-    where :math:`\gamma` is the constant ``diagonal_linear_coupling``.
-
     Keyword Args
     ------------
     batch_size : int, optional
@@ -230,7 +228,7 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
     ``num_classical_coordinates`` : int
         Number of classical coordinates.
     ``diagonal_linear_coupling`` : ndarray
-        Coupling constants (num_quantum_states, num_classical_coordinates).
+        Coupling constants :math:`\gamma` (num_quantum_states, num_classical_coordinates).
     """
     z = kwargs["z"]
     batch_size = len(z)
