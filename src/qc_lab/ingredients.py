@@ -385,7 +385,7 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    seed : ndarray
+    seed : ndarray, int
         Random seeds for each trajectory.
 
     Required Constants
@@ -433,7 +433,7 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    seed : ndarray
+    seed : ndarray, int
         Random seeds for each trajectory.
 
     Required Constants
@@ -485,7 +485,7 @@ def init_classical_definite_position_momentum(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    seed : ndarray
+    seed : ndarray, int
         Random seeds for each trajectory.
 
     Required Constants
@@ -524,7 +524,7 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    seed : ndarray
+    seed : ndarray, int
         Random seeds for each trajectory.
 
     Required Constants
