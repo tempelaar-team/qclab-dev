@@ -1,19 +1,19 @@
 """
-This module contains the Data class, which is used to handle the collection and storage
-of data output from algorithms in QC Lab.
+This module contains the Data class.
 """
 
 import logging
 import numpy as np
-import h5py
 from qc_lab._config import DISABLE_H5PY
+if not DISABLE_H5PY:
+    import h5py
 
 logger = logging.getLogger(__name__)
 
 
 class Data:
     """
-    The data object handles the collection of data from the dynamics driver.
+    Data class for handling the collection of data during a simulation.
     """
 
     def __init__(self, seeds=None):
