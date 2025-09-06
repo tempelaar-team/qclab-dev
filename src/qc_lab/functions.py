@@ -1,6 +1,6 @@
 """
 This module contains functions used in QC Lab. This includes
-functions that are used by tasks, ingredients, and the 
+functions that are used by tasks, ingredients, and the
 dynamics drivers.
 """
 
@@ -148,9 +148,6 @@ def dh_c_dzc_harmonic_jit(z, h, w):
 
     This is a low-level function accelerated using Numba.
     """
-    # a = 0.5 * (((w**2) / h) - h)
-    # b = 0.5 * (((w**2) / h) + h)
-    # out = b[..., :] * z + a[..., :] * np.conj(z)
 
     batch_size, num_classical_coordinates = z.shape
     out = np.empty((batch_size, num_classical_coordinates), dtype=np.complex128)
