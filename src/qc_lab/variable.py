@@ -1,6 +1,5 @@
 """
-This module contains the Variable class, which is used to store time-dependent variables
-in QC Lab.
+This module contains the Variable class.
 """
 
 import logging
@@ -18,13 +17,8 @@ class Variable:
 
     def __getattr__(self, name):
         """
-        Return `None` for missing attributes.
-
-        Args:
-            name (str): Attribute name.
-
-        Returns:
-            Any | None: The attribute value if present, otherwise `None`.
+        ``Variable.get`` method. Returns ``None`` for missing attributes.
+        This is to avoid errors when checking for the presence of an attribute.
         """
         if name in self.__dict__:
             return self.__dict__[name]
@@ -32,19 +26,13 @@ class Variable:
 
     def __getstate__(self):
         """
-        Support pickling of the object.
-
-        Returns:
-            dict: The instance dictionary used for pickling.
+        Support pickling of the object. Important for parallelization.
         """
         state = self.__dict__.copy()
         return state
 
     def __setstate__(self, state):
         """
-        Restore state during unpickling.
-
-        Args:
-            state (dict): Object state.
+        Restore state during unpickling. Important for parallelization.
         """
         self.__dict__.update(state)
