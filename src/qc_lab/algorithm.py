@@ -19,15 +19,12 @@ class Algorithm:
         # Merge default settings with user-provided settings.
         settings = {**default_settings, **settings}
         # Construct a Constants object to hold settings.
-        # Pass a function to update settings when attributes change.
-        self.settings = Constants(self.update_algorithm_settings)
+        self.settings = Constants()
         # Put settings from the dictionary into the Constants object.
         for key, val in settings.items():
             setattr(self.settings, key, val)
         # Indicate that initialization is complete.
         self.settings._init_complete = True
-        # Call the method to update algorithm settings.
-        self.update_algorithm_settings()
         # Copy the recipes and output variables to ensure they are not shared
         # across instances.
         self.initialization_recipe = copy.deepcopy(self.initialization_recipe)
@@ -37,13 +34,6 @@ class Algorithm:
     initialization_recipe = []
     update_recipe = []
     collect_recipe = []
-
-    def update_algorithm_settings(self):
-        """
-        Update algorithm settings.
-
-        This method should be overridden by subclasses.
-        """
 
     def execute_recipe(self, sim, parameter, state, recipe):
         """
