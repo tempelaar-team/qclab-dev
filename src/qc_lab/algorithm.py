@@ -47,7 +47,7 @@ class Algorithm:
 
     def execute_recipe(self, sim, parameter, state, recipe):
         """
-        Carry out the given recipe for the simulation by running 
+        Carry out the given recipe for the simulation by running
         each task in the recipe.
         """
         for func in recipe:
