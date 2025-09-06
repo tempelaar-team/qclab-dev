@@ -48,7 +48,7 @@ def update_z_rk4_k4_sum(
     return z_0
 
 
-@njit()
+@njit
 def dqdp_to_dzc(dq, dp, m, h):
     """
     Convert derivatives w.r.t. q and p (dq and dp, respectively) to
@@ -65,7 +65,7 @@ def dqdp_to_dzc(dq, dp, m, h):
     raise ValueError("At least one of dq or dp must be provided.")
 
 
-@njit()
+@njit
 def z_to_q(z, m, h):
     """
     Convert complex coordinates to position coordinate.
@@ -73,7 +73,7 @@ def z_to_q(z, m, h):
     return np.real((1.0 / np.sqrt(2.0 * m * h)) * (z + np.conj(z)))
 
 
-@njit()
+@njit
 def z_to_p(z, m, h):
     """
     Convert complex coordinates to momentum coordinate.
@@ -81,7 +81,7 @@ def z_to_p(z, m, h):
     return np.real(1j * np.sqrt(0.5 * m * h) * (np.conj(z) - z))
 
 
-@njit()
+@njit
 def qp_to_z(q, p, m, h):
     """
     Convert real coordinates to complex coordinates.
@@ -109,7 +109,7 @@ def make_ingredient_sparse(ingredient):
 
 def vectorize_ingredient(ingredient):
     """
-    Wrapper that vectorize an ingredient function.
+    Wrapper that vectorize h_q, h_qc, h_c, dh_qc_dzc, and dh_c_dzc ingredient functions.
 
     It assumes that any kwarg is an numpy.ndarray that is vectorized over its first
     index. Other kwargs are assumed to not be vectorized.
@@ -118,7 +118,10 @@ def vectorize_ingredient(ingredient):
     @functools.wraps(ingredient)
     def vectorized_ingredient(*args, **kwargs):
         (model, parameters) = args
-        batch_size = kwargs.get("batch_size", len(parameters.seed))
+        if kwargs.get("z") is not None:
+            batch_size = len(kwargs["z"])
+        else:
+            batch_size = kwargs["batch_size"]
         keys = kwargs.keys()
         kwargs_list = []
         for n in range(batch_size):
@@ -137,7 +140,7 @@ def vectorize_ingredient(ingredient):
     return vectorized_ingredient
 
 
-@njit()
+@njit
 def dh_c_dzc_harmonic_jit(z, h, w):
     """
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to
@@ -160,7 +163,7 @@ def dh_c_dzc_harmonic_jit(z, h, w):
     return out
 
 
-@njit()
+@njit
 def h_qc_diagonal_linear_jit(z, gamma):
     """
     Low level function to generate the diagonal linear quantum-classical Hamiltonian.
@@ -209,7 +212,7 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     return z0 + z, rand
 
 
-@njit(cache=True)
+@njit
 def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r):
     """
     Take a sparse gradient of a matrix (batch_size, num_classical_coordinates,
