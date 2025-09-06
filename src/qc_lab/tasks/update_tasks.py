@@ -6,43 +6,9 @@ during propagation.
 import logging
 import numpy as np
 from qc_lab import functions
-from qc_lab.constants import SMALL
+from qc_lab.numerical_constants import SMALL
 
 logger = logging.getLogger(__name__)
-
-
-__all__ = [
-    "update_t",
-    "update_dh_c_dzc_finite_differences",
-    "update_classical_forces",
-    "update_dh_qc_dzc_finite_differences",
-    "update_dh_qc_dzc",
-    "update_quantum_classical_forces",
-    "diagonalize_matrix",
-    "gauge_fix_eigs",
-    "basis_transform_vec",
-    "basis_transform_mat",
-    "update_act_surf_wf",
-    "update_wf_db_eigs",
-    "update_wf_db_rk4",
-    "update_hop_probs_fssh",
-    "update_hop_inds_fssh",
-    "update_z_shift_fssh",
-    "update_hop_vals_fssh",
-    "update_z_hop_fssh",
-    "update_act_surf_hop_fssh",
-    "update_h_quantum",
-    "update_z_rk4_k1",
-    "update_z_rk4_k2",
-    "update_z_rk4_k3",
-    "update_z_rk4_k4",
-    "update_dm_db_mf",
-    "update_classical_energy",
-    "update_classical_energy_fssh",
-    "update_quantum_energy",
-    "update_quantum_energy_fssh",
-    "update_dm_db_fssh",
-]
 
 
 def update_t(algorithm, sim, parameters, state):
