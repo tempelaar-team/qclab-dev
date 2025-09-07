@@ -66,6 +66,30 @@ def dqdp_to_dzc(dq, dp, m, h):
 
 
 @njit
+def dzdzc_to_dqdp(dz, dzc, m, h):
+    """
+    Convert derivatives w.r.t. z and zc to derivatives w.r.t. q and p (dq and dp).
+    If only one of dz or dzc is provided, then dq and dp are calculated assuming that
+    :math:`dz = dzc^{*}`.
+    """
+    dz_present = dz is not None
+    dzc_present = dzc is not None
+    if dz_present and dzc_present:
+        dq = np.sqrt(0.5 * m * h) * (dz + dzc)
+        dp = 1j * np.sqrt(0.5 / (m * h)) * (dz - dzc)
+        return dq, dp
+    if dz_present:
+        dq = np.sqrt(0.5 * m * h) * (dz + np.conj(dz))
+        dp = 1j * np.sqrt(0.5 / (m * h)) * (dz - np.conj(dz))
+        return dq, dp
+    if dzc_present:
+        dq = np.sqrt(0.5 * m * h) * (np.conj(dzc) + dzc)
+        dp = 1j * np.sqrt(0.5 / (m * h)) * (np.conj(dzc) - dzc)
+        return dq, dp
+    raise ValueError("At least one of dz or dzc must be provided.")
+
+
+@njit
 def z_to_q(z, m, h):
     """
     Convert complex coordinates to position coordinate.
@@ -163,7 +187,7 @@ def dh_c_dzc_harmonic_jit(z, h, w):
 @njit
 def h_qc_diagonal_linear_jit(z, gamma):
     """
-    Low level function to generate the diagonal linear quantum-classical Hamiltonian.
+    Low-level function to generate the diagonal linear quantum-classical Hamiltonian.
     """
     batch_size = z.shape[0]
     num_classical_coordinates = z.shape[1]
@@ -250,21 +274,26 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
     Required constants:
         - None.
     """
+    batch_size = sim.settings.batch_size
+    num_quantum_states = sim.model.constants.num_quantum_states
+    num_classical_coords = sim.model.constants.num_classical_coordinates
+    m = sim.model.constants.classical_coordinate_mass[np.newaxis, :]
+    h = sim.model.constants.classical_coordinate_weight[np.newaxis, :]
     der_couple_q_phase = np.ones(
         (
-            sim.settings.batch_size,
-            sim.model.constants.num_quantum_states,
+            batch_size,
+            num_quantum_states,
         ),
         dtype=complex,
     )
     der_couple_p_phase = np.ones(
         (
-            sim.settings.batch_size,
-            sim.model.constants.num_quantum_states,
+            batch_size,
+            num_quantum_states,
         ),
         dtype=complex,
     )
-    for i in range(sim.model.constants.num_quantum_states - 1):
+    for i in range(num_quantum_states - 1):
         j = i + 1
         evec_i = eigvecs[..., i]
         evec_j = eigvecs[..., j]
@@ -277,15 +306,15 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
             logger.error("Degenerate eigenvalues detected.")
         der_couple_zc = np.zeros(
             (
-                sim.settings.batch_size,
-                sim.model.constants.num_classical_coordinates,
+                batch_size,
+                num_classical_coords,
             ),
             dtype=complex,
         )
         der_couple_z = np.zeros(
             (
-                sim.settings.batch_size,
-                sim.model.constants.num_classical_coordinates,
+                batch_size,
+                num_classical_coords,
             ),
             dtype=complex,
         )
@@ -306,22 +335,23 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
             * evec_j[inds[0], inds[2]]
             / ((ev_diff + plus)[inds[0]]),
         )
-        der_couple_p = (
-            1j
-            * np.sqrt(
-                0.5
-                / (
-                    sim.model.constants.classical_coordinate_weight
-                    * sim.model.constants.classical_coordinate_mass
-                )
-            )[..., :]
-            * (der_couple_z - der_couple_zc)
-        )
-        der_couple_q = np.sqrt(
-            sim.model.constants.classical_coordinate_weight
-            * sim.model.constants.classical_coordinate_mass
-            * 0.5
-        )[..., :] * (der_couple_z + der_couple_zc)
+        der_couple_q, der_couple_p = dzdzc_to_dqdp(der_couple_z, der_couple_zc, m, h)
+        # der_couple_p = (
+        #     1j
+        #     * np.sqrt(
+        #         0.5
+        #         / (
+        #             sim.model.constants.classical_coordinate_weight
+        #             * sim.model.constants.classical_coordinate_mass
+        #         )
+        #     )[..., :]
+        #     * (der_couple_z - der_couple_zc)
+        # )
+        # der_couple_q = np.sqrt(
+        #     sim.model.constants.classical_coordinate_weight
+        #     * sim.model.constants.classical_coordinate_mass
+        #     * 0.5
+        # )[..., :] * (der_couple_z + der_couple_zc)
         der_couple_q_angle = np.angle(
             der_couple_q[
                 np.arange(len(der_couple_q)),
