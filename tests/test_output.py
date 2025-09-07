@@ -33,7 +33,7 @@ model_sim_settings = {
         "dt_collect": 0.1,
         "progress_bar": False,
     },
-    "KSpaceHolsteinLattice": {
+    "HolsteinLatticeReciprocalSpace": {
         "tmax": 10,
         "dt_update": 0.01,
         "dt_collect": 0.1,
