@@ -252,7 +252,7 @@ def hop_harmonic(model, parameters, **kwargs):
     oscillators.
 
     Determines the shift in the classical coordinates required to conserve energy
-    following a hop between quantum states. 
+    following a hop between quantum states.
 
     If enough energy is available, the function returns the shift in the classical
     coordinates such that the new classical coordinate is ``z + shift`` and a Boolean
@@ -278,31 +278,17 @@ def hop_harmonic(model, parameters, **kwargs):
     z = kwargs["z"]
     delta_z = kwargs["delta_z"]
     ev_diff = kwargs["ev_diff"]
+    w = model.constants.harmonic_frequency
+    h = model.constants.classical_coordinate_weight
     delta_zc = np.conj(delta_z)
-    zc = np.conj(z)
-    a_const = 0.25 * (
-        (
-            (model.constants.harmonic_frequency**2)
-            / model.constants.classical_coordinate_weight
-        )
-        - model.constants.classical_coordinate_weight
-    )
-    b_const = 0.25 * (
-        (
-            (model.constants.harmonic_frequency**2)
-            / model.constants.classical_coordinate_weight
-        )
-        + model.constants.classical_coordinate_weight
-    )
+    a_const = 0.25 * (((w**2) / h) - h)
+    b_const = 0.25 * (((w**2) / h) + h)
     # Here, akj_z, bkj_z, ckj_z are the coefficients of the quadratic equation
     # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0
     akj_z = np.sum(
         2.0 * delta_zc * delta_z * b_const - a_const * (delta_z**2 + delta_zc**2)
     )
-    bkj_z = 2.0j * np.sum(
-        (z * delta_z - delta_zc * zc) * a_const
-        + (delta_z * zc - delta_zc * z) * b_const
-    )
+    bkj_z = 2.0 * np.sum(h * z.imag * delta_z.real - (w**2 / h) * z.real * delta_z.imag)
     ckj_z = ev_diff
     disc = bkj_z**2 - 4.0 * akj_z * ckj_z
     if disc >= 0:
@@ -325,7 +311,7 @@ def hop_free(model, parameters, **kwargs):
     FSSH hop function taking the classical coordinates to represent free particles.
 
     Determines the shift in the classical coordinates required to conserve energy
-    following a hop between quantum states. 
+    following a hop between quantum states.
 
     If enough energy is available, the function returns the shift in the classical
     coordinates such that the new classical coordinate is ``z + shift`` and a Boolean
