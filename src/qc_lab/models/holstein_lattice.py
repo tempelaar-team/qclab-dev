@@ -120,7 +120,7 @@ class KSpaceHolsteinLattice(Model):
         self.constants.harmonic_frequency = self.constants.get("w") * np.ones(N)
         self.constants.k_inds = np.arange(-N / 2, N / 2).astype(int)
         self.constants.k_diff_inds = np.array(
-            [np.roll(self.constants.k_inds, N / 2 + i) for i in range(N)]
+            [np.roll(self.constants.k_inds, int(N / 2 + i)) for i in range(N)]
         ).astype(int)
         return
 
