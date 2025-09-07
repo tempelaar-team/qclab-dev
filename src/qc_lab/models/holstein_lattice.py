@@ -80,8 +80,7 @@ class HolsteinLattice(Model):
     ]
 
 
-
-class KSpaceHolsteinLattice(Model):
+class HolsteinLatticeReciprocalSpace(Model):
     """
     A model representing a nearest-neighbor tight-binding model with Holstein-type
     electron-phonon coupling with a single optical mode implemented in reciprocal space.
@@ -167,13 +166,14 @@ class KSpaceHolsteinLattice(Model):
         )
         for k_ind in self.constants.k_inds:
             pos = np.where(self.constants.k_diff_inds.transpose() == k_ind)
-            out[:,k_ind, pos[0], pos[1]] = g * w / np.sqrt(self.constants.num_quantum_states)
+            out[:, k_ind, pos[0], pos[1]] = (
+                g * w / np.sqrt(self.constants.num_quantum_states)
+            )
         shape = (
             batch_size,
             self.constants.num_classical_coordinates,
             self.constants.num_quantum_states,
             self.constants.num_quantum_states,
-        
         )
         inds = np.where(out != 0)
         mels = out[inds]

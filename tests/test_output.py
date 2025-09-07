@@ -10,7 +10,7 @@ from qc_lab import Simulation, Data
 from qc_lab.models import (
     SpinBoson,
     HolsteinLattice,
-    KSpaceHolsteinLattice,
+    HolsteinLatticeReciprocalSpace,
     FMOComplex,
     TullyProblemOne,
     TullyProblemTwo,
@@ -72,7 +72,7 @@ def test_output_serial():
     for model_class in [
         SpinBoson,
         HolsteinLattice,
-        KSpaceHolsteinLattice,
+        HolsteinLatticeReciprocalSpace,
         FMOComplex,
         TullyProblemOne,
         TullyProblemTwo,
@@ -108,7 +108,7 @@ def test_output_multiprocessing():
     for model_class in [
         SpinBoson,
         HolsteinLattice,
-        KSpaceHolsteinLattice,
+        HolsteinLatticeReciprocalSpace,
         FMOComplex,
         TullyProblemOne,
         TullyProblemTwo,
@@ -144,7 +144,7 @@ def test_output_different_h():
     for model_class in [
         SpinBoson,
         HolsteinLattice,
-        KSpaceHolsteinLattice,
+        HolsteinLatticeReciprocalSpace,
         FMOComplex,
         TullyProblemOne,
         TullyProblemTwo,
@@ -205,7 +205,7 @@ def test_output_fssh_gauge_fixing():
     for model_class in [
         SpinBoson,
         HolsteinLattice,
-        KSpaceHolsteinLattice,
+        HolsteinLatticeReciprocalSpace,
         FMOComplex,
         TullyProblemOne,
         TullyProblemTwo,
