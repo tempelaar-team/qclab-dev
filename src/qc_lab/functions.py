@@ -449,7 +449,7 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
     if out is None:
         out = np.zeros(batch_size * num_classical_coordinates, dtype=np.complex128)
     else:
-        out = out.reshape((batch_size * num_classical_coordinates))
+        out = out.reshape((batch_size * num_classical_coordinates), dtype=np.complex128)
         out[:] = 0.0 + 0.0j
 
     l_flat = vec_l_conj.reshape(batch_size * num_quantum_states)
