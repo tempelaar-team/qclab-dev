@@ -43,8 +43,8 @@ class Simulation:
         """
         Initialize the timesteps for the simulation based on the parameters.
 
-        Adjusts dt_collect to be smallest integer multiple of dt_update that is nonzero.
-        Then adjusts tmax to be the closest integer multiple of dt_collect.
+        Adjusts ``dt_collect`` to be smallest integer multiple of ``dt_update`` that is nonzero.
+        Then adjusts ``tmax`` to be the closest integer multiple of ``dt_collect``.
         """
         tmax = self.settings.get("tmax")
         dt_update = self.settings.get("dt_update")

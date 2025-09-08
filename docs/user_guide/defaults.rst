@@ -124,14 +124,14 @@ classical Hamiltonian, however, the output is in a sparse format.
 Surface Hopping Switching Algorithm
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. function:: sim.model.hop(model, constants, parameters, z=z, delta_z=delta_z, ev_diff=ev_diff)
+.. function:: sim.model.hop(model, constants, parameters, z=z, delta_z=delta_z, eigval_diff=eigval_diff)
 
     :param z: Complex-valued classical coordinate (in a single trajectory).
     :type z: np.ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)
     :param delta_z: Rescaling direction.
     :type delta_z: np.ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)
-    :param ev_diff: Energy difference between final and initial surface (final - initial).
-    :type ev_diff: float
+    :param eigval_diff: Energy difference between final and initial surface (final - initial).
+    :type eigval_diff: float
     :returns: z_shift, the shift required to rescale the coordinate, z' = z + z_shift.
     :rtype: np.ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)
     :returns: True or False depending on if a hop happened.

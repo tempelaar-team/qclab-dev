@@ -6,4 +6,4 @@ This module contains numerical constants.
 SMALL = 1e-10
 
 # Conversion factor from wavenumbers to kBT at 300 K.
-invcm_to_300K = 1 / 208.521 
+invcm_to_300K = 1 / 208.521

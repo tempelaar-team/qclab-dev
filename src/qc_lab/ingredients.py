@@ -15,7 +15,7 @@ def h_c_harmonic(model, parameters, **kwargs):
     Keyword Args
     ------------
     z : ndarray
-        Classical phase-space coordinate.
+        Complex classical coordinate.
 
     Required Constants
     ------------------
@@ -46,7 +46,7 @@ def h_c_free(model, parameters, **kwargs):
     Keyword Args
     ------------
     z : ndarray
-        Classical phase-space coordinate.
+        Complex classical coordinate.
 
     Required Constants
     ------------------
@@ -73,7 +73,7 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
     Keyword Args
     ------------
     z : ndarray
-        Classical phase-space coordinate.
+        Complex classical coordinate.
 
     Required Constants
     ------------------
@@ -96,7 +96,7 @@ def dh_c_dzc_free(model, parameters, **kwargs):
     Keyword Args
     ------------
     z : ndarray
-        Classical phase-space coordinate.
+        Complex classical coordinate.
 
     Required Constants
     ------------------
@@ -197,12 +197,12 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
     Keyword Args
     ------------
     z : ndarray
-        Classical phase-space coordinate.
+        Complex classical coordinate.
 
     Required Constants
     ------------------
     ``diagonal_linear_coupling`` : ndarray
-        Coupling constants :math:`\gamma` (num_quantum_states, num_classical_coordinates).
+        Coupling constants :math:`\gamma`.
     """
     del parameters
     z = kwargs["z"]
@@ -212,14 +212,15 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
 
 def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
     """
-    Gradient of the diagonal linear quantum-classical coupling Hamiltonian.
+    Gradient of the diagonal linear quantum-classical coupling Hamiltonian
+    in sparse format.
 
     :math:`[\partial_{z} H_{qc}]_{ijkl} = \delta_{kl}\gamma_{kj}`
 
     Keyword Args
     ------------
     z : ndarray
-        Classical phase-space coordinate.
+        Complex classical coordinate.
 
     Required Constants
     ------------------
@@ -228,7 +229,7 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
     ``num_classical_coordinates`` : int
         Number of classical coordinates.
     ``diagonal_linear_coupling`` : ndarray
-        Coupling constants :math:`\gamma` (num_quantum_states, num_classical_coordinates).
+        Coupling constants :math:`\gamma`.
     """
     z = kwargs["z"]
     batch_size = len(z)
@@ -265,8 +266,8 @@ def hop_harmonic(model, parameters, **kwargs):
         Current classical coordinate.
     delta_z : ndarray
         Rescaling direction of ``z``.
-    ev_diff : float
-        Energy difference ``e_final - e_initial``.
+    eigval_diff : float
+        Energy difference between final and initial states.
 
     Required Constants
     ------------------
@@ -277,7 +278,7 @@ def hop_harmonic(model, parameters, **kwargs):
     """
     z = kwargs["z"]
     delta_z = kwargs["delta_z"]
-    ev_diff = kwargs["ev_diff"]
+    eigval_diff = kwargs["eigval_diff"]
     w = model.constants.harmonic_frequency
     h = model.constants.classical_coordinate_weight
     delta_zc = np.conj(delta_z)
@@ -289,7 +290,7 @@ def hop_harmonic(model, parameters, **kwargs):
         2.0 * delta_zc * delta_z * b_const - a_const * (delta_z**2 + delta_zc**2)
     )
     bkj_z = 2.0 * np.sum(h * z.imag * delta_z.real - (w**2 / h) * z.real * delta_z.imag)
-    ckj_z = ev_diff
+    ckj_z = eigval_diff
     disc = bkj_z**2 - 4.0 * akj_z * ckj_z
     if disc >= 0:
         if bkj_z < 0:
@@ -324,7 +325,7 @@ def hop_free(model, parameters, **kwargs):
         Current classical coordinate.
     delta_z : ndarray
         Rescaling direction.
-    ev_diff : float
+    eigval_diff : float
         Energy difference between final and initial states.
 
     Required Constants
@@ -334,20 +335,15 @@ def hop_free(model, parameters, **kwargs):
     """
     z = kwargs["z"]
     delta_z = kwargs["delta_z"]
-    ev_diff = kwargs["ev_diff"]
-
-    f = 1j * 2.0 * delta_z.real
-    g = -2.0j * z.imag
-
+    eigval_diff = kwargs["eigval_diff"]
     h = model.constants.classical_coordinate_weight
-
     # Here, akj_z, bkj_z, ckj_z are the coefficients of the quadratic equation
     # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0
-
+    f = 1j * 2.0 * delta_z.real
+    g = -2.0j * z.imag
     akj_z = np.sum(0.25 * h * f * f)
     bkj_z = -np.sum(0.5 * h * f * g)
-    ckj_z = -ev_diff
-
+    ckj_z = -eigval_diff
     disc = bkj_z**2 - 4.0 * akj_z * ckj_z
     if disc >= 0:
         if bkj_z < 0:

@@ -15,18 +15,36 @@ logger = logging.getLogger(__name__)
 
 
 @njit
-def update_z_rk4_k123_sum(z_0, classical_forces, quantum_classical_forces, dt_update):
+def update_z_rk4_k123_sum(z_k, classical_forces, quantum_classical_forces, dt_update):
     """
     Low-level function to calculate the intermediate z coordinate and k values
     for RK4 update. Applies to steps 1-3.
+
+    Args
+    ----
+    z_k : ndarray
+        Initial complex coordinate for that update step.
+    classical_forces : ndarray
+        Classical forces.
+    quantum_classical_forces : ndarray
+        Quantum-classical forces.
+    dt_update : float
+        Time step for the update.
+
+    Returns
+    -------
+    out : ndarray
+        Updated complex coordinates after applying the RK4 step.
+    k : ndarray
+        The k value used in the RK4 update.
     """
-    batch_size, num_classical_coordinates = z_0.shape
+    batch_size, num_classical_coordinates = z_k.shape
     k = np.empty((batch_size, num_classical_coordinates), dtype=np.complex128)
     out = np.empty((batch_size, num_classical_coordinates), dtype=np.complex128)
-    for i in range(z_0.shape[0]):
-        for j in range(z_0.shape[1]):
+    for i in range(z_k.shape[0]):
+        for j in range(z_k.shape[1]):
             k[i, j] = -1j * (classical_forces[i, j] + quantum_classical_forces[i, j])
-            out[i, j] = z_0[i, j] + dt_update * k[i, j]
+            out[i, j] = z_k[i, j] + dt_update * k[i, j]
     return out, k
 
 
@@ -36,6 +54,28 @@ def update_z_rk4_k4_sum(
 ):
     """
     Low-level function to calculate the fourth and final step for the RK4 update.
+
+    Args
+    ----
+    z_0 : ndarray
+        Initial complex coordinate.
+    k1 : ndarray
+        First RK4 slope.
+    k2 : ndarray
+        Second RK4 slope.
+    k3 : ndarray
+        Third RK4 slope.
+    classical_forces : ndarray
+        Classical forces.
+    quantum_classical_forces : ndarray
+        Quantum-classical forces.
+    dt_update : float
+        Time step for the update.
+
+    Returns
+    -------
+    z_0 : ndarray
+        Updated complex coordinates after applying the RK4 step.
     """
     for i in range(z_0.shape[0]):
         for j in range(z_0.shape[1]):
@@ -52,7 +92,23 @@ def update_z_rk4_k4_sum(
 def dqdp_to_dzc(dq, dp, m, h):
     """
     Convert derivatives w.r.t. q and p (dq and dp, respectively) to
-    the derivative w.r.t. zc.
+    the derivative w.r.t. zc (dzc).
+
+    Args
+    ----
+    dq : ndarray | None
+        Derivative w.r.t. position coordinate.
+    dp : ndarray | None
+        Derivative w.r.t. momentum coordinate.
+    m : ndarray
+        classical coordinate mass.
+    h : ndarray
+        classical coordinate weight.
+
+    Returns
+    -------
+    dzc : ndarray
+        Derivative w.r.t. conjugate complex coordinate.
     """
     dp_present = dp is not None
     dq_present = dq is not None
@@ -68,9 +124,27 @@ def dqdp_to_dzc(dq, dp, m, h):
 @njit
 def dzdzc_to_dqdp(dz, dzc, m, h):
     """
-    Convert derivatives w.r.t. z and zc to derivatives w.r.t. q and p (dq and dp).
+    Convert derivatives w.r.t. z and zc (dz and dzc) to derivatives w.r.t. q and p (dq and dp).
     If only one of dz or dzc is provided, then dq and dp are calculated assuming that
     :math:`dz = dzc^{*}`.
+
+    Args
+    ----
+    dz : ndarray | None
+        Derivative w.r.t. complex z coordinate.
+    dzc : ndarray | None
+        Derivative w.r.t. conjugate z coordinate.
+    m : ndarray
+        classical coordinate mass.
+    h : ndarray
+        classical coordinate weight.
+
+    Returns
+    -------
+    dq : ndarray
+        Derivative w.r.t. position coordinate.
+    dp : ndarray
+        Derivative w.r.t. momentum coordinate.
     """
     dz_present = dz is not None
     dzc_present = dzc is not None
@@ -93,24 +167,77 @@ def dzdzc_to_dqdp(dz, dzc, m, h):
 def z_to_q(z, m, h):
     """
     Convert complex coordinates to position coordinate.
+
+    Args
+    ----
+    z : ndarray
+        Complex coordinates.
+    m : ndarray
+        Classical coordinate mass.
+    h : ndarray
+        Classical coordinate weight.
+
+    Returns
+    -------
+    q : ndarray
+        Position coordinates.
     """
-    return np.real((1.0 / np.sqrt(2.0 * m * h)) * (z + np.conj(z)))
+    return np.sqrt(2.0 / (m * h)) * z.real
 
 
 @njit
 def z_to_p(z, m, h):
     """
     Convert complex coordinates to momentum coordinate.
+
+    Args
+    ----
+    z : ndarray
+        Complex coordinates.
+    m : ndarray
+        Classical coordinate mass.
+    h : ndarray
+        Classical coordinate weight.
+
+    Returns
+    -------
+    p : ndarray
+        Momentum coordinates.
     """
-    return np.real(1j * np.sqrt(0.5 * m * h) * (np.conj(z) - z))
+    return np.sqrt(2.0 * m * h) * z.imag
 
 
 @njit
 def qp_to_z(q, p, m, h):
     """
     Convert real coordinates to complex coordinates.
+    If only one of q or p is provided, then the other is assumed to be zero.
+
+    Args
+    ----
+    q : ndarray | None
+        Position coordinates.
+    p : ndarray | None
+        Momentum coordinates.
+    m : ndarray
+        Classical coordinate mass.
+    h : ndarray
+        Classical coordinate weight.
+
+    Returns
+    -------
+    z : ndarray
+        Complex coordinates.
     """
-    return np.sqrt(0.5 * m * h) * q + 1j * np.sqrt(0.5 / (m * h)) * p
+    q_present = q is not None
+    p_present = p is not None
+    if q_present and p_present:
+        return np.sqrt(0.5 * m * h) * q + 1j * np.sqrt(0.5 / (m * h)) * p
+    if q_present and not p_present:
+        return np.sqrt(0.5 * m * h) * q.astype(np.complex128)
+    if not q_present and p_present:
+        return 1j * np.sqrt(0.5 / (m * h)) * p
+    raise ValueError("At least one of q or p must be provided.")
 
 
 def make_ingredient_sparse(ingredient):
@@ -134,7 +261,6 @@ def make_ingredient_sparse(ingredient):
 def vectorize_ingredient(ingredient):
     """
     Wrapper that vectorize h_q, h_qc, h_c, dh_qc_dzc, and dh_c_dzc ingredient functions.
-
     It assumes that any kwarg is an numpy.ndarray that is vectorized over its first
     index. Other kwargs are assumed to not be vectorized.
     """
@@ -168,9 +294,22 @@ def vectorize_ingredient(ingredient):
 def dh_c_dzc_harmonic_jit(z, h, w):
     """
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to
-    the conjugate `z` coordinate.
+    the conjugate z coordinate.
 
-    This is a low-level function accelerated using Numba.
+    Args
+    ----
+    z : ndarray
+        Complex coordinates.
+    h : ndarray
+        Classical coordinate weight.
+    w : ndarray
+        Harmonic frequency.
+
+    Returns
+    -------
+    out : ndarray
+        Derivative of the harmonic oscillator classical Hamiltonian function with respect to
+        the conjugate z coordinate.
     """
 
     batch_size, num_classical_coordinates = z.shape
@@ -188,6 +327,20 @@ def dh_c_dzc_harmonic_jit(z, h, w):
 def h_qc_diagonal_linear_jit(z, gamma):
     """
     Low-level function to generate the diagonal linear quantum-classical Hamiltonian.
+
+    :math:`H_{nm} = \delta_{nm}\sum_{j} \gamma_{nj} (z_{j} + z_{j}^*)`
+
+    Args
+    ----
+    z : ndarray
+        Complex coordinates.
+    gamma : ndarray
+        Classical coordinate coupling strengths.
+
+    Returns
+    -------
+    h_qc : ndarray
+        Diagonal linear quantum-classical Hamiltonian.
     """
     batch_size = z.shape[0]
     num_classical_coordinates = z.shape[1]
@@ -197,19 +350,50 @@ def h_qc_diagonal_linear_jit(z, gamma):
         for i in range(num_sites):
             acc = 0.0
             for j in range(num_classical_coordinates):
-                acc += gamma[i, j] * (2.0 * z[b, j].real)
+                acc += gamma[i, j] * 2.0 * z[b, j].real
             h_qc[b, i, i] = acc
     return h_qc
 
 
 def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     """
-    Generate a sample from a Gaussian distribution.
+    Generate a complex number sampled from a Gaussian distribution.
 
-    Required constants:
-        - num_classical_coordinates (int): Number of classical coordinates.
-          Default: None.
-        - mcmc_std (float): Standard deviation for sampling. Default: 1.
+    If z0 is provided, then a Gaussian distribution centered around z0 is sampled.
+    If z0 is not provided, then a Gaussian distribution centered around the
+    origin is sampled.
+
+    If separable is ``True``, then a different random number is generated
+    for each classical coordinate (i.e., each coordinate corresponds to
+    a different random walker). If ``False``, then the same random number
+    is generated for all classical coordinates (i.e., a single random walker).
+
+    Args
+    ------------
+    constants : Constants
+        Constants object.
+    z0 : ndarray | None
+        Center of the Gaussian distribution. If ``None``, the distribution is
+        centered around the origin. Default: ``None``.
+    seed : int | None
+        Random seed for reproducibility.
+    separable : bool
+        Whether to generate a different random number for each classical coordinate.
+        Default: ``True``.
+
+    Required constants
+    ------------------
+    ``num_classical_coordinates`` : int
+        Number of classical coordinates.
+    ``mcmc_std`` : float
+        Standard deviation of the Gaussian distribution. Default: 1.0
+
+    Returns
+    -------
+    z : ndarray
+        Complex number sampled from a Gaussian distribution.
+    rand : ndarray
+        Random number(s) used to generate the complex number.
     """
     if seed is not None:
         np.random.seed(seed)
@@ -218,27 +402,39 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
         rand = np.random.rand(num_classical_coordinates)
     else:
         rand = np.random.rand()
-    std_re = constants.get("mcmc_std", 1)
-    std_im = constants.get("mcmc_std", 1)
-    # Generate random real and imaginary parts of z.
-    z_re = np.random.normal(loc=0, scale=std_re, size=num_classical_coordinates)
-    z_im = np.random.normal(loc=0, scale=std_im, size=num_classical_coordinates)
-    z = z_re + 1j * z_im
     if z0 is None:
-        return (
-            np.random.rand(num_classical_coordinates)
-            + 1j * np.random.rand(num_classical_coordinates),
-            rand,
-        )
-    return z0 + z, rand
+        z0 = np.zeros(num_classical_coordinates, dtype=complex)
+    mcmc_std = constants.get("mcmc_std", 1.0)
+    z_re = np.random.normal(loc=z0.real, scale=mcmc_std, size=num_classical_coordinates)
+    z_im = np.random.normal(loc=z0.imag, scale=mcmc_std, size=num_classical_coordinates)
+    z = z_re + 1j * z_im
+    return z, rand
 
 
 @njit
 def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r):
     """
-    Take a sparse gradient of a matrix (batch_size, num_classical_coordinates,
+    Take a sparse gradient of a matrix with shape (batch_size, num_classical_coordinates,
     num_quantum_state, num_quantum_states) and calculate the matrix element of
     the vectors vec_l_conj and vec_r with  shape (batch_size, num_quantum_states).
+
+    Args
+    ----
+    inds : tuple of ndarrays
+        Indices of the nonzero elements in the sparse matrix.
+    mels : ndarray
+        Nonzero elements of the sparse matrix.
+    shape : tuple
+        Shape of the sparse matrix.
+    vec_l_conj : ndarray
+        Left vector (conjugated) for the inner product.
+    vec_r : ndarray
+        Right vector for the inner product.
+
+    Returns
+    -------
+    out : ndarray
+        Result of the inner product with shape (batch_size, num_classical_coordinates).
     """
     batch_size, num_classical_coordinates, num_quantum_states = (
         shape[0],
@@ -266,19 +462,46 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r):
     return out.reshape((batch_size, num_classical_coordinates))
 
 
-def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvecs):
+def analytic_der_couple_phase(dh_qc_dzc, eigvals, eigvecs, m, h):
     """
     Calculates the phase change needed to fix the gauge using analytical derivative
     couplings.
 
-    Required constants:
-        - None.
+    i.e. calculates the phase-factors :math:`u^{q}_{i}` and :math:`u^{p}_{i}` such that
+    :math:`d_{ij}^{q}u_{i}^{q*}u_{j}^{q}` and :math:`d_{ij}^{p}u_{i}^{p*}u_{j}^{p}` are
+    real-valued.
+
+    It does this by calculating the derivative couplings analytically. In the event of
+    degenerate eigenvalues, an error is logged and a small offset is added to the energy
+    differences.
+
+    Args
+    ----
+    dh_qc_dzc : tuple
+        Sparse representation of the derivative of the quantum-classical Hamiltonian
+        with respect to the conjugate complex coordinate.
+    eigvals : ndarray
+        Eigenvalues of the quantum subsystem.
+    eigvecs : ndarray
+        Eigenvectors of the quantum subsystem.
+    m : ndarray
+        Classical coordinate mass.
+    h : ndarray
+        Classical coordinate weight.
+
+    Returns
+    -------
+    der_couple_q_phase : ndarray
+        Phase factor for derivative couplings obtained by differentiating
+        w.r.t. the position coordinate.
+    der_couple_p_phase : ndarray
+        Phase factor for derivative couplings obtained by differentiating
+        w.r.t. the momentum coordinate.
     """
-    batch_size = sim.settings.batch_size
-    num_quantum_states = sim.model.constants.num_quantum_states
-    num_classical_coords = sim.model.constants.num_classical_coordinates
-    m = sim.model.constants.classical_coordinate_mass[np.newaxis, :]
-    h = sim.model.constants.classical_coordinate_weight[np.newaxis, :]
+    inds, mels, shape = dh_qc_dzc
+    batch_size = shape[0]
+    num_classical_coords = shape[1]
+    num_quantum_states = shape[2]
     der_couple_q_phase = np.ones(
         (
             batch_size,
@@ -299,10 +522,10 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
         evec_j = eigvecs[..., j]
         eval_i = eigvals[..., i]
         eval_j = eigvals[..., j]
-        ev_diff = eval_j - eval_i
-        plus = np.zeros_like(ev_diff)
-        if np.any(np.abs(ev_diff) < SMALL):
-            plus[np.where(np.abs(ev_diff) < SMALL)] = 1
+        eigval_diff = eval_j - eval_i
+        plus = np.zeros_like(eigval_diff)
+        if np.any(np.abs(eigval_diff) < SMALL):
+            plus[np.where(np.abs(eigval_diff) < SMALL)] = 1
             logger.error("Degenerate eigenvalues detected.")
         der_couple_zc = np.zeros(
             (
@@ -318,14 +541,13 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
             ),
             dtype=complex,
         )
-        inds, mels, _ = state.dh_qc_dzc
         np.add.at(
             der_couple_zc,
             (inds[0], inds[1]),
             np.conj(evec_i)[inds[0], inds[2]]
             * mels
             * evec_j[inds[0], inds[3]]
-            / ((ev_diff + plus)[inds[0]]),
+            / ((eigval_diff + plus)[inds[0]]),
         )
         np.add.at(
             der_couple_z,
@@ -333,25 +555,11 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
             np.conj(evec_i)[inds[0], inds[3]]
             * np.conj(mels)
             * evec_j[inds[0], inds[2]]
-            / ((ev_diff + plus)[inds[0]]),
+            / ((eigval_diff + plus)[inds[0]]),
         )
-        der_couple_q, der_couple_p = dzdzc_to_dqdp(der_couple_z, der_couple_zc, m, h)
-        # der_couple_p = (
-        #     1j
-        #     * np.sqrt(
-        #         0.5
-        #         / (
-        #             sim.model.constants.classical_coordinate_weight
-        #             * sim.model.constants.classical_coordinate_mass
-        #         )
-        #     )[..., :]
-        #     * (der_couple_z - der_couple_zc)
-        # )
-        # der_couple_q = np.sqrt(
-        #     sim.model.constants.classical_coordinate_weight
-        #     * sim.model.constants.classical_coordinate_mass
-        #     * 0.5
-        # )[..., :] * (der_couple_z + der_couple_zc)
+        der_couple_q, der_couple_p = dzdzc_to_dqdp(
+            der_couple_z, der_couple_zc, m[np.newaxis, :], h[np.newaxis, :]
+        )
         der_couple_q_angle = np.angle(
             der_couple_q[
                 np.arange(len(der_couple_q)),
@@ -377,106 +585,113 @@ def analytic_der_couple_phase(algorithm, sim, parameters, state, eigvals, eigvec
     return der_couple_q_phase, der_couple_p_phase
 
 
-@njit
-def matprod(mat, vec):
+def branch_mat_vec_mult(mat, vec):
     """
-    Perform matrix-vector multiplication.
+    Perform matrix-vector multiplication for a batch of matrices and vectors.
+
+    Args
+    ----
+    mat : ndarray
+        Batch of matrices with shape (batch_size, n, n).
+    vec : ndarray
+        Batch of vectors with shape (batch_size, n).
+
+    Returns
+    -------
+    out : ndarray
+        Result of the matrix-vector multiplication with shape (batch_size, n).
     """
-    out = np.zeros(np.shape(vec), dtype=np.complex128)
-    for t in range(len(mat)):
-        for i in range(len(mat[0])):
-            accum = 0j
-            for j in range(len(mat[0,])):
-                accum = accum + mat[t, i, j] * vec[t, j]
-            out[t, i] = accum
-    return out
+    return (mat @ vec[..., np.newaxis])[:, :, 0]
 
 
-@njit
 def wf_db_rk4(h_quantum, wf_db, dt_update):
     """
     Low-level function for quantum RK4 propagation.
+
+    Args
+    ----
+    h_quantum : ndarray
+        Quantum Hamiltonian.
+    wf_db : ndarray
+        Wavefunction.
+    dt_update : float
+        Time step for the update.
+
+    Returns
+    -------
+    wf_db : ndarray
+        Updated wavefunction.
     """
-    k1 = -1j * matprod(h_quantum, wf_db)
-    k2 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt_update * k1))
-    k3 = -1j * matprod(h_quantum, (wf_db + 0.5 * dt_update * k2))
-    k4 = -1j * matprod(h_quantum, (wf_db + dt_update * k3))
-    return wf_db + dt_update * (1.0 / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+    k1 = -1j * branch_mat_vec_mult(h_quantum, wf_db)
+    k2 = -1j * branch_mat_vec_mult(h_quantum, (wf_db + 0.5 * dt_update * k1))
+    k3 = -1j * branch_mat_vec_mult(h_quantum, (wf_db + 0.5 * dt_update * k2))
+    k4 = -1j * branch_mat_vec_mult(h_quantum, (wf_db + dt_update * k3))
+    wf_db = wf_db + dt_update * 0.16666666666666666 * k1
+    wf_db = wf_db + dt_update * 0.3333333333333333 * k2
+    wf_db = wf_db + dt_update * 0.3333333333333333 * k3
+    wf_db = wf_db + dt_update * 0.16666666666666666 * k4
+    return wf_db
 
 
-def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
+def calc_delta_z_fssh(
+    eigval_diff, eigvec_init_state, eigvec_final_state, dh_qc_dzc_traj, m, h
+):
     """
-    Update the rescaling direction state.delta_z in FSSH.
-    """
-    traj_ind, final_state_ind, init_state_ind = (
-        kwargs["traj_ind"],
-        kwargs["final_state_ind"],
-        kwargs["init_state_ind"],
-    )
-    rescaling_direction_fssh, has_rescaling_direction_fssh = sim.model.get(
-        "rescaling_direction_fssh"
-    )
-    if has_rescaling_direction_fssh:
-        delta_z = rescaling_direction_fssh(
-            parameters,
-            z=state.z[traj_ind],
-            init_state_ind=init_state_ind,
-            final_state_ind=final_state_ind,
-        )
-        return delta_z
+    Calculates the rescaling direction for FSSH using analytical derivative couplings.
 
-    inds, mels, _ = state.dh_qc_dzc
-    eigvecs_flat = state.eigvecs
-    eigvals_flat = state.eigvals
-    evec_init_state = eigvecs_flat[traj_ind][:, init_state_ind]
-    evec_final_state = eigvecs_flat[traj_ind][:, final_state_ind]
-    eval_init_state = eigvals_flat[traj_ind][init_state_ind]
-    eval_final_state = eigvals_flat[traj_ind][final_state_ind]
-    ev_diff = eval_final_state - eval_init_state
-    inds_traj_ind = (
-        inds[0][inds[0] == traj_ind],
-        inds[1][inds[0] == traj_ind],
-        inds[2][inds[0] == traj_ind],
-        inds[3][inds[0] == traj_ind],
-    )
-    mels_traj_ind = mels[inds[0] == traj_ind]
-    dkj_z = np.zeros((sim.model.constants.num_classical_coordinates), dtype=complex)
-    dkj_zc = np.zeros((sim.model.constants.num_classical_coordinates), dtype=complex)
+    This function is not vectorized over multiple trajectories and is intended to be
+    only called when needed.
+
+    It calculates both the derivative coupling w.r.t. z and zc, and checks that they
+    are properly aligned to correspond with real-valued phase space derivative couplings.
+    If they are not, an error is logged.
+
+    Args
+    ----
+    eigval_diff : ndarray
+        Difference in eigenvalues between the initial and final states, e_final - e_initial.
+    eigvec_init_state : ndarray
+        Eigenvector of the initial state.
+    eigvec_final_state : ndarray
+        Eigenvector of the final state.
+    dh_qc_dzc_traj : tuple
+        Sparse representation of the derivative of the quantum-classical Hamiltonian
+        with respect to the conjugate complex coordinate.
+    m : ndarray
+        Classical coordinate mass.
+    h : ndarray
+        Classical coordinate weight.
+
+    Returns
+    -------
+    dkj_zc : ndarray
+        Nonadiabatic coupling vector for rescaling the z coordinate.
+    """
+    inds, mels, shape = dh_qc_dzc_traj
+    num_classical_coordinates = shape[1]
+    dkj_z = np.zeros((num_classical_coordinates), dtype=complex)
+    dkj_zc = np.zeros((num_classical_coordinates), dtype=complex)
     np.add.at(
         dkj_z,
-        (inds_traj_ind[1]),
-        np.conj(evec_init_state)[inds_traj_ind[2]]
-        * mels_traj_ind
-        * evec_final_state[inds_traj_ind[3]]
-        / ev_diff,
+        (inds[1]),
+        np.conj(eigvec_init_state)[inds[2]]
+        * mels
+        * eigvec_final_state[inds[3]]
+        / eigval_diff,
     )
     np.add.at(
         dkj_zc,
-        (inds_traj_ind[1]),
-        np.conj(evec_init_state)[inds_traj_ind[3]]
-        * np.conj(mels_traj_ind)
-        * evec_final_state[inds_traj_ind[2]]
-        / ev_diff,
+        (inds[1]),
+        np.conj(eigvec_init_state)[inds[3]]
+        * np.conj(mels)
+        * eigvec_final_state[inds[2]]
+        / eigval_diff,
     )
     # Check positions where the nonadiabatic coupling is greater than SMALL.
-    big_pos = np.arange(sim.model.constants.num_classical_coordinates, dtype=int)[
-        np.abs(dkj_zc) > SMALL
-    ]
+    big_pos = np.arange(num_classical_coordinates, dtype=int)[np.abs(dkj_zc) > SMALL]
     # Calculate a weighting factor to rescale real and imaginary parts appropriately.
-    imag_weight = np.sqrt(
-        0.5
-        / (
-            sim.model.constants.classical_coordinate_weight
-            * sim.model.constants.classical_coordinate_mass
-        )
-    )
-    real_weight = np.sqrt(
-        0.5
-        * (
-            sim.model.constants.classical_coordinate_weight
-            * sim.model.constants.classical_coordinate_mass
-        )
-    )
+    imag_weight = np.sqrt(0.5 / (h * m))
+    real_weight = np.sqrt(0.5 * (h * m))
     # Determine if the real and imaginary parts are properly aligned.
     if not (
         np.allclose(
@@ -497,16 +712,54 @@ def calc_delta_z_fssh(algorithm, sim, parameters, state, **kwargs):
 
 def numerical_fssh_hop(model, parameters, **kwargs):
     """
-    Determines the coordinate rescaling in FSSH numerically.
+    Determines the shift required to conserve energy during a hop in FSSH using
+    an iterative numerical method. The coordinate following the hop is ``z + shift``.
 
-    Required constants:
-        - numerical_fssh_hop_gamma_range (float): Range for gamma. Default: 5.0.
-        - numerical_fssh_hop_num_iter (int): Number of iterations. Default: 20.
-        - numerical_fssh_hop_num_points (int): Number of points. Default: 10.
+    The algorithm is as follows:
+    1. Calculate the initial energy using the Hamiltonian function at the current z.
+    2. Define a grid from -gamma_range to +gamma_range with num_points points uniformally spaced.
+    3. Calculate the energy at each point in the grid using the Hamiltonian function.
+    4. Find the point in the grid that minimizes the difference between the energy
+       difference and the calculated energy difference.
+    5. Recenter the grid around the minimum point found in step 4, reduce the
+       gamma_range by half, and repeat steps 3-5 until either the minimum energy
+       difference is less than the threshold or the maximum number of iterations
+       is reached.
+    6. If the minimum energy difference is less than the threshold, return the
+       corresponding shift. Otherwise, return a zero shift and indicate that the
+       hop was frustrated.
+
+    Keyword Arguments
+    -----------------
+    z : ndarray
+        Current complex coordinate.
+    delta_z : float
+        Rescaling direction.
+    eigval_diff : float
+        Difference in eigenvalues between the initial and final states, e_final - e_initial.
+
+
+    Required constants
+    ------------------
+    ``numerical_fssh_hop_gamma_range`` : float
+        Initial range (negative to positive) of gamma values to search over. Default: 5.0
+    ``numerical_fssh_hop_max_iter`` : int
+        Maximum number of iterations to perform. Default: 20
+    ``numerical_fssh_hop_num_points`` : int
+        Number of points to sample in each iteration. Default: 10
+    ``numerical_fssh_hop_threshold`` : float
+        Energy threshold for convergence. Default: 1e-6
+
+    Returns
+    -------
+    shift : ndarray
+        The shift to apply to the complex coordinate to conserve energy.
+    hop_successful : bool
+        Whether the hop was successful (i.e., energy conservation was achieved).
     """
     z = kwargs["z"]
     delta_z = kwargs["delta_z"]
-    ev_diff = kwargs["ev_diff"]
+    eigval_diff = kwargs["eigval_diff"]
     gamma_range = model.constants.get("numerical_fssh_hop_gamma_range", 5.0)
     max_iter = model.constants.get("numerical_fssh_hop_max_iter", 20)
     num_points = model.constants.get("numerical_fssh_hop_num_points", 10)
@@ -521,7 +774,7 @@ def numerical_fssh_hop(model, parameters, **kwargs):
             min_gamma - gamma_range, min_gamma + gamma_range, num_points
         )
         new_energies = np.abs(
-            ev_diff
+            eigval_diff
             - np.array(
                 [
                     init_energy
@@ -548,12 +801,22 @@ def initialize_variable_objects(sim, seed):
     """
     Generate the `parameter` and `state` variables for a simulation.
 
-    Args:
-        sim (Simulation): The simulation instance.
-        seed (Iterable[int]): Array of trajectory seeds.
+    Copies any numpy arrays in `sim.state` to the `state_variable` object,
+    expanding the first dimension to be the length of the seed array.
 
-    Returns:
-        tuple[Variable, Variable]: The `parameter` and `state` objects.
+    Args
+    ----
+    sim : Simulation
+        Simulation object.
+    seed : ndarray
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    parameter_variable : Variable
+        Parameter variable object.
+    state_variable : Variable
+        State variable object.
     """
     state_variable = Variable()
     state_variable.seed = seed

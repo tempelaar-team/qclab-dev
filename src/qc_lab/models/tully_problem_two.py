@@ -39,14 +39,8 @@ class TullyProblemTwo(Model):
             [self.constants.get("mass")]
         )
         self.constants.classical_coordinate_weight = np.array([1.0])
-        return
-
-    def _init_h_qc(self, parameters, **kwargs):
-        self.constants.gradient_weight = 1.0 / np.sqrt(
-            2.0
-            * self.constants.classical_coordinate_mass
-            * self.constants.classical_coordinate_weight
-        )
+        self.constants.init_position = np.array([self.constants.get("init_position")])
+        self.constants.init_momentum = np.array([self.constants.get("init_momentum")])
         return
 
     def h_qc(self, parameters, **kwargs):
@@ -127,6 +121,5 @@ class TullyProblemTwo(Model):
         ("dh_c_dzc", ingredients.dh_c_dzc_free),
         ("init_classical", ingredients.init_classical_definite_position_momentum),
         ("hop", ingredients.hop_free),
-        ("_init_h_qc", _init_h_qc),
         ("_init_model", _init_model),
     ]

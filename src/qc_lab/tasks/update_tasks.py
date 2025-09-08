@@ -311,7 +311,11 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
             algorithm, sim, parameters, state, z=kwargs["z"]
         )
         der_couple_q_phase, _ = functions.analytic_der_couple_phase(
-            algorithm, sim, parameters, state, eigvals, eigvecs
+            state.dh_qc_dzc,
+            eigvals,
+            eigvecs,
+            sim.model.constants.classical_coordinate_mass,
+            sim.model.constants.classical_coordinate_weight,
         )
         eigvecs = np.einsum(
             "tai,ti->tai", eigvecs, np.conj(der_couple_q_phase), optimize="greedy"
@@ -323,7 +327,11 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
     if gauge_fixing_value == 2:
         der_couple_q_phase_new, der_couple_p_phase_new = (
             functions.analytic_der_couple_phase(
-                algorithm, sim, parameters, state, eigvals, eigvecs
+                state.dh_qc_dzc,
+                eigvals,
+                eigvecs,
+                sim.model.constants.classical_coordinate_mass,
+                sim.model.constants.classical_coordinate_weight,
             )
         )
         if (
@@ -584,7 +592,7 @@ def update_z_shift_fssh(algorithm, sim, parameters, state, **kwargs):
     """
     z = kwargs["z"]
     delta_z = kwargs["delta_z"]
-    ev_diff = kwargs["ev_diff"]
+    eigval_diff = kwargs["eigval_diff"]
     hop, has_hop = sim.model.get("hop")
     if has_hop:
         z_shift, hopped = hop(
@@ -592,7 +600,7 @@ def update_z_shift_fssh(algorithm, sim, parameters, state, **kwargs):
             parameters,
             z=z,
             delta_z=delta_z,
-            ev_diff=ev_diff,
+            eigval_diff=eigval_diff,
         )
     else:
         z_shift, hopped = functions.numerical_fssh_hop(
@@ -600,7 +608,7 @@ def update_z_shift_fssh(algorithm, sim, parameters, state, **kwargs):
             parameters,
             z=z,
             delta_z=delta_z,
-            ev_diff=ev_diff,
+            eigval_diff=eigval_diff,
         )
     state.hop_successful_traj = hopped
     state.z_shift_traj = z_shift
@@ -630,7 +638,8 @@ def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
         (len(hop_ind), sim.model.constants.num_classical_coordinates), dtype=complex
     )
     state.hop_successful = np.zeros(len(hop_ind), dtype=bool)
-    eigvals_flat = state.eigvals
+    eigvals = state.eigvals
+    eigvecs = state.eigvecs
     z = np.copy(state.z)
     act_surf_ind = state.act_surf_ind
     act_surf_ind_flat = act_surf_ind.flatten().astype(int)
@@ -638,18 +647,41 @@ def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
     for traj_ind in hop_ind:
         final_state_ind = hop_dest[hop_traj_ind]
         init_state_ind = act_surf_ind_flat[traj_ind]
-        eval_init_state = eigvals_flat[traj_ind][init_state_ind]
-        eval_final_state = eigvals_flat[traj_ind][final_state_ind]
-        ev_diff = eval_final_state - eval_init_state
-        delta_z = functions.calc_delta_z_fssh(
-            algorithm,
-            sim,
-            parameters,
-            state,
-            traj_ind=traj_ind,
-            final_state_ind=final_state_ind,
-            init_state_ind=init_state_ind,
+        eigval_init_state = eigvals[traj_ind][init_state_ind]
+        eigval_final_state = eigvals[traj_ind][final_state_ind]
+        eigval_diff = eigval_final_state - eigval_init_state
+        eigvec_init_state = eigvecs[traj_ind, :, init_state_ind]
+        eigvec_final_state = eigvecs[traj_ind, :, final_state_ind]
+        rescaling_direction_fssh, has_rescaling_direction_fssh = sim.model.get(
+            "rescaling_direction_fssh"
         )
+        if has_rescaling_direction_fssh:
+            delta_z = rescaling_direction_fssh(
+                parameters,
+                z=state.z[traj_ind],
+                init_state_ind=init_state_ind,
+                final_state_ind=final_state_ind,
+            )
+        else:
+            inds, mels, shape = state.dh_qc_dzc
+            dh_qc_dzc_traj_ind = inds[0] == traj_ind
+            inds_traj = (
+                inds[0][dh_qc_dzc_traj_ind],
+                inds[1][dh_qc_dzc_traj_ind],
+                inds[2][dh_qc_dzc_traj_ind],
+                inds[3][dh_qc_dzc_traj_ind],
+            )
+            mels_traj = mels[dh_qc_dzc_traj_ind]
+            shape_traj = (1, shape[1], shape[2], shape[3])
+            dh_qc_dzc_traj = (inds_traj, mels_traj, shape_traj)
+            delta_z = functions.calc_delta_z_fssh(
+                eigval_diff,
+                eigvec_init_state,
+                eigvec_final_state,
+                dh_qc_dzc_traj,
+                sim.model.constants.classical_coordinate_mass,
+                sim.model.constants.classical_coordinate_weight,
+            )
         parameters, state = update_z_shift_fssh(
             algorithm,
             sim,
@@ -657,7 +689,7 @@ def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
             state,
             z=z[traj_ind],
             delta_z=delta_z,
-            ev_diff=ev_diff,
+            eigval_diff=eigval_diff,
         )
         state.hop_successful[hop_traj_ind] = state.hop_successful_traj
         state.z_shift[hop_traj_ind] = state.z_shift_traj
@@ -755,10 +787,10 @@ def update_z_rk4_k1(algorithm, sim, parameters, state, **kwargs):
     - ``state.z_rk4_k1``: first RK4 slope.
     """
     dt_update = sim.settings.dt_update
-    z_0 = getattr(state, kwargs["z"])
+    z_k = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
     out, k1 = functions.update_z_rk4_k123_sum(
-        z_0, state.classical_forces, state.quantum_classical_forces, 0.5 * dt_update
+        z_k, state.classical_forces, state.quantum_classical_forces, 0.5 * dt_update
     )
     setattr(state, output_name, out)
     state.z_rk4_k1 = k1
@@ -779,10 +811,10 @@ def update_z_rk4_k2(algorithm, sim, parameters, state, **kwargs):
     - ``state.z_rk4_k2``: second RK4 slope.
     """
     dt_update = sim.settings.dt_update
-    z_0 = getattr(state, kwargs["z"])
+    z_k = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
     out, k2 = functions.update_z_rk4_k123_sum(
-        z_0, state.classical_forces, state.quantum_classical_forces, 0.5 * dt_update
+        z_k, state.classical_forces, state.quantum_classical_forces, 0.5 * dt_update
     )
     setattr(state, output_name, out)
     state.z_rk4_k2 = k2
@@ -803,10 +835,10 @@ def update_z_rk4_k3(algorithm, sim, parameters, state, **kwargs):
     - ``state.z_rk4_k3``: third RK4 slope.
     """
     dt_update = sim.settings.dt_update
-    z_0 = getattr(state, kwargs["z"])
+    z_k = getattr(state, kwargs["z"])
     output_name = kwargs["output_name"]
     out, k3 = functions.update_z_rk4_k123_sum(
-        z_0, state.classical_forces, state.quantum_classical_forces, dt_update
+        z_k, state.classical_forces, state.quantum_classical_forces, dt_update
     )
     setattr(state, output_name, out)
     state.z_rk4_k3 = k3
