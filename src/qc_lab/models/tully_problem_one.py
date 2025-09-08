@@ -74,7 +74,7 @@ class TullyProblemOne(Model):
 
     def dh_qc_dzc(self, parameters, **kwargs):
         """
-        Gradient w.r.t. to the conjugate z coordinate of the quantum-classical Hamiltonian
+        Gradient w.r.t. to the conjugate z-coordinate of the quantum-classical Hamiltonian
         for Tully's first problem.
         """
         z = kwargs["z"]

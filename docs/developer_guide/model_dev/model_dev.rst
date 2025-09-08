@@ -422,7 +422,7 @@ which can be implemented in a vectorized fashion as:
         dh_c_dzc = 2 * b[..., :] * z + 2 *a[..., :] * np.conj(z)
         return dh_c_dzc
 
-Likewise we can construct an ingredient to generate the gradient of the quantum-classical Hamiltonian with respect to the conjugate z coordinate.
+Likewise we can construct an ingredient to generate the gradient of the quantum-classical Hamiltonian with respect to the conjugate z-coordinate.
 In many cases this requires the calculation of a sparse tensor and so QC Lab assumes that it is in terms of indices, nonzero elements, and a shape.
 
 .. math::
@@ -492,8 +492,8 @@ Classical Initialization
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-By default QC Lab assumes that a model's initial z coordinate is sampled from a Boltzmann distribution at temperature "temp" and attempts to sample a 
-Boltzmann distribution given the classical Hamiltonian. This is in practice making a number of assumptions, notably that all the z coordinates are uncoupled from 
+By default QC Lab assumes that a model's initial z-coordinate is sampled from a Boltzmann distribution at temperature "temp" and attempts to sample a 
+Boltzmann distribution given the classical Hamiltonian. This is in practice making a number of assumptions, notably that all the z-coordinates are uncoupled from 
 one another in the classical Hamiltonian. 
 
 

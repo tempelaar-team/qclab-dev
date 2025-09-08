@@ -43,7 +43,7 @@ def test_drivers_spinboson():
     data_parallel_multiprocessing = parallel_driver_multiprocessing(sim)
     print("Comparing results...")
     for key, val in data_serial.data_dict.items():
-        if isinstance(val, np.ndarray):
+        if isinstance(val, ndarray):
             assert np.allclose(val, data_parallel_multiprocessing.data_dict[key])
             # assert np.allclose(val, data_parallel_mpi.data_dict[key])
     print("parallel and serial results match!")
@@ -101,7 +101,7 @@ def test_drivers_spinboson_mpi():
         data_serial = serial_driver(sim)
         print("Comparing results...")
         for key, val in data_serial.data_dict.items():
-            if isinstance(val, np.ndarray):
+            if isinstance(val, ndarray):
                 assert np.allclose(val, data_parallel_mpi.data_dict[key])
         print("parallel and serial results match!")
     return
@@ -148,7 +148,7 @@ def test_incommensurate_batch_size_serial():
     data_serial_incomm = serial_driver(sim)
     print("Comparing results...")
     for key, val in data_serial.data_dict.items():
-        if isinstance(val, np.ndarray):
+        if isinstance(val, ndarray):
             assert np.allclose(val, data_serial_incomm.data_dict[key])
             # assert np.allclose(val, data_parallel_mpi.data_dict[key])
     print("results match!")
@@ -196,7 +196,7 @@ def test_incommensurate_batch_size_multiprocessing():
     data_parallel_incomm = parallel_driver_multiprocessing(sim)
     print("Comparing results...")
     for key, val in data_parallel.data_dict.items():
-        if isinstance(val, np.ndarray):
+        if isinstance(val, ndarray):
             assert np.allclose(val, data_parallel_incomm.data_dict[key])
             # assert np.allclose(val, data_parallel_mpi.data_dict[key])
     print("results match!")

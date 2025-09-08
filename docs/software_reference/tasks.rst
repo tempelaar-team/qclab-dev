@@ -28,7 +28,7 @@ which the Hamiltonian is evaluated:
         Update the quantum + quantum-classical Hamiltonian.
 
         Required constants:
-            - None.
+            None.
         """
         z = kwargs.get("z", state.z)
         h_q, _ = sim.model.get("h_q")

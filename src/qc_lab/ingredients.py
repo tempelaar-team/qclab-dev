@@ -67,7 +67,7 @@ def h_c_free(model, parameters, **kwargs):
 def dh_c_dzc_harmonic(model, parameters, **kwargs):
     """
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to
-    the conjugate z coordinate. This is an ingredient that calls the low-level
+    the conjugate z-coordinate. This is an ingredient that calls the low-level
     function ``dh_c_dzc_harmonic_jit``.
 
     Keyword Args
@@ -91,7 +91,7 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
 def dh_c_dzc_free(model, parameters, **kwargs):
     """
     Derivative of the free particle classical Hamiltonian function with respect to the
-    conjugate z coordinate.
+    conjugate z-coordinate.
 
     Keyword Args
     ------------
@@ -542,7 +542,7 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
         p = np.random.normal(
             loc=mu_p, scale=std_p, size=model.constants.num_classical_coordinates
         )
-        # Calculate the z coordinate.
+        # Calculate the z-coordinate.
         z = functions.qp_to_z(q, p, m, h)
         out[s] = z
     return out

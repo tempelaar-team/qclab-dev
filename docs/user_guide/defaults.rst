@@ -27,9 +27,9 @@ Initialization of classical coordinates
 .. function:: sim.model.init_classical(model, constants, parameters, seed=seed)
 
     :param seed: List of seeds used to initialize random numbers. 
-    :type seed: np.ndarray((batch_size), dtype=int)
+    :type seed: ndarray((batch_size), dtype=int)
     :returns: Initial complex-valued classical coordinate. 
-    :rtype: np.ndarray((batch_size, sim.model.constants.num_classical_coordinates), dtype=complex)
+    :rtype: ndarray((batch_size, sim.model.constants.num_classical_coordinates), dtype=complex)
 
 By default, QC Lab uses a Markov-chain Monte Carlo implementation of the Metropolis-Hastings algorithm to sample a Boltzmann distribution corresponding to 
 `sim.model.h_c` at the thermal quantum `sim.model.constants.kBT`. We encourage caution and further validation before using it on arbitrary classical 
@@ -72,9 +72,9 @@ Classical Hamiltonian gradients
 .. function:: sim.model.dh_c_dzc(model, constants, parameters, z = z)
 
     :param z: complex-valued classical coordinate. 
-    :type z: np.ndarray((batch_size, sim.model.constants.num_classical_coordinates), dtype=complex)
+    :type z: ndarray((batch_size, sim.model.constants.num_classical_coordinates), dtype=complex)
     :returns: Gradient of the classical Hamiltonian. 
-    :rtype: np.ndarray((batch_size, sim.model.constants.num_classical_coordinates), dtype=complex)
+    :rtype: ndarray((batch_size, sim.model.constants.num_classical_coordinates), dtype=complex)
 
 
 QC Lab utilizes a finite difference method to calculate the gradient of the classical Hamiltonian. 
@@ -98,11 +98,11 @@ Quantum-classical Hamiltonian gradients
 .. function:: sim.model.dh_c_dzc(model, constants, parameters, z = z)
 
     :param z: complex-valued classical coordinate. 
-    :type z: np.ndarray((batch_size, sim.model.constants.num_classical_coordinates), dtype=complex)
+    :type z: ndarray((batch_size, sim.model.constants.num_classical_coordinates), dtype=complex)
     :returns: Indices of nonzero values
-    :rtype: np.ndarray((# of nonzero values, 4), dtype=int)
+    :rtype: ndarray((# of nonzero values, 4), dtype=int)
     :returns: Values
-    :rtype: np.ndarray((# of nonzero values), dtype=complex)
+    :rtype: ndarray((# of nonzero values), dtype=complex)
     :returns: Shape of dense gradient: (batch_size, sim.model.constants.num_classical_coordinates, sim.model.constants.num_quantum_states, sim.model.constants.num_quantum_states)
     :rtype: Tuple
 
@@ -127,13 +127,13 @@ Surface Hopping Switching Algorithm
 .. function:: sim.model.hop(model, constants, parameters, z=z, delta_z=delta_z, eigval_diff=eigval_diff)
 
     :param z: Complex-valued classical coordinate (in a single trajectory).
-    :type z: np.ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)
+    :type z: ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)
     :param delta_z: Rescaling direction.
-    :type delta_z: np.ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)
+    :type delta_z: ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)
     :param eigval_diff: Energy difference between final and initial surface (final - initial).
     :type eigval_diff: float
     :returns: z_shift, the shift required to rescale the coordinate, z' = z + z_shift.
-    :rtype: np.ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)
+    :rtype: ndarray(sim.model.constants.num_classical_coordinates, dtype=complex)
     :returns: True or False depending on if a hop happened.
     :rtype: Bool.
 

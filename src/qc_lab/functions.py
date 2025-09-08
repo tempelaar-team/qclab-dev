@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 @njit
 def update_z_rk4_k123_sum(z_k, classical_forces, quantum_classical_forces, dt_update):
     """
-    Low-level function to calculate the intermediate z coordinate and k values
+    Low-level function to calculate the intermediate z-coordinate and k values
     for RK4 update. Applies to steps 1-3.
 
     Args
@@ -131,9 +131,9 @@ def dzdzc_to_dqdp(dz, dzc, m, h):
     Args
     ----
     dz : ndarray | None
-        Derivative w.r.t. complex z coordinate.
+        Derivative w.r.t. complex z-coordinate.
     dzc : ndarray | None
-        Derivative w.r.t. conjugate z coordinate.
+        Derivative w.r.t. conjugate z-coordinate.
     m : ndarray
         classical coordinate mass.
     h : ndarray
@@ -277,7 +277,7 @@ def vectorize_ingredient(ingredient):
         for n in range(batch_size):
             kwargs_n = {}
             for key in keys:
-                if isinstance(kwargs[key], np.ndarray):
+                if isinstance(kwargs[key], ndarray):
                     kwargs_n[key] = kwargs[key][n]
                 else:
                     kwargs_n[key] = kwargs[key]
@@ -294,7 +294,7 @@ def vectorize_ingredient(ingredient):
 def dh_c_dzc_harmonic_jit(z, h, w):
     """
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to
-    the conjugate z coordinate.
+    the conjugate z-coordinate.
 
     Args
     ----
@@ -309,7 +309,7 @@ def dh_c_dzc_harmonic_jit(z, h, w):
     -------
     out : ndarray
         Derivative of the harmonic oscillator classical Hamiltonian function with respect to
-        the conjugate z coordinate.
+        the conjugate z-coordinate.
     """
 
     batch_size, num_classical_coordinates = z.shape
@@ -665,7 +665,7 @@ def calc_delta_z_fssh(
     Returns
     -------
     dkj_zc : ndarray
-        Nonadiabatic coupling vector for rescaling the z coordinate.
+        Nonadiabatic coupling vector for rescaling the z-coordinate.
     """
     inds, mels, shape = dh_qc_dzc_traj
     num_classical_coordinates = shape[1]
@@ -824,7 +824,7 @@ def initialize_variable_objects(sim, seed):
     logger.info("Initializing state variable with seed %s.", state_variable.seed)
     for name in sim.state.__dict__.keys():
         obj = getattr(sim.state, name)
-        if isinstance(obj, np.ndarray) and name[0] != "_":
+        if isinstance(obj, ndarray) and name[0] != "_":
             init_shape = np.shape(obj)
             new_obj = np.ascontiguousarray(
                 np.zeros((len(seed), *init_shape), dtype=obj.dtype) + obj[np.newaxis]

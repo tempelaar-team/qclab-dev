@@ -16,7 +16,7 @@ consider the task that evolves a wavefunction one timestep forward:
         Update the wavefunction using the 4th-order Runge-Kutta method.
 
         Required constants:
-            - None.
+            None.
         """
         wf = getattr(state, kwargs["wf"])
         dt_update = sim.settings.dt_update

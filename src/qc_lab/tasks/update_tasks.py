@@ -11,18 +11,23 @@ from qc_lab.numerical_constants import SMALL
 logger = logging.getLogger(__name__)
 
 
-def update_t(algorithm, sim, parameters, state):
+def update_t(algorithm, sim, parameters, state, **kwargs):
     """
     Update the time in the state object with the time index in each trajectory
     multiplied by the update timestep.
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    None
 
     Variable Modifications
     -------------------
-    - ``state.t``: time of each trajectory.
+    ``state.t`` : float
+        Time of each trajectory.
     """
     batch_size = len(parameters.seed)
     state.t = np.ones(batch_size) * sim.t_ind * sim.settings.dt_update
@@ -35,12 +40,20 @@ def update_dh_c_dzc_finite_differences(algorithm, sim, parameters, state, **kwar
 
     Required Constants
     ------------------
-    - num_classical_coordinates (int): Number of classical coordinates.
-    - dh_c_dzc_finite_difference_delta (float, default: 1e-6): Finite-difference step size.
+    ``dh_c_dzc_finite_difference_delta`` : float, optional, default: 1e-6
+        Finite-difference step size.
+
+    Keyword Arguments
+    -----------------
+    z : ndarray
+        Classical coordinates at which to evaluate the gradient.
+    name : str, optional, default: "dh_c_dzc"
+        Name under which to store the finite-difference gradient in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.{name}``: finite-difference gradient stored under the given name.
+    ``state.{name}`` : ndarray
+        Gradient of the classical Hamiltonian.
     """
     z = kwargs["z"]
     name = kwargs.get("name", "dh_c_dzc")
@@ -93,11 +106,17 @@ def update_classical_forces(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of the classical coordinates in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.classical_forces``: gradient of the classical Hamiltonian.
+    ``state.classical_forces`` : ndarray
+            Gradient of the classical Hamiltonian.
     """
     z = getattr(state, kwargs["z"])
     dh_c_dzc, has_dh_c_dzc = sim.model.get("dh_c_dzc")
@@ -116,16 +135,21 @@ def update_dh_qc_dzc_finite_differences(algorithm, sim, parameters, state, **kwa
 
     Required Constants
     ------------------
-    - num_classical_coordinates (int): Number of classical coordinates.
-    - num_quantum_states (int): Number of quantum states.
-    - dh_qc_dzc_finite_difference_delta (float, default: 1e-6): Finite-difference step size.
+    ``dh_qc_dzc_finite_difference_delta`` : float, optional, default: 1e-6
+        Finite-difference step size.
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of classical coordinates in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.dh_qc_dzc``: gradient of the quantum-classical Hamiltonian.
+    ``state.dh_qc_dzc`` : tuple
+        Gradient of the quantum-classical Hamiltonian.
     """
-    z = kwargs["z"]
-    batch_size = kwargs.get("batch_size", len(z))
+    z = getattr(state, kwargs["z"])
+    batch_size = len(z)
     delta_z = sim.model.constants.get("dh_qc_dzc_finite_difference_delta", 1e-6)
     num_classical_coordinates = sim.model.constants.num_classical_coordinates
     num_quantum_states = sim.model.constants.num_quantum_states
@@ -149,11 +173,7 @@ def update_dh_qc_dzc_finite_differences(algorithm, sim, parameters, state, **kwa
     )
     h_qc, _ = sim.model.get("h_qc")
     h_qc_0 = h_qc(sim.model, parameters, z=z)
-    h_qc_offset_re = h_qc(
-        sim.model,
-        parameters,
-        z=offset_z_re
-    ).reshape(
+    h_qc_offset_re = h_qc(sim.model, parameters, z=offset_z_re).reshape(
         batch_size,
         num_classical_coordinates,
         num_quantum_states,
@@ -186,11 +206,17 @@ def update_dh_qc_dzc(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of classical coordinates in state object.
 
     Variable Modifications
     -------------------
-    - ``state.dh_qc_dzc``: gradient of the quantum-classical Hamiltonian.
+    ``state.dh_qc_dzc`` : tuple
+        Gradient of the quantum-classical Hamiltonian.
     """
     z = getattr(state, kwargs["z"])
     if state.dh_qc_dzc is None or sim.model.update_dh_qc_dzc:
@@ -201,7 +227,7 @@ def update_dh_qc_dzc(algorithm, sim, parameters, state, **kwargs):
             state.dh_qc_dzc = dh_qc_dzc(sim.model, parameters, z=z)
             return parameters, state
         return update_dh_qc_dzc_finite_differences(
-            algorithm, sim, parameters, state, z=z
+            algorithm, sim, parameters, state, z=kwargs["z"]
         )
     # If dh_qc_dzc has already been calculated and does not need to be updated,
     # return the existing parameters and state objects.
@@ -217,12 +243,21 @@ def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs)
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of classical coordinates in state object.
+    wf : str
+        Name of the wavefunction in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.dh_qc_dzc``: may be updated via :func:`update_dh_qc_dzc`.
-    - ``state.quantum_classical_forces``: resulting force values.
+    ``state.dh_qc_dzc`` : tuple
+        Gradient of the quantum-classical Hamiltonian.
+    ``state.quantum_classical_forces`` : ndarray
+        Quantum-classical forces.
     """
     z = getattr(state, kwargs["z"])
     wf = getattr(state, kwargs["wf"])
@@ -250,12 +285,23 @@ def diagonalize_matrix(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    matrix : str
+        Name of the matrix to diagonalize in the state object.
+    eigvals : str
+        Name of the eigenvalues in the state object.
+    eigvecs : str
+        Name of the eigenvectors in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.{eigvals}``: eigenvalues of the matrix.
-    - ``state.{eigvecs}``: eigenvectors of the matrix.
+    ``state.{eigvals}`` : ndarray
+        Eigenvalues of the matrix.
+    ``state.{eigvecs}`` : ndarray
+        Eigenvectors of the matrix.
     """
     matrix = getattr(state, kwargs["matrix"])
     eigvals, eigvecs = np.linalg.eigh(matrix)
@@ -284,7 +330,22 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    eigvals : str
+        Name of the eigenvalues in the state object.
+    eigvecs : str
+        Name of the eigenvectors in the state object.
+    eigvecs_previous : str
+        Name of the previous eigenvectors in the state object.
+    output_eigvecs_name : str
+        Name of the output gauge-fixed eigenvectors in the state object.
+    z : str
+        Name of classical coordinates in the state object.
+    gauge_fixing : str, optional, default: sim.algorithm.settings.gauge_fixing
+        Gauge-fixing method to use.
 
     Variable Modifications
     -------------------
@@ -350,7 +411,21 @@ def basis_transform_vec(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    input_vec : str
+        Name of the vector to transform in the state object.
+    basis : str
+        Name of the basis to transform to in the state object.
+        Assumed to be column vectors corresponding to adiabatic
+        states.
+    output_name : str
+        Name of the output vector in the state object.
+    db_to_adb : bool, optional, default: False
+        If True, transforms from diabatic to adiabatic. If False, transforms from
+        adiabatic to diabatic.
 
     Variable Modifications
     -------------------
@@ -377,11 +452,20 @@ def basis_transform_mat(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    input_mat : str
+        Name of the matrix to transform in the state object.
+    basis : str
+        Name of the basis to transform to in the state object.
+    output_name : str
+        Name of the output matrix in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.{output_name}``: matrix expressed in the new basis.
+    ``state.{output_name}``: name of the output matrix in the state object.
     """
     # Default transformation is adiabatic to diabatic.
     input_mat = getattr(state, kwargs["input_mat"])
@@ -405,11 +489,16 @@ def update_act_surf_wf(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    None
 
     Variable Modifications
     -------------------
-    - ``state.act_surf_wf``: wavefunction of the active surface.
+    ``state.act_surf_wf`` : ndarray
+        Wavefunction of the active surface.
     """
     num_trajs = sim.settings.batch_size
     act_surf_wf = state.eigvecs[
@@ -427,12 +516,28 @@ def update_wf_db_eigs(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    adb_name : str
+        Name of the temporary adiabatic wavefunction in the state object.
+    wf_db : str
+        Name of the diabatic wavefunction in the state object.
+    eigvals : str
+        Name of the eigenvalues in the state object.
+    eigvecs : str
+        Name of the eigenvectors in the state object.
+    output_name : str
+        Name of the updated diabatic wavefunction in the state object.
+
 
     Variable Modifications
     -------------------
-    - ``state.{adb_name}``: temporary adiabatic wavefunction.
-    - ``state.{output_name}``: updated diabatic wavefunction.
+    ``state.{adb_name}`` : ndarray
+        Temporary adiabatic wavefunction.
+    ``state.{output_name}`` : ndarray
+        Updated diabatic wavefunction.
     """
     adb_name = kwargs["adb_name"]
     update_wf_db_eigvals = getattr(state, kwargs["eigvals"])
@@ -467,11 +572,16 @@ def update_wf_db_rk4(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    None
 
     Variable Modifications
     -------------------
-    - ``state.wf_db``: updated diabatic wavefunction.
+    ``state.wf_db`` : ndarray
+        Diabatic wavefunction.
     """
     dt_update = sim.settings.dt_update
     wf_db = state.wf_db
@@ -482,17 +592,22 @@ def update_wf_db_rk4(algorithm, sim, parameters, state, **kwargs):
 
 def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    This task calculates the hopping probabilities for FSSH.
+    Calculate the hopping probabilities for FSSH.
 
-    P_{a->b} = -2 * Re((C_{b}/C_{a}) * < a(t)| b(t-dt)>)
+    :math:`P_{a\\rightarrow b} = -2\\Re((C_{b}/C_{a})\\langle a(t)| b(t-dt)\\rangle)`
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    None
 
     Variable Modifications
     -------------------
-    - ``state.hop_prob``: hopping probabilities between surfaces.
+    ``state.hop_prob`` : ndarray
+        Hopping probabilities between the active surface and all other surfaces.
     """
     act_surf_ind = state.act_surf_ind
     act_surf_ind_flat = act_surf_ind.flatten().astype(int)
@@ -533,21 +648,27 @@ def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
 
 def update_hop_inds_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    Determines which trajectories hop based on the hopping probabilities and which state
+    Determine which trajectories hop based on the hopping probabilities and which state
     they hop to. Note that these will only hop if they are not frustrated by the hopping
     function.
 
-    Stores the indices of the hopping trajectories in state.hop_ind. Stores the
-    destination indices of the hops in state.hop_dest.
+    Stores the indices of the hopping trajectories in ``state.hop_ind``. Stores the
+    destination indices of the hops in ``state.hop_dest``.
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    None
 
     Variable Modifications
     -------------------
-    - ``state.hop_ind``: indices of trajectories that hop.
-    - ``state.hop_dest``: destination surface for each hop.
+    ``state.hop_ind`` : ndarray
+        Indices of trajectories that hop.
+    ``state.hop_dest`` : ndarray
+        Destination surface for each hop.
     """
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -576,17 +697,28 @@ def update_hop_inds_fssh(algorithm, sim, parameters, state, **kwargs):
 
 def update_z_shift_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    Determines if a hop occurs and calculates the shift in the z-coordinate
+    Determine if a hop occurs and calculates the shift in the z-coordinate
     at the single trajectory level.
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    z : ndarray
+        Classical coordinates at which to evaluate the hop.
+    delta_z : ndarray
+        Direction in which to rescale the coordinates.
+    eigval_diff : float
+        Difference in eigenvalues between the initial and final states (e_final - e_initial).
 
     Variable Modifications
     -------------------
-    - ``state.hop_successful_traj``: hop success flags for a trajectory.
-    - ``state.z_shift_traj``: coordinate shifts from the hop calculation.
+    ``state.hop_successful_traj`` : bool
+        Flag indicating if the hop was successful.
+    ``state.z_shift_traj`` : ndarray
+        Shift required to conserve energy.
     """
     z = kwargs["z"]
     delta_z = kwargs["delta_z"]
@@ -617,17 +749,27 @@ def update_hop_vals_fssh(algorithm, sim, parameters, state, **kwargs):
     """
     Executes the hopping function for the hopping trajectories.
 
-    It stores the rescaled coordinates in state.z_rescaled and the a Boolean registering
-    if the hop was successful in state.hop_successful.
+    Stores the rescaled coordinates in ``state.z_rescaled`` and the a Boolean registering
+    if the hop was successful in ``state.hop_successful``.
+
+    If the model has a rescaling_direction_fssh ingredient, it will be used to
+    determine the direction in which to rescale the coordinates. Otherwise, the
+    direction will be calculated with ``functions.calc_delta_z_fssh``.
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    None
 
     Variable Modifications
     -------------------
-    - ``state.z_shift``: coordinate shifts for successful hops.
-    - ``state.hop_successful``: success flags for hop attempts.
+    ``state.z_shift`` : ndarray
+        Shift in coordinates for each hopping trajectory.
+    ``state.hop_successful`` : ndarray
+        Flags indicating if each hop was successful.
     """
 
     hop_ind = state.hop_ind
@@ -701,11 +843,16 @@ def update_z_hop_fssh(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    None
 
     Variable Modifications
     -------------------
-    - ``state.z``: coordinates updated after hopping.
+    ``state.z`` : ndarray
+        Classical coordinates.
     """
     state.z[state.hop_ind] += state.z_shift
     return parameters, state
@@ -718,12 +865,18 @@ def update_act_surf_hop_fssh(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    None
 
     Variable Modifications
     -------------------
-    - ``state.act_surf_ind``: updated active surface indices.
-    - ``state.act_surf``: updated active surface indicators.
+    ``state.act_surf_ind`` : ndarray
+        Active surface indices.
+    ``state.act_surf`` : ndarray
+        Active surface wavefunctions.
     """
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -745,17 +898,26 @@ def update_act_surf_hop_fssh(algorithm, sim, parameters, state, **kwargs):
 
 def update_h_quantum(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the quantum + quantum-classical Hamiltonian.
+    Update the Hamiltonian matrix of the quantum subsystem.
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of classical coordinates in state object.
+
 
     Variable Modifications
     -------------------
-    - ``state.h_q``: quantum Hamiltonian matrix.
-    - ``state.h_qc``: quantum-classical coupling matrix.
-    - ``state.h_quantum``: total Hamiltonian.
+    ``state.h_q`` : ndarray
+        Quantum Hamiltonian matrix.
+    ``state.h_qc`` : ndarray
+        Quantum-classical coupling matrix.
+    ``state.h_quantum`` : ndarray
+        Total Hamiltonian of the quantum subsystem.
     """
     z = getattr(state, kwargs["z"])
     h_q, _ = sim.model.get("h_q")
@@ -775,12 +937,21 @@ def update_z_rk4_k1(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of input coordinates in state object.
+    output_name : str
+        Name of the output coordinates in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.{output_name}``: provisional coordinates after half step.
-    - ``state.z_rk4_k1``: first RK4 slope.
+    ``state.{output_name}``` : ndarray
+        Output coordinates after half step.
+    ``state.z_rk4_k1`` : ndarray
+        First RK4 slope.
     """
     dt_update = sim.settings.dt_update
     z_k = getattr(state, kwargs["z"])
@@ -799,12 +970,21 @@ def update_z_rk4_k2(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of input coordinates in state object.
+    output_name : str
+        Name of the output coordinates in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.{output_name}``: provisional coordinates after half step.
-    - ``state.z_rk4_k2``: second RK4 slope.
+    ``state.{output_name}``` : ndarray
+        Output coordinates after half step.
+    ``state.z_rk4_k2`` : ndarray
+        Second RK4 slope.
     """
     dt_update = sim.settings.dt_update
     z_k = getattr(state, kwargs["z"])
@@ -823,12 +1003,21 @@ def update_z_rk4_k3(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of input coordinates in state object.
+    output_name : str
+        Name of the output coordinates in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.{output_name}``: provisional coordinates after full step.
-    - ``state.z_rk4_k3``: third RK4 slope.
+    ``state.{output_name}``` : ndarray
+        Output coordinates after a full step.
+    ``state.z_rk4_k3`` : ndarray
+        Third RK4 slope.
     """
     dt_update = sim.settings.dt_update
     z_k = getattr(state, kwargs["z"])
@@ -847,11 +1036,19 @@ def update_z_rk4_k4(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of input coordinates in state object.
+    output_name : str
+        Name of the output coordinates in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.{output_name}``: coordinates after completing the RK4 step.
+    ``state.{output_name}`` : ndarray
+        Output coordinates after a full step.
     """
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
@@ -875,7 +1072,11 @@ def update_dm_db_mf(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    None
 
     Variable Modifications
     -------------------
@@ -892,11 +1093,17 @@ def update_classical_energy(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of classical coordinates in state object.
 
     Variable Modifications
     -------------------
-    - ``state.classical_energy``: classical energy values.
+    ``state.classical_energy`` : ndarray
+        Energy of the classical subsystem.
     """
     z = getattr(state, kwargs["z"])
     h_c, _ = sim.model.get("h_c")
@@ -913,11 +1120,17 @@ def update_classical_energy_fssh(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of classical coordinates in state object.
 
     Variable Modifications
     -------------------
-    - ``state.classical_energy``: classical energy of each trajectory.
+    ``state.classical_energy`` : ndarray
+        Energy of the classical subsystem.
     """
     z = getattr(state, kwargs["z"])
     if sim.algorithm.settings.fssh_deterministic:
@@ -959,15 +1172,22 @@ def update_classical_energy_fssh(algorithm, sim, parameters, state, **kwargs):
 
 def update_quantum_energy(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the quantum energy w.r.t. the wavefunction specified by wf.
+    Update the quantum energy w.r.t. the wavefunction specified by wf by taking
+    the expectation value of ``state.h_quantum``.
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    wf : str
+        Name of the wavefunction in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.quantum_energy``: quantum energy expectation value.
+    ``state.quantum_energy`` : ndarray
+        Quantum energy.
     """
     wf = getattr(state, kwargs["wf"])
     state.quantum_energy = np.real(
@@ -979,14 +1199,22 @@ def update_quantum_energy(algorithm, sim, parameters, state, **kwargs):
 def update_quantum_energy_fssh(algorithm, sim, parameters, state, **kwargs):
     """
     Update the quantum energy w.r.t. the wavefunction specified by wf.
+    Accounts for both stochastic and deterministic FSSH modes.
+    Typically, the wavefunction used is that of the active surface.
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    wf : str
+        Name of the wavefunction in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.quantum_energy``: quantum energy values.
+    ``state.quantum_energy`` : ndarray
+        Quantum energy.
     """
     wf = getattr(state, kwargs["wf"])
 
@@ -1018,17 +1246,23 @@ def update_quantum_energy_fssh(algorithm, sim, parameters, state, **kwargs):
 
 def update_dm_db_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    Update the diabatic density matrix for FSSH.
+    Update the diabatic density matrix for FSSH. Accounts for both stochastic and
+    deterministic FSSH modes.
 
     Required Constants
     ------------------
-    - None
+    None
+
+    Keyword Arguments
+    -----------------
+    None
 
     Variable Modifications
     -------------------
-    - ``state.dm_adb_branch_flat``: flattened branch density matrices.
-    - ``state.dm_db_branch``: branch density matrices in diabatic basis.
-    - ``state.dm_db``: total diabatic density matrix.
+    ``state.dm_adb_branch_flat`` : ndarray
+        Flattened branch density matrices.
+    ``state.dm_db`` : ndarray
+        Diabatic density matrix.
     """
     dm_adb_branch = np.einsum(
         "ti,tj->tij",
