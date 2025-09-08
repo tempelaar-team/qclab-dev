@@ -152,8 +152,7 @@ def update_dh_qc_dzc_finite_differences(algorithm, sim, parameters, state, **kwa
     h_qc_offset_re = h_qc(
         sim.model,
         parameters,
-        z=offset_z_re,
-        batch_size=batch_size * num_classical_coordinates,
+        z=offset_z_re
     ).reshape(
         batch_size,
         num_classical_coordinates,
@@ -164,7 +163,6 @@ def update_dh_qc_dzc_finite_differences(algorithm, sim, parameters, state, **kwa
         sim.model,
         parameters,
         z=offset_z_im,
-        batch_size=batch_size * num_classical_coordinates,
     ).reshape(
         batch_size,
         num_classical_coordinates,
@@ -726,7 +724,6 @@ def update_act_surf_hop_fssh(algorithm, sim, parameters, state, **kwargs):
     -------------------
     - ``state.act_surf_ind``: updated active surface indices.
     - ``state.act_surf``: updated active surface indicators.
-    - ``parameters.act_surf_ind``: copy of ``state.act_surf_ind``.
     """
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -743,7 +740,6 @@ def update_act_surf_hop_fssh(algorithm, sim, parameters, state, **kwargs):
     act_surf_flat[idx, state.hop_dest[state.hop_successful]] = 1
     state.act_surf_ind = np.copy(act_surf_ind_flat.reshape((num_trajs, num_branches)))
     state.act_surf = np.copy(act_surf_flat)
-    parameters.act_surf_ind = state.act_surf_ind
     return parameters, state
 
 

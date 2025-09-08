@@ -107,10 +107,8 @@ def dh_c_dzc_free(model, parameters, **kwargs):
     """
     del parameters
     z = kwargs["z"]
-    m = model.constants.classical_coordinate_mass[np.newaxis, :]
     h = model.constants.classical_coordinate_weight[np.newaxis, :]
-    p = functions.z_to_p(z, m, h)
-    return functions.dqdp_to_dzc(None, p / m, m, h)
+    return 1j * h * z.imag
 
 
 def h_q_two_level(model, parameters, **kwargs):

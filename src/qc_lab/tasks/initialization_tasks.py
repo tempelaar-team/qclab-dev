@@ -18,15 +18,17 @@ def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - num_quantum_states (int): Number of quantum states.
+    ``num_quantum_states`` : int
+        Number of quantum states.
 
     Keyword Arguments
     -----------------
-    - None
+    None
 
     Variable Modifications
     -------------------
-    - ``state.norm_factor``: normalization factor for trajectory averages.
+    ``state.norm_factor`` : int
+        Normalization factor for trajectory averages.
     """
     state.norm_factor = sim.settings.batch_size
     return parameters, state
@@ -36,10 +38,10 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     """
     Convert seeds into branch seeds for deterministic surface hopping. This is done by
     first assuming that the number of branches is equal to the number of quantum states.
-    Then, a branch index (state.branch_ind) is created which gives the branch index of
-    each seed in the batch. Then a new set of seeds is created by floor dividing the
-    original seeds by the number of branches so that the seeds corresponding to
-    different branches within the same trajectory are the same.
+    Then, a branch index is created which gives the branch index of each seed in the batch.
+    Then a new set of seeds is created by floor dividing the original seeds by the number
+    of branches so that the seeds corresponding to different branches within the same
+    trajectory are the same.
 
     Notably, this leads to the number of unique classical initial conditions
     being equal to the number of trajectories divided by the number of
@@ -47,17 +49,20 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - num_quantum_states (int): Number of quantum states.
+    None
 
     Keyword Arguments
     -----------------
-    - None
+    None
 
     State Modifications
     -------------------
-    - ``state.branch_ind``: branch index for each trajectory.
-    - ``state.seed``: seeds remapped for branches.
-    - ``parameters.seed``: updated to branch-adjusted seeds.
+    ``state.branch_ind`` : ndarray
+        Branch index for each trajectory.
+    ``state.seed`` : ndarray
+        Seeds remapped for branches.
+    ``parameters.seed`` : ndarray
+        Updated to branch-adjusted seeds.
     """
     # First ensure that the number of branches is correct.
     if sim.algorithm.settings.fssh_deterministic:
@@ -95,25 +100,39 @@ def initialize_z_mcmc(algorithm, sim, parameters, state, **kwargs):
     Initialize classical coordinates according to Boltzmann statistics using Markov-
     Chain Monte Carlo with a Metropolis-Hastings algorithm.
 
+    The algorithm has two modes, separable and non-separable. In the separable
+    mode, each classical coordinate is evolved as an independent random walker.
+    In the non-separable mode, the full classical coordinate vector is evolved as a
+    single random walker. The separable mode converges much faster but assumes that
+    the classical Hamiltonian can be written as a sum of independent terms depending
+    on each classical coordinate.
+
     Required Constants
     ------------------
-    - num_classical_coordinates (int): Number of classical coordinates.
-    - mcmc_burn_in_size (int, default: 1000): Burn-in step count.
-    - mcmc_sample_size (int, default: 10000): Number of retained samples.
-    - mcmc_std (float, default: 1.0): Sampling standard deviation.
-    - mcmc_h_c_separable (bool, default: True): Whether the classical Hamiltonian is separable.
-    - mcmc_init_z (np.ndarray, default: output of ``gen_sample_gaussian``): Initial coordinate sample.
-    - kBT (float): Thermal energy factor.
+    ``mcmc_burn_in_size`` : int, default: 1000
+        Burn-in step count.
+    ``mcmc_sample_size`` : int, default: 10000
+        Number of retained samples.
+    ``mcmc_std`` : float, default: 1.0
+        Sampling standard deviation.
+    ``mcmc_h_c_separable`` : bool, default: True
+        Whether the classical Hamiltonian is separable.
+    ``mcmc_init_z`` : ndarray, default: output of ``gen_sample_gaussian``
+        Initial coordinate sample.
+    ``kBT`` : float
+        Thermal quantum.
 
     Keyword Arguments
     -----------------
-    - seed (str): attribute name of the seeds array in ``state``.
-    - name (str): destination attribute name for sampled coordinates.
+    seed : str
+        attribute name of the seeds array in ``state``.
+    name : str
+        name of destination attribute in the ``state`` object.
 
     Variable Modifications
     -------------------
-    - ``state.{name}``: sampled classical coordinates, where ``name`` is
-      provided via ``kwargs``.
+    ``state.{name}`` : ndarray
+        Initialized classical coordinates.
     """
     seed = getattr(state, kwargs["seed"])
     name = kwargs["name"]
@@ -209,17 +228,18 @@ def initialize_z(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
 
     Keyword Arguments
     -----------------
-    - seed (str): attribute name of the seeds array in ``state``.
-    - name (str): destination attribute name for initialized coordinates.
+    seed : str
+        attribute name of the seeds array in the state object.
+    name : str
+        name of classical coordinates in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.{name}``: initialized classical coordinates, where ``name``
-      is supplied via ``kwargs``.
+    ``state.{name}`` : initialized classical coordinates.
     """
     seed = getattr(state, kwargs["seed"])
     name = kwargs["name"]
@@ -235,73 +255,85 @@ def initialize_z(algorithm, sim, parameters, state, **kwargs):
 
 def state_to_parameters(algorithm, sim, parameters, state, **kwargs):
     """
-    Set parameters.parameters_name to state.state_name.
+    Copies a quantity from the state object to the parameters object.
 
     Required Constants
     ------------------
-    - None
+    None
 
     Keyword Arguments
     -----------------
-    - parameters_name (str): name of the attribute in ``parameters`` to set.
-    - state_name (str): name of the attribute in ``state`` to copy from.
+    parameters_name : str
+        name of the attribute in the parameters object.
+    state_name : str
+        name of the attribute in the state object.
 
     Variable Modifications
     -------------------
-    - ``parameters.{parameters_name}``: receives value from state.{state_name}.
+    ``parameters.{parameters_name}``
+        A copy of ``state.{state_name}``.
     """
-    setattr(parameters, kwargs["parameters_name"], getattr(state, kwargs["state_name"]))
+    setattr(
+        parameters,
+        kwargs["parameters_name"],
+        getattr(state, kwargs["state_name"]).copy(),
+    )
     return parameters, state
 
 
 def copy_in_state(algorithm, sim, parameters, state, **kwargs):
     """
-    Set state.dest_name to state.orig_name.
+    Creates a copy of a quantity in the state object.
 
     Required Constants
     ------------------
-    - None
+    None
 
     Keyword Arguments
     -----------------
-    - dest_name (str): destination attribute name in ``state``.
-    - orig_name (str): source attribute name in ``state``.
+    copy_name : str
+        Name of the copy in the state object.
+    orig_name : str
+        Name of the source in the state object.
 
     Variable Modifications
     -------------------
-    - ``state.{dest_name}``: copy of the source state attribute ``state.{orig_name}``.
+    ``state.{copy_name}``
+        Copy of ``state.{orig_name}``.
     """
-    setattr(state, kwargs["dest_name"], np.copy(getattr(state, kwargs["orig_name"])))
+    setattr(state, kwargs["copy_name"], np.copy(getattr(state, kwargs["orig_name"])))
     return parameters, state
 
 
 def initialize_active_surface(algorithm, sim, parameters, state, **kwargs):
     """
-    Initializes the active surface (act_surf), active surface index (act_surf_ind) and
-    initial active surface index (act_surf_ind_0) for FSSH.
+    Initializes the active surface, active surface index and
+    initial active surface index for FSSH.
 
-    If fssh_deterministic is true it will set act_surf_ind_0 to be the same as
-    the branch index and assert that the number of branches (num_branches)
-    is equal to the number of quantum states (num_states).
+    If ``fssh_deterministic=True`` it will set the initial active surface index
+    to be the same as the branch index and assert that the number of branches is
+    equal to the number of quantum states.
 
-    If fssh_deterministic is false it will stochastically sample the active
-    surface from the density specified by the initial quantum wavefunction in the
-    adiabatic basis.
+    If ``fssh_deterministic=False`` it will stochastically sample the active
+    surface from the density corresponding to the initial quantum wavefunction
+    in the adiabatic basis.
 
     Required Constants
     ------------------
-    - num_quantum_states (int): Number of quantum states.
+    None
 
     Keyword Arguments
     -----------------
-    - None
+    None
 
     Variable Modifications
     -------------------
-    - ``state.act_surf_ind_0``: initial active surface index.
-    - ``state.act_surf_ind``: current active surface index.
-    - ``state.act_surf``: active surface indicator matrix.
-    - ``parameters.act_surf_ind``: stored copy of ``state.act_surf_ind``.
+    ``state.act_surf_ind_0`` : ndarray
+        Initial active surface index.
+    ``state.act_surf_ind`` : ndarray
+        Current active surface index.
+    ``state.act_surf`` : ndarray
+        Active surface wavefunctions.
     """
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -327,26 +359,27 @@ def initialize_active_surface(algorithm, sim, parameters, state, **kwargs):
     branch_inds = np.tile(np.arange(num_branches), num_trajs)
     act_surf[traj_inds, branch_inds, act_surf_ind_0.flatten()] = 1
     state.act_surf = act_surf.reshape((num_trajs * num_branches, num_states))
-    parameters.act_surf_ind = state.act_surf_ind
     return parameters, state
 
 
 def initialize_random_values_fssh(algorithm, sim, parameters, state, **kwargs):
     """
-    Initialize a set of random variables using the trajectory seeds for FSSH.
+    Initialize a set of random numbers using the trajectory seeds for FSSH.
 
     Required Constants
     ------------------
-    - None
+    None
 
     Keyword Arguments
     -----------------
-    - None
+    None
 
     Variable Modifications
     -------------------
-    - ``state.hopping_probs_rand_vals``: random numbers for hop decisions.
-    - ``state.stochastic_sh_rand_vals``: random numbers for surface selection.
+    ``state.hopping_probs_rand_vals`` : ndarray
+        Random numbers for hop decisions.
+    ``state.stochastic_sh_rand_vals`` : ndarray
+        Random numbers for active surface selection in stochastic FSSH.
     """
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -368,15 +401,16 @@ def initialize_dm_adb_0_fssh(algorithm, sim, parameters, state, **kwargs):
 
     Required Constants
     ------------------
-    - None
+    None
 
     Keyword Arguments
     -----------------
-    - None
+    None
 
     Variable Modifications
     -------------------
-    - ``state.dm_adb_0``: initial adiabatic density matrix.
+    ``state.dm_adb_0`` : ndarray
+        Initial adiabatic density matrix.
     """
     state.dm_adb_0 = np.einsum(
         "ti,tj->tij",
