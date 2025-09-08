@@ -328,7 +328,7 @@ def h_qc_diagonal_linear_jit(z, gamma):
     """
     Low-level function to generate the diagonal linear quantum-classical Hamiltonian.
 
-    :math:`H_{nm} = \delta_{nm}\sum_{j} \gamma_{nj} (z_{j} + z_{j}^*)`
+    :math:`H_{nm} = \\delta_{nm}\\sum_{j} \\gamma_{nj} (z_{j} + z_{j}^*)`
 
     Args
     ----
