@@ -824,7 +824,7 @@ def initialize_variable_objects(sim, seed):
     logger.info("Initializing state variable with seed %s.", state_variable.seed)
     for name in sim.state.__dict__.keys():
         obj = getattr(sim.state, name)
-        if isinstance(obj, ndarray) and name[0] != "_":
+        if isinstance(obj, np.ndarray) and name[0] != "_":
             init_shape = np.shape(obj)
             new_obj = np.ascontiguousarray(
                 np.zeros((len(seed), *init_shape), dtype=obj.dtype) + obj[np.newaxis]
