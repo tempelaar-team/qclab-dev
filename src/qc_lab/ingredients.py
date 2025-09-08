@@ -388,9 +388,9 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
     w = model.constants.harmonic_frequency
     m = model.constants.classical_coordinate_mass
     h = model.constants.classical_coordinate_weight
-    out = np.zeros(
+    out = np.ascontiguousarray(np.zeros(
         (len(seed), model.constants.num_classical_coordinates), dtype=complex
-    )
+    ))
     # Calculate the standard deviations for q and p.
     std_q = np.sqrt(kBT / (m * (w**2)))
     std_p = np.sqrt(m * kBT)

@@ -630,10 +630,10 @@ def wf_db_rk4(h_quantum, wf_db, dt_update):
     k2 = -1j * branch_mat_vec_mult(h_quantum, (wf_db + 0.5 * dt_update * k1))
     k3 = -1j * branch_mat_vec_mult(h_quantum, (wf_db + 0.5 * dt_update * k2))
     k4 = -1j * branch_mat_vec_mult(h_quantum, (wf_db + dt_update * k3))
-    wf_db = wf_db + dt_update * 0.16666666666666666 * k1
-    wf_db = wf_db + dt_update * 0.3333333333333333 * k2
-    wf_db = wf_db + dt_update * 0.3333333333333333 * k3
-    wf_db = wf_db + dt_update * 0.16666666666666666 * k4
+    wf_db += dt_update * 0.16666666666666666 * k1
+    wf_db += dt_update * 0.3333333333333333 * k2
+    wf_db += dt_update * 0.3333333333333333 * k3
+    wf_db += dt_update * 0.16666666666666666 * k4
     return wf_db
 
 
@@ -807,6 +807,7 @@ def initialize_variable_objects(sim, seed):
 
     Copies any numpy arrays in `sim.state` to the `state_variable` object,
     expanding the first dimension to be the length of the seed array.
+    The resulting array is initialized as a contiguous array.
 
     Args
     ----
@@ -829,7 +830,7 @@ def initialize_variable_objects(sim, seed):
         obj = getattr(sim.state, name)
         if isinstance(obj, np.ndarray) and name[0] != "_":
             init_shape = np.shape(obj)
-            new_obj = (
+            new_obj = np.ascontiguousarray(
                 np.zeros((len(seed), *init_shape), dtype=obj.dtype) + obj[np.newaxis]
             )
             logger.info(
