@@ -236,7 +236,7 @@ def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs)
     inds, mels, shape = state.dh_qc_dzc
     # Calculate the expectation value w.r.t. the wavefunction.
     state.quantum_classical_forces = functions.calc_sparse_inner_product(
-        inds, mels, shape, wf.conj(), wf, out=state.quantum_classical_forces
+        inds, mels, shape, wf.conj(), wf
     )
     # Add the gauge field force if it exists and is requested.
     gauge_field_force, has_gauge_field_force = sim.model.get("gauge_field_force")

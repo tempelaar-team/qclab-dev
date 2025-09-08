@@ -412,7 +412,7 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
 
 
 @njit
-def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
+def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r):
     """
     Take a sparse gradient of a matrix with shape (batch_size, num_classical_coordinates,
     num_quantum_state, num_quantum_states) and calculate the matrix element of
@@ -446,11 +446,7 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
     a = inds[2]
     b = inds[3]
 
-    if out is None:
-        out = np.zeros(batch_size * num_classical_coordinates, dtype=np.complex128)
-    else:
-        out = out.reshape((batch_size * num_classical_coordinates), dtype=np.complex128)
-        out[:] = 0.0 + 0.0j
+    out = np.zeros(batch_size * num_classical_coordinates, dtype=np.complex128)
 
     l_flat = vec_l_conj.reshape(batch_size * num_quantum_states)
     r_flat = vec_r.reshape(batch_size * num_quantum_states)
