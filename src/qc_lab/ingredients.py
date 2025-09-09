@@ -21,10 +21,6 @@ def h_c_harmonic(model, parameters, **kwargs):
     ------------------
     ``harmonic_frequency`` : ndarray
         Harmonic frequency of each classical coordinate.
-    ``classical_coordinate_mass`` : ndarray
-        Mass associated with each classical coordinate.
-    ``classical_coordinate_weight`` : ndarray
-        Weight used to scale position and momentum.
     """
     del parameters
     z = kwargs["z"]
@@ -50,10 +46,7 @@ def h_c_free(model, parameters, **kwargs):
 
     Required Constants
     ------------------
-    ``classical_coordinate_mass`` : ndarray
-        Mass associated with each classical coordinate.
-    ``classical_coordinate_weight`` : ndarray
-        Weight used to scale position and momentum.
+    None
     """
     del parameters
     z = kwargs["z"]
@@ -79,8 +72,6 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
     ------------------
     ``harmonic_frequency`` : ndarray
         Harmonic frequency of each classical coordinate.
-    ``classical_coordinate_weight`` : ndarray
-        Weight used to scale position and momentum.
     """
     z = kwargs["z"]
     h = model.constants.classical_coordinate_weight
@@ -100,10 +91,7 @@ def dh_c_dzc_free(model, parameters, **kwargs):
 
     Required Constants
     ------------------
-    ``classical_coordinate_mass`` : ndarray
-        Mass associated with each classical coordinate.
-    ``classical_coordinate_weight`` : ndarray
-        Weight used to scale position and momentum.
+    None
     """
     del parameters
     z = kwargs["z"]
@@ -160,8 +148,6 @@ def h_q_nearest_neighbor(model, parameters, **kwargs):
 
     Required Constants
     ------------------
-    ``num_quantum_states`` : int
-        Number of lattice sites.
     ``nearest_neighbor_hopping_energy`` : float
         Hopping energy between sites :math:`t`.
     ``nearest_neighbor_periodic`` : bool
@@ -222,10 +208,6 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
 
     Required Constants
     ------------------
-    ``num_quantum_states`` : int
-        Number of quantum states.
-    ``num_classical_coordinates`` : int
-        Number of classical coordinates.
     ``diagonal_linear_coupling`` : ndarray
         Coupling constants :math:`\gamma`.
     """
@@ -271,8 +253,6 @@ def hop_harmonic(model, parameters, **kwargs):
     ------------------
     ``harmonic_frequency`` : ndarray
         Harmonic frequency of each classical coordinate.
-    ``classical_coordinate_weight`` : ndarray
-        Weight used to scale position and momentum.
     """
     z = kwargs["z"]
     delta_z = kwargs["delta_z"]
@@ -328,8 +308,7 @@ def hop_free(model, parameters, **kwargs):
 
     Required Constants
     ------------------
-    ``classical_coordinate_weight`` : ndarray
-        Weight used to scale position and momentum.
+    None
     """
     z = kwargs["z"]
     delta_z = kwargs["delta_z"]
@@ -374,12 +353,6 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
         Thermal quantum.
     ``harmonic_frequency`` : ndarray
         Harmonic frequency of each classical coordinate.
-    ``classical_coordinate_mass`` : ndarray
-        Mass associated with each classical coordinate.
-    ``classical_coordinate_weight`` : ndarray
-        Weight used to scale position and momentum.
-    ``num_classical_coordinates`` : int
-        Number of classical coordinates.
     """
     seed = kwargs["seed"]
     kBT = model.constants.kBT
@@ -422,12 +395,6 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
         Thermal quantum.
     ``harmonic_frequency`` : ndarray
         Harmonic frequency of each classical coordinate.
-    ``classical_coordinate_mass`` : ndarray
-        Mass associated with each classical coordinate.
-    ``classical_coordinate_weight`` : ndarray
-        Weight used to scale position and momentum.
-    ``num_classical_coordinates`` : int
-        Number of classical coordinates.
     """
     del parameters
     seed = kwargs["seed"]
@@ -474,12 +441,6 @@ def init_classical_definite_position_momentum(model, parameters, **kwargs):
         Initial position of the classical coordinates.
     ``init_momentum`` : ndarray
         Initial momentum of the classical coordinates.
-    ``classical_coordinate_mass`` : ndarray
-        Mass associated with each classical coordinate.
-    ``classical_coordinate_weight`` : ndarray
-        Weight used to scale position and momentum.
-    ``num_classical_coordinates`` : int
-        Number of classical coordinates.
     """
     seed = kwargs["seed"]
     q = model.constants.init_position
@@ -513,12 +474,6 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
         Complex displacement parameter of the coherent state.
     ``harmonic_frequency`` : ndarray
         Harmonic frequency of each classical coordinate.
-    ``classical_coordinate_mass`` : ndarray
-        Mass associated with each classical coordinate.
-    ``classical_coordinate_weight`` : ndarray
-        Weight used to scale position and momentum.
-    ``num_classical_coordinates`` : int
-        Number of classical coordinates.
     """
     seed = kwargs["seed"]
     a = model.constants.coherent_state_displacement
