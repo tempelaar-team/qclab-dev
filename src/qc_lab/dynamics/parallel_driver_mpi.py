@@ -93,7 +93,8 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
         for result in final_results:
             data.add_data(result)
 
-    # Attach collected log output on root rank
+    # Collect logs from all ranks and attach combined output on root rank.
+    gathered_logs = comm.gather(get_log_output(), root=0)
     if rank == 0:
-        data.log = get_log_output()
+        data.log = "".join(log for log in gathered_logs if log)
     return data
