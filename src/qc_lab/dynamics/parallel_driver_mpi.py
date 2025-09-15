@@ -92,7 +92,7 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
         final_results = [item for sublist in all_results for item in sublist]
         for result in final_results:
             data.add_data(result)
-        data.data_dict["seed"] = seeds
+        data.data_dict["seed"] = np.append(data.data_dict["seed"], seeds)
 
     # Attach collected log output on root rank
     if rank == 0:
