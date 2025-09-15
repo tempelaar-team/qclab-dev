@@ -3,11 +3,34 @@
 Tasks
 -----
 
-Tasks are methods of an Algorithm object that carry out the elementary steps of an algorithm by modifying 
-quantities in the `state` and `parameters` Variable objects. They have a standardized 
-set of inputs and outputs as well as an unspecied set of keyword arguments. As an example,
-consider the task that evolves a wavefunction one timestep forward:
+Tasks are methods of an Algorithm object that carry out elementary steps by modifying the attributes of
+ the ``state`` and ``parameters`` objects. A generic task has a standardized set of inputs and outputs
+ of the form: 
 
+
+.. code-block:: python
+
+   def example_task(algorithm, sim, parameters, state, **kwargs):
+       # Task modifies attributes of parameters and state.
+       return parameters, state
+
+A task that does not require us to pass any keyword arguments can be directly added to one of the recipes of
+an Algorithm object by using built-in Python methods for list modification.
+
+For example, adding the above example task to the MeanField algorithm can be done as follows:
+
+.. code-block:: python
+
+    from qc_lab.algorithms import MeanField
+
+    myMF = MeanField()
+    myMF.initialization_tasks.append(example_task)
+
+
+Most tasks in QC Lab use keyword arguments to specify which attributes of the ``state`` and ``parameters``
+objects they will modify. This allows the same task to be used in different algorithms or for different
+purposes. For example, consider a task that updates a wavefunction attribute of the ``state`` object using
+the 4th-order Runge-Kutta method. The task can be defined as follows:
 
 .. code-block:: python
 
@@ -25,12 +48,17 @@ consider the task that evolves a wavefunction one timestep forward:
         return parameters, state
 
 
+Here, the keyword argument ``wf`` specifies which wavefunction attribute of the ``state`` object to update.
+
+In order to use it in an algorithm, we need to specify the keyword argument prior to adding it to the recipe. 
+We do this by using the ``functools.partial`` function to create a new function with the desired keyword argument:
+
 .. code-block:: python
 
-   def example_task(algorithm, sim, parameters, state, **kwargs):
-       # Task implementation goes here
-       # my_state_var = getattr(state, kwargs["state_var"])
-       return parameters, state
+    from functools import partial
+    from qc_lab.algorithms import MeanField
 
+    myMF = MeanField()
+    update_wf = partial(update_wf_rk4, wf="wf")
+    myMF.update_recipe.append(update_wf)
 
-Because tasks are methods of an Algorithm object, they have access to the algorithm instance and can modify its state.

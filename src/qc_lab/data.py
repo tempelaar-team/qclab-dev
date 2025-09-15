@@ -109,7 +109,7 @@ class Data:
         else:
             with h5py.File(filename, "w") as h5file:
                 self._recursive_save(h5file, "/", self.data_dict)
-                h5file["log"] = self.log
+                h5file.attrs["log"] = self.log
 
     def load(self, filename):
         """
@@ -128,10 +128,7 @@ class Data:
             return self
         with h5py.File(filename, "r") as h5file:
             self._recursive_load(h5file, "/", self.data_dict)
-            if "log" in h5file:
-                self.log = h5file["log"][()]
-                if isinstance(self.log, bytes):
-                    self.log = self.log.decode("utf-8")
+            self.log = h5file.attrs["log"]
         return self
 
     def _recursive_save(self, h5file, path, dic):
