@@ -56,8 +56,7 @@ def serial_driver(sim, seeds=None, data=None):
         sim.settings.batch_size = len(batch_seeds)
         sim.initialize_timesteps()
         parameters, state = initialize_variable_objects(sim, batch_seeds)
-        new_data = Data()
-        new_data.data_dict["seed"] = state.seed
+        new_data = Data(batch_seeds)
         logger.info("Starting dynamics calculation.")
         new_data = dynamics.dynamics(sim, parameters, state, new_data)
         logger.info("Dynamics calculation completed.")
