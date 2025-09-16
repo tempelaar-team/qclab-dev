@@ -83,16 +83,22 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
         local_input_data[i][0].settings.batch_size = len(local_input_data[i][2].seed)
     # Execute the local simulations.
     local_results = [dynamics.dynamics(*x) for x in local_input_data]
-
     comm.Barrier()
-
-    all_results = comm.gather(local_results, root=0)
-
+    # Collect results sequentially on rank 0.
+    tag_data, tag_done = 1, 2
     if rank == 0:
-        final_results = [item for sublist in all_results for item in sublist]
-        for result in final_results:
-            data.add_data(result)
-
+        remaining = size - 1
+        status = MPI.Status()
+        while remaining:
+            msg = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+            if status.Get_tag() == tag_done:
+                remaining -= 1
+            else:
+                data.add_data(msg)
+    else:
+        for result in local_results:
+            comm.send(result, dest=0, tag=tag_data)
+        comm.send(None, dest=0, tag=tag_done)
     # Collect logs from all ranks and attach combined output on root rank.
     gathered_logs = comm.gather(get_log_output(), root=0)
     if rank == 0:
