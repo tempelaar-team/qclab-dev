@@ -8,7 +8,7 @@ import logging
 import functools
 import numpy as np
 from qc_lab.utils import njit
-from qc_lab.numerical_constants import SMALL
+import qc_lab.numerical_constants as numerical_constants
 from qc_lab.variable import Variable
 
 logger = logging.getLogger(__name__)
@@ -524,8 +524,8 @@ def analytic_der_couple_phase(dh_qc_dzc, eigvals, eigvecs, m, h):
         eval_j = eigvals[..., j]
         eigval_diff = eval_j - eval_i
         plus = np.zeros_like(eigval_diff)
-        if np.any(np.abs(eigval_diff) < SMALL):
-            plus[np.where(np.abs(eigval_diff) < SMALL)] = 1
+        if np.any(np.abs(eigval_diff) < numerical_constants.SMALL):
+            plus[np.where(np.abs(eigval_diff) < numerical_constants.SMALL)] = 1
             logger.error("Degenerate eigenvalues detected.")
         der_couple_zc = np.zeros(
             (
@@ -572,8 +572,12 @@ def analytic_der_couple_phase(dh_qc_dzc, eigvals, eigvecs, m, h):
                 np.argmax(np.abs(der_couple_p), axis=-1),
             ]
         )
-        der_couple_q_angle[np.where(np.abs(der_couple_q_angle) < SMALL)] = 0
-        der_couple_p_angle[np.where(np.abs(der_couple_p_angle) < SMALL)] = 0
+        der_couple_q_angle[
+            np.where(np.abs(der_couple_q_angle) < numerical_constants.SMALL)
+        ] = 0
+        der_couple_p_angle[
+            np.where(np.abs(der_couple_p_angle) < numerical_constants.SMALL)
+        ] = 0
         der_couple_q_phase[..., i + 1 :] = (
             np.exp(1j * der_couple_q_angle[..., np.newaxis])
             * der_couple_q_phase[..., i + 1 :]
@@ -687,26 +691,32 @@ def calc_delta_z_fssh(
         * eigvec_final_state[inds[2]]
         / eigval_diff,
     )
-    # Check positions where the nonadiabatic coupling is greater than SMALL.
-    big_pos = np.arange(num_classical_coordinates, dtype=int)[np.abs(dkj_zc) > SMALL]
+    # Check positions where the nonadiabatic coupling is greater than numerical_constants.SMALL.
+    big_pos = np.arange(num_classical_coordinates, dtype=int)[
+        np.abs(dkj_zc) > numerical_constants.SMALL
+    ]
     # Calculate a weighting factor to rescale real and imaginary parts appropriately.
     imag_weight = np.sqrt(0.5 / (h * m))
     real_weight = np.sqrt(0.5 * (h * m))
     # Determine if the real and imaginary parts are properly aligned.
-    if not (
-        np.allclose(
-            (imag_weight * np.imag(dkj_z))[big_pos],
-            (-imag_weight * np.imag(dkj_zc))[big_pos],
-            atol=SMALL,
-        )
-    ) or not (
-        np.allclose(
-            (real_weight * np.real(dkj_z))[big_pos],
-            (real_weight * np.real(dkj_zc))[big_pos],
-            atol=SMALL,
-        )
+    im_diff = np.abs(
+        (imag_weight * np.imag(dkj_z))[big_pos]
+        - (-imag_weight * np.imag(dkj_zc))[big_pos]
+    )
+    re_diff = np.abs(
+        (real_weight * np.real(dkj_z))[big_pos]
+        - (real_weight * np.real(dkj_zc))[big_pos]
+    )
+    im_mag = np.abs(imag_weight * np.imag(dkj_z))[big_pos]
+    re_mag = np.abs(real_weight * np.real(dkj_z))[big_pos]
+    if np.any(im_diff / im_mag > numerical_constants.GAUGE_FIX_THRESHOLD) or np.any(
+        re_diff / re_mag > numerical_constants.GAUGE_FIX_THRESHOLD
     ):
-        logger.error("Nonadiabatic coupling is complex, needs gauge fixing!")
+        logger.error(
+            "Nonadiabatic coupling is complex, needs gauge fixing!\n Im error, Re error : %s %s",
+            np.max(im_diff / im_mag),
+            np.max(re_diff / re_mag),
+        )
     return dkj_zc
 
 
