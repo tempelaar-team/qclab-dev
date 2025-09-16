@@ -691,24 +691,26 @@ def calc_delta_z_fssh(
         * eigvec_final_state[inds[2]]
         / eigval_diff,
     )
-    # Check positions where the nonadiabatic coupling is greater than numerical_constants.SMALL.
-    big_pos = np.arange(num_classical_coordinates, dtype=int)[
-        np.abs(dkj_zc) > numerical_constants.SMALL
-    ]
     # Calculate a weighting factor to rescale real and imaginary parts appropriately.
     imag_weight = np.sqrt(0.5 / (h * m))
     real_weight = np.sqrt(0.5 * (h * m))
+    # Check positions where the nonadiabatic coupling is greater than numerical_constants.SMALL.
+    # big_pos = np.arange(num_classical_coordinates, dtype=int)[
+    #     np.abs(dkj_zc) > numerical_constants.SMALL
+    # ]
+    big_pos_im = np.abs(imag_weight * np.imag(dkj_zc)) > numerical_constants.SMALL
+    big_pos_re = np.abs(real_weight * np.real(dkj_zc)) > numerical_constants.SMALL
     # Determine if the real and imaginary parts are properly aligned.
     im_diff = np.abs(
-        (imag_weight * np.imag(dkj_z))[big_pos]
-        - (-imag_weight * np.imag(dkj_zc))[big_pos]
+        (imag_weight * np.imag(dkj_z))[big_pos_im]
+        - (-imag_weight * np.imag(dkj_zc))[big_pos_im]
     )
     re_diff = np.abs(
-        (real_weight * np.real(dkj_z))[big_pos]
-        - (real_weight * np.real(dkj_zc))[big_pos]
+        (real_weight * np.real(dkj_z))[big_pos_re]
+        - (real_weight * np.real(dkj_zc))[big_pos_re]
     )
-    im_mag = np.abs(imag_weight * np.imag(dkj_z))[big_pos]
-    re_mag = np.abs(real_weight * np.real(dkj_z))[big_pos]
+    im_mag = np.abs(imag_weight * np.imag(dkj_z))[big_pos_im]
+    re_mag = np.abs(real_weight * np.real(dkj_z))[big_pos_re]
     if np.any(im_diff / im_mag > numerical_constants.GAUGE_FIX_THRESHOLD) or np.any(
         re_diff / re_mag > numerical_constants.GAUGE_FIX_THRESHOLD
     ):
