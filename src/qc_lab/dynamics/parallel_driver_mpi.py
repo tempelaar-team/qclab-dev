@@ -87,6 +87,8 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     # Collect results sequentially on rank 0.
     tag_data, tag_done = 1, 2
     if rank == 0:
+        for result in local_results:
+            data.add_data(result)
         remaining = size - 1
         status = MPI.Status()
         while remaining:
