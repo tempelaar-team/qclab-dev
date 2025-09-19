@@ -14,6 +14,66 @@ from qc_lab.variable import Variable
 logger = logging.getLogger(__name__)
 
 
+def basis_transform_vec(vec, basis, adb_to_db=False):
+    """
+    Transforms a vector "vec" to  a new basis defined by the
+    column vectors of the matrix "basis".
+
+    Args
+    ----
+    mat : ndarray
+        Input vector.
+    basis : ndarray
+        Basis matrix.
+    adb_to_db : bool, optional, default: False
+        If True, reverses the direction of the transformation
+        by using the Hermitian conjugate of basis.
+
+    Returns
+    -------
+    out : ndarray
+        Transformed matrix
+    """
+    if adb_to_db:
+        basis = np.einsum("...ij->...ji", basis.conj(), optimize="greedy")
+    out = np.einsum("...ni,...n->...i", np.conj(basis), vec, optimize="greedy")
+    return out
+
+
+def basis_transform_mat(mat, basis, adb_to_db=False):
+    """
+    Transforms a matrix "mat" to a new basis defined by the
+    column vectors of the basis "basis".
+
+    If basis are eigenvectors of a diabatic Hamiltonian, then this
+    transformation ammounts to a transformation from the diabatic
+    to adiabatic basis.
+
+    Args
+    ----
+    mat : ndarray
+        Input matrix.
+    basis : ndarray
+        Unitary matrix.
+    adb_to_db : bool, optional, default: False
+        If True, reverses the direction of the transformation
+        by using the Hermitian conjugate of basis.
+
+    Returns
+    -------
+    out : ndarray
+        Transformed matrix
+    """
+    if adb_to_db:
+        basis = np.einsum("...ij->...ji", basis.conj(), optimize="greedy")
+    return np.einsum(
+        "...ni,...nj->...ij",
+        np.conj(basis),
+        np.einsum("...nm,...mj->...nj", mat, basis, optimize="greedy"),
+        optimize="greedy",
+    )
+
+
 @njit
 def update_z_rk4_k123_sum(z_k, classical_forces, quantum_classical_forces, dt_update):
     """
@@ -277,7 +337,7 @@ def vectorize_ingredient(ingredient):
         for n in range(batch_size):
             kwargs_n = {}
             for key in keys:
-                if isinstance(kwargs[key], ndarray):
+                if isinstance(kwargs[key], np.ndarray):
                     kwargs_n[key] = kwargs[key][n]
                 else:
                     kwargs_n[key] = kwargs[key]

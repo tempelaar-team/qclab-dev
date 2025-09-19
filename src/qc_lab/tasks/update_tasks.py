@@ -400,14 +400,22 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
             )
             > SMALL
         ):
-            logger.error("Phase error encountered when fixing gauge analytically.")
+            logger.error(
+                "Phase error encountered when fixing gauge analytically."
+                + str(
+                    np.sum(
+                        np.abs(np.imag(der_couple_q_phase_new)) ** 2
+                        + np.abs(np.imag(der_couple_p_phase_new)) ** 2
+                    )
+                )
+            )
     setattr(state, kwargs["output_eigvecs_name"], eigvecs)
     return parameters, state
 
 
 def basis_transform_vec(algorithm, sim, parameters, state, **kwargs):
     """
-    Transforms a vector "input_vec" to a new basis defined by "basis".
+    Transforms a vector "input_name" to a new basis defined by "basis_name".
 
     Required Constants
     ------------------
@@ -415,16 +423,16 @@ def basis_transform_vec(algorithm, sim, parameters, state, **kwargs):
 
     Keyword Arguments
     -----------------
-    input_vec : str
+    input_name : str
         Name of the vector to transform in the state object.
-    basis : str
+    basis_name : str
         Name of the basis to transform to in the state object.
         Assumed to be column vectors corresponding to adiabatic
         states.
     output_name : str
         Name of the output vector in the state object.
-    db_to_adb : bool, optional, default: False
-        If True, transforms from diabatic to adiabatic. If False, transforms from
+    adb_to_db : bool, optional, default: False
+        If True, transforms from adiabatic to diabatic. If False, transforms from
         adiabatic to diabatic.
 
     Variable Modifications
@@ -432,54 +440,22 @@ def basis_transform_vec(algorithm, sim, parameters, state, **kwargs):
     - ``state.{output_name}``: vector expressed in the new basis.
     """
     # Default transformation is adiabatic to diabatic.
-    input_vec = getattr(state, kwargs["input_vec"])
-    basis = getattr(state, kwargs["basis"])
-    if kwargs.get("db_to_adb", False):
-        basis = np.einsum("tij->tji", basis, optimize="greedy").conj()
-
+    input_vec = getattr(state, kwargs["input_name"])
+    basis = getattr(state, kwargs["basis_name"])
+    adb_to_db = kwargs.get("adb_to_db", False)
     setattr(
         state,
         kwargs["output_name"],
-        np.einsum("tij,tj->ti", basis, input_vec, optimize="greedy"),
+        functions.basis_transform_vec(input_vec, basis, adb_to_db=adb_to_db),
     )
-    return parameters, state
+    # if kwargs.get("db_to_adb", False):
+    #     basis = np.einsum("tij->tji", basis, optimize="greedy").conj()
 
-
-def basis_transform_mat(algorithm, sim, parameters, state, **kwargs):
-    """
-    Transforms a matrix "input_mat" to a new basis defined by "basis" and stores it in
-    the state object with name "output_name".
-
-    Required Constants
-    ------------------
-    None
-
-    Keyword Arguments
-    -----------------
-    input_mat : str
-        Name of the matrix to transform in the state object.
-    basis : str
-        Name of the basis to transform to in the state object.
-    output_name : str
-        Name of the output matrix in the state object.
-
-    Variable Modifications
-    -------------------
-    ``state.{output_name}``: name of the output matrix in the state object.
-    """
-    # Default transformation is adiabatic to diabatic.
-    input_mat = getattr(state, kwargs["input_mat"])
-    basis = getattr(state, kwargs["basis"])
-    setattr(
-        state,
-        kwargs["output_name"],
-        np.einsum(
-            "tij,tjl->til",
-            basis,
-            np.einsum("tjk,tlk->tjl", input_mat, np.conj(basis), optimize="greedy"),
-            optimize="greedy",
-        ),
-    )
+    # setattr(
+    #     state,
+    #     kwargs["output_name"],
+    #     np.einsum("tij,tj->ti", basis, input_vec, optimize="greedy"),
+    # )
     return parameters, state
 
 
@@ -520,48 +496,35 @@ def update_wf_db_eigs(algorithm, sim, parameters, state, **kwargs):
 
     Keyword Arguments
     -----------------
-    adb_name : str
-        Name of the temporary adiabatic wavefunction in the state object.
-    wf_db : str
+    wf_db_name : str
         Name of the diabatic wavefunction in the state object.
-    eigvals : str
+    eigvals_name : str
         Name of the eigenvalues in the state object.
-    eigvecs : str
+    eigvecs_name : str
         Name of the eigenvectors in the state object.
-    output_name : str
-        Name of the updated diabatic wavefunction in the state object.
-
 
     Variable Modifications
     -------------------
-    ``state.{adb_name}`` : ndarray
-        Temporary adiabatic wavefunction.
-    ``state.{output_name}`` : ndarray
+    ``state.{wf_db_name}`` : ndarray
         Updated diabatic wavefunction.
     """
-    adb_name = kwargs["adb_name"]
-    update_wf_db_eigvals = getattr(state, kwargs["eigvals"])
-    evals_exp = np.exp(-1j * update_wf_db_eigvals * sim.settings.dt_update)
-    parameters, state = basis_transform_vec(
-        algorithm,
-        sim=sim,
-        parameters=parameters,
-        state=state,
-        input_vec=kwargs["wf_db"],
-        basis=kwargs["eigvecs"],
-        output_name=adb_name,
-        db_to_adb=True,
+    eigvals = getattr(state, kwargs["eigvals_name"])
+    eigvecs = getattr(state, kwargs["eigvecs_name"])
+    wf_db = getattr(state, kwargs["wf_db_name"])
+    # Calculate the propagator in the adiabatic basis.
+    prop_adb = np.einsum(
+        "ti,ij->tij",
+        np.exp(-1j * eigvals * sim.settings.dt_update),
+        np.eye(sim.model.constants.num_quantum_states),
+        optimize="greedy",
     )
-    setattr(state, adb_name, (state.wf_adb * evals_exp))
-    parameters, state = basis_transform_vec(
-        algorithm,
-        sim=sim,
-        parameters=parameters,
-        state=state,
-        input_vec=adb_name,
-        basis=kwargs["eigvecs"],
-        output_name=kwargs["output_name"],
-        db_to_adb=False,
+    # Transform propagator to the diabatic basis.
+    prop_db = functions.basis_transform_mat(prop_adb, eigvecs, adb_to_db=True)
+    # Apply the propagator to the diabatic wavefunction.
+    setattr(
+        state,
+        kwargs["wf_db_name"],
+        np.einsum("tij,tj->ti", prop_db, wf_db, optimize="greedy"),
     )
     return parameters, state
 
@@ -1297,14 +1260,8 @@ def update_dm_db_fssh(algorithm, sim, parameters, state, **kwargs):
             num_quantum_states,
         )
     )
-    parameters, state = basis_transform_mat(
-        algorithm,
-        sim,
-        parameters,
-        state,
-        input_mat="dm_adb_branch_flat",
-        basis="eigvecs",
-        output_name="dm_db_branch",
+    state.dm_db_branch = functions.basis_transform_mat(
+        state.dm_adb_branch_flat, state.eigvecs, adb_to_db=True
     )
     state.dm_db = num_branches * np.sum(
         state.dm_db_branch.reshape(

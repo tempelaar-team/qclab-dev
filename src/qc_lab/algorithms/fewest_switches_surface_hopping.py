@@ -44,8 +44,8 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         partial(tasks.copy_in_state, copy_name="eigvecs_previous", orig_name="eigvecs"),
         partial(
             tasks.basis_transform_vec,
-            input_vec="wf_db",
-            basis="eigvecs",
+            input_name="wf_db",
+            basis_name="eigvecs",
             output_name="wf_adb",
             db_to_adb=True,
         ),
@@ -93,11 +93,9 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         # End RK4 integration steps.
         partial(
             tasks.update_wf_db_eigs,
-            wf_db="wf_db",
-            eigvals="eigvals",
-            eigvecs="eigvecs",
-            adb_name="wf_adb",
-            output_name="wf_db",
+            wf_db_name="wf_db",
+            eigvals_name="eigvals",
+            eigvecs_name="eigvecs",
         ),
         partial(tasks.update_h_quantum, z="z"),
         partial(
@@ -124,6 +122,13 @@ class FewestSwitchesSurfaceHopping(Algorithm):
 
     collect_recipe = [
         tasks.update_t,
+        partial(
+            tasks.basis_transform_vec,
+            input_name="wf_db",
+            basis_name="eigvecs",
+            output_name="wf_adb",
+            adb_to_db=False,
+        ),
         tasks.update_dm_db_fssh,
         partial(tasks.update_quantum_energy_fssh, wf="act_surf_wf"),
         partial(tasks.update_classical_energy_fssh, z="z"),
