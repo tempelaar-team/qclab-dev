@@ -644,7 +644,7 @@ def calc_delta_z_fssh(
     Calculates the rescaling direction for FSSH using analytical derivative couplings.
 
     This function is not vectorized over multiple trajectories and is intended to be
-    only called when needed.
+    only called when needed in that trajectory.
 
     It calculates both the derivative coupling w.r.t. z and zc, and checks that they
     are properly aligned to correspond with real-valued phase space derivative couplings.
@@ -676,7 +676,7 @@ def calc_delta_z_fssh(
     dkj_z = np.zeros((num_classical_coordinates), dtype=complex)
     dkj_zc = np.zeros((num_classical_coordinates), dtype=complex)
     np.add.at(
-        dkj_z,
+        dkj_zc,
         (inds[1]),
         np.conj(eigvec_init_state)[inds[2]]
         * mels
@@ -684,38 +684,13 @@ def calc_delta_z_fssh(
         / eigval_diff,
     )
     np.add.at(
-        dkj_zc,
+        dkj_z,
         (inds[1]),
         np.conj(eigvec_init_state)[inds[3]]
         * np.conj(mels)
         * eigvec_final_state[inds[2]]
         / eigval_diff,
     )
-    # Calculate a weighting factor to rescale real and imaginary parts appropriately.
-    imag_weight = np.sqrt(0.5 / (h * m))
-    real_weight = np.sqrt(0.5 * (h * m))
-    # Check positions where the nonadiabatic coupling is greater than numerical_constants.SMALL.
-    big_pos_im = np.abs(imag_weight * np.imag(dkj_zc)) > numerical_constants.SMALL
-    big_pos_re = np.abs(real_weight * np.real(dkj_zc)) > numerical_constants.SMALL
-    # Determine if the real and imaginary parts are properly aligned.
-    im_diff = np.abs(
-        (imag_weight * np.imag(dkj_z))[big_pos_im]
-        - (-imag_weight * np.imag(dkj_zc))[big_pos_im]
-    )
-    re_diff = np.abs(
-        (real_weight * np.real(dkj_z))[big_pos_re]
-        - (real_weight * np.real(dkj_zc))[big_pos_re]
-    )
-    im_mag = np.abs(imag_weight * np.imag(dkj_z))[big_pos_im]
-    re_mag = np.abs(real_weight * np.real(dkj_z))[big_pos_re]
-    if np.any(im_diff / im_mag > numerical_constants.GAUGE_FIX_THRESHOLD) or np.any(
-        re_diff / re_mag > numerical_constants.GAUGE_FIX_THRESHOLD
-    ):
-        logger.error(
-            "Nonadiabatic coupling is complex, needs gauge fixing!\n Im error, Re error : %s %s",
-            np.max(im_diff / im_mag),
-            np.max(re_diff / re_mag),
-        )
     return dkj_zc
 
 
