@@ -439,23 +439,14 @@ def basis_transform_vec(algorithm, sim, parameters, state, **kwargs):
     -------------------
     - ``state.{output_name}``: vector expressed in the new basis.
     """
-    # Default transformation is adiabatic to diabatic.
     input_vec = getattr(state, kwargs["input_name"])
     basis = getattr(state, kwargs["basis_name"])
-    adb_to_db = kwargs.get("adb_to_db", False)
+    adb_to_db = kwargs["adb_to_db"]
     setattr(
         state,
         kwargs["output_name"],
         functions.basis_transform_vec(input_vec, basis, adb_to_db=adb_to_db),
     )
-    # if kwargs.get("db_to_adb", False):
-    #     basis = np.einsum("tij->tji", basis, optimize="greedy").conj()
-
-    # setattr(
-    #     state,
-    #     kwargs["output_name"],
-    #     np.einsum("tij,tj->ti", basis, input_vec, optimize="greedy"),
-    # )
     return parameters, state
 
 
