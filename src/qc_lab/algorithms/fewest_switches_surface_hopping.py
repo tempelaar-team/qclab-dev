@@ -47,7 +47,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             input_name="wf_db",
             basis_name="eigvecs",
             output_name="wf_adb",
-            db_to_adb=True,
+            adb_to_db=False,
         ),
         tasks.initialize_random_values_fssh,
         tasks.initialize_active_surface,
