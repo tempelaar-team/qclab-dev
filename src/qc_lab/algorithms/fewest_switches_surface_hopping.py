@@ -112,6 +112,13 @@ class FewestSwitchesSurfaceHopping(Algorithm):
             output_eigvecs_name="eigvecs",
             z="z",
         ),
+        partial(
+            tasks.basis_transform_vec,
+            input_name="wf_db",
+            basis_name="eigvecs",
+            output_name="wf_adb",
+            adb_to_db=False,
+        ),
         tasks.update_hop_probs_fssh,
         tasks.update_hop_inds_fssh,
         tasks.update_hop_vals_fssh,
@@ -122,13 +129,6 @@ class FewestSwitchesSurfaceHopping(Algorithm):
 
     collect_recipe = [
         tasks.update_t,
-        partial(
-            tasks.basis_transform_vec,
-            input_name="wf_db",
-            basis_name="eigvecs",
-            output_name="wf_adb",
-            adb_to_db=False,
-        ),
         tasks.update_dm_db_fssh,
         partial(tasks.update_quantum_energy_fssh, wf="act_surf_wf"),
         partial(tasks.update_classical_energy_fssh, z="z"),
