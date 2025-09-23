@@ -10,4 +10,4 @@ SMALL = 1e-10
 GAUGE_FIX_THRESHOLD = 1e-3
 
 # Conversion factor from wavenumbers to kBT at 300 K.
-invcm_to_300K = 1 / 208.521
+INVCM_TO_300K = 1 / 208.521
