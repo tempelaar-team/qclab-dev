@@ -44,56 +44,7 @@ An ingredient that generates the quantum Hamiltonian for a two-level system migh
         return h_q
 
 
-When incorporated directly into the model class (for instance when writing a model class from scratch) one should replace `model` with `self`. See the Model Development section of the User Guide
-for a detailed example.
-
-
-Ingredients supported by QC Lab
-===============================
-
-The following table lists the ingredients that are currently incorporated into QC Lab. Note that not all ingredients are utilized by every algorithm.
-Indeed, the only required ingredients are those that generate the Hamiltonian.
-
-
-.. list-table:: QC Lab Ingredients
-   :widths: 10 20 20 20
-   :header-rows: 1
-
-   * - Ingredient Name
-     - Output
-     - Description
-   * - `h_q`
-     - `batch_size` (optional)
-     -  numpy.ndarray((batch_size, model.constants.num_quantum_states, model.constants.num_quantum_states), dtype=complex)
-     - Generates the quantum Hamiltonian.
-   * - `h_qc`
-     - `batch_size` (optional), `z` (numpy.ndarray((batch_size, model.constants.num_classical_coordinates), dtype=complex))
-     -  numpy.ndarray((batch_size, model.constants.num_quantum_states, model.constants.num_quantum_states), dtype=complex)
-     - Generates the quantum-classical Hamiltonian.
-   * - `h_c`
-     - `batch_size` (optional), `z` (numpy.ndarray((batch_size, model.constants.num_classical_coordinates), dtype=complex))
-     -  numpy.ndarray(batch_size, dtype=complex)
-     - Generates the classical Hamiltonian.
-   * - `init_classical`
-     - `seed` (numpy.ndarray(batch_size, dtype=int))
-     - numpy.ndarray((batch_size, model.constants.num_classical_coordinates), dtype=complex)
-     - Generates the initial classical coordinate.
-   * - `dh_qc_dzc`
-     - `batch_size` (optional), `z` (numpy.ndarray((batch_size, model.constants.num_classical_coordinates), dtype=complex))
-     -  numpy.ndarray((batch_size, model.constants.num_classical_coordinates, model.constants.num_quantum_states, model.constants.num_quantum_states), dtype=complex)
-     - Generates the gradient (with respect to the conjugate classical coordinate) of the quantum-classical Hamiltonian.
-   * - `dh_c_dzc`
-     - `batch_size` (optional), `z` (numpy.ndarray((batch_size, model.constants.num_classical_coordinates), dtype=complex))
-     -  numpy.ndarray((batch_size, model.constants.num_classical_coordinates), dtype=complex)
-     - Generates the gradient (with respect to the conjugate classical coordinate) of the classical Hamiltonian.
-   * - `hop`
-     - `z` (numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)), `delta_z` (numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)), `eigval_diff` (float)
-     - numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)
-     - Computes the shift required to rescale a coordinate for a given classical Hamiltonian in FSSH.
-   * - `rescaling_direction_fssh`
-     - `z` (numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)), `init_state_ind` (int), `final_state_ind` (int)
-     - numpy.ndarray(model.constants.num_classical_coordinates, dtype=complex)
-     - Computes the rescaling direction for the classical coordinates in FSSH.
+When incorporated directly into the model class (for instance when writing a model class from scratch) one should replace `model` with `self`. See the Model Development section of the User Guide for a detailed example.
 
 
 Implementations available in QC Lab
@@ -120,13 +71,13 @@ Classical Hamiltonian (`h_c`)
 -----------------------------------
 
 .. automodule:: qc_lab.ingredients
-    :members: h_c_harmonic
+    :members: h_c_harmonic, h_c_free
 
 Classical Initialization (`init_classical`)
 -------------------------------------------------
 
 .. automodule:: qc_lab.ingredients
-    :members: init_classical_boltzmann_harmonic, init_classical_wigner_harmonic, init_classical_wigner_coherent_state
+    :members: init_classical_boltzmann_harmonic, init_classical_wigner_harmonic, init_classical_wigner_coherent_state, init_classical_definite_position_momentum
 
 
 Quantum-Classical Gradients (`dh_qc_dzc`)
@@ -140,13 +91,13 @@ Classical Gradients (`dh_c_dzc`)
 ---------------------------------
 
 .. automodule:: qc_lab.ingredients
-    :members: dh_c_dzc_harmonic
+    :members: dh_c_dzc_harmonic, dh_c_dzc_free
 
 FSSH Hop Function (`hop`)
 --------------------------------------
 
 .. automodule:: qc_lab.ingredients
-    :members: hop_harmonic
+    :members: hop_harmonic, hop_free
 
 FSSH Rescaling Direction (`rescaling_direction_fssh`)
 -------------------------------------------------
