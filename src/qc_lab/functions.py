@@ -13,6 +13,7 @@ from qc_lab.variable import Variable
 
 logger = logging.getLogger(__name__)
 
+
 def multiply_matrix_vector(mat, vec):
     """
     Multiplies a matrix "mat" with a vector "vec".
@@ -101,6 +102,7 @@ def transform_mat(mat, basis, adb_to_db=False):
     if adb_to_db:
         return np.matmul(basis, np.matmul(mat, np.swapaxes(basis.conj(), -1, -2)))
     return np.matmul(np.swapaxes(basis.conj(), -1, -2), np.matmul(mat, basis))
+
 
 @njit
 def update_z_rk4_k123_sum(z_k, classical_forces, quantum_classical_forces, dt_update):
