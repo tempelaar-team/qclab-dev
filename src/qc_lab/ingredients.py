@@ -342,6 +342,9 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
     Initialize classical coordinates according to Boltzmann statistics taking the
     classical coordinates to represent harmonic oscillators.
 
+
+    :math:`P(z)\\propto \\exp(-H_c/k_BT)`
+
     Keyword Args
     ------------
     seed : ndarray, int
