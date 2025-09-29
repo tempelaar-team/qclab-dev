@@ -54,7 +54,7 @@ Initialization Tasks
 ----------------------
 
 
-.. automodule:: qc_lab.tasks.initialization_tasks
+.. automodule:: qc_lab.initialization_tasks
     :members:
     :undoc-members:
     :show-inheritance:
@@ -67,7 +67,6 @@ Update Tasks
     :members:
     :undoc-members:
     :show-inheritance:
-    :exclude-members: wf_rk4, matprod
 
 
 Collect Tasks

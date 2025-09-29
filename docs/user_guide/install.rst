@@ -12,7 +12,7 @@ Requirements
 - pip (Python package installer)
 - git (optional, for cloning the repository directly)
 
-Downloading the Source
+Downloading the source
 ----------------------
 You can obtain the QC Lab source code in one of two ways:
 
@@ -26,13 +26,14 @@ You can obtain the QC Lab source code in one of two ways:
    
    .. code-block:: bash
 
-      # Download the ZIP archive
       wget https://github.com/tempelaar-team/qc_lab/archive/refs/heads/main.zip -O qc_lab-main.zip
 
-      # Unzip the archive
+   Then unpack the archive:
+
+   .. code-block:: bash
       unzip qc_lab-main.zip
 
-   If you do not have `wget` or `unzip`, you can alternatively navigate to the repository page in your browser:
+   If you do not have ``wget`` or ``unzip``, you can alternatively navigate to the repository page in your browser:
    https://github.com/tempelaar-team/qc_lab and click **Code → Download ZIP**, then extract it with your preferred archive manager.
 
 Unpacking (if using ZIP or TAR)
