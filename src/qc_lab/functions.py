@@ -13,15 +13,47 @@ from qc_lab.variable import Variable
 
 logger = logging.getLogger(__name__)
 
-
-def basis_transform_vec(vec, basis, adb_to_db=False):
+def multiply_matrix_vector(mat, vec):
     """
-    Transforms a vector "vec" to  a new basis defined by the
-    column vectors of the matrix "basis".
+    Multiplies a matrix "mat" with a vector "vec".
+
+    Assumes that the last two indices of "mat" are the matrix indices,
+    and the last index of "vec" is the vector index. The other indices
+    must be broadcastable.
+
+    (..., i, j) x (..., j) -> (..., i)
 
     Args
     ----
     mat : ndarray
+        Input matrix.
+    vec : ndarray
+        Input vector.
+
+    Returns
+    -------
+    out : ndarray
+        Result of the multiplication.
+    """
+    return np.matmul(mat, vec[..., None])[..., 0]
+
+
+def transform_vec(vec, basis, adb_to_db=False):
+    """
+    Transforms a vector "vec" to  a new basis defined by the
+    column vectors of the matrix "basis".
+
+    If the basis are eigenvectors of a diabatic Hamiltonian, then this
+    transformation ammounts to a transformation from the diabatic
+    to adiabatic basis.
+
+    Assumes that the last two indices of "basis" are the matrix indices,
+    and the last index of "vec" is the vector index. The other indices
+    must be broadcastable.
+
+    Args
+    ----
+    vec : ndarray
         Input vector.
     basis : ndarray
         Basis matrix.
@@ -35,12 +67,11 @@ def basis_transform_vec(vec, basis, adb_to_db=False):
         Transformed matrix
     """
     if adb_to_db:
-        basis = np.einsum("...ij->...ji", basis.conj(), optimize="greedy")
-    out = np.einsum("...ni,...n->...i", np.conj(basis), vec, optimize="greedy")
-    return out
+        return multiply_matrix_vector(basis, vec)
+    return multiply_matrix_vector(np.swapaxes(np.conj(basis), -1, -2), vec)
 
 
-def basis_transform_mat(mat, basis, adb_to_db=False):
+def transform_mat(mat, basis, adb_to_db=False):
     """
     Transforms a matrix "mat" to a new basis defined by the
     column vectors of the basis "basis".
@@ -48,6 +79,9 @@ def basis_transform_mat(mat, basis, adb_to_db=False):
     If basis are eigenvectors of a diabatic Hamiltonian, then this
     transformation ammounts to a transformation from the diabatic
     to adiabatic basis.
+
+    Assumes that the last two indices of "mat" and "basis" are the matrix
+    indices. The other indices must be broadcastable.
 
     Args
     ----
@@ -65,14 +99,8 @@ def basis_transform_mat(mat, basis, adb_to_db=False):
         Transformed matrix
     """
     if adb_to_db:
-        basis = np.einsum("...ij->...ji", basis.conj(), optimize="greedy")
-    return np.einsum(
-        "...ni,...nj->...ij",
-        np.conj(basis),
-        np.einsum("...nm,...mj->...nj", mat, basis, optimize="greedy"),
-        optimize="greedy",
-    )
-
+        return np.matmul(basis, np.matmul(mat, np.swapaxes(basis.conj(), -1, -2)))
+    return np.matmul(np.swapaxes(basis.conj(), -1, -2), np.matmul(mat, basis))
 
 @njit
 def update_z_rk4_k123_sum(z_k, classical_forces, quantum_classical_forces, dt_update):
@@ -472,7 +500,7 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
 
 
 @njit
-def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r):
+def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
     """
     Take a sparse gradient of a matrix with shape (batch_size, num_classical_coordinates,
     num_quantum_state, num_quantum_states) and calculate the matrix element of
@@ -506,15 +534,18 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r):
     a = inds[2]
     b = inds[3]
 
-    out = np.zeros(batch_size * num_classical_coordinates, dtype=np.complex128)
+    if out is None:
+        out = np.zeros(batch_size * num_classical_coordinates, dtype=np.complex128)
+    if out is not None:
+        out.fill(0.0j)
+        out = out.reshape(batch_size * num_classical_coordinates)
 
     l_flat = vec_l_conj.reshape(batch_size * num_quantum_states)
     r_flat = vec_r.reshape(batch_size * num_quantum_states)
 
     for i in range(mels.shape[0]):
         ri = r[i]
-        ci = c[i]
-        idx_out = ri * num_classical_coordinates + ci
+        idx_out = ri * num_classical_coordinates + c[i]
         idx_l = ri * num_quantum_states + a[i]
         idx_r = ri * num_quantum_states + b[i]
         out[idx_out] += l_flat[idx_l] * mels[i] * r_flat[idx_r]
