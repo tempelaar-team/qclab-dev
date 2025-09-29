@@ -58,7 +58,7 @@ def serial_driver(sim, seeds=None, data=None):
         parameters, state = initialize_variable_objects(sim, batch_seeds)
         new_data = Data(batch_seeds)
         logger.info("Starting dynamics calculation.")
-        new_data = dynamics.dynamics(sim, parameters, state, new_data)
+        new_data = dynamics.run_dynamics(sim, parameters, state, new_data)
         logger.info("Dynamics calculation completed.")
         data.add_data(new_data)
     # Attach the collected log output to the data object before returning.

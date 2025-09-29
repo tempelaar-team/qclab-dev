@@ -74,7 +74,7 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
             "Running simulation %s with seeds %s.", i + 1, input_data[i][2].seed
         )
     with multiprocessing.Pool(processes=size) as pool:
-        results = pool.starmap(dynamics.dynamics, input_data)
+        results = pool.starmap(dynamics.run_dynamics, input_data)
     for result in results:
         data.add_data(result)
     # Attach collected log output.

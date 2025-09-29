@@ -82,7 +82,7 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     for i in range(chunk_size):
         local_input_data[i][0].settings.batch_size = len(local_input_data[i][2].seed)
     # Execute the local simulations.
-    local_results = [dynamics.dynamics(*x) for x in local_input_data]
+    local_results = [dynamics.run_dynamics(*x) for x in local_input_data]
     comm.Barrier()
     # Collect results sequentially on rank 0.
     tag_data, tag_done = 1, 2

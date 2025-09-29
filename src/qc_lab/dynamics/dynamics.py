@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 
 
-def dynamics(sim, parameter, state, data):
+def run_dynamics(sim, parameter, state, data):
     """
     Dynamics core for QC Lab.
     """
