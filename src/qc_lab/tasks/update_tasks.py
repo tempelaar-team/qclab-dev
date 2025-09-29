@@ -364,7 +364,7 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
     if gauge_fixing_value >= 1:
         overlap = np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2)
         phase = np.exp(-1j * np.angle(overlap))
-        eigvecs = np.einsum("tai,ti->tai", eigvecs, phase, optimize="greedy")
+        eigvecs *= phase[:, None, :]
     if gauge_fixing_value >= 2:
         parameters, state = update_dh_qc_dzc(
             algorithm, sim, parameters, state, z=kwargs["z"]
@@ -376,13 +376,12 @@ def gauge_fix_eigs(algorithm, sim, parameters, state, **kwargs):
             sim.model.constants.classical_coordinate_mass,
             sim.model.constants.classical_coordinate_weight,
         )
-        eigvecs = np.einsum(
-            "tai,ti->tai", eigvecs, np.conj(der_couple_q_phase), optimize="greedy"
-        )
+        eigvecs *= np.conj(der_couple_q_phase)[:, None, :]
     if gauge_fixing_value >= 0:
         overlap = np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2)
         signs = np.sign(np.real(overlap))
-        eigvecs = np.einsum("tai,ti->tai", eigvecs, signs, optimize="greedy")
+        eigvecs *= signs[:, None, :]
+
     if gauge_fixing_value == 2:
         der_couple_q_phase_new, der_couple_p_phase_new = (
             functions.analytic_der_couple_phase(
@@ -445,7 +444,7 @@ def basis_transform_vec(algorithm, sim, parameters, state, **kwargs):
     setattr(
         state,
         kwargs["output_name"],
-        functions.basis_transform_vec(input_vec, basis, adb_to_db=adb_to_db),
+        functions.transform_vec(input_vec, basis, adb_to_db=adb_to_db),
     )
     return parameters, state
 
@@ -502,20 +501,21 @@ def update_wf_db_eigs(algorithm, sim, parameters, state, **kwargs):
     eigvals = getattr(state, kwargs["eigvals_name"])
     eigvecs = getattr(state, kwargs["eigvecs_name"])
     wf_db = getattr(state, kwargs["wf_db_name"])
+    batch_size = len(wf_db)
+    num_quantum_states = sim.model.constants.num_quantum_states
     # Calculate the propagator in the adiabatic basis.
-    prop_adb = np.einsum(
-        "ti,ij->tij",
-        np.exp(-1j * eigvals * sim.settings.dt_update),
-        np.eye(sim.model.constants.num_quantum_states),
-        optimize="greedy",
+    prop_adb = np.zeros(
+        (batch_size, num_quantum_states, num_quantum_states), dtype=complex
     )
+    idx = np.arange(num_quantum_states)
+    prop_adb[:, idx, idx] = np.exp(-1j * eigvals * sim.settings.dt_update)
     # Transform propagator to the diabatic basis.
-    prop_db = functions.basis_transform_mat(prop_adb, eigvecs, adb_to_db=True)
+    prop_db = functions.transform_mat(prop_adb, eigvecs, adb_to_db=True)
     # Apply the propagator to the diabatic wavefunction.
     setattr(
         state,
         kwargs["wf_db_name"],
-        np.einsum("tij,tj->ti", prop_db, wf_db, optimize="greedy"),
+        functions.multiply_matrix_vector(prop_db, wf_db),
     )
     return parameters, state
 
@@ -570,23 +570,16 @@ def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
     else:
         num_branches = 1
     num_trajs = sim.settings.batch_size // num_branches
-    prod = np.einsum(
-        "bn,bni->bi",
+    # Calculates < act_surf(t) | b(t-dt) >
+    prod = functions.multiply_matrix_vector(
+        np.swapaxes(state.eigvecs_previous, -1, -2),
         np.conj(
             state.eigvecs[
                 np.arange(num_trajs * num_branches, dtype=int), :, act_surf_ind_flat
             ]
         ),
-        state.eigvecs_previous,
-        optimize="greedy",
     )
-    if np.any(
-        state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind_flat] == 0
-    ):
-        logger.critical(
-            "Wavefunction in active surface is zero, cannot calculate "
-            "hopping probabilities."
-        )
+    # Calculates -2*Re( (C_b / C_act_surf) * < act_surf(t) | b(t-dt) > )
     hop_prob = -2.0 * np.real(
         prod
         * state.wf_adb
@@ -594,6 +587,7 @@ def update_hop_probs_fssh(algorithm, sim, parameters, state, **kwargs):
             :, np.newaxis
         ]
     )
+    # Sets hopping probabilities to 0 at the active surface.
     hop_prob[np.arange(num_branches * num_trajs), act_surf_ind_flat] *= 0.0
     state.hop_prob = hop_prob
 
@@ -644,6 +638,63 @@ def update_hop_inds_fssh(algorithm, sim, parameters, state, **kwargs):
     hop_dest = np.argmax(
         (cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1
     )[hop_ind]
+    state.hop_ind = hop_ind
+    state.hop_dest = hop_dest
+    return parameters, state
+
+
+def _update_hop_inds_fssh(algorithm, sim, parameters, state, **kwargs):
+    """
+    Determine which trajectories hop based on the hopping probabilities and which state
+    they hop to. Note that these will only hop if they are not frustrated by the hopping
+    function.
+
+    Stores the indices of the hopping trajectories in ``state.hop_ind``. Stores the
+    destination indices of the hops in ``state.hop_dest``.
+
+    Required Constants
+    ------------------
+    None
+
+    Keyword Arguments
+    -----------------
+    None
+
+    Variable Modifications
+    -------------------
+    ``state.hop_ind`` : ndarray
+        Indices of trajectories that hop.
+    ``state.hop_dest`` : ndarray
+        Destination surface for each hop.
+    """
+    if sim.algorithm.settings.fssh_deterministic:
+        num_branches = sim.model.constants.num_quantum_states
+    else:
+        num_branches = 1
+
+    hop_prob = state.hop_prob
+
+    cumulative = np.cumsum(hop_prob, axis=1)
+
+    # Repeat the per-trajectory random once per branch.
+    rand = state.hopping_probs_rand_vals[:, sim.t_ind]
+    rand_branch = np.repeat(rand, num_branches)
+
+    # # A hop happens iff final cumulative prob exceeds the random
+
+    hop_check = cumulative > rand_branch[:, None]
+
+    hop_mask = (
+        np.sum(hop_check.astype(int), axis=1) > 0
+    )  # cumulative[:, -1] > rand_branch                      # (rows,)
+
+    # First destination where cumulative > rand (compute once)
+    # Note: creates a single boolean temp; much cheaper than doing it twice.
+    first_idx = np.argmax(hop_check, axis=1)
+
+    hop_ind = np.nonzero(hop_mask)[0]
+    hop_dest = first_idx[hop_mask]
+
     state.hop_ind = hop_ind
     state.hop_dest = hop_dest
     return parameters, state
@@ -1251,7 +1302,7 @@ def update_dm_db_fssh(algorithm, sim, parameters, state, **kwargs):
             num_quantum_states,
         )
     )
-    state.dm_db_branch = functions.basis_transform_mat(
+    state.dm_db_branch = functions.transform_mat(
         state.dm_adb_branch_flat, state.eigvecs, adb_to_db=True
     )
     state.dm_db = num_branches * np.sum(
