@@ -540,7 +540,7 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
         out = np.zeros(batch_size * num_classical_coordinates, dtype=np.complex128)
     if out is not None:
         out.fill(0.0j)
-        out = out.reshape(batch_size * num_classical_coordinates)
+        #out = out.reshape(batch_size * num_classical_coordinates)
 
     l_flat = vec_l_conj.reshape(batch_size * num_quantum_states)
     r_flat = vec_r.reshape(batch_size * num_quantum_states)
@@ -552,7 +552,7 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
         idx_r = ri * num_quantum_states + b[i]
         out[idx_out] += l_flat[idx_l] * mels[i] * r_flat[idx_r]
 
-    return out.reshape((batch_size, num_classical_coordinates))
+    return out
 
 
 def analytic_der_couple_phase(dh_qc_dzc, eigvals, eigvecs, m, h):

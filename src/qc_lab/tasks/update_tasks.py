@@ -266,11 +266,13 @@ def update_quantum_classical_forces(algorithm, sim, parameters, state, **kwargs)
     parameters, state = update_dh_qc_dzc(
         algorithm, sim, parameters, state, z=kwargs["z"]
     )
-    inds, mels, shape = state.dh_qc_dzc
+    # inds, mels, shape = state.dh_qc_dzc
     # Calculate the expectation value w.r.t. the wavefunction.
+    if state.quantum_classical_forces is None:
+        state.quantum_classical_forces = np.zeros(np.shape(z), dtype=complex)
     state.quantum_classical_forces = functions.calc_sparse_inner_product(
-        inds, mels, shape, wf.conj(), wf
-    )
+        *state.dh_qc_dzc, wf.conj(), wf, out=state.quantum_classical_forces.flatten()
+    ).reshape(np.shape(z))
     # Add the gauge field force if it exists and is requested.
     gauge_field_force, has_gauge_field_force = sim.model.get("gauge_field_force")
     if has_gauge_field_force and use_gauge_field_force:
@@ -626,7 +628,7 @@ def update_hop_inds_fssh(algorithm, sim, parameters, state, **kwargs):
     hop_prob = state.hop_prob
     rand = state.hopping_probs_rand_vals[:, sim.t_ind]
     cumulative_probs = np.cumsum(
-        np.nan_to_num(hop_prob, nan=0, posinf=100e100, neginf=-100e100), axis=1
+        np.nan_to_num(hop_prob, nan=0, posinf=100e100, neginf=-100e100, copy=False), axis=1
     )
     rand_branch = (rand[:, np.newaxis] * np.ones((num_trajs, num_branches))).flatten()
     hop_ind = np.where(
