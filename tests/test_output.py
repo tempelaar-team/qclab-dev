@@ -361,7 +361,7 @@ def test_output_fssh_deterministic():
         data = serial_driver(sim)
         data_correct = Data().load(
             os.path.join(
-                reference_folder, f"{model_name}_{algorithm_name}+_deterministic.h5"
+                reference_folder, f"{model_name}_{algorithm_name}_deterministic.h5"
             )
         )
         for key, val in data.data_dict.items():
