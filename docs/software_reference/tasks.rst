@@ -9,7 +9,7 @@ The generic form of a task when used in an algorithm is:
 
 .. code-block:: python
 
-    def task_name(algorithm, sim, parameters, state):
+    def task_name(sim, parameters, state):
         # Perform operations on model and parameters
         return parameters, state
 
@@ -23,7 +23,7 @@ which the Hamiltonian is evaluated:
 
 .. code-block:: python
 
-    def update_h_quantum(algorithm, sim, parameters, state, **kwargs):
+    def update_h_quantum(sim, parameters, state, **kwargs):
         """
         Update the quantum + quantum-classical Hamiltonian.
 

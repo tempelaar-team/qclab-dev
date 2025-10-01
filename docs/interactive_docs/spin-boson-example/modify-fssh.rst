@@ -11,7 +11,7 @@ To this end, we write the following function:
 .. code-block:: python
 
 
-    def update_z_reverse_frustrated_fssh(algorithm, sim, parameters, state):
+    def update_z_reverse_frustrated_fssh(sim, parameters, state):
         """
         Reverse the velocities of frustrated trajectories in the FSSH algorithm.
         """

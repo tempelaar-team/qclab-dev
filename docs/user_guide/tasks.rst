@@ -10,7 +10,7 @@ Tasks are methods of an Algorithm object that carry out elementary steps by modi
 
 .. code-block:: python
 
-   def example_task(algorithm, sim, parameters, state, **kwargs):
+   def example_task(sim, parameters, state, **kwargs):
        # Task modifies attributes of parameters and state.
        return parameters, state
 
@@ -34,7 +34,7 @@ the 4th-order Runge-Kutta method. The task can be defined as follows:
 
 .. code-block:: python
 
-    def update_wf_rk4(algorithm, sim, parameters, state, **kwargs):
+    def update_wf_rk4(sim, parameters, state, **kwargs):
         """
         Update the wavefunction using the 4th-order Runge-Kutta method.
 

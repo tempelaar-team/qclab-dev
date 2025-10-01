@@ -39,5 +39,5 @@ class Algorithm:
         each task in the recipe.
         """
         for func in recipe:
-            parameter, state = func(sim.algorithm, sim, parameter, state)
+            parameter, state = func(sim, parameter, state)
         return parameter, state

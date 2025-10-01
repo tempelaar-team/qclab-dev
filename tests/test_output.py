@@ -279,7 +279,7 @@ def test_output_fssh_gauge_fixing():
     reference_folder = os.path.join(os.path.dirname(__file__), "reference/")
     my_FSSH = FewestSwitchesSurfaceHopping({"gauge_fixing": "phase_overlap"})
 
-    def add_random_phase(algorithm, sim, parameters, state):
+    def add_random_phase(sim, parameters, state):
         np.random.seed(10)
         random_phases = np.exp(
             1j

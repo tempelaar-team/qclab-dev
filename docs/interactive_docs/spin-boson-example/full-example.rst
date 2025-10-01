@@ -18,7 +18,7 @@ This is what the final code looks like:
     from qc_lab.dynamics import serial_driver
     from qc_lab.ingredients import vectorize_ingredient
 
-    def update_z_reverse_frustrated_fssh(algorithm, sim, parameters, state):
+    def update_z_reverse_frustrated_fssh(sim, parameters, state):
         """
         Reverse the velocities of frustrated trajectories in the FSSH algorithm.
         """
