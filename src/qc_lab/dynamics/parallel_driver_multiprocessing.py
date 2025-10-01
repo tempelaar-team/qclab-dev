@@ -60,7 +60,6 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
     input_data = [
         (
             copy.deepcopy(sim),
-            Variable(),
             Variable(
                 {
                     "seed": batch_seeds_list[n][~np.isnan(batch_seeds_list[n])].astype(
@@ -68,14 +67,16 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
                     )
                 }
             ),
+            Variable(),
             Data(batch_seeds_list[n][~np.isnan(batch_seeds_list[n])].astype(int)),
         )
         for n in range(num_sims)
     ]
     for i in range(num_sims):
-        input_data[i][0].settings.batch_size = len(input_data[i][2].seed)
+        # Determine the batch size from the seeds in the state object.
+        input_data[i][0].settings.batch_size = len(input_data[i][1].seed)
         logger.info(
-            "Running simulation %s with seeds %s.", i + 1, input_data[i][2].seed
+            "Running simulation %s with seeds %s.", i + 1, input_data[i][1].seed
         )
     with multiprocessing.Pool(processes=size) as pool:
         results = pool.starmap(dynamics.run_dynamics, input_data)

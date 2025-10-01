@@ -63,7 +63,7 @@ where :math:`\vert \psi(t)\rangle` is the diabatic wavefunction at time :math:`t
 
 .. code-block:: python
 
-    def update_response_function(sim, parameters, state, **kwargs):
+    def update_response_function(sim, state, parameters, **kwargs):
         # First get the diabatic wavefunction.
         wf_db = state.wf_db
         # If we are at the first timestep we can store the diabatic wavefunction in the parameters object
@@ -71,7 +71,7 @@ where :math:`\vert \psi(t)\rangle` is the diabatic wavefunction at time :math:`t
             parameters.wf_db_0 = np.copy(wf_db)
         # Next calculate the response function and store it in the state object.
         state.response_function = np.sum(np.conj(parameters.wf_db_0) * wf_db, axis=-1)
-        return parameters, state
+        return state, parameters
 
 
 
@@ -147,7 +147,7 @@ will only have a well-defined meaning in regimes with no nonadiabatic coupling.
 
 .. code-block:: python
 
-    def update_adiabatic_populations(sim, parameters, state, **kwargs):
+    def update_adiabatic_populations(sim, state, parameters, **kwargs):
         # First get the Hamiltonian and calculate its eigenvalues and eigenvectors.
         H = state.h_quantum # this is the quantum plus quantum-classical Hamiltonian.
         # Next obtain its eigenvalues and eigenvectors.
@@ -158,7 +158,7 @@ will only have a well-defined meaning in regimes with no nonadiabatic coupling.
         pops_adb = np.abs(wf_adb)**2
         # Store the populations in the state object.
         state.pops_adb = pops_adb
-        return parameters, state
+        return state, parameters
 
 Next we can add this task to the output recipe.
 

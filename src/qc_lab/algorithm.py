@@ -33,11 +33,11 @@ class Algorithm:
     update_recipe = []
     collect_recipe = []
 
-    def execute_recipe(self, sim, parameter, state, recipe):
+    def execute_recipe(self, sim, state, parameters, recipe):
         """
         Carry out the given recipe for the simulation by running
         each task in the recipe.
         """
         for func in recipe:
-            parameter, state = func(sim, parameter, state)
-        return parameter, state
+            state, parameters = func(sim, state, parameters)
+        return state, parameters

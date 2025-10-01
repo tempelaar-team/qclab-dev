@@ -9,9 +9,9 @@ The generic form of a task when used in an algorithm is:
 
 .. code-block:: python
 
-    def task_name(sim, parameters, state):
+    def task_name(sim, state, parameters):
         # Perform operations on model and parameters
-        return parameters, state
+        return state, parameters
 
 where we include `algorithm` as the first argument because the tasks are always bound methods of the algorithm class. 
 
@@ -23,7 +23,7 @@ which the Hamiltonian is evaluated:
 
 .. code-block:: python
 
-    def update_h_quantum(sim, parameters, state, **kwargs):
+    def update_h_quantum(sim, state, parameters, **kwargs):
         """
         Update the quantum + quantum-classical Hamiltonian.
 
@@ -34,14 +34,14 @@ which the Hamiltonian is evaluated:
         h_q, _ = sim.model.get("h_q")
         h_qc, _ = sim.model.get("h_qc")
         state.h_quantum = h_q(sim.model, parameters) + h_qc(sim.model, parameters, z=z)
-    return parameters, state
+    return state, parameters
 
 In order to be used each algorithm class defines an internal methods that passes the necessary keyword arguments to the task:
 
 .. code-block:: python
 
-    def _update_h_quantum(self, sim, parameters, state):
-        return tasks.update_h_quantum(self, sim, parameters, state, z=state.z)
+    def _update_h_quantum(self, sim, state, parameters):
+        return tasks.update_h_quantum(self, sim, state, parameters, z=state.z)
 
 
 

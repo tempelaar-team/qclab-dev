@@ -10,9 +10,9 @@ Tasks are methods of an Algorithm object that carry out elementary steps by modi
 
 .. code-block:: python
 
-   def example_task(sim, parameters, state, **kwargs):
+   def example_task(sim, state, parameters, **kwargs):
        # Task modifies attributes of parameters and state.
-       return parameters, state
+       return state, parameters
 
 A task that does not require us to pass any keyword arguments can be directly added to one of the recipes of
 an Algorithm object by using built-in Python methods for list modification.
@@ -34,7 +34,7 @@ the 4th-order Runge-Kutta method. The task can be defined as follows:
 
 .. code-block:: python
 
-    def update_wf_rk4(sim, parameters, state, **kwargs):
+    def update_wf_rk4(sim, state, parameters, **kwargs):
         """
         Update the wavefunction using the 4th-order Runge-Kutta method.
 
@@ -45,7 +45,7 @@ the 4th-order Runge-Kutta method. The task can be defined as follows:
         dt_update = sim.settings.dt_update
         h_quantum = state.h_quantum
         setattr(state, kwargs["wf"], wf_rk4(h_quantum, wf, dt_update))
-        return parameters, state
+        return state, parameters
 
 
 Here, the keyword argument ``wf`` specifies which wavefunction attribute of the ``state`` object to update.

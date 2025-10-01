@@ -12,7 +12,7 @@ from qc_lab import functions
 logger = logging.getLogger(__name__)
 
 
-def initialize_variable_objects(sim, parameters, state, **kwargs):
+def initialize_variable_objects(sim, state, parameters, **kwargs):
     """
     Populate the ``parameter`` and ``state`` objects with variables in the ``sim.initial_state`` object.
     """
@@ -33,10 +33,10 @@ def initialize_variable_objects(sim, parameters, state, **kwargs):
                 "skipping initialization in state Variable object.",
                 name,
             )
-    return parameters, state
+    return state, parameters
 
 
-def initialize_norm_factor(sim, parameters, state, **kwargs):
+def initialize_norm_factor(sim, state, parameters, **kwargs):
     """
     Assign the normalization factor to the state object.
 
@@ -55,10 +55,10 @@ def initialize_norm_factor(sim, parameters, state, **kwargs):
         Normalization factor for trajectory averages.
     """
     state.norm_factor = sim.settings.batch_size
-    return parameters, state
+    return state, parameters
 
 
-def initialize_branch_seeds(sim, parameters, state, **kwargs):
+def initialize_branch_seeds(sim, state, parameters, **kwargs):
     """
     Convert seeds into branch seeds for deterministic surface hopping. This is done by
     first assuming that the number of branches is equal to the number of quantum states.
@@ -113,10 +113,10 @@ def initialize_branch_seeds(sim, parameters, state, **kwargs):
     # Now generate the new seeds for each trajectory in the expanded batch.
     new_seeds = orig_seeds // num_branches
     state.seed = new_seeds
-    return parameters, state
+    return state, parameters
 
 
-def initialize_z_mcmc(sim, parameters, state, **kwargs):
+def initialize_z_mcmc(sim, state, parameters, **kwargs):
     """
     Initialize classical coordinates according to Boltzmann statistics using Markov-
     Chain Monte Carlo with a Metropolis-Hastings algorithm.
@@ -205,7 +205,7 @@ def initialize_z_mcmc(sim, parameters, state, **kwargs):
             sample[rand < thresh] = proposed_sample[rand < thresh]
             out_tmp[s] = sample
             setattr(state, name, out_tmp[save_inds])
-        return parameters, state
+        return state, parameters
     # If not separable, do the full MCMC.
     for s, seed_s in enumerate(burn_in_seeds):
         last_sample = np.copy(sample)
@@ -239,10 +239,10 @@ def initialize_z_mcmc(sim, parameters, state, **kwargs):
             sample = proposed_sample
         out_tmp[s] = sample
     setattr(state, name, out_tmp[save_inds])
-    return parameters, state
+    return state, parameters
 
 
-def initialize_z(sim, parameters, state, **kwargs):
+def initialize_z(sim, state, parameters, **kwargs):
     """
     Initialize the classical coordinate by using the init_classical function from the
     model object.
@@ -267,14 +267,14 @@ def initialize_z(sim, parameters, state, **kwargs):
     init_classical, has_init_classical = sim.model.get("init_classical")
     if has_init_classical:
         setattr(state, name, init_classical(sim.model, parameters, seed=seed))
-        return parameters, state
-    parameters, state = initialize_z_mcmc(
-        sim, parameters, state, seed=kwargs["seed"], name=name
+        return state, parameters
+    state, parameters = initialize_z_mcmc(
+        sim, state, parameters, seed=kwargs["seed"], name=name
     )
-    return parameters, state
+    return state, parameters
 
 
-def state_to_parameters(sim, parameters, state, **kwargs):
+def state_to_parameters(sim, state, parameters, **kwargs):
     """
     Copies a quantity from the state object to the parameters object.
 
@@ -299,10 +299,10 @@ def state_to_parameters(sim, parameters, state, **kwargs):
         kwargs["parameters_name"],
         getattr(state, kwargs["state_name"]).copy(),
     )
-    return parameters, state
+    return state, parameters
 
 
-def copy_in_state(sim, parameters, state, **kwargs):
+def copy_in_state(sim, state, parameters, **kwargs):
     """
     Creates a copy of a quantity in the state object.
 
@@ -323,10 +323,10 @@ def copy_in_state(sim, parameters, state, **kwargs):
         Copy of ``state.{orig_name}``.
     """
     setattr(state, kwargs["copy_name"], np.copy(getattr(state, kwargs["orig_name"])))
-    return parameters, state
+    return state, parameters
 
 
-def initialize_active_surface(sim, parameters, state, **kwargs):
+def initialize_active_surface(sim, state, parameters, **kwargs):
     """
     Initializes the active surface, active surface index and
     initial active surface index for FSSH.
@@ -380,10 +380,10 @@ def initialize_active_surface(sim, parameters, state, **kwargs):
     branch_inds = np.tile(np.arange(num_branches), num_trajs)
     act_surf[traj_inds, branch_inds, act_surf_ind_0.flatten()] = 1
     state.act_surf = act_surf.reshape((num_trajs * num_branches, num_states))
-    return parameters, state
+    return state, parameters
 
 
-def initialize_random_values_fssh(sim, parameters, state, **kwargs):
+def initialize_random_values_fssh(sim, state, parameters, **kwargs):
     """
     Initialize a set of random numbers using the trajectory seeds for FSSH.
 
@@ -413,10 +413,10 @@ def initialize_random_values_fssh(sim, parameters, state, **kwargs):
         np.random.seed(state.seed[int(nt * num_branches)])
         state.hopping_probs_rand_vals[nt] = np.random.rand(len(sim.settings.t_update))
         state.stochastic_sh_rand_vals[nt] = np.random.rand(num_branches)
-    return parameters, state
+    return state, parameters
 
 
-def initialize_dm_adb_0_fssh(sim, parameters, state, **kwargs):
+def initialize_dm_adb_0_fssh(sim, state, parameters, **kwargs):
     """
     Initialize the initial adiabatic density matrix for FSSH.
 
@@ -439,4 +439,4 @@ def initialize_dm_adb_0_fssh(sim, parameters, state, **kwargs):
         np.conj(state.wf_adb),
         optimize="greedy",
     )
-    return parameters, state
+    return state, parameters

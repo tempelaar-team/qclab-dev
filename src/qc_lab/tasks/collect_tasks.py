@@ -4,7 +4,7 @@ parameters objects into the output dictionary of the state object.
 """
 
 
-def collect_t(sim, parameters, state):
+def collect_t(sim, state, parameters):
     """
     Collect the time in the state object.
 
@@ -22,10 +22,10 @@ def collect_t(sim, parameters, state):
         stores the current time in each trajectory.
     """
     state.output_dict["t"] = state.t
-    return parameters, state
+    return state, parameters
 
 
-def collect_dm_db(sim, parameters, state):
+def collect_dm_db(sim, state, parameters):
     """
     Collect the diabatic density matrix in the state object.
 
@@ -43,10 +43,10 @@ def collect_dm_db(sim, parameters, state):
         stores the diabatic density matrix.
     """
     state.output_dict["dm_db"] = state.dm_db
-    return parameters, state
+    return state, parameters
 
 
-def collect_classical_energy(sim, parameters, state):
+def collect_classical_energy(sim, state, parameters):
     """
     Collect the classical energy in the state object.
 
@@ -64,10 +64,10 @@ def collect_classical_energy(sim, parameters, state):
         stores the classical energy.
     """
     state.output_dict["classical_energy"] = state.classical_energy
-    return parameters, state
+    return state, parameters
 
 
-def collect_quantum_energy(sim, parameters, state):
+def collect_quantum_energy(sim, state, parameters):
     """
     Collect the quantum energy in the state object.
 
@@ -85,4 +85,4 @@ def collect_quantum_energy(sim, parameters, state):
         stores the quantum energy.
     """
     state.output_dict["quantum_energy"] = state.quantum_energy
-    return parameters, state
+    return state, parameters

@@ -70,7 +70,6 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     local_input_data = [
         (
             copy.deepcopy(sim),
-            Variable(),
             Variable(
                 {
                     "seed": batch_seeds_list[n][~np.isnan(batch_seeds_list[n])].astype(
@@ -78,13 +77,14 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
                     )
                 }
             ),
+            Variable(),
             Data(batch_seeds_list[n][~np.isnan(batch_seeds_list[n])].astype(int)),
         )
         for n in np.arange(num_sims)[start:end]
     ]
     # Set the batch size for each local simulation.
     for i in range(chunk_size):
-        local_input_data[i][0].settings.batch_size = len(local_input_data[i][2].seed)
+        local_input_data[i][0].settings.batch_size = len(local_input_data[i][1].seed)
     # Execute the local simulations.
     local_results = [dynamics.run_dynamics(*x) for x in local_input_data]
     comm.Barrier()

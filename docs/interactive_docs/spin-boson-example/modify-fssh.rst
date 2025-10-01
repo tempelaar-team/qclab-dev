@@ -11,7 +11,7 @@ To this end, we write the following function:
 .. code-block:: python
 
 
-    def update_z_reverse_frustrated_fssh(sim, parameters, state):
+    def update_z_reverse_frustrated_fssh(sim, state, parameters):
         """
         Reverse the velocities of frustrated trajectories in the FSSH algorithm.
         """
@@ -21,7 +21,7 @@ To this end, we write the following function:
         # Reverse the velocities for these indices, in the complex classical coordinate 
         # formalism, this means conjugating the z-coordinate.
         state.z[frustrated_indices] = state.z[frustrated_indices].conj()
-        return parameters, state
+        return state, parameters
 
 
 Now we can insert this function as a task into an instance of the FSSH algorithm object. To know where we should insert it, we can look 

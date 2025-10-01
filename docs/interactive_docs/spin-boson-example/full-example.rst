@@ -18,7 +18,7 @@ This is what the final code looks like:
     from qc_lab.dynamics import serial_driver
     from qc_lab.ingredients import vectorize_ingredient
 
-    def update_z_reverse_frustrated_fssh(sim, parameters, state):
+    def update_z_reverse_frustrated_fssh(sim, state, parameters):
         """
         Reverse the velocities of frustrated trajectories in the FSSH algorithm.
         """
@@ -28,7 +28,7 @@ This is what the final code looks like:
         # Reverse the velocities for these indices, in the complex classical coordinate 
         # formalism, this means conjugating the z-coordinate.
         state.z[frustrated_indices] = state.z[frustrated_indices].conj()
-        return parameters, state
+        return state, parameters
 
     @vectorize_ingredient
     def h_qc(model, parameters, **kwargs):

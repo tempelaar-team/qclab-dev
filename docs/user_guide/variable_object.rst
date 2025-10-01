@@ -10,7 +10,7 @@ The variable object in QC Lab is used to store varibles in a simulation. It is c
 
     from qc_lab.variable import initialize_variable_objects
     
-    parameters, state = initialize_variable_objects(sim, seeds)
+    state, parameters = initialize_variable_objects(sim, seeds)
 
 
 which results in two variable objects: `parameters` and `state`. The `sim` argument is the simulation object, and the `seeds` argument
