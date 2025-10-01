@@ -7,9 +7,8 @@ import logging
 import copy
 import numpy as np
 import qc_lab.dynamics as dynamics
-from qc_lab.data import Data
-from qc_lab.functions import initialize_variable_objects
 from qc_lab.utils import get_log_output
+from qc_lab import Variable, Data
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +60,13 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
     input_data = [
         (
             copy.deepcopy(sim),
-            *initialize_variable_objects(
-                sim, batch_seeds_list[n][~np.isnan(batch_seeds_list[n])].astype(int)
+            Variable(),
+            Variable(
+                {
+                    "seed": batch_seeds_list[n][~np.isnan(batch_seeds_list[n])].astype(
+                        int
+                    )
+                }
             ),
             Data(batch_seeds_list[n][~np.isnan(batch_seeds_list[n])].astype(int)),
         )

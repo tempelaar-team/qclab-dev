@@ -33,7 +33,7 @@ sim.model = SpinBoson()
 # instantiate an algorithm
 sim.algorithm = MeanField()
 # define an initial diabatic wavefunction
-sim.state.wf_db = np.array([1, 0], dtype=complex)
+sim.initial_state.wf_db = np.array([1, 0], dtype=complex)
 
 data = parallel_driver_mpi(sim)
 

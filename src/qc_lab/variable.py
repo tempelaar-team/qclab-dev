@@ -12,8 +12,11 @@ class Variable:
     Variable class for storing time-dependent variables.
     """
 
-    def __init__(self):
+    def __init__(self, input_dict=None):
         self.output_dict = {}
+        if input_dict is not None:
+            for key, val in input_dict.items():
+                setattr(self, key, val)
 
     def __getattr__(self, name):
         """

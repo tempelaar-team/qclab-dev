@@ -159,10 +159,10 @@ def test_output_serial():
             sim.model = model_class(model_settings[model_class.__name__])
             sim.model.initialize_constants()
             sim.algorithm = algorithm_class()
-            sim.state.wf_db = np.zeros(
+            sim.initial_state.wf_db = np.zeros(
                 sim.model.constants.num_quantum_states, dtype=complex
             )
-            sim.state.wf_db[0] = 1j
+            sim.initial_state.wf_db[0] = 1j
             data = serial_driver(sim)
             data_correct = Data().load(
                 os.path.join(reference_folder, f"{model_name}_{algorithm_name}.h5")
@@ -201,10 +201,10 @@ def test_output_multiprocessing():
             sim.model = model_class(model_settings[model_class.__name__])
             sim.model.initialize_constants()
             sim.algorithm = algorithm_class()
-            sim.state.wf_db = np.zeros(
+            sim.initial_state.wf_db = np.zeros(
                 sim.model.constants.num_quantum_states, dtype=complex
             )
-            sim.state.wf_db[0] = 1j
+            sim.initial_state.wf_db[0] = 1j
             data = parallel_driver_multiprocessing(sim)
             data_correct = Data().load(
                 os.path.join(reference_folder, f"{model_name}_{algorithm_name}.h5")
@@ -248,10 +248,10 @@ def test_output_different_h():
                 np.random.rand(sim.model.constants.num_classical_coordinates) + 1.0
             )
             sim.algorithm = algorithm_class()
-            sim.state.wf_db = np.zeros(
+            sim.initial_state.wf_db = np.zeros(
                 sim.model.constants.num_quantum_states, dtype=complex
             )
-            sim.state.wf_db[0] = 1j
+            sim.initial_state.wf_db[0] = 1j
             data = serial_driver(sim)
             data_correct = Data().load(
                 os.path.join(reference_folder, f"{model_name}_{algorithm_name}.h5")
@@ -292,7 +292,7 @@ def test_output_fssh_gauge_fixing():
         state.eigvecs = random_phases[:, np.newaxis, :] * state.eigvecs
         return parameters, state
 
-    my_FSSH.initialization_recipe.insert(5, add_random_phase)
+    my_FSSH.initialization_recipe.insert(6, add_random_phase)
     for model_class in [
         SpinBoson,
         HolsteinLattice,
@@ -312,10 +312,10 @@ def test_output_fssh_gauge_fixing():
             sim.model = model_class(model_settings[model_class.__name__])
             sim.model.initialize_constants()
             sim.algorithm = algorithm_class
-            sim.state.wf_db = np.zeros(
+            sim.initial_state.wf_db = np.zeros(
                 sim.model.constants.num_quantum_states, dtype=complex
             )
-            sim.state.wf_db[0] = 1j
+            sim.initial_state.wf_db[0] = 1j
             data = serial_driver(sim)
             data_correct = Data().load(
                 os.path.join(reference_folder, f"{model_name}_{algorithm_name}.h5")
@@ -354,10 +354,10 @@ def test_output_fssh_deterministic():
         sim.settings.batch_size *= sim.model.constants.num_quantum_states
         sim.settings.num_trajs *= sim.model.constants.num_quantum_states
         sim.algorithm = algorithm_class({"fssh_deterministic": True})
-        sim.state.wf_db = np.zeros(
+        sim.initial_state.wf_db = np.zeros(
             sim.model.constants.num_quantum_states, dtype=complex
         )
-        sim.state.wf_db[0] = 1j
+        sim.initial_state.wf_db[0] = 1j
         data = serial_driver(sim)
         data_correct = Data().load(
             os.path.join(

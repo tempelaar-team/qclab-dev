@@ -4,10 +4,9 @@ This module contains the serial driver.
 
 import logging
 import numpy as np
-from qc_lab.data import Data
-from qc_lab.functions import initialize_variable_objects
 import qc_lab.dynamics as dynamics
 from qc_lab.utils import get_log_output
+from qc_lab import Data, Variable
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +54,8 @@ def serial_driver(sim, seeds=None, data=None):
         logger.info("Running simulation %s with seeds %s.", n + 1, batch_seeds)
         sim.settings.batch_size = len(batch_seeds)
         sim.initialize_timesteps()
-        parameters, state = initialize_variable_objects(sim, batch_seeds)
+        parameters = Variable()
+        state = Variable({"seed": batch_seeds})
         new_data = Data(batch_seeds)
         logger.info("Starting dynamics calculation.")
         new_data = dynamics.run_dynamics(sim, parameters, state, new_data)

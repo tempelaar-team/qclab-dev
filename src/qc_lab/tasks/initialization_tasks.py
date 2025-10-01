@@ -12,6 +12,30 @@ from qc_lab import functions
 logger = logging.getLogger(__name__)
 
 
+def initialize_variable_objects(algorithm, sim, parameters, state, **kwargs):
+    """
+    Populate the ``parameter`` and ``state`` objects with variables in the ``sim.initial_state`` object.
+    """
+    for name in sim.initial_state.__dict__.keys():
+        obj = getattr(sim.initial_state, name)
+        if isinstance(obj, np.ndarray) and name[0] != "_":
+            init_shape = np.shape(obj)
+            new_obj = np.ascontiguousarray(
+                np.zeros((sim.settings.batch_size, *init_shape), dtype=obj.dtype) + obj[np.newaxis]
+            )
+            logger.info(
+                "Initializing state variable %s with shape %s.", name, new_obj.shape
+            )
+            setattr(state, name, new_obj)
+        elif name[0] != "_":
+            logger.warning(
+                "Variable %s in sim.initial_state is not a numpy.ndarray, "
+                "skipping initialization in state Variable object.",
+                name,
+            )
+    return parameters, state
+
+
 def initialize_norm_factor(algorithm, sim, parameters, state, **kwargs):
     """
     Assign the normalization factor to the state object.
@@ -61,8 +85,6 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
         Branch index for each trajectory.
     ``state.seed`` : ndarray
         Seeds remapped for branches.
-    ``parameters.seed`` : ndarray
-        Updated to branch-adjusted seeds.
     """
     # First ensure that the number of branches is correct.
     if sim.algorithm.settings.fssh_deterministic:
@@ -90,7 +112,6 @@ def initialize_branch_seeds(algorithm, sim, parameters, state, **kwargs):
     ).flatten()
     # Now generate the new seeds for each trajectory in the expanded batch.
     new_seeds = orig_seeds // num_branches
-    parameters.seed = new_seeds
     state.seed = new_seeds
     return parameters, state
 

@@ -29,7 +29,7 @@ def update_t(algorithm, sim, parameters, state, **kwargs):
     ``state.t`` : float
         Time of each trajectory.
     """
-    batch_size = len(parameters.seed)
+    batch_size = sim.settings.batch_size
     state.t = np.ones(batch_size) * sim.t_ind * sim.settings.dt_update
     return parameters, state
 
@@ -58,7 +58,7 @@ def update_dh_c_dzc_finite_differences(algorithm, sim, parameters, state, **kwar
     z = kwargs["z"]
     name = kwargs.get("name", "dh_c_dzc")
     delta_z = sim.model.constants.get("dh_c_dzc_finite_difference_delta", 1e-6)
-    batch_size = len(parameters.seed)
+    batch_size = len(z)
     num_classical_coordinates = sim.model.constants.num_classical_coordinates
     offset_z_re = (
         z[:, np.newaxis, :]

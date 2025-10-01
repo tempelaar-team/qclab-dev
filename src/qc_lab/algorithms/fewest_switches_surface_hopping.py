@@ -22,6 +22,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         super().__init__(self.default_settings, settings)
 
     initialization_recipe = [
+        tasks.initialize_variable_objects,
         tasks.initialize_norm_factor,
         tasks.initialize_branch_seeds,
         partial(tasks.initialize_z, seed="seed", name="z"),

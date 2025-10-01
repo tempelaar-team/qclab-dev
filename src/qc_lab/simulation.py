@@ -37,7 +37,7 @@ class Simulation:
         self.algorithm = None
         self.model = None
         # Initialize a Variable object to hold the initial state.
-        self.state = Variable()
+        self.initial_state = Variable()
 
     def initialize_timesteps(self):
         """
