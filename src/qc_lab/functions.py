@@ -9,7 +9,6 @@ import functools
 import numpy as np
 from qc_lab.utils import njit
 import qc_lab.numerical_constants as numerical_constants
-from qc_lab.variable import Variable
 
 logger = logging.getLogger(__name__)
 
