@@ -25,7 +25,7 @@ class Simulation:
             "num_trajs": 100,
             "batch_size": 25,
             "progress_bar": True,
-            "debug": True,
+            "debug": False,
         }
         # Merge default settings with user-provided settings.
         settings = {**self.default_settings, **settings}
