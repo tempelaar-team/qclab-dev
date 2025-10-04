@@ -554,7 +554,7 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
     return out
 
 
-def analytic_der_couple_phase(dh_qc_dzc, eigvals, eigvecs, m, h):
+def analytic_der_couple_phase(sim, dh_qc_dzc, eigvals, eigvecs):
     """
     Calculates the phase change needed to fix the gauge using analytical derivative
     couplings.
@@ -569,6 +569,8 @@ def analytic_der_couple_phase(dh_qc_dzc, eigvals, eigvecs, m, h):
 
     Args
     ----
+    sim: Simulation
+        Simulation object.
     dh_qc_dzc : tuple
         Sparse representation of the derivative of the quantum-classical Hamiltonian
         with respect to the conjugate complex coordinate.
@@ -576,10 +578,6 @@ def analytic_der_couple_phase(dh_qc_dzc, eigvals, eigvecs, m, h):
         Eigenvalues of the quantum subsystem.
     eigvecs : ndarray
         Eigenvectors of the quantum subsystem.
-    m : ndarray
-        Classical coordinate mass.
-    h : ndarray
-        Classical coordinate weight.
 
     Returns
     -------
@@ -592,6 +590,8 @@ def analytic_der_couple_phase(dh_qc_dzc, eigvals, eigvecs, m, h):
     """
     inds, mels, shape = dh_qc_dzc
     batch_size = shape[0]
+    m = sim.model.constants.classical_coordinate_mass
+    h = sim.model.constants.classical_coordinate_weight
     num_classical_coords = shape[1]
     num_quantum_states = shape[2]
     der_couple_q_phase = np.ones(
@@ -616,9 +616,10 @@ def analytic_der_couple_phase(dh_qc_dzc, eigvals, eigvecs, m, h):
         eval_j = eigvals[..., j]
         eigval_diff = eval_j - eval_i
         plus = np.zeros_like(eigval_diff)
-        if np.any(np.abs(eigval_diff) < numerical_constants.SMALL):
-            plus[np.where(np.abs(eigval_diff) < numerical_constants.SMALL)] = 1
-            logger.error("Degenerate eigenvalues detected.")
+        if sim.settings.debug:
+            if np.any(np.abs(eigval_diff) < numerical_constants.SMALL):
+                plus[np.where(np.abs(eigval_diff) < numerical_constants.SMALL)] = 1
+                logger.error("Degenerate eigenvalues detected.")
         der_couple_zc = np.zeros(
             (
                 batch_size,

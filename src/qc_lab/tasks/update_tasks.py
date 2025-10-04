@@ -123,6 +123,8 @@ def update_classical_forces(sim, state, parameters, **kwargs):
     if has_dh_c_dzc:
         state.classical_forces = dh_c_dzc(sim.model, parameters, z=z)
         return state, parameters
+    if sim.settings.debug:
+        logger.info("dh_c_dzc not found; using finite differences.")
     return update_dh_c_dzc_finite_differences(
         sim, state, parameters, name="classical_forces", z=z
     )
@@ -226,6 +228,8 @@ def update_dh_qc_dzc(sim, state, parameters, **kwargs):
         if has_dh_qc_dzc:
             state.dh_qc_dzc = dh_qc_dzc(sim.model, parameters, z=z)
             return state, parameters
+        if sim.settings.debug:
+            logger.info("dh_qc_dzc not found; using finite differences.")
         return update_dh_qc_dzc_finite_differences(
             sim, state, parameters, z=kwargs["z"]
         )
@@ -263,9 +267,7 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
     wf = getattr(state, kwargs["wf"])
     use_gauge_field_force = kwargs.get("use_gauge_field_force", False)
     # Update the gradient of h_qc.
-    state, parameters = update_dh_qc_dzc(
-        sim, state, parameters, z=kwargs["z"]
-    )
+    state, parameters = update_dh_qc_dzc(sim, state, parameters, z=kwargs["z"])
     # inds, mels, shape = state.dh_qc_dzc
     # Calculate the expectation value w.r.t. the wavefunction.
     if state.quantum_classical_forces is None:
@@ -368,15 +370,12 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
         phase = np.exp(-1j * np.angle(overlap))
         eigvecs *= phase[:, None, :]
     if gauge_fixing_value >= 2:
-        state, parameters = update_dh_qc_dzc(
-            sim, state, parameters, z=kwargs["z"]
-        )
+        state, parameters = update_dh_qc_dzc(sim, state, parameters, z=kwargs["z"])
         der_couple_q_phase, _ = functions.analytic_der_couple_phase(
+            sim,
             state.dh_qc_dzc,
             eigvals,
-            eigvecs,
-            sim.model.constants.classical_coordinate_mass,
-            sim.model.constants.classical_coordinate_weight,
+            eigvecs
         )
         eigvecs *= np.conj(der_couple_q_phase)[:, None, :]
     if gauge_fixing_value >= 0:
@@ -384,14 +383,13 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
         signs = np.sign(np.real(overlap))
         eigvecs *= signs[:, None, :]
 
-    if gauge_fixing_value == 2:
+    if gauge_fixing_value == 2 and sim.settings.debug:
         der_couple_q_phase_new, der_couple_p_phase_new = (
             functions.analytic_der_couple_phase(
+                sim,
                 state.dh_qc_dzc,
                 eigvals,
-                eigvecs,
-                sim.model.constants.classical_coordinate_mass,
-                sim.model.constants.classical_coordinate_weight,
+                eigvecs
             )
         )
         if (
@@ -402,13 +400,11 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
             > SMALL
         ):
             logger.error(
-                "Phase error encountered when fixing gauge analytically."
-                + str(
-                    np.sum(
-                        np.abs(np.imag(der_couple_q_phase_new)) ** 2
-                        + np.abs(np.imag(der_couple_p_phase_new)) ** 2
-                    )
-                )
+                "Phase error encountered when fixing gauge analytically. %s",
+                np.sum(
+                    np.abs(np.imag(der_couple_q_phase_new)) ** 2
+                    + np.abs(np.imag(der_couple_p_phase_new)) ** 2
+                ),
             )
     setattr(state, kwargs["output_eigvecs_name"], eigvecs)
     return state, parameters
@@ -572,6 +568,15 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
     else:
         num_branches = 1
     num_trajs = sim.settings.batch_size // num_branches
+    # Check if any of the coefficients on the active surface are zero.
+    if sim.settings.debug:
+        if np.any(
+            np.abs(state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind_flat])
+            == 0.0
+        ):
+            logger.warning(
+                "Zero coefficient on active surface encountered when calculating hopping probabilities."
+            )
     # Calculates < act_surf(t) | b(t-dt) >
     prod = functions.multiply_matrix_vector(
         np.swapaxes(state.eigvecs_previous, -1, -2),
@@ -628,7 +633,8 @@ def update_hop_inds_fssh(sim, state, parameters, **kwargs):
     hop_prob = state.hop_prob
     rand = state.hopping_probs_rand_vals[:, sim.t_ind]
     cumulative_probs = np.cumsum(
-        np.nan_to_num(hop_prob, nan=0, posinf=100e100, neginf=-100e100, copy=False), axis=1
+        np.nan_to_num(hop_prob, nan=0, posinf=100e100, neginf=-100e100, copy=False),
+        axis=1,
     )
     rand_branch = (rand[:, np.newaxis] * np.ones((num_trajs, num_branches))).flatten()
     hop_ind = np.where(

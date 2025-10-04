@@ -98,8 +98,8 @@ model_settings = {
     "FMOComplex": {
         "kBT": 1.0,
         "mass": 1.0,
-        "l_reorg": 35.0 * INVCM_TO_300K,  # reorganization energy
-        "w_c": 106.14 * INVCM_TO_300K,  # characteristic frequency
+        "l_reorg": 35.0 * INVCM_TO_300K,
+        "w_c": 106.14 * INVCM_TO_300K,
         "N": 200,
     },
     "TullyProblemOne": {
@@ -218,7 +218,7 @@ def test_output_multiprocessing():
 
 def test_output_different_h():
     """
-    This test ensures that changing the value of the classical_coordinate_weight does 
+    This test ensures that changing the value of the ``classical_coordinate_weight`` does
     not change the result of the simulation.
     """
     local_settings = {"num_trajs": 10, "batch_size": 10}
@@ -273,6 +273,9 @@ def test_output_fssh_gauge_fixing():
     the derivative couplings are real-valued ("phase_der_couple"). At subsequent
     timesteps, the relative phase of the new eigenvectors is determined from maximizing the
     real part of their overlap with the previous set of eigenvectors ("phase_overlap").
+
+    Note that this test will only work if the ``add_random_phase`` task is between the
+    ``diagonalize_matrix`` and ``gauge_fix_eigs`` tasks in the initialization recipe.
 
     """
     local_settings = {"num_trajs": 10, "batch_size": 10}
