@@ -30,7 +30,7 @@ def update_t(sim, state, parameters, **kwargs):
         Time of each trajectory.
     """
     batch_size = sim.settings.batch_size
-    state.t = np.ones(batch_size) * sim.t_ind * sim.settings.dt_update
+    state.t = np.broadcast_to(sim.t_ind * sim.settings.dt_update, (batch_size,))
     return state, parameters
 
 
@@ -60,40 +60,30 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
     delta_z = sim.model.constants.get("dh_c_dzc_finite_difference_delta", 1e-6)
     batch_size = len(z)
     num_classical_coordinates = sim.model.constants.num_classical_coordinates
-    offset_z_re = (
-        z[:, np.newaxis, :]
-        + np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
-    ).reshape(
-        (
-            batch_size * num_classical_coordinates,
-            num_classical_coordinates,
-        )
+    # Calculate increments in the real and imaginary directions.
+    dz_re = delta_z * np.eye(num_classical_coordinates, dtype=z.dtype)
+    dz_im = 1j * dz_re
+    # Stack real/imag offset z coordinates.
+    z_offset = z[:, None, :]
+    z_offset_all = np.concatenate((z_offset + dz_re, z_offset + dz_im), axis=1).reshape(
+        -1, num_classical_coordinates
     )
-    offset_z_im = (
-        z[:, np.newaxis, :]
-        + 1j * np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
-    ).reshape(
-        (
-            batch_size * num_classical_coordinates,
-            num_classical_coordinates,
-        )
-    )
+    # Get the quantum-classical Hamiltonian function.
     h_c, _ = sim.model.get("h_c")
-    h_c_0 = h_c(sim.model, parameters, z=z, batch_size=len(z))
-    h_c_offset_re = h_c(
-        sim.model,
-        parameters,
-        z=offset_z_re,
-        batch_size=batch_size * num_classical_coordinates,
-    ).reshape(batch_size, num_classical_coordinates)
-    h_c_offset_im = h_c(
-        sim.model,
-        parameters,
-        z=offset_z_im,
-        batch_size=batch_size * num_classical_coordinates,
-    ).reshape(batch_size, num_classical_coordinates)
-    diff_re = (h_c_offset_re - h_c_0[:, np.newaxis]) / delta_z
-    diff_im = (h_c_offset_im - h_c_0[:, np.newaxis]) / delta_z
+    # Calculate it at the original z coordinate.
+    h_c_0 = h_c(sim.model, parameters, z=z)
+    # Calculate h_c at the offset coordinates.
+    h_c_all = h_c(sim.model, parameters, z=z_offset_all).reshape(
+        batch_size,
+        2 * num_classical_coordinates
+    )
+    # Split real/imag blocks of the offset h_c.
+    h_c_re = h_c_all[:, :num_classical_coordinates]
+    h_c_im = h_c_all[:, num_classical_coordinates:]
+    # Calculate finite-difference derivatives.
+    h_c_0_exp = h_c_0[:, None]
+    diff_re = (h_c_re - h_c_0_exp) / delta_z
+    diff_im = (h_c_im - h_c_0_exp) / delta_z
     dh_c_dzc = 0.5 * (diff_re + 1j * diff_im)
     setattr(state, name, dh_c_dzc)
     return state, parameters
@@ -155,48 +145,38 @@ def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
     delta_z = sim.model.constants.get("dh_qc_dzc_finite_difference_delta", 1e-6)
     num_classical_coordinates = sim.model.constants.num_classical_coordinates
     num_quantum_states = sim.model.constants.num_quantum_states
-    offset_z_re = (
-        z[:, np.newaxis, :]
-        + np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
-    ).reshape(
-        (
-            batch_size * num_classical_coordinates,
-            num_classical_coordinates,
-        )
+    # Calculate increments in the real and imaginary directions.
+    dz_re = delta_z * np.eye(num_classical_coordinates, dtype=z.dtype)
+    dz_im = 1j * dz_re
+    # Stack real/imag offset z coordinates.
+    z_offset = z[:, None, :]
+    z_offset_all = np.concatenate((z_offset + dz_re, z_offset + dz_im), axis=1).reshape(
+        -1, num_classical_coordinates
     )
-    offset_z_im = (
-        z[:, np.newaxis, :]
-        + 1j * np.identity(num_classical_coordinates)[np.newaxis, :, :] * delta_z
-    ).reshape(
-        (
-            batch_size * num_classical_coordinates,
-            num_classical_coordinates,
-        )
-    )
+    # Get the quantum-classical Hamiltonian function.
     h_qc, _ = sim.model.get("h_qc")
+    # Calculate it at the original z coordinate.
     h_qc_0 = h_qc(sim.model, parameters, z=z)
-    h_qc_offset_re = h_qc(sim.model, parameters, z=offset_z_re).reshape(
+    # Calculate h_qc at the offset coordinates.
+    h_qc_all = h_qc(sim.model, parameters, z=z_offset_all).reshape(
         batch_size,
-        num_classical_coordinates,
+        2 * num_classical_coordinates,
         num_quantum_states,
         num_quantum_states,
     )
-    h_qc_offset_im = h_qc(
-        sim.model,
-        parameters,
-        z=offset_z_im,
-    ).reshape(
-        batch_size,
-        num_classical_coordinates,
-        num_quantum_states,
-        num_quantum_states,
-    )
-    diff_re = (h_qc_offset_re - h_qc_0[:, np.newaxis, :, :]) / delta_z
-    diff_im = (h_qc_offset_im - h_qc_0[:, np.newaxis, :, :]) / delta_z
+    # Split real/imag blocks of the offset h_qc.
+    h_qc_re = h_qc_all[:, :num_classical_coordinates, :, :]
+    h_qc_im = h_qc_all[:, num_classical_coordinates:, :, :]
+    # Calculate finite-difference derivatives.
+    h_qc_0_exp = h_qc_0[:, None, :, :]
+    diff_re = (h_qc_re - h_qc_0_exp) / delta_z
+    diff_im = (h_qc_im - h_qc_0_exp) / delta_z
     dh_qc_dzc = 0.5 * (diff_re + 1j * diff_im)
+    # Get sparse representation of dh_qc_dzc.
     inds = np.where(dh_qc_dzc != 0)
     mels = dh_qc_dzc[inds]
     shape = np.shape(dh_qc_dzc)
+    # Update it in the state object.
     state.dh_qc_dzc = (inds, mels, shape)
     return state, parameters
 
