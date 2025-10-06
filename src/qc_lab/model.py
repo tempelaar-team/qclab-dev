@@ -46,7 +46,7 @@ class Model:
             not found) and a flag indicating whether it exists.
         """
         for ingredient in self.ingredients[::-1]:
-            if ingredient[0] == ingredient_name and not(ingredient[1] is None):
+            if ingredient[0] == ingredient_name and not (ingredient[1] is None):
                 return ingredient[1], True
             if ingredient[0] == ingredient_name and (ingredient[1] is None):
                 return None, False

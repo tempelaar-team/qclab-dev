@@ -12,6 +12,5 @@ GAUGE_FIX_THRESHOLD = 1e-3
 # Conversion factor from wavenumbers to kBT at 300 K.
 INVCM_TO_300K = 1 / 208.521
 
-
 # Finite difference step size.
 FINITE_DIFFERENCE_DELTA = 1e-6
