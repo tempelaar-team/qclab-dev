@@ -907,42 +907,6 @@ def update_z_hop_fssh(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-from numba import njit
-
-
-@njit
-def update_active_surfaces_inplace(
-    act_surf,  # shape: (batch_size, num_branches), float (0/1)
-    act_surf_ind,  # shape: (batch_size,), int — active-branch index per traj
-    hop_successful,  # shape: (H,), bool
-    hop_ind,  # shape: (H,), int — row indices into act_surf / act_surf_ind_flat
-    hop_dest,  # shape: (H,), int — new branch index per hop
-):
-    """
-    In-place updates:
-      - act_surf_ind_flat[j] = d
-      - act_surf[j, :] = 0 ; act_surf[j, d] = 1
-    Assumes 0 <= d < act_surf.shape[1] and 0 <= j < act_surf.shape[0].
-    """
-    nb = act_surf.shape[1]
-
-    # iterate only where hop_successful is True
-    for i in range(hop_successful.size):
-        if hop_successful[i]:
-            j = hop_ind[i]
-            d = hop_dest[i]
-
-            # update active branch index
-            act_surf_ind[j] = d
-
-            # zero the whole row j
-            for b in range(nb):
-                act_surf[j, b] = 0
-
-            # set new active branch
-            act_surf[j, d] = 1
-
-
 def update_act_surf_hop_fssh(sim, state, parameters, **kwargs):
     """
     Update the active surface, active surface index, and active surface wavefunction
@@ -963,29 +927,17 @@ def update_act_surf_hop_fssh(sim, state, parameters, **kwargs):
     ``state.act_surf`` : ndarray
         Active surface wavefunctions.
     """
-    if sim.algorithm.settings.fssh_deterministic:
-        num_branches = sim.model.constants.num_quantum_states
-    else:
-        num_branches = 1
-    num_trajs = sim.settings.batch_size // num_branches
-    act_surf_flat = state.act_surf
-    act_surf_ind = state.act_surf_ind
-    act_surf_ind_flat = act_surf_ind#.flatten().astype(int)
+    # Get the index of the trajectories that successfully hopped.
+    hop_successful_traj_ind = state.hop_ind[state.hop_successful]
+    # Get their destination states.
+    hop_dest_ind = state.hop_dest[state.hop_successful]
+    # Zero out the active surface in the ones that hopped.
+    state.act_surf[hop_successful_traj_ind] = 0
+    # Set the new active surface to 1.
+    state.act_surf[hop_successful_traj_ind, hop_dest_ind] = 1
+    # Update the active surface index.
+    state.act_surf_ind[hop_successful_traj_ind] = hop_dest_ind
 
-    idx = state.hop_ind[state.hop_successful]
-    act_surf_ind_flat[idx] = state.hop_dest[state.hop_successful]
-    act_surf_flat[idx] = np.zeros_like(act_surf_flat[idx])
-    act_surf_flat[idx, state.hop_dest[state.hop_successful]] = 1
-    state.act_surf_ind = act_surf_ind_flat#.reshape((num_trajs, num_branches))
-    state.act_surf = act_surf_flat
-
-    # update_active_surfaces_inplace(
-    #     state.act_surf,
-    #     state.act_surf_ind,  # view, no copy
-    #     state.hop_successful,
-    #     state.hop_ind,
-    #     state.hop_dest,
-    # )
     return state, parameters
 
 
