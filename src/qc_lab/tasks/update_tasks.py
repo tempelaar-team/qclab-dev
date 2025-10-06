@@ -235,8 +235,8 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
         Name of classical coordinates in state object.
     wf_db : str
         Name of the wavefunction (in the diabatic basis) in the state object.
-    use_gauge_field_force : bool, optional, default: False
-        If True, add the gauge field force to the quantum-classical forces.
+    adb_state_ind: int, optional, required if algorithm.settings.use_gauge_field_force is True
+        Index of the adiabatic state from which to obtain the gauge field force.
     wf_changed : bool, optional, default: True
         If True, the wavefunction has changed since the last time the forces were calculated.
 
@@ -249,13 +249,11 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
     """
     z = getattr(state, kwargs["z"])
     wf_db = getattr(state, kwargs["wf_db"])
-    use_gauge_field_force = kwargs.get("use_gauge_field_force", False)
     wf_changed = kwargs.get("wf_changed", True)
+    adb_state_ind = kwargs.get("adb_state_ind", None)
     # Update the gradient of h_qc.
     state, parameters = update_dh_qc_dzc(sim, state, parameters, z=kwargs["z"])
-    # inds, mels, shape = state.dh_qc_dzc
     # Calculate the expectation value w.r.t. the wavefunction.
-    # When inside_rk4 is True, only z can change, not wf.
     # If not(wf_changed) and sim.model.update_dh_qc_dzc then recalculate.
     # If wf_changed then recalculate.
     # If state.quantum_classical_forces is None then recalculate.
@@ -272,22 +270,14 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
             wf_db,
             out=state.quantum_classical_forces.reshape(-1),
         ).reshape(np.shape(z))
-    # Add the gauge field force if it exists and is requested.
-    if use_gauge_field_force:
-        gauge_field_force, has_gauge_field_force = sim.model.get("gauge_field_force")
-        if has_gauge_field_force:
-            state.quantum_classical_forces += gauge_field_force(
-                parameters, z=z, wf=wf_db
-            )
-        else:
-            if sim.settings.debug:
-                logger.warning("model.gauge_field_force not found; skipping.")
+    if sim.algorithm.settings.get('use_gauge_field_force'):
+        state, parameters = add_gauge_field_force_fssh(sim, state, parameters, z=kwargs["z"], adb_state_ind=adb_state_ind)
     return state, parameters
 
 
 def add_gauge_field_force_fssh(sim, state, parameters, **kwargs):
     """
-    Add the gauge field force to the classical forces if the model has a
+    Add the gauge field force to the quantum-classical forces if the model has a
     gauge_field_force ingredient.
 
     Required Constants
@@ -298,23 +288,22 @@ def add_gauge_field_force_fssh(sim, state, parameters, **kwargs):
     -----------------
     z : str
         Name of classical coordinates in state object.
-    wf : str
-        Name of the wavefunction in the state object.
+    adb_state_ind : str
+        Index of the adiabatic state from which to obtain the gauge field force.
 
     Variable Modifications
     -------------------
-    ``state.classical_forces`` : ndarray
-        Classical forces with gauge field force added.
+    ``state.quantum_classical_forces`` : ndarray
+        Quantum-classical forces with gauge field force added.
     """
     z = getattr(state, kwargs["z"])
-    act_surf_ind = state.act_surf_ind
-    wf = getattr(state, kwargs["wf"])
+    adb_state_ind = getattr(state, kwargs.get("adb_state_ind", "act_surf_ind"))
     gauge_field_force, has_gauge_field_force = sim.model.get("gauge_field_force")
     if has_gauge_field_force:
-        state.classical_forces += gauge_field_force(parameters, z=z, wf=wf)
+        state.quantum_classical_forces += gauge_field_force(parameters, z=z, adb_state_ind=adb_state_ind)
     else:
         if sim.settings.debug:
-            logger.warning("model.gauge_field_force not found; skipping.")
+            logger.warning("gauge_field_force not found; skipping.")
     return state, parameters
 
 

@@ -18,6 +18,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
         self.default_settings = {
             "fssh_deterministic": False,
             "gauge_fixing": "sign_overlap",
+            "use_gauge_field_force": False,
         }
         super().__init__(self.default_settings, settings)
 
