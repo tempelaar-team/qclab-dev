@@ -216,15 +216,6 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
     num_states = model.constants.num_quantum_states
     num_classical_coordinates = model.constants.num_classical_coordinates
     gamma = model.constants.diagonal_linear_coupling
-    # batch_idx = np.repeat(np.arange(batch_size), num_classical_coordinates * num_states)
-    # coord_idx = np.tile(
-    #     np.repeat(np.arange(num_classical_coordinates), num_states), batch_size
-    # )
-    # state_idx = np.tile(np.arange(num_states), batch_size * num_classical_coordinates)
-    # inds = (batch_idx, coord_idx, state_idx, state_idx)
-    # mels = np.tile(gamma.T.ravel(), batch_size)
-    # shape = (batch_size, num_classical_coordinates, num_states, num_states)
-
     dh_qc_dzc = np.zeros(
         (num_classical_coordinates, num_states, num_states), dtype=complex
     )

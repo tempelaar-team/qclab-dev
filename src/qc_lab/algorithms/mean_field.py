@@ -21,7 +21,6 @@ class MeanField(Algorithm):
     initialization_recipe = [
         tasks.initialize_variable_objects,
         tasks.initialize_norm_factor,
-        partial(tasks.state_to_parameters, state_name="seed", parameters_name="seed"),
         partial(tasks.initialize_z, seed="seed", name="z"),
         partial(tasks.update_h_quantum, z="z"),
     ]
@@ -32,37 +31,41 @@ class MeanField(Algorithm):
         partial(tasks.update_classical_forces, z="z"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="wf_db",
+            wf_db="wf_db",
             z="z",
             use_gauge_field_force=False,
+            wf_changed=True,
         ),
-        partial(tasks.update_z_rk4_k1, z="z", output_name="z_1"),
+        partial(tasks.update_z_rk4_k1, z="z", output="z_1"),
         partial(tasks.update_classical_forces, z="z_1"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="wf_db",
+            wf_db="wf_db",
             z="z_1",
             use_gauge_field_force=False,
+            wf_changed=False,
         ),
-        partial(tasks.update_z_rk4_k2, z="z", output_name="z_2"),
+        partial(tasks.update_z_rk4_k2, z="z", output="z_2"),
         partial(tasks.update_classical_forces, z="z_2"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="wf_db",
+            wf_db="wf_db",
             z="z_2",
             use_gauge_field_force=False,
+            wf_changed=False,
         ),
-        partial(tasks.update_z_rk4_k3, z="z", output_name="z_3"),
+        partial(tasks.update_z_rk4_k3, z="z", output="z_3"),
         partial(tasks.update_classical_forces, z="z_3"),
         partial(
             tasks.update_quantum_classical_forces,
-            wf="wf_db",
+            wf_db="wf_db",
             z="z_3",
             use_gauge_field_force=False,
+            wf_changed=False,
         ),
-        partial(tasks.update_z_rk4_k4, z="z", output_name="z"),
+        partial(tasks.update_z_rk4_k4, z="z", output="z"),
         # End RK4 integration steps.
-        tasks.update_wf_db_rk4,
+        partial(tasks.update_wf_db_rk4, wf_db="wf_db"),
     ]
 
     collect_recipe = [

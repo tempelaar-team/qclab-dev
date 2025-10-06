@@ -274,34 +274,6 @@ def initialize_z(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def state_to_parameters(sim, state, parameters, **kwargs):
-    """
-    Copies a quantity from the state object to the parameters object.
-
-    Required Constants
-    ------------------
-    None
-
-    Keyword Arguments
-    -----------------
-    parameters_name : str
-        name of the attribute in the parameters object.
-    state_name : str
-        name of the attribute in the state object.
-
-    Variable Modifications
-    -------------------
-    ``parameters.{parameters_name}``
-        A copy of ``state.{state_name}``.
-    """
-    setattr(
-        parameters,
-        kwargs["parameters_name"],
-        getattr(state, kwargs["state_name"]).copy(),
-    )
-    return state, parameters
-
-
 def copy_in_state(sim, state, parameters, **kwargs):
     """
     Creates a copy of a quantity in the state object.
@@ -312,17 +284,17 @@ def copy_in_state(sim, state, parameters, **kwargs):
 
     Keyword Arguments
     -----------------
-    copy_name : str
+    copy : str
         Name of the copy in the state object.
-    orig_name : str
+    orig : str
         Name of the source in the state object.
 
     Variable Modifications
     -------------------
-    ``state.{copy_name}``
-        Copy of ``state.{orig_name}``.
+    ``state.{copy}``
+        Copy of ``state.{orig}``.
     """
-    setattr(state, kwargs["copy_name"], np.copy(getattr(state, kwargs["orig_name"])))
+    setattr(state, kwargs["copy"], np.copy(getattr(state, kwargs["orig"])))
     return state, parameters
 
 
@@ -373,13 +345,22 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
         )
         bool_mat = intervals > state.stochastic_sh_rand_vals[:, :, np.newaxis]
         act_surf_ind_0 = np.argmax(bool_mat, axis=-1).astype(int)
+    # state.act_surf_ind_0 = np.copy(act_surf_ind_0)
+    # state.act_surf_ind = np.copy(act_surf_ind_0)
+    # act_surf = np.zeros((num_trajs, num_branches, num_states), dtype=int)
+    # traj_inds = np.repeat(np.arange(num_trajs), num_branches)
+    # branch_inds = np.tile(np.arange(num_branches), num_trajs)
+    # act_surf[traj_inds, branch_inds, act_surf_ind_0.flatten()] = 1
+    # state.act_surf = act_surf.reshape((num_trajs * num_branches, num_states))
+    act_surf_ind_0 = act_surf_ind_0.reshape(-1)
     state.act_surf_ind_0 = np.copy(act_surf_ind_0)
     state.act_surf_ind = np.copy(act_surf_ind_0)
-    act_surf = np.zeros((num_trajs, num_branches, num_states), dtype=int)
+    act_surf = np.zeros((num_trajs * num_branches, num_states), dtype=int)
     traj_inds = np.repeat(np.arange(num_trajs), num_branches)
     branch_inds = np.tile(np.arange(num_branches), num_trajs)
-    act_surf[traj_inds, branch_inds, act_surf_ind_0.flatten()] = 1
-    state.act_surf = act_surf.reshape((num_trajs * num_branches, num_states))
+    traj_branch_ind = traj_inds * num_branches + branch_inds
+    act_surf[traj_branch_ind, act_surf_ind_0] = 1
+    state.act_surf = act_surf
     return state, parameters
 
 

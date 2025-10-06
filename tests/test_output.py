@@ -5,6 +5,7 @@ compares them against a reference dataset.
 
 import pytest
 import os
+import time
 import numpy as np
 from qc_lab import Simulation, Data
 from qc_lab.models import (
@@ -20,45 +21,58 @@ from qc_lab.algorithms import MeanField, FewestSwitchesSurfaceHopping
 from qc_lab.dynamics import serial_driver, parallel_driver_multiprocessing
 from qc_lab.numerical_constants import INVCM_TO_300K
 
-
 model_sim_settings = {
     "SpinBoson": {
+        "num_trajs": 100,
+        "batch_size": 100,
         "tmax": 10,
         "dt_update": 0.01,
         "dt_collect": 0.1,
         "progress_bar": False,
     },
     "HolsteinLattice": {
+        "num_trajs": 10,
+        "batch_size": 10,
         "tmax": 10,
         "dt_update": 0.01,
         "dt_collect": 0.1,
         "progress_bar": False,
     },
     "HolsteinLatticeReciprocalSpace": {
+        "num_trajs": 10,
+        "batch_size": 10,
         "tmax": 10,
         "dt_update": 0.01,
         "dt_collect": 0.1,
         "progress_bar": False,
     },
     "FMOComplex": {
+        "num_trajs": 10,
+        "batch_size": 10,
         "tmax": 10,
         "dt_update": 0.01,
         "dt_collect": 0.1,
         "progress_bar": False,
     },
     "TullyProblemOne": {
+        "num_trajs": 100,
+        "batch_size": 100,
         "tmax": 5000,
         "dt_update": 0.5,
         "dt_collect": 10,
         "progress_bar": False,
     },
     "TullyProblemTwo": {
+        "num_trajs": 100,
+        "batch_size": 100,
         "tmax": 5000,
         "dt_update": 0.5,
         "dt_collect": 10,
         "progress_bar": False,
     },
     "TullyProblemThree": {
+        "num_trajs": 100,
+        "batch_size": 100,
         "tmax": 5000,
         "dt_update": 0.5,
         "dt_collect": 10,
@@ -137,7 +151,6 @@ def test_output_serial():
     """
     This test verifies that the serial driver produces the expected results.
     """
-    local_settings = {"num_trajs": 10, "batch_size": 10}
     reference_folder = os.path.join(os.path.dirname(__file__), "reference/")
     for model_class in [
         SpinBoson,
@@ -152,7 +165,7 @@ def test_output_serial():
             print(f"Testing {model_class.__name__} with {algorithm_class.__name__}")
 
             sim = Simulation(
-                {**model_sim_settings[model_class.__name__], **local_settings}
+                model_sim_settings[model_class.__name__]
             )
             model_name = model_class.__name__
             algorithm_name = algorithm_class.__name__
@@ -163,7 +176,10 @@ def test_output_serial():
                 sim.model.constants.num_quantum_states, dtype=complex
             )
             sim.initial_state.wf_db[0] = 1j
+            st = time.time()
             data = serial_driver(sim)
+            et = time.time()
+            print(f"Finished in {et - st:.2f} seconds.")
             data_correct = Data().load(
                 os.path.join(reference_folder, f"{model_name}_{algorithm_name}.h5")
             )
@@ -179,7 +195,6 @@ def test_output_multiprocessing():
     This test verifies that the multiprocessing driver produces the same results
     as the serial driver.
     """
-    local_settings = {"num_trajs": 10, "batch_size": 5}
     reference_folder = os.path.join(os.path.dirname(__file__), "reference/")
     for model_class in [
         SpinBoson,
@@ -194,8 +209,9 @@ def test_output_multiprocessing():
             print(f"Testing {model_class.__name__} with {algorithm_class.__name__}")
 
             sim = Simulation(
-                {**model_sim_settings[model_class.__name__], **local_settings}
+                model_sim_settings[model_class.__name__]
             )
+            sim.settings.batch_size = sim.settings.num_trajs // 2
             model_name = model_class.__name__
             algorithm_name = algorithm_class.__name__
             sim.model = model_class(model_settings[model_class.__name__])
@@ -205,7 +221,10 @@ def test_output_multiprocessing():
                 sim.model.constants.num_quantum_states, dtype=complex
             )
             sim.initial_state.wf_db[0] = 1j
+            st = time.time()
             data = parallel_driver_multiprocessing(sim)
+            et = time.time()
+            print(f"Finished in {et - st:.2f} seconds.")
             data_correct = Data().load(
                 os.path.join(reference_folder, f"{model_name}_{algorithm_name}.h5")
             )
@@ -221,7 +240,6 @@ def test_output_different_h():
     This test ensures that changing the value of the ``classical_coordinate_weight`` does
     not change the result of the simulation.
     """
-    local_settings = {"num_trajs": 10, "batch_size": 10}
     reference_folder = os.path.join(os.path.dirname(__file__), "reference/")
     for model_class in [
         SpinBoson,
@@ -236,7 +254,7 @@ def test_output_different_h():
             print(f"Testing {model_class.__name__} with {algorithm_class.__name__}")
 
             sim = Simulation(
-                {**model_sim_settings[model_class.__name__], **local_settings}
+                model_sim_settings[model_class.__name__]
             )
             model_name = model_class.__name__
             algorithm_name = algorithm_class.__name__
@@ -252,7 +270,10 @@ def test_output_different_h():
                 sim.model.constants.num_quantum_states, dtype=complex
             )
             sim.initial_state.wf_db[0] = 1j
+            st = time.time()
             data = serial_driver(sim)
+            et = time.time()
+            print(f"Finished in {et - st:.2f} seconds.")
             data_correct = Data().load(
                 os.path.join(reference_folder, f"{model_name}_{algorithm_name}.h5")
             )
@@ -307,8 +328,7 @@ def test_output_fssh_gauge_fixing():
     ]:
         for algorithm_class in [my_FSSH]:
             print(f"Testing {model_class.__name__} with FewestSwitchesSurfaceHopping")
-            sim = Simulation(
-                {**model_sim_settings[model_class.__name__], **local_settings}
+            sim = Simulation(model_sim_settings[model_class.__name__]
             )
             model_name = model_class.__name__
             algorithm_name = "FewestSwitchesSurfaceHopping"
@@ -319,12 +339,14 @@ def test_output_fssh_gauge_fixing():
                 sim.model.constants.num_quantum_states, dtype=complex
             )
             sim.initial_state.wf_db[0] = 1j
+            st = time.time()
             data = serial_driver(sim)
+            et = time.time()
+            print(f"Finished in {et - st:.2f} seconds.")
             data_correct = Data().load(
                 os.path.join(reference_folder, f"{model_name}_{algorithm_name}.h5")
             )
             for key, val in data.data_dict.items():
-                print("Comparing ", key)
                 np.testing.assert_allclose(
                     val, data_correct.data_dict[key], rtol=1e-5, atol=1e-8
                 )
@@ -335,7 +357,6 @@ def test_output_fssh_deterministic():
     """
     This test verifies the deterministic version of FSSH.
     """
-    local_settings = {"num_trajs": 10, "batch_size": 10}
     reference_folder = os.path.join(os.path.dirname(__file__), "reference/")
     for model_class in [
         SpinBoson,
@@ -349,7 +370,7 @@ def test_output_fssh_deterministic():
         algorithm_class = FewestSwitchesSurfaceHopping
         print(f"Testing {model_class.__name__} with deterministic {algorithm_class.__name__}")
 
-        sim = Simulation({**model_sim_settings[model_class.__name__], **local_settings})
+        sim = Simulation(model_sim_settings[model_class.__name__])
         model_name = model_class.__name__
         algorithm_name = algorithm_class.__name__
         sim.model = model_class(model_settings[model_class.__name__])
@@ -361,7 +382,10 @@ def test_output_fssh_deterministic():
             sim.model.constants.num_quantum_states, dtype=complex
         )
         sim.initial_state.wf_db[0] = 1j
+        st = time.time()
         data = serial_driver(sim)
+        et = time.time()
+        print(f"Finished in {et - st:.2f} seconds.")
         data_correct = Data().load(
             os.path.join(
                 reference_folder, f"{model_name}_{algorithm_name}_deterministic.h5"
@@ -375,7 +399,20 @@ def test_output_fssh_deterministic():
 
 
 if __name__ == "__main__":
+    st = time.time()
     test_output_serial()
+    et1 = time.time()
+    print(f"Serial tests completed in {et1 - st:.2f} seconds.")
     test_output_multiprocessing()
+    et2 = time.time()
+    print(f"Multiprocessing tests completed in {et2 - et1:.2f} seconds.")
     test_output_different_h()
+    et3 = time.time()
+    print(f"Different H tests completed in {et3 - et2:.2f} seconds.")
     test_output_fssh_gauge_fixing()
+    et4 = time.time()
+    print(f"FSSH gauge fixing tests completed in {et4 - et3:.2f} seconds.")
+    test_output_fssh_deterministic()
+    et5 = time.time()
+    print(f"FSSH deterministic tests completed in {et5 - et4:.2f} seconds.")
+    print(f"All tests completed in {et5 - st:.2f} seconds.")

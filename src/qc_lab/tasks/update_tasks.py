@@ -253,8 +253,12 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
     -----------------
     z : str
         Name of classical coordinates in state object.
-    wf : str
-        Name of the wavefunction in the state object.
+    wf_db : str
+        Name of the wavefunction (in the diabatic basis) in the state object.
+    use_gauge_field_force : bool, optional, default: False
+        If True, add the gauge field force to the quantum-classical forces.
+    wf_changed : bool, optional, default: True
+        If True, the wavefunction has changed since the last time the forces were calculated.
 
     Variable Modifications
     -------------------
@@ -264,21 +268,73 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
         Quantum-classical forces.
     """
     z = getattr(state, kwargs["z"])
-    wf = getattr(state, kwargs["wf"])
+    wf_db = getattr(state, kwargs["wf_db"])
     use_gauge_field_force = kwargs.get("use_gauge_field_force", False)
+    wf_changed = kwargs.get("wf_changed", True)
     # Update the gradient of h_qc.
     state, parameters = update_dh_qc_dzc(sim, state, parameters, z=kwargs["z"])
     # inds, mels, shape = state.dh_qc_dzc
     # Calculate the expectation value w.r.t. the wavefunction.
-    if state.quantum_classical_forces is None:
-        state.quantum_classical_forces = np.zeros(np.shape(z), dtype=complex)
-    state.quantum_classical_forces = functions.calc_sparse_inner_product(
-        *state.dh_qc_dzc, wf.conj(), wf, out=state.quantum_classical_forces.flatten()
-    ).reshape(np.shape(z))
+    # When inside_rk4 is True, only z can change, not wf.
+    # If not(wf_changed) and sim.model.update_dh_qc_dzc then recalculate.
+    # If wf_changed then recalculate.
+    # If state.quantum_classical_forces is None then recalculate.
+    if (
+        (state.quantum_classical_forces is None)
+        or wf_changed
+        or (not (wf_changed) and sim.model.update_dh_qc_dzc)
+    ):
+        if state.quantum_classical_forces is None:
+            state.quantum_classical_forces = np.zeros(np.shape(z), dtype=complex)
+        state.quantum_classical_forces = functions.calc_sparse_inner_product(
+            *state.dh_qc_dzc,
+            wf_db.conj(),
+            wf_db,
+            out=state.quantum_classical_forces.reshape(-1),
+        ).reshape(np.shape(z))
     # Add the gauge field force if it exists and is requested.
+    if use_gauge_field_force:
+        gauge_field_force, has_gauge_field_force = sim.model.get("gauge_field_force")
+        if has_gauge_field_force:
+            state.quantum_classical_forces += gauge_field_force(
+                parameters, z=z, wf=wf_db
+            )
+        else:
+            if sim.settings.debug:
+                logger.warning("model.gauge_field_force not found; skipping.")
+    return state, parameters
+
+
+def add_gauge_field_force_fssh(sim, state, parameters, **kwargs):
+    """
+    Add the gauge field force to the classical forces if the model has a
+    gauge_field_force ingredient.
+
+    Required Constants
+    ------------------
+    None
+
+    Keyword Arguments
+    -----------------
+    z : str
+        Name of classical coordinates in state object.
+    wf : str
+        Name of the wavefunction in the state object.
+
+    Variable Modifications
+    -------------------
+    ``state.classical_forces`` : ndarray
+        Classical forces with gauge field force added.
+    """
+    z = getattr(state, kwargs["z"])
+    act_surf_ind = state.act_surf_ind
+    wf = getattr(state, kwargs["wf"])
     gauge_field_force, has_gauge_field_force = sim.model.get("gauge_field_force")
-    if has_gauge_field_force and use_gauge_field_force:
-        state.quantum_classical_forces += gauge_field_force(parameters, z=z, wf=wf)
+    if has_gauge_field_force:
+        state.classical_forces += gauge_field_force(parameters, z=z, wf=wf)
+    else:
+        if sim.settings.debug:
+            logger.warning("model.gauge_field_force not found; skipping.")
     return state, parameters
 
 
@@ -344,7 +400,7 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
         Name of the eigenvectors in the state object.
     eigvecs_previous : str
         Name of the previous eigenvectors in the state object.
-    output_eigvecs_name : str
+    output_eigvecs : str
         Name of the output gauge-fixed eigenvectors in the state object.
     z : str
         Name of classical coordinates in the state object.
@@ -353,7 +409,7 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    - ``state.{output_eigvecs_name}``: gauge-fixed eigenvectors.
+    - ``state.{output_eigvecs}``: gauge-fixed eigenvectors.
     """
     eigvals = getattr(state, kwargs["eigvals"])
     eigvecs = getattr(state, kwargs["eigvecs"])
@@ -372,10 +428,7 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
     if gauge_fixing_value >= 2:
         state, parameters = update_dh_qc_dzc(sim, state, parameters, z=kwargs["z"])
         der_couple_q_phase, _ = functions.analytic_der_couple_phase(
-            sim,
-            state.dh_qc_dzc,
-            eigvals,
-            eigvecs
+            sim, state.dh_qc_dzc, eigvals, eigvecs
         )
         eigvecs *= np.conj(der_couple_q_phase)[:, None, :]
     if gauge_fixing_value >= 0:
@@ -385,12 +438,7 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
 
     if gauge_fixing_value == 2 and sim.settings.debug:
         der_couple_q_phase_new, der_couple_p_phase_new = (
-            functions.analytic_der_couple_phase(
-                sim,
-                state.dh_qc_dzc,
-                eigvals,
-                eigvecs
-            )
+            functions.analytic_der_couple_phase(sim, state.dh_qc_dzc, eigvals, eigvecs)
         )
         if (
             np.sum(
@@ -406,13 +454,13 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
                     + np.abs(np.imag(der_couple_p_phase_new)) ** 2
                 ),
             )
-    setattr(state, kwargs["output_eigvecs_name"], eigvecs)
+    setattr(state, kwargs["output_eigvecs"], eigvecs)
     return state, parameters
 
 
 def basis_transform_vec(sim, state, parameters, **kwargs):
     """
-    Transforms a vector "input_name" to a new basis defined by "basis_name".
+    Transforms a vector "input" to a new basis defined by "basis".
 
     Required Constants
     ------------------
@@ -420,13 +468,13 @@ def basis_transform_vec(sim, state, parameters, **kwargs):
 
     Keyword Arguments
     -----------------
-    input_name : str
+    input : str
         Name of the vector to transform in the state object.
-    basis_name : str
+    basis : str
         Name of the basis to transform to in the state object.
         Assumed to be column vectors corresponding to adiabatic
         states.
-    output_name : str
+    output : str
         Name of the output vector in the state object.
     adb_to_db : bool, optional, default: False
         If True, transforms from adiabatic to diabatic. If False, transforms from
@@ -434,14 +482,14 @@ def basis_transform_vec(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    - ``state.{output_name}``: vector expressed in the new basis.
+    - ``state.{output}``: vector expressed in the new basis.
     """
-    input_vec = getattr(state, kwargs["input_name"])
-    basis = getattr(state, kwargs["basis_name"])
+    input_vec = getattr(state, kwargs["input"])
+    basis = getattr(state, kwargs["basis"])
     adb_to_db = kwargs["adb_to_db"]
     setattr(
         state,
-        kwargs["output_name"],
+        kwargs["output"],
         functions.transform_vec(input_vec, basis, adb_to_db=adb_to_db),
     )
     return state, parameters
@@ -468,7 +516,7 @@ def update_act_surf_wf(sim, state, parameters, **kwargs):
     act_surf_wf = state.eigvecs[
         np.arange(num_trajs, dtype=int),
         :,
-        state.act_surf_ind.flatten().astype(int),
+        state.act_surf_ind,
     ]
     state.act_surf_wf = act_surf_wf
     return state, parameters
@@ -484,21 +532,21 @@ def update_wf_db_eigs(sim, state, parameters, **kwargs):
 
     Keyword Arguments
     -----------------
-    wf_db_name : str
+    wf_db : str
         Name of the diabatic wavefunction in the state object.
-    eigvals_name : str
+    eigvals : str
         Name of the eigenvalues in the state object.
-    eigvecs_name : str
+    eigvecs : str
         Name of the eigenvectors in the state object.
 
     Variable Modifications
     -------------------
-    ``state.{wf_db_name}`` : ndarray
+    ``state.{wf_db}`` : ndarray
         Updated diabatic wavefunction.
     """
-    eigvals = getattr(state, kwargs["eigvals_name"])
-    eigvecs = getattr(state, kwargs["eigvecs_name"])
-    wf_db = getattr(state, kwargs["wf_db_name"])
+    eigvals = getattr(state, kwargs["eigvals"])
+    eigvecs = getattr(state, kwargs["eigvecs"])
+    wf_db = getattr(state, kwargs["wf_db"])
     batch_size = len(wf_db)
     num_quantum_states = sim.model.constants.num_quantum_states
     # Calculate the propagator in the adiabatic basis.
@@ -512,7 +560,7 @@ def update_wf_db_eigs(sim, state, parameters, **kwargs):
     # Apply the propagator to the diabatic wavefunction.
     setattr(
         state,
-        kwargs["wf_db_name"],
+        kwargs["wf_db"],
         functions.multiply_matrix_vector(prop_db, wf_db),
     )
     return state, parameters
@@ -562,7 +610,6 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
         Hopping probabilities between the active surface and all other surfaces.
     """
     act_surf_ind = state.act_surf_ind
-    act_surf_ind_flat = act_surf_ind.flatten().astype(int)
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
     else:
@@ -571,7 +618,7 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
     # Check if any of the coefficients on the active surface are zero.
     if sim.settings.debug:
         if np.any(
-            np.abs(state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind_flat])
+            np.abs(state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind])
             == 0.0
         ):
             logger.warning(
@@ -582,7 +629,7 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
         np.swapaxes(state.eigvecs_previous, -1, -2),
         np.conj(
             state.eigvecs[
-                np.arange(num_trajs * num_branches, dtype=int), :, act_surf_ind_flat
+                np.arange(num_trajs * num_branches, dtype=int), :, act_surf_ind
             ]
         ),
     )
@@ -590,12 +637,10 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
     hop_prob = -2.0 * np.real(
         prod
         * state.wf_adb
-        / state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind_flat][
-            :, np.newaxis
-        ]
+        / state.wf_adb[np.arange(num_trajs * num_branches), act_surf_ind][:, np.newaxis]
     )
     # Sets hopping probabilities to 0 at the active surface.
-    hop_prob[np.arange(num_branches * num_trajs), act_surf_ind_flat] *= 0.0
+    hop_prob[np.arange(num_branches * num_trajs), act_surf_ind] *= 0.0
     state.hop_prob = hop_prob
 
     return state, parameters
@@ -684,20 +729,13 @@ def _update_hop_inds_fssh(sim, state, parameters, **kwargs):
 
     cumulative = np.cumsum(hop_prob, axis=1)
 
-    # Repeat the per-trajectory random once per branch.
     rand = state.hopping_probs_rand_vals[:, sim.t_ind]
     rand_branch = np.repeat(rand, num_branches)
 
-    # # A hop happens iff final cumulative prob exceeds the random
-
     hop_check = cumulative > rand_branch[:, None]
 
-    hop_mask = (
-        np.sum(hop_check.astype(int), axis=1) > 0
-    )  # cumulative[:, -1] > rand_branch                      # (rows,)
+    hop_mask = np.sum(hop_check.astype(int), axis=1) > 0
 
-    # First destination where cumulative > rand (compute once)
-    # Note: creates a single boolean temp; much cheaper than doing it twice.
     first_idx = np.argmax(hop_check, axis=1)
 
     hop_ind = np.nonzero(hop_mask)[0]
@@ -793,13 +831,12 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
     state.hop_successful = np.zeros(len(hop_ind), dtype=bool)
     eigvals = state.eigvals
     eigvecs = state.eigvecs
-    z = np.copy(state.z)
+    z = state.z
     act_surf_ind = state.act_surf_ind
-    act_surf_ind_flat = act_surf_ind.flatten().astype(int)
     hop_traj_ind = 0
     for traj_ind in hop_ind:
         final_state_ind = hop_dest[hop_traj_ind]
-        init_state_ind = act_surf_ind_flat[traj_ind]
+        init_state_ind = act_surf_ind[traj_ind]
         eigval_init_state = eigvals[traj_ind][init_state_ind]
         eigval_final_state = eigvals[traj_ind][final_state_ind]
         eigval_diff = eigval_final_state - eigval_init_state
@@ -870,6 +907,42 @@ def update_z_hop_fssh(sim, state, parameters, **kwargs):
     return state, parameters
 
 
+from numba import njit
+
+
+@njit
+def update_active_surfaces_inplace(
+    act_surf,  # shape: (batch_size, num_branches), float (0/1)
+    act_surf_ind,  # shape: (batch_size,), int — active-branch index per traj
+    hop_successful,  # shape: (H,), bool
+    hop_ind,  # shape: (H,), int — row indices into act_surf / act_surf_ind_flat
+    hop_dest,  # shape: (H,), int — new branch index per hop
+):
+    """
+    In-place updates:
+      - act_surf_ind_flat[j] = d
+      - act_surf[j, :] = 0 ; act_surf[j, d] = 1
+    Assumes 0 <= d < act_surf.shape[1] and 0 <= j < act_surf.shape[0].
+    """
+    nb = act_surf.shape[1]
+
+    # iterate only where hop_successful is True
+    for i in range(hop_successful.size):
+        if hop_successful[i]:
+            j = hop_ind[i]
+            d = hop_dest[i]
+
+            # update active branch index
+            act_surf_ind[j] = d
+
+            # zero the whole row j
+            for b in range(nb):
+                act_surf[j, b] = 0
+
+            # set new active branch
+            act_surf[j, d] = 1
+
+
 def update_act_surf_hop_fssh(sim, state, parameters, **kwargs):
     """
     Update the active surface, active surface index, and active surface wavefunction
@@ -897,14 +970,22 @@ def update_act_surf_hop_fssh(sim, state, parameters, **kwargs):
     num_trajs = sim.settings.batch_size // num_branches
     act_surf_flat = state.act_surf
     act_surf_ind = state.act_surf_ind
-    act_surf_ind_flat = act_surf_ind.flatten().astype(int)
+    act_surf_ind_flat = act_surf_ind#.flatten().astype(int)
 
     idx = state.hop_ind[state.hop_successful]
     act_surf_ind_flat[idx] = state.hop_dest[state.hop_successful]
     act_surf_flat[idx] = np.zeros_like(act_surf_flat[idx])
     act_surf_flat[idx, state.hop_dest[state.hop_successful]] = 1
-    state.act_surf_ind = np.copy(act_surf_ind_flat.reshape((num_trajs, num_branches)))
-    state.act_surf = np.copy(act_surf_flat)
+    state.act_surf_ind = act_surf_ind_flat#.reshape((num_trajs, num_branches))
+    state.act_surf = act_surf_flat
+
+    # update_active_surfaces_inplace(
+    #     state.act_surf,
+    #     state.act_surf_ind,  # view, no copy
+    #     state.hop_successful,
+    #     state.hop_ind,
+    #     state.hop_dest,
+    # )
     return state, parameters
 
 
@@ -955,23 +1036,23 @@ def update_z_rk4_k1(sim, state, parameters, **kwargs):
     -----------------
     z : str
         Name of input coordinates in state object.
-    output_name : str
+    output : str
         Name of the output coordinates in the state object.
 
     Variable Modifications
     -------------------
-    ``state.{output_name}``` : ndarray
+    ``state.{output}``` : ndarray
         Output coordinates after half step.
     ``state.z_rk4_k1`` : ndarray
         First RK4 slope.
     """
     dt_update = sim.settings.dt_update
     z_k = getattr(state, kwargs["z"])
-    output_name = kwargs["output_name"]
+    output = kwargs["output"]
     out, k1 = functions.update_z_rk4_k123_sum(
         z_k, state.classical_forces, state.quantum_classical_forces, 0.5 * dt_update
     )
-    setattr(state, output_name, out)
+    setattr(state, output, out)
     state.z_rk4_k1 = k1
     return state, parameters
 
@@ -988,23 +1069,23 @@ def update_z_rk4_k2(sim, state, parameters, **kwargs):
     -----------------
     z : str
         Name of input coordinates in state object.
-    output_name : str
+    output : str
         Name of the output coordinates in the state object.
 
     Variable Modifications
     -------------------
-    ``state.{output_name}``` : ndarray
+    ``state.{output}``` : ndarray
         Output coordinates after half step.
     ``state.z_rk4_k2`` : ndarray
         Second RK4 slope.
     """
     dt_update = sim.settings.dt_update
     z_k = getattr(state, kwargs["z"])
-    output_name = kwargs["output_name"]
+    output = kwargs["output"]
     out, k2 = functions.update_z_rk4_k123_sum(
         z_k, state.classical_forces, state.quantum_classical_forces, 0.5 * dt_update
     )
-    setattr(state, output_name, out)
+    setattr(state, output, out)
     state.z_rk4_k2 = k2
     return state, parameters
 
@@ -1021,23 +1102,23 @@ def update_z_rk4_k3(sim, state, parameters, **kwargs):
     -----------------
     z : str
         Name of input coordinates in state object.
-    output_name : str
+    output : str
         Name of the output coordinates in the state object.
 
     Variable Modifications
     -------------------
-    ``state.{output_name}``` : ndarray
+    ``state.{output}``` : ndarray
         Output coordinates after a full step.
     ``state.z_rk4_k3`` : ndarray
         Third RK4 slope.
     """
     dt_update = sim.settings.dt_update
     z_k = getattr(state, kwargs["z"])
-    output_name = kwargs["output_name"]
+    output = kwargs["output"]
     out, k3 = functions.update_z_rk4_k123_sum(
         z_k, state.classical_forces, state.quantum_classical_forces, dt_update
     )
-    setattr(state, output_name, out)
+    setattr(state, output, out)
     state.z_rk4_k3 = k3
     return state, parameters
 
@@ -1054,17 +1135,17 @@ def update_z_rk4_k4(sim, state, parameters, **kwargs):
     -----------------
     z : str
         Name of input coordinates in state object.
-    output_name : str
+    output : str
         Name of the output coordinates in the state object.
 
     Variable Modifications
     -------------------
-    ``state.{output_name}`` : ndarray
+    ``state.{output}`` : ndarray
         Output coordinates after a full step.
     """
     dt_update = sim.settings.dt_update
     z_0 = getattr(state, kwargs["z"])
-    output_name = kwargs["output_name"]
+    output = kwargs["output"]
     out = functions.update_z_rk4_k4_sum(
         z_0,
         state.z_rk4_k1,
@@ -1074,7 +1155,7 @@ def update_z_rk4_k4(sim, state, parameters, **kwargs):
         state.quantum_classical_forces,
         dt_update,
     )
-    setattr(state, output_name, out)
+    setattr(state, output, out)
     return state, parameters
 
 
