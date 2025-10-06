@@ -6,7 +6,7 @@ during propagation.
 import logging
 import numpy as np
 from qc_lab import functions
-from qc_lab.numerical_constants import SMALL
+import qc_lab.numerical_constants as numerical_constants
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
 
     Required Constants
     ------------------
-    ``dh_c_dzc_finite_difference_delta`` : float, optional, default: 1e-6
+    ``dh_c_dzc_finite_difference_delta`` : float, optional
         Finite-difference step size.
 
     Keyword Arguments
@@ -57,7 +57,7 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
     """
     z = kwargs["z"]
     name = kwargs.get("name", "dh_c_dzc")
-    delta_z = sim.model.constants.get("dh_c_dzc_finite_difference_delta", 1e-6)
+    delta_z = sim.model.constants.get("dh_c_dzc_finite_difference_delta", numerical_constants.FINITE_DIFFERENCE_DELTA)
     batch_size = len(z)
     num_classical_coordinates = sim.model.constants.num_classical_coordinates
     # Calculate increments in the real and imaginary directions.
@@ -74,8 +74,7 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
     h_c_0 = h_c(sim.model, parameters, z=z)
     # Calculate h_c at the offset coordinates.
     h_c_all = h_c(sim.model, parameters, z=z_offset_all).reshape(
-        batch_size,
-        2 * num_classical_coordinates
+        batch_size, 2 * num_classical_coordinates
     )
     # Split real/imag blocks of the offset h_c.
     h_c_re = h_c_all[:, :num_classical_coordinates]
@@ -127,7 +126,7 @@ def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
 
     Required Constants
     ------------------
-    ``dh_qc_dzc_finite_difference_delta`` : float, optional, default: 1e-6
+    ``dh_qc_dzc_finite_difference_delta`` : float, optional
         Finite-difference step size.
 
     Keyword Arguments
@@ -142,7 +141,7 @@ def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
     """
     z = getattr(state, kwargs["z"])
     batch_size = len(z)
-    delta_z = sim.model.constants.get("dh_qc_dzc_finite_difference_delta", 1e-6)
+    delta_z = sim.model.constants.get("dh_qc_dzc_finite_difference_delta", numerical_constants.FINITE_DIFFERENCE_DELTA)
     num_classical_coordinates = sim.model.constants.num_classical_coordinates
     num_quantum_states = sim.model.constants.num_quantum_states
     # Calculate increments in the real and imaginary directions.
@@ -270,8 +269,10 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
             wf_db,
             out=state.quantum_classical_forces.reshape(-1),
         ).reshape(np.shape(z))
-    if sim.algorithm.settings.get('use_gauge_field_force'):
-        state, parameters = add_gauge_field_force_fssh(sim, state, parameters, z=kwargs["z"], adb_state_ind=adb_state_ind)
+    if sim.algorithm.settings.get("use_gauge_field_force"):
+        state, parameters = add_gauge_field_force_fssh(
+            sim, state, parameters, z=kwargs["z"], adb_state_ind=adb_state_ind
+        )
     return state, parameters
 
 
@@ -300,7 +301,9 @@ def add_gauge_field_force_fssh(sim, state, parameters, **kwargs):
     adb_state_ind = getattr(state, kwargs.get("adb_state_ind", "act_surf_ind"))
     gauge_field_force, has_gauge_field_force = sim.model.get("gauge_field_force")
     if has_gauge_field_force:
-        state.quantum_classical_forces += gauge_field_force(parameters, z=z, adb_state_ind=adb_state_ind)
+        state.quantum_classical_forces += gauge_field_force(
+            parameters, z=z, adb_state_ind=adb_state_ind
+        )
     else:
         if sim.settings.debug:
             logger.warning("gauge_field_force not found; skipping.")
@@ -414,7 +417,7 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
                 np.abs(np.imag(der_couple_q_phase_new)) ** 2
                 + np.abs(np.imag(der_couple_p_phase_new)) ** 2
             )
-            > SMALL
+            > nnmerical_constants.SMALL
         ):
             logger.error(
                 "Phase error encountered when fixing gauge analytically. %s",
@@ -653,63 +656,10 @@ def update_hop_inds_fssh(sim, state, parameters, **kwargs):
     rand_branch = (rand[:, np.newaxis] * np.ones((num_trajs, num_branches))).flatten()
     hop_ind = np.where(
         np.sum((cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1) > 0
-    )[
-        0
-    ]  # trajectory indices that hop
-    # destination indices of the hops in each hoping trajectory
+    )[0]
     hop_dest = np.argmax(
         (cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1
     )[hop_ind]
-    state.hop_ind = hop_ind
-    state.hop_dest = hop_dest
-    return state, parameters
-
-
-def _update_hop_inds_fssh(sim, state, parameters, **kwargs):
-    """
-    Determine which trajectories hop based on the hopping probabilities and which state
-    they hop to. Note that these will only hop if they are not frustrated by the hopping
-    function.
-
-    Stores the indices of the hopping trajectories in ``state.hop_ind``. Stores the
-    destination indices of the hops in ``state.hop_dest``.
-
-    Required Constants
-    ------------------
-    None
-
-    Keyword Arguments
-    -----------------
-    None
-
-    Variable Modifications
-    -------------------
-    ``state.hop_ind`` : ndarray
-        Indices of trajectories that hop.
-    ``state.hop_dest`` : ndarray
-        Destination surface for each hop.
-    """
-    if sim.algorithm.settings.fssh_deterministic:
-        num_branches = sim.model.constants.num_quantum_states
-    else:
-        num_branches = 1
-
-    hop_prob = state.hop_prob
-
-    cumulative = np.cumsum(hop_prob, axis=1)
-
-    rand = state.hopping_probs_rand_vals[:, sim.t_ind]
-    rand_branch = np.repeat(rand, num_branches)
-
-    hop_check = cumulative > rand_branch[:, None]
-
-    hop_mask = np.sum(hop_check.astype(int), axis=1) > 0
-
-    first_idx = np.argmax(hop_check, axis=1)
-
-    hop_ind = np.nonzero(hop_mask)[0]
-    hop_dest = first_idx[hop_mask]
-
     state.hop_ind = hop_ind
     state.hop_dest = hop_dest
     return state, parameters

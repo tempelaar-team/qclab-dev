@@ -35,7 +35,9 @@ def test_drivers_spinboson():
     )
     sim.algorithm = MeanField()
     sim.model.initialize_constants()
-    sim.initial_state.wf_db = np.zeros((sim.model.constants.num_quantum_states), dtype=complex)
+    sim.initial_state.wf_db = np.zeros(
+        (sim.model.constants.num_quantum_states), dtype=complex
+    )
     sim.initial_state.wf_db[0] += 1.0
     print("Running serial driver...")
     data_serial = serial_driver(sim)
@@ -45,7 +47,6 @@ def test_drivers_spinboson():
     for key, val in data_serial.data_dict.items():
         if isinstance(val, np.ndarray):
             assert np.allclose(val, data_parallel_multiprocessing.data_dict[key])
-            # assert np.allclose(val, data_parallel_mpi.data_dict[key])
     print("parallel and serial results match!")
     return
 
@@ -89,7 +90,9 @@ def test_drivers_spinboson_mpi():
     )
     sim.algorithm = MeanField()
     sim.model.initialize_constants()
-    sim.initial_state.wf_db = np.zeros((sim.model.constants.num_quantum_states), dtype=complex)
+    sim.initial_state.wf_db = np.zeros(
+        (sim.model.constants.num_quantum_states), dtype=complex
+    )
     sim.initial_state.wf_db[0] += 1.0
 
     data_parallel_mpi = parallel_driver_mpi(sim)
@@ -106,6 +109,7 @@ def test_drivers_spinboson_mpi():
         print("parallel and serial results match!")
     return
 
+
 def test_incommensurate_batch_size_serial():
     """
     This test checks that the drivers work correctly when the number of trajectories
@@ -115,9 +119,7 @@ def test_incommensurate_batch_size_serial():
     from qc_lab import Simulation  # import simulation class
     from qc_lab.models import SpinBoson  # import model class
     from qc_lab.algorithms import MeanField  # import algorithm class
-    from qc_lab.dynamics import (
-        serial_driver
-    )  # import dynamics driver
+    from qc_lab.dynamics import serial_driver  # import dynamics driver
 
     sim = Simulation()
     sim.settings.progress_bar = False
@@ -139,11 +141,13 @@ def test_incommensurate_batch_size_serial():
     )
     sim.algorithm = MeanField()
     sim.model.initialize_constants()
-    sim.initial_state.wf_db = np.zeros((sim.model.constants.num_quantum_states), dtype=complex)
+    sim.initial_state.wf_db = np.zeros(
+        (sim.model.constants.num_quantum_states), dtype=complex
+    )
     sim.initial_state.wf_db[0] += 1.0
     print("Running commensurate batch size serial driver...")
     data_serial = serial_driver(sim)
-    sim.settings.batch_size = 30 # Change batch size to not divide num_trajs.
+    sim.settings.batch_size = 30  # Change batch size to not divide num_trajs.
     print("Running incommensurate batch size serial driver...")
     data_serial_incomm = serial_driver(sim)
     print("Comparing results...")
@@ -153,6 +157,7 @@ def test_incommensurate_batch_size_serial():
             # assert np.allclose(val, data_parallel_mpi.data_dict[key])
     print("results match!")
     return
+
 
 def test_incommensurate_batch_size_multiprocessing():
     """
@@ -187,11 +192,13 @@ def test_incommensurate_batch_size_multiprocessing():
     )
     sim.algorithm = MeanField()
     sim.model.initialize_constants()
-    sim.initial_state.wf_db = np.zeros((sim.model.constants.num_quantum_states), dtype=complex)
+    sim.initial_state.wf_db = np.zeros(
+        (sim.model.constants.num_quantum_states), dtype=complex
+    )
     sim.initial_state.wf_db[0] += 1.0
     print("Running commensurate batch size parallel driver...")
     data_parallel = parallel_driver_multiprocessing(sim)
-    sim.settings.batch_size = 30 # Change batch size to not divide num_trajs.
+    sim.settings.batch_size = 30  # Change batch size to not divide num_trajs.
     print("Running incommensurate batch size parallel driver...")
     data_parallel_incomm = parallel_driver_multiprocessing(sim)
     print("Comparing results...")
