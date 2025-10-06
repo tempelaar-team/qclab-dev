@@ -7,6 +7,7 @@ from qc_lab.model import Model
 from qc_lab import ingredients
 from qc_lab.numerical_constants import INVCM_TO_300K
 
+
 class FMOComplex(Model):
     """
     A model representing the Fenna-Matthews-Olson (FMO) complex.

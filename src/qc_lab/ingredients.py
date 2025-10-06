@@ -231,6 +231,7 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
     shape = np.shape(dh_qc_dzc)
     return inds, mels, shape
 
+
 def hop_harmonic(model, parameters, **kwargs):
     """
     FSSH hop function for taking the classical coordinates to represent harmonic
@@ -366,9 +367,9 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
     w = model.constants.harmonic_frequency
     m = model.constants.classical_coordinate_mass
     h = model.constants.classical_coordinate_weight
-    out = np.ascontiguousarray(np.zeros(
-        (len(seed), model.constants.num_classical_coordinates), dtype=complex
-    ))
+    out = np.ascontiguousarray(
+        np.zeros((len(seed), model.constants.num_classical_coordinates), dtype=complex)
+    )
     # Calculate the standard deviations for q and p.
     std_q = np.sqrt(kBT / (m * (w**2)))
     std_p = np.sqrt(m * kBT)

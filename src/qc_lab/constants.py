@@ -35,4 +35,3 @@ class Constants:
         Get the value of a constant.
         """
         return getattr(self, name, default)
-    

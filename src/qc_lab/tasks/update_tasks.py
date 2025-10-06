@@ -57,7 +57,9 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
     """
     z = kwargs["z"]
     name = kwargs.get("name", "dh_c_dzc")
-    delta_z = sim.model.constants.get("dh_c_dzc_finite_difference_delta", numerical_constants.FINITE_DIFFERENCE_DELTA)
+    delta_z = sim.model.constants.get(
+        "dh_c_dzc_finite_difference_delta", numerical_constants.FINITE_DIFFERENCE_DELTA
+    )
     batch_size = len(z)
     num_classical_coordinates = sim.model.constants.num_classical_coordinates
     # Calculate increments in the real and imaginary directions.
@@ -141,7 +143,9 @@ def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
     """
     z = getattr(state, kwargs["z"])
     batch_size = len(z)
-    delta_z = sim.model.constants.get("dh_qc_dzc_finite_difference_delta", numerical_constants.FINITE_DIFFERENCE_DELTA)
+    delta_z = sim.model.constants.get(
+        "dh_qc_dzc_finite_difference_delta", numerical_constants.FINITE_DIFFERENCE_DELTA
+    )
     num_classical_coordinates = sim.model.constants.num_classical_coordinates
     num_quantum_states = sim.model.constants.num_quantum_states
     # Calculate increments in the real and imaginary directions.

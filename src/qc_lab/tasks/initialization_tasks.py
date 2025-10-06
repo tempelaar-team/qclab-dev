@@ -21,7 +21,8 @@ def initialize_variable_objects(sim, state, parameters, **kwargs):
         if isinstance(obj, np.ndarray) and name[0] != "_":
             init_shape = np.shape(obj)
             new_obj = np.ascontiguousarray(
-                np.zeros((sim.settings.batch_size, *init_shape), dtype=obj.dtype) + obj[np.newaxis]
+                np.zeros((sim.settings.batch_size, *init_shape), dtype=obj.dtype)
+                + obj[np.newaxis]
             )
             logger.info(
                 "Initializing state variable %s with shape %s.", name, new_obj.shape
