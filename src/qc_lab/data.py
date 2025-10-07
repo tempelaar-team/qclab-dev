@@ -70,7 +70,7 @@ class Data:
 
     def add_data(self, new_data):
         """
-        Add new data to the output dictionary ``data_dict``.
+        Add data from ``new_data`` to the output dictionary ``data_dict``.
 
         Args
         ----
@@ -100,7 +100,7 @@ class Data:
 
     def save(self, filename):
         """
-        Save the data to disk.
+        Save the data to disk with file name ``filename``.
 
         If h5py is available the data is stored as an HDF5 archive; otherwise
         each variable is saved using numpy.savez.
@@ -119,7 +119,7 @@ class Data:
 
     def load(self, filename):
         """
-        Load a Data object from filename.
+        Load a Data object from ``filename``.
 
         Args
         ----
