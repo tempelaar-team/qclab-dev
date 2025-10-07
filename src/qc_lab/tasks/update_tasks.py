@@ -294,7 +294,7 @@ def add_gauge_field_force_fssh(sim, state, parameters, **kwargs):
     -----------------
     z : str
         Name of classical coordinates in state object.
-    adb_state_ind : str
+    adb_state_ind : str, default: "act_surf_ind"
         Index of the adiabatic state from which to obtain the gauge field force.
 
     Variable Modifications
