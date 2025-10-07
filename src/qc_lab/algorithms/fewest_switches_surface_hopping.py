@@ -136,7 +136,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
     collect_recipe = [
         tasks.update_t,
         tasks.update_dm_db_fssh,
-        partial(tasks.update_quantum_energy_fssh, wf="act_surf_wf"),
+        partial(tasks.update_quantum_energy_fssh, wf_db="act_surf_wf"),
         partial(tasks.update_classical_energy_fssh, z="z"),
         tasks.collect_t,
         tasks.collect_dm_db,

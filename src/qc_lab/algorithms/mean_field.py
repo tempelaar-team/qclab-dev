@@ -70,8 +70,8 @@ class MeanField(Algorithm):
 
     collect_recipe = [
         tasks.update_t,
-        tasks.update_dm_db_mf,
-        partial(tasks.update_quantum_energy, wf="wf_db"),
+        partial(tasks.update_dm_db_mf, wf_db="wf_db", dm_db="dm_db"),
+        partial(tasks.update_quantum_energy, wf_db="wf_db"),
         partial(tasks.update_classical_energy, z="z"),
         tasks.collect_t,
         tasks.collect_dm_db,

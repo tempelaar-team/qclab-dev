@@ -1,5 +1,5 @@
 """
-This module contains utility helpers for optional JIT compilation and in-memory logging.
+This module contains utility helpers for optional jit compilation and in-memory logging.
 """
 
 import logging
