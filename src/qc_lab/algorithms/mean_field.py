@@ -22,7 +22,7 @@ class MeanField(Algorithm):
         tasks.initialize_variable_objects,
         tasks.initialize_norm_factor,
         tasks.initialize_z,
-        partial(tasks.update_h_quantum, z="z"),
+        tasks.update_h_quantum,
     ]
 
     update_recipe = [
