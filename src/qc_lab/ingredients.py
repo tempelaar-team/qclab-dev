@@ -14,7 +14,7 @@ def h_c_harmonic(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    z : ndarray
+    ``z`` : ndarray
         Complex classical coordinate.
 
     Required Constants
@@ -41,7 +41,7 @@ def h_c_free(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    z : ndarray
+    ``z`` : ndarray
         Complex classical coordinate.
 
     Required Constants
@@ -60,12 +60,12 @@ def h_c_free(model, parameters, **kwargs):
 def dh_c_dzc_harmonic(model, parameters, **kwargs):
     """
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to
-    the conjugate z-coordinate. This is an ingredient that calls the low-level
+    the conjugate z coordinate. This is an ingredient that calls the low-level
     function ``dh_c_dzc_harmonic_jit``.
 
     Keyword Args
     ------------
-    z : ndarray
+    ``z`` : ndarray
         Complex classical coordinate.
 
     Required Constants
@@ -82,11 +82,11 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
 def dh_c_dzc_free(model, parameters, **kwargs):
     """
     Derivative of the free particle classical Hamiltonian function with respect to the
-    conjugate z-coordinate.
+    conjugate z coordinate.
 
     Keyword Args
     ------------
-    z : ndarray
+    ``z`` : ndarray
         Complex classical coordinate.
 
     Required Constants
@@ -107,7 +107,7 @@ def h_q_two_level(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    batch_size : int
+    ``batch_size`` : int
         Number of trajectories in a batch.
 
     Required Constants
@@ -143,7 +143,7 @@ def h_q_nearest_neighbor(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    batch_size : int
+    ``batch_size`` : int
         Number of trajectories in a batch.
 
     Required Constants
@@ -180,7 +180,7 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    z : ndarray
+    ``z`` : ndarray
         Complex classical coordinate.
 
     Required Constants
@@ -203,7 +203,7 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    z : ndarray
+    ``z`` : ndarray
         Complex classical coordinate.
 
     Required Constants
@@ -247,11 +247,11 @@ def hop_harmonic(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    z : ndarray
+    ``z`` : ndarray
         Current classical coordinate.
-    delta_z : ndarray
+    ``delta_z`` : ndarray
         Rescaling direction of ``z``.
-    eigval_diff : float
+    ``eigval_diff`` : float
         Energy difference between final and initial states.
 
     Required Constants
@@ -304,11 +304,11 @@ def hop_free(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    z : ndarray
+    ``z`` : ndarray
         Current classical coordinate.
-    delta_z : ndarray
+    ``delta_z`` : ndarray
         Rescaling direction.
-    eigval_diff : float
+    ``eigval_diff`` : float
         Energy difference between final and initial states.
 
     Required Constants
@@ -352,7 +352,7 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    seed : ndarray, int
+    ``seed`` : ndarray, int
         Random seeds for each trajectory.
 
     Required Constants
@@ -394,7 +394,7 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    seed : ndarray, int
+    ``seed`` : ndarray, int
         Random seeds for each trajectory.
 
     Required Constants
@@ -440,7 +440,7 @@ def init_classical_definite_position_momentum(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    seed : ndarray, int
+    ``seed`` : ndarray, int
         Random seeds for each trajectory.
 
     Required Constants
@@ -473,7 +473,7 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
 
     Keyword Args
     ------------
-    seed : ndarray, int
+    ``seed`` : ndarray, int
         Random seeds for each trajectory.
 
     Required Constants
@@ -505,7 +505,7 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
         p = np.random.normal(
             loc=mu_p, scale=std_p, size=model.constants.num_classical_coordinates
         )
-        # Calculate the z-coordinate.
+        # Calculate the z coordinate.
         z = functions.qp_to_z(q, p, m, h)
         out[s] = z
     return out

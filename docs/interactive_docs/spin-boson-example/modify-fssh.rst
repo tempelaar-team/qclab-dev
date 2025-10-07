@@ -19,7 +19,7 @@ To this end, we write the following function:
         # (i.e., did not successfully hop but were eligible to hop).
         frustrated_indices = state.hop_ind[~state.hop_successful]
         # Reverse the velocities for these indices, in the complex classical coordinate 
-        # formalism, this means conjugating the z-coordinate.
+        # formalism, this means conjugating the z coordinate.
         state.z[frustrated_indices] = state.z[frustrated_indices].conj()
         return state, parameters
 

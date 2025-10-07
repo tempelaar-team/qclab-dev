@@ -13,9 +13,6 @@ def qc_lab_custom_jit(func=None, **kwargs):
     """
     Dummy jit decorator that does nothing if numba is not available.
     """
-    logger.info(
-        "Numba is disabled; using dummy jit decorator.",
-    )
 
     def decorator(func):
         return func
@@ -30,7 +27,6 @@ def qc_lab_custom_njit(func=None, **kwargs):
     """
     Dummy njit decorator that does nothing if numba is not available.
     """
-    logger.info("Numba is disabled; using dummy njit decorator.")
 
     def decorator(func):
         return func
@@ -42,6 +38,9 @@ def qc_lab_custom_njit(func=None, **kwargs):
 
 
 if DISABLE_NUMBA:
+    logger.info(
+        "Numba is disabled; using dummy jit decorator.",
+    )
     njit = qc_lab_custom_njit
     jit = qc_lab_custom_jit
 else:
@@ -71,7 +70,6 @@ def configure_memory_logger(level=logging.INFO):
     """
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
-    # Remove existing handlers to avoid duplicate output.
     for handler in list(root_logger.handlers):
         root_logger.removeHandler(handler)
     handler = QCDataHandler()

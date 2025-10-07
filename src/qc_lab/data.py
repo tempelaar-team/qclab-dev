@@ -27,14 +27,16 @@ class Data:
 
     def add_output_to_data_dict(self, sim, state, t_ind):
         """
-        Add data to the output dictionary (data_dict).
+        Add data to the output dictionary ``data_dict``.
 
-        Args:
-            sim (Simulation): The simulation object containing settings and
-                parameters.
-            state (Variable): The state object containing the current
-                simulation state.
-            t_ind (int): The current time index in the simulation.
+        Args
+        ----
+        sim: Simulation
+            The simulation object containing settings and parameters.
+        state: Variable
+            The state object containing the current simulation state.
+        t_ind: int
+            The current time index in the simulation.
         """
         # Check if the norm_factor is zero. If it is, save it from the state object.
         if self.data_dict["norm_factor"] == 0:
@@ -68,11 +70,12 @@ class Data:
 
     def add_data(self, new_data):
         """
-        Add new data to the existing data dictionary.
+        Add new data to the output dictionary ``data_dict``.
 
-        Args:
-            new_data (Data): A Data instance containing the new data to
-                merge.
+        Args
+        ----
+        new_data: Data
+            A Data instance containing the new data to merge.
         """
         new_norm_factor = (
             new_data.data_dict["norm_factor"] + self.data_dict["norm_factor"]
@@ -102,8 +105,10 @@ class Data:
         If h5py is available the data is stored as an HDF5 archive; otherwise
         each variable is saved using numpy.savez.
 
-        Args:
-            filename (str): The file name to save the data to.
+        Args
+        ----
+        filename : str
+            The file name to save the data to.
         """
         if DISABLE_H5PY:
             np.savez(filename, log=self.log, **self.data_dict)
@@ -116,11 +121,15 @@ class Data:
         """
         Load a Data object from filename.
 
-        Args:
-            filename (str): The file name to load the data from.
+        Args
+        ----
+        filename : str
+            The file name to load the data from.
 
-        Returns:
-            Data: The current instance populated with the loaded data.
+        Returns
+        -------
+        Data : Data
+            The loaded Data object.
         """
         if DISABLE_H5PY:
             loaded = np.load(filename)
@@ -132,16 +141,20 @@ class Data:
             self.log = h5file.attrs["log"]
         return self
 
-    def _recursive_save(self, h5file, path, dic):
+    def _recursive_save(self, h5file, path, dict):
         """
         Recursively save dictionary contents to an HDF5 group.
 
-        Args:
-            h5file (h5py.File): The HDF5 file object to save data into.
-            path (str): The current path in the HDF5 file.
-            dic (dict): The dictionary to save.
+        Args
+        ----
+        h5file : h5py.File
+            The HDF5 file object to save data into.
+        path : str
+            The current path in the HDF5 file.
+        dict : dict
+            The dictionary to save.
         """
-        for key, item in dic.items():
+        for key, item in dict.items():
             if isinstance(item, dict):
                 self._recursive_save(h5file, path + key + "/", item)
             else:
@@ -152,18 +165,22 @@ class Data:
                         f"Cannot save {key} with unsupported type {type(item)}."
                     ) from exc
 
-    def _recursive_load(self, h5file, path, dic):
+    def _recursive_load(self, h5file, path, dict):
         """
         Recursively load dictionary contents from an HDF5 group.
 
-        Args:
-            h5file (h5py.File): The HDF5 file object to load data from.
-            path (str): The current path in the HDF5 file.
-            dic (dict): The dictionary to populate with loaded data.
+        Args
+        ----
+        h5file : h5py.File
+            The HDF5 file object to load data from.
+        path : str
+            The current path in the HDF5 file.
+        dict : dict
+            The dictionary to populate with loaded data.
         """
         for key, item in h5file[path].items():
             if isinstance(item, h5py._hl.dataset.Dataset):
-                dic[key] = item[()]
+                dict[key] = item[()]
             elif isinstance(item, h5py._hl.group.Group):
-                dic[key] = {}
-                self._recursive_load(h5file, path + key + "/", dic[key])
+                dict[key] = {}
+                self._recursive_load(h5file, path + key + "/", dict[key])

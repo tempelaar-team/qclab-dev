@@ -26,7 +26,7 @@ This is what the final code looks like:
         # (i.e., did not successfully hop but were eligible to hop).
         frustrated_indices = state.hop_ind[~state.hop_successful]
         # Reverse the velocities for these indices, in the complex classical coordinate 
-        # formalism, this means conjugating the z-coordinate.
+        # formalism, this means conjugating the z coordinate.
         state.z[frustrated_indices] = state.z[frustrated_indices].conj()
         return state, parameters
 
@@ -35,7 +35,7 @@ This is what the final code looks like:
         """
         A coupling term that couples the boson coordinates to the off-diagonal elements of the quantum Hamiltonian.
         """
-        # First we'll get the z-coordinate from the keyword arguments
+        # First we'll get the z coordinate from the keyword arguments
         z = kwargs['z']
         # Next we'll get the Required constants from the constants object.
         m = model.constants.classical_coordinate_mass

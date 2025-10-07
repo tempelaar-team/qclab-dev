@@ -18,7 +18,7 @@ def collect_t(sim, state, parameters):
 
     Variable Modifications
     -------------------
-    ``state.output_dict["t"]`` : ndarray
+    state.output_dict["t"] : ndarray
         stores the current time in each trajectory.
     """
     state.output_dict["t"] = state.t
@@ -39,7 +39,7 @@ def collect_dm_db(sim, state, parameters):
 
     Variable Modifications
     -------------------
-    ``state.output_dict["dm_db"]`` : ndarray
+    state.output_dict["dm_db"] : ndarray
         stores the diabatic density matrix.
     """
     state.output_dict["dm_db"] = state.dm_db
@@ -60,7 +60,7 @@ def collect_classical_energy(sim, state, parameters):
 
     Variable Modifications
     -------------------
-    ``state.output_dict["classical_energy"]`` : ndarray
+    state.output_dict["classical_energy"] : ndarray
         stores the classical energy.
     """
     state.output_dict["classical_energy"] = state.classical_energy
@@ -81,7 +81,7 @@ def collect_quantum_energy(sim, state, parameters):
 
     Variable Modifications
     -------------------
-    ``state.output_dict["quantum_energy"]`` : ndarray
+    state.output_dict["quantum_energy"] : ndarray
         stores the quantum energy.
     """
     state.output_dict["quantum_energy"] = state.quantum_energy

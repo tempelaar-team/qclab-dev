@@ -21,7 +21,7 @@ QC Lab's built-in vectorization decorator to automatically vectorize it.
         """
         A coupling term that couples the boson coordinates to the off-diagonal elements of the quantum Hamiltonian.
         """
-        # First we'll get the z-coordinate from the keyword arguments
+        # First we'll get the z coordinate from the keyword arguments
         z = kwargs['z']
         # Next we'll get the Required constants from the constants object.
         m = model.constants.classical_coordinate_mass

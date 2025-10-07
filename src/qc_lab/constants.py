@@ -32,6 +32,6 @@ class Constants:
 
     def get(self, name, default=None):
         """
-        Get the value of a constant.
+        Get the value of an attribute, returning default if it does not exist.
         """
         return getattr(self, name, default)

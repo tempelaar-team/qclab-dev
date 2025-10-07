@@ -62,7 +62,7 @@ internal constants required by QC Lab to function and are instead drawn from the
     H_{\mathrm{c}} = \sum_{\alpha}^{A} \omega_{\alpha} z^{*}_{\alpha} z_{\alpha}
 
 Here :math:`\sigma_{z}` is the Pauli-z matrix (:math:`\sigma_{z}=\vert0\rangle\langle 0\vert - \vert 1\rangle\langle 1\vert`), :math:`g_{\alpha}` is the coupling strength,
-:math:`m` is the boson mass, :math:`h_{\alpha}` is the z-coordinate parameter (which here we may take to correspond to the frequencies: :math:`h_{\alpha}=\omega_{\alpha}`),
+:math:`m` is the boson mass, :math:`h_{\alpha}` is the z coordinate parameter (which here we may take to correspond to the frequencies: :math:`h_{\alpha}=\omega_{\alpha}`),
  and :math:`A` is the number of bosons. We sample the frequencies and coupling strengths from a Debye spectral density which is discretized to obtain
 
 .. math::
@@ -422,7 +422,7 @@ which can be implemented in a vectorized fashion as:
         dh_c_dzc = 2 * b[..., :] * z + 2 *a[..., :] * np.conj(z)
         return dh_c_dzc
 
-Likewise we can construct an ingredient to generate the gradient of the quantum-classical Hamiltonian with respect to the conjugate z-coordinate.
+Likewise we can construct an ingredient to generate the gradient of the quantum-classical Hamiltonian with respect to the conjugate z coordinate.
 In many cases this requires the calculation of a sparse tensor and so QC Lab assumes that it is in terms of indices, nonzero elements, and a shape.
 
 .. math::
@@ -492,8 +492,8 @@ Classical Initialization
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-By default QC Lab assumes that a model's initial z-coordinate is sampled from a Boltzmann distribution at temperature "temp" and attempts to sample a 
-Boltzmann distribution given the classical Hamiltonian. This is in practice making a number of assumptions, notably that all the z-coordinates are uncoupled from 
+By default QC Lab assumes that a model's initial z coordinate is sampled from a Boltzmann distribution at temperature "temp" and attempts to sample a 
+Boltzmann distribution given the classical Hamiltonian. This is in practice making a number of assumptions, notably that all the z coordinates are uncoupled from 
 one another in the classical Hamiltonian. 
 
 

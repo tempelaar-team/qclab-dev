@@ -9,6 +9,22 @@ from tqdm import tqdm
 def run_dynamics(sim, state, parameters, data):
     """
     Dynamics core for QC Lab.
+
+    Args
+    ----
+    sim: Simulation
+        The simulation object containing the model, algorithm, and settings.
+    state: Variable
+        The state object containing the simulation seeds.
+    parameters: Variable
+        The parameters object containing any additional parameters.
+    data: Data
+        The data object for collecting output data.
+
+    Returns
+    -------
+    data: Data
+        The updated data object containing collected output data.
     """
     # Define an update iterator using tqdm if progress_bar is True.
     t_update_iterator = sim.settings.t_update_n

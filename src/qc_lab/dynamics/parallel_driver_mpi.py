@@ -15,6 +15,25 @@ logger = logging.getLogger(__name__)
 def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     """
     Parallel driver for the dynamics core using the mpi4py library.
+
+    Args
+    ----
+    sim: Simulation
+        The simulation object containing the model, algorithm, and settings.
+    seeds: ndarray, optional
+        An array of integer seeds for the trajectories. If None, seeds will be
+        generated automatically.
+    data: Data, optional
+        A Data object for collecting output data. If None, a new Data object
+        will be created.
+    num_tasks: int, optional
+        The number of tasks to use for parallel processing. If None, the
+        number of available tasks will be used.
+
+    Returns
+    -------
+    data: Data
+        The updated Data object containing collected output data.
     """
     # First initialize the model constants.
     sim.model.initialize_constants()

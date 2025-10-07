@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 
 def multiply_matrix_vector(mat, vec):
     """
-    Multiplies a matrix "mat" with a vector "vec".
+    Multiplies a matrix with a vector.
 
-    Assumes that the last two indices of "mat" are the matrix indices,
-    and the last index of "vec" is the vector index. The other indices
+    Assumes that the last two indices of ``mat`` are the matrix indices,
+    and the last index of ``vec`` is the vector index. The other indices
     must be broadcastable.
 
     (..., i, j) x (..., j) -> (..., i)
@@ -40,15 +40,15 @@ def multiply_matrix_vector(mat, vec):
 
 def transform_vec(vec, basis, adb_to_db=False):
     """
-    Transforms a vector "vec" to  a new basis defined by the
-    column vectors of the matrix "basis".
+    Transforms a vector ``vec`` to  a new basis defined by the
+    column vectors of the matrix ``basis``.
 
-    If the basis are eigenvectors of a diabatic Hamiltonian, then this
+    If ``basis`` are eigenvectors of a diabatic Hamiltonian, then this
     transformation ammounts to a transformation from the diabatic
     to adiabatic basis.
 
-    Assumes that the last two indices of "basis" are the matrix indices,
-    and the last index of "vec" is the vector index. The other indices
+    Assumes that the last two indices of ``basis`` are the matrix indices,
+    and the last index of ``vec`` is the vector index. The other indices
     must be broadcastable.
 
     Args
@@ -73,14 +73,14 @@ def transform_vec(vec, basis, adb_to_db=False):
 
 def transform_mat(mat, basis, adb_to_db=False):
     """
-    Transforms a matrix "mat" to a new basis defined by the
-    column vectors of the basis "basis".
+    Transforms a matrix ``mat`` to a new basis defined by the
+    column vectors of the basis ``basis``.
 
-    If basis are eigenvectors of a diabatic Hamiltonian, then this
+    If ``basis`` are eigenvectors of a diabatic Hamiltonian, then this
     transformation ammounts to a transformation from the diabatic
     to adiabatic basis.
 
-    Assumes that the last two indices of "mat" and "basis" are the matrix
+    Assumes that the last two indices of ``mat`` and ``basis`` are the matrix
     indices. The other indices must be broadcastable.
 
     Args
@@ -106,7 +106,7 @@ def transform_mat(mat, basis, adb_to_db=False):
 @njit
 def update_z_rk4_k123_sum(z_k, classical_forces, quantum_classical_forces, dt_update):
     """
-    Low-level function to calculate the intermediate z-coordinate and k values
+    Low-level function to calculate the intermediate z coordinate and k values
     for RK4 update. Applies to steps 1-3.
 
     Args
@@ -180,8 +180,8 @@ def update_z_rk4_k4_sum(
 @njit
 def dqdp_to_dzc(dq, dp, m, h):
     """
-    Convert derivatives w.r.t. q and p (dq and dp, respectively) to
-    the derivative w.r.t. zc (dzc).
+    Convert derivatives w.r.t. q and p (``dq`` and ``dp``, respectively) to
+    the derivative w.r.t. zc (``dzc``).
 
     Args
     ----
@@ -213,16 +213,16 @@ def dqdp_to_dzc(dq, dp, m, h):
 @njit
 def dzdzc_to_dqdp(dz, dzc, m, h):
     """
-    Convert derivatives w.r.t. z and zc (dz and dzc) to derivatives w.r.t. q and p (dq and dp).
-    If only one of dz or dzc is provided, then dq and dp are calculated assuming that
+    Convert derivatives w.r.t. z and zc (``dz`` and ``dzc``) to derivatives w.r.t. q and p (``dq`` and ``dp``).
+    If only one of ``dz`` or ``dzc`` is provided, then ``dq`` and ``dp`` are calculated assuming that
     :math:`dz = dzc^{*}`.
 
     Args
     ----
     dz : ndarray | None
-        Derivative w.r.t. complex z-coordinate.
+        Derivative w.r.t. complex z coordinate.
     dzc : ndarray | None
-        Derivative w.r.t. conjugate z-coordinate.
+        Derivative w.r.t. conjugate z coordinate.
     m : ndarray
         classical coordinate mass.
     h : ndarray
@@ -300,7 +300,7 @@ def z_to_p(z, m, h):
 def qp_to_z(q, p, m, h):
     """
     Convert real coordinates to complex coordinates.
-    If only one of q or p is provided, then the other is assumed to be zero.
+    If only one of ``q`` or ``p`` is provided, then the other is assumed to be zero.
 
     Args
     ----
@@ -332,7 +332,7 @@ def qp_to_z(q, p, m, h):
 def make_ingredient_sparse(ingredient):
     """
     Wrapper that converts a vectorized ingredient output to a sparse format consisting
-    of the indices (inds), nonzero elements (mels), and shape.
+    of the indices (``inds``), nonzero elements (``mels``), and ``shape``.
     """
 
     @functools.wraps(ingredient)
@@ -349,7 +349,7 @@ def make_ingredient_sparse(ingredient):
 
 def vectorize_ingredient(ingredient):
     """
-    Wrapper that vectorize h_q, h_qc, h_c, dh_qc_dzc, and dh_c_dzc ingredient functions.
+    Wrapper that vectorizes ingredient functions.
     It assumes that any kwarg is an numpy.ndarray that is vectorized over its first
     index. Other kwargs are assumed to not be vectorized.
     """
@@ -383,7 +383,7 @@ def vectorize_ingredient(ingredient):
 def dh_c_dzc_harmonic_jit(z, h, w):
     """
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to
-    the conjugate z-coordinate.
+    the conjugate ``z`` coordinate.
 
     Args
     ----
@@ -398,7 +398,7 @@ def dh_c_dzc_harmonic_jit(z, h, w):
     -------
     out : ndarray
         Derivative of the harmonic oscillator classical Hamiltonian function with respect to
-        the conjugate z-coordinate.
+        the conjugate z coordinate.
     """
 
     batch_size, num_classical_coordinates = z.shape
@@ -448,11 +448,11 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     """
     Generate a complex number sampled from a Gaussian distribution.
 
-    If z0 is provided, then a Gaussian distribution centered around z0 is sampled.
-    If z0 is not provided, then a Gaussian distribution centered around the
+    If ``z0`` is provided, then a Gaussian distribution centered around ``z0`` is sampled.
+    If ``z0`` is not provided, then a Gaussian distribution centered around the
     origin is sampled.
 
-    If separable is ``True``, then a different random number is generated
+    If ``separable`` is ``True``, then a different random number is generated
     for each classical coordinate (i.e., each coordinate corresponds to
     a different random walker). If ``False``, then the same random number
     is generated for all classical coordinates (i.e., a single random walker).
@@ -461,21 +461,20 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     ------------
     constants : Constants
         Constants object.
-    z0 : ndarray | None
+    z0 : ndarray | None, default: None
         Center of the Gaussian distribution. If ``None``, the distribution is
-        centered around the origin. Default: ``None``.
+        centered around the origin.
     seed : int | None
         Random seed for reproducibility.
-    separable : bool
+    separable : bool, default: True
         Whether to generate a different random number for each classical coordinate.
-        Default: ``True``.
 
     Required constants
     ------------------
-    ``num_classical_coordinates`` : int
+    num_classical_coordinates : int
         Number of classical coordinates.
-    ``mcmc_std`` : float
-        Standard deviation of the Gaussian distribution. Default: 1.0
+    mcmc_std : float, default: 1.0
+        Standard deviation of the Gaussian distribution.
 
     Returns
     -------
@@ -503,9 +502,9 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
 @njit
 def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
     """
-    Take a sparse gradient of a matrix with shape (batch_size, num_classical_coordinates,
-    num_quantum_state, num_quantum_states) and calculate the matrix element of
-    the vectors vec_l_conj and vec_r with  shape (batch_size, num_quantum_states).
+    Take a sparse gradient of a matrix with shape ``(batch_size, num_classical_coordinates,
+    num_quantum_state, num_quantum_states)`` and calculate the matrix element of
+    the vectors ``vec_l_conj`` and ``vec_r`` with  shape ``(batch_size*num_quantum_states)``.
 
     Args
     ----
@@ -519,11 +518,12 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
         Left vector (conjugated) for the inner product.
     vec_r : ndarray
         Right vector for the inner product.
-
+    out : ndarray | None
+        Preallocated output array. If ``None``, a new array is created.
     Returns
     -------
     out : ndarray
-        Result of the inner product with shape (batch_size, num_classical_coordinates).
+        Result of the inner product with shape ``(batch_size, num_classical_coordinates)``.
     """
     batch_size, num_classical_coordinates, num_quantum_states = (
         shape[0],
@@ -681,25 +681,6 @@ def analytic_der_couple_phase(sim, dh_qc_dzc, eigvals, eigvecs):
     return der_couple_q_phase, der_couple_p_phase
 
 
-def branch_mat_vec_mult(mat, vec):
-    """
-    Perform matrix-vector multiplication for a batch of matrices and vectors.
-
-    Args
-    ----
-    mat : ndarray
-        Batch of matrices with shape (batch_size, n, n).
-    vec : ndarray
-        Batch of vectors with shape (batch_size, n).
-
-    Returns
-    -------
-    out : ndarray
-        Result of the matrix-vector multiplication with shape (batch_size, n).
-    """
-    return (mat @ vec[..., np.newaxis])[:, :, 0]
-
-
 def wf_db_rk4(h_quantum, wf_db, dt_update):
     """
     Low-level function for quantum RK4 propagation.
@@ -718,10 +699,10 @@ def wf_db_rk4(h_quantum, wf_db, dt_update):
     wf_db : ndarray
         Updated wavefunction.
     """
-    k1 = -1j * branch_mat_vec_mult(h_quantum, wf_db)
-    k2 = -1j * branch_mat_vec_mult(h_quantum, (wf_db + 0.5 * dt_update * k1))
-    k3 = -1j * branch_mat_vec_mult(h_quantum, (wf_db + 0.5 * dt_update * k2))
-    k4 = -1j * branch_mat_vec_mult(h_quantum, (wf_db + dt_update * k3))
+    k1 = -1j * multiply_matrix_vector(h_quantum, wf_db)
+    k2 = -1j * multiply_matrix_vector(h_quantum, (wf_db + 0.5 * dt_update * k1))
+    k3 = -1j * multiply_matrix_vector(h_quantum, (wf_db + 0.5 * dt_update * k2))
+    k4 = -1j * multiply_matrix_vector(h_quantum, (wf_db + dt_update * k3))
     wf_db += dt_update * 0.16666666666666666 * k1
     wf_db += dt_update * 0.3333333333333333 * k2
     wf_db += dt_update * 0.3333333333333333 * k3
@@ -730,7 +711,7 @@ def wf_db_rk4(h_quantum, wf_db, dt_update):
 
 
 def calc_delta_z_fssh(
-    eigval_diff, eigvec_init_state, eigvec_final_state, dh_qc_dzc_traj, m, h
+    sim, eigval_diff, eigvec_init_state, eigvec_final_state, dh_qc_dzc_traj
 ):
     """
     Calculates the rescaling direction for FSSH using analytical derivative couplings.
@@ -761,7 +742,7 @@ def calc_delta_z_fssh(
     Returns
     -------
     dkj_zc : ndarray
-        Nonadiabatic coupling vector for rescaling the z-coordinate.
+        Nonadiabatic coupling vector for rescaling the z coordinate.
     """
     inds, mels, shape = dh_qc_dzc_traj
     num_classical_coordinates = shape[1]
@@ -775,14 +756,27 @@ def calc_delta_z_fssh(
         * eigvec_final_state[inds[3]]
         / eigval_diff,
     )
-    np.add.at(
-        dkj_z,
-        (inds[1]),
-        np.conj(eigvec_init_state)[inds[3]]
-        * np.conj(mels)
-        * eigvec_final_state[inds[2]]
-        / eigval_diff,
-    )
+    if sim.settings.debug:
+        np.add.at(
+            dkj_z,
+            (inds[1]),
+            np.conj(eigvec_init_state)[inds[3]]
+            * np.conj(mels)
+            * eigvec_final_state[inds[2]]
+            / eigval_diff,
+        )
+        re_part = dkj_zc + dkj_z
+        im_part = 1j * (dkj_zc - dkj_z)
+        if np.any(np.abs(re_part) > numerical_constants.SMALL) or np.any(
+            np.abs(im_part) > numerical_constants.SMALL
+        ):
+            logger.warning(
+                "Derivative couplings are complex-valued. "
+                "Gauge fixing may be needed.\n %s\n %s",
+                re_part,
+                im_part,
+            )
+
     return dkj_zc
 
 
@@ -792,13 +786,13 @@ def numerical_fssh_hop(model, parameters, **kwargs):
     an iterative numerical method. The coordinate following the hop is ``z + shift``.
 
     The algorithm is as follows:
-    1. Calculate the initial energy using the Hamiltonian function at the current z.
-    2. Define a grid from -gamma_range to +gamma_range with num_points points uniformally spaced.
+    1. Calculate the initial energy using the Hamiltonian function at the current ``z``.
+    2. Define a grid from ``-gamma_range`` to ``+gamma_range`` with ``num_points`` points uniformly spaced.
     3. Calculate the energy at each point in the grid using the Hamiltonian function.
     4. Find the point in the grid that minimizes the difference between the energy
        difference and the calculated energy difference.
     5. Recenter the grid around the minimum point found in step 4, reduce the
-       gamma_range by half, and repeat steps 3-5 until either the minimum energy
+       ``gamma_range`` by half, and repeat steps 3-5 until either the minimum energy
        difference is less than the threshold or the maximum number of iterations
        is reached.
     6. If the minimum energy difference is less than the threshold, return the
@@ -812,19 +806,19 @@ def numerical_fssh_hop(model, parameters, **kwargs):
     delta_z : float
         Rescaling direction.
     eigval_diff : float
-        Difference in eigenvalues between the initial and final states, e_final - e_initial.
+        Difference in eigenvalues between the initial and final states, ``e_final - e_initial``.
 
 
     Required constants
     ------------------
-    ``numerical_fssh_hop_gamma_range`` : float
-        Initial range (negative to positive) of gamma values to search over. Default: 5.0
-    ``numerical_fssh_hop_max_iter`` : int
-        Maximum number of iterations to perform. Default: 20
-    ``numerical_fssh_hop_num_points`` : int
-        Number of points to sample in each iteration. Default: 10
-    ``numerical_fssh_hop_threshold`` : float
-        Energy threshold for convergence. Default: 1e-6
+    numerical_fssh_hop_gamma_range : float, default: 5.0
+        Initial range (negative to positive) of gamma values to search over.
+    numerical_fssh_hop_max_iter : int, default: 20
+        Maximum number of iterations to perform.
+    numerical_fssh_hop_num_points : int, default: 10
+        Number of points to sample in each iteration.
+    numerical_fssh_hop_threshold : float, default: 1e-6
+        Energy threshold for convergence.
 
     Returns
     -------

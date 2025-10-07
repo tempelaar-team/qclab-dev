@@ -14,6 +14,22 @@ logger = logging.getLogger(__name__)
 def serial_driver(sim, seeds=None, data=None):
     """
     Serial driver for the dynamics core.
+
+    Args
+    ----
+    sim: Simulation
+        The simulation object containing the model, algorithm, and settings.
+    seeds: ndarray, optional
+        An array of integer seeds for the trajectories. If None, seeds will be
+        generated automatically.
+    data: Data, optional
+        A Data object for collecting output data. If None, a new Data object
+        will be created.
+
+    Returns
+    -------
+    data: Data
+        The updated Data object containing collected output data.
     """
     # First initialize the model constants.
     sim.model.initialize_constants()

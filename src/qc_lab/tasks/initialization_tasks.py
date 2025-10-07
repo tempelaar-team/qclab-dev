@@ -43,8 +43,7 @@ def initialize_norm_factor(sim, state, parameters, **kwargs):
 
     Required Constants
     ------------------
-    ``num_quantum_states`` : int
-        Number of quantum states.
+    None
 
     Keyword Arguments
     -----------------
@@ -52,7 +51,7 @@ def initialize_norm_factor(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.norm_factor`` : int
+    state.norm_factor : int
         Normalization factor for trajectory averages.
     """
     state.norm_factor = sim.settings.batch_size
@@ -82,9 +81,9 @@ def initialize_branch_seeds(sim, state, parameters, **kwargs):
 
     State Modifications
     -------------------
-    ``state.branch_ind`` : ndarray
+    state.branch_ind : ndarray
         Branch index for each trajectory.
-    ``state.seed`` : ndarray
+    state.seed : ndarray
         Seeds remapped for branches.
     """
     # First ensure that the number of branches is correct.
@@ -107,10 +106,7 @@ def initialize_branch_seeds(sim, state, parameters, **kwargs):
     # that have been run modulo num_branches.
     orig_seeds = state.seed
     # Now construct a branch index for each trajectory in the expanded batch.
-    state.branch_ind = (
-        np.zeros((batch_size // num_branches, num_branches), dtype=int)
-        + np.arange(num_branches)[np.newaxis, :]
-    ).flatten()
+    state.branch_ind = np.tile(np.arange(num_branches), batch_size // num_branches)
     # Now generate the new seeds for each trajectory in the expanded batch.
     new_seeds = orig_seeds // num_branches
     state.seed = new_seeds
@@ -131,17 +127,17 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
 
     Required Constants
     ------------------
-    ``mcmc_burn_in_size`` : int, default: 1000
+    mcmc_burn_in_size : int, default: 1000
         Burn-in step count.
-    ``mcmc_sample_size`` : int, default: 10000
+    mcmc_sample_size : int, default: 10000
         Number of retained samples.
-    ``mcmc_std`` : float, default: 1.0
+    mcmc_std : float, default: 1.0
         Sampling standard deviation.
-    ``mcmc_h_c_separable`` : bool, default: True
+    mcmc_h_c_separable : bool, default: True
         Whether the classical Hamiltonian is separable.
-    ``mcmc_init_z`` : ndarray, default: output of ``gen_sample_gaussian``
+    mcmc_init_z : ndarray, default: output of ``gen_sample_gaussian``
         Initial coordinate sample.
-    ``kBT`` : float
+    kBT : float
         Thermal quantum.
 
     Keyword Arguments
@@ -153,7 +149,7 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.{name}`` : ndarray
+    state.{name} : ndarray
         Initialized classical coordinates.
     """
     seed = getattr(state, kwargs["seed"])
@@ -261,7 +257,8 @@ def initialize_z(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.{name}`` : initialized classical coordinates.
+    state.{name} : ndarray
+        initialized classical coordinates.
     """
     seed = getattr(state, kwargs["seed"])
     name = kwargs["name"]
@@ -292,7 +289,7 @@ def copy_in_state(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.{copy}``
+    state.{copy} : type of state.{orig}
         Copy of ``state.{orig}``.
     """
     setattr(state, kwargs["copy"], np.copy(getattr(state, kwargs["orig"])))
@@ -322,11 +319,11 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.act_surf_ind_0`` : ndarray
+    state.act_surf_ind_0 : ndarray
         Initial active surface index.
-    ``state.act_surf_ind`` : ndarray
+    state.act_surf_ind : ndarray
         Current active surface index.
-    ``state.act_surf`` : ndarray
+    state.act_surf : ndarray
         Active surface wavefunctions.
     """
     if sim.algorithm.settings.fssh_deterministic:
@@ -346,13 +343,6 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
         )
         bool_mat = intervals > state.stochastic_sh_rand_vals[:, :, np.newaxis]
         act_surf_ind_0 = np.argmax(bool_mat, axis=-1).astype(int)
-    # state.act_surf_ind_0 = np.copy(act_surf_ind_0)
-    # state.act_surf_ind = np.copy(act_surf_ind_0)
-    # act_surf = np.zeros((num_trajs, num_branches, num_states), dtype=int)
-    # traj_inds = np.repeat(np.arange(num_trajs), num_branches)
-    # branch_inds = np.tile(np.arange(num_branches), num_trajs)
-    # act_surf[traj_inds, branch_inds, act_surf_ind_0.flatten()] = 1
-    # state.act_surf = act_surf.reshape((num_trajs * num_branches, num_states))
     act_surf_ind_0 = act_surf_ind_0.reshape(-1)
     state.act_surf_ind_0 = np.copy(act_surf_ind_0)
     state.act_surf_ind = np.copy(act_surf_ind_0)
@@ -379,9 +369,9 @@ def initialize_random_values_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.hopping_probs_rand_vals`` : ndarray
+    state.hopping_probs_rand_vals : ndarray
         Random numbers for hop decisions.
-    ``state.stochastic_sh_rand_vals`` : ndarray
+    state.stochastic_sh_rand_vals : ndarray
         Random numbers for active surface selection in stochastic FSSH.
     """
     if sim.algorithm.settings.fssh_deterministic:
@@ -412,7 +402,7 @@ def initialize_dm_adb_0_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.dm_adb_0`` : ndarray
+    state.dm_adb_0 : ndarray
         Initial adiabatic density matrix.
     """
     state.dm_adb_0 = np.einsum(

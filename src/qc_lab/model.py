@@ -37,12 +37,17 @@ class Model:
     def get(self, ingredient_name):
         """
         Retrieve an ingredient by name.
+        If the ingredient is not found or is None, returns (None, False).
+        If the ingredient is found and not None, returns (ingredient, True).
 
-        Args:
-            ingredient_name (str): Name of the ingredient to search for.
+        Args
+        -----------
+        ingredient_name : str
+            Name of the ingredient to search for.
 
-        Returns:
-            tuple[callable | None, bool]: The ingredient function (or None if
+        Returns
+        -----------
+        tuple[callable | None, bool]: The ingredient function (or None if
             not found) and a flag indicating whether it exists.
         """
         for ingredient in self.ingredients[::-1]:

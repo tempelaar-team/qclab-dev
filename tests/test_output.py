@@ -292,7 +292,6 @@ def test_output_fssh_gauge_fixing():
     ``diagonalize_matrix`` and ``gauge_fix_eigs`` tasks in the initialization recipe.
 
     """
-    local_settings = {"num_trajs": 10, "batch_size": 10}
     reference_folder = os.path.join(os.path.dirname(__file__), "reference/")
     my_FSSH = FewestSwitchesSurfaceHopping({"gauge_fixing": "phase_overlap"})
 

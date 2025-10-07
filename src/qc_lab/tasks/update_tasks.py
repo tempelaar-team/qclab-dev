@@ -26,7 +26,7 @@ def update_t(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.t`` : float
+    state.t : ndarray
         Time of each trajectory.
     """
     batch_size = sim.settings.batch_size
@@ -40,19 +40,19 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
 
     Required Constants
     ------------------
-    ``dh_c_dzc_finite_difference_delta`` : float, optional
+    dh_c_dzc_finite_difference_delta : float, default : numerical_constants.FINITE_DIFFERENCE_DELTA
         Finite-difference step size.
 
     Keyword Arguments
     -----------------
     z : ndarray
         Classical coordinates at which to evaluate the gradient.
-    name : str, optional, default: "dh_c_dzc"
+    name : str, default: "dh_c_dzc"
         Name under which to store the finite-difference gradient in the state object.
 
     Variable Modifications
     -------------------
-    ``state.{name}`` : ndarray
+    state.{name} : ndarray
         Gradient of the classical Hamiltonian.
     """
     z = kwargs["z"]
@@ -106,7 +106,7 @@ def update_classical_forces(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.classical_forces`` : ndarray
+    state.classical_forces : ndarray
             Gradient of the classical Hamiltonian.
     """
     z = getattr(state, kwargs["z"])
@@ -128,7 +128,7 @@ def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
 
     Required Constants
     ------------------
-    ``dh_qc_dzc_finite_difference_delta`` : float, optional
+    dh_qc_dzc_finite_difference_delta : float, default : numerical_constants.FINITE_DIFFERENCE_DELTA
         Finite-difference step size.
 
     Keyword Arguments
@@ -138,7 +138,7 @@ def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.dh_qc_dzc`` : tuple
+    state.dh_qc_dzc : tuple
         Gradient of the quantum-classical Hamiltonian.
     """
     z = getattr(state, kwargs["z"])
@@ -200,7 +200,7 @@ def update_dh_qc_dzc(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.dh_qc_dzc`` : tuple
+    state.dh_qc_dzc : tuple
         Gradient of the quantum-classical Hamiltonian.
     """
     z = getattr(state, kwargs["z"])
@@ -238,16 +238,17 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
         Name of classical coordinates in state object.
     wf_db : str
         Name of the wavefunction (in the diabatic basis) in the state object.
-    adb_state_ind: int, optional, required if algorithm.settings.use_gauge_field_force is True
+    adb_state_ind: int
         Index of the adiabatic state from which to obtain the gauge field force.
-    wf_changed : bool, optional, default: True
-        If True, the wavefunction has changed since the last time the forces were calculated.
+        Required if ``algorithm.settings.use_gauge_field_force`` is ``True``.
+    wf_changed : bool, default: True
+        If ``True``, the wavefunction has changed since the last time the forces were calculated.
 
     Variable Modifications
     -------------------
-    ``state.dh_qc_dzc`` : tuple
+    state.dh_qc_dzc : tuple
         Gradient of the quantum-classical Hamiltonian.
-    ``state.quantum_classical_forces`` : ndarray
+    state.quantum_classical_forces : ndarray
         Quantum-classical forces.
     """
     z = getattr(state, kwargs["z"])
@@ -298,7 +299,7 @@ def add_gauge_field_force_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.quantum_classical_forces`` : ndarray
+    state.quantum_classical_forces : ndarray
         Quantum-classical forces with gauge field force added.
     """
     z = getattr(state, kwargs["z"])
@@ -334,9 +335,9 @@ def diagonalize_matrix(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.{eigvals}`` : ndarray
+    state.{eigvals} : ndarray
         Eigenvalues of the matrix.
-    ``state.{eigvecs}`` : ndarray
+    state.{eigvecs} : ndarray
         Eigenvectors of the matrix.
     """
     matrix = getattr(state, kwargs["matrix"])
@@ -350,6 +351,7 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
     """
     Fixes the gauge of the eigenvectors as specified by the gauge_fixing parameter.
 
+
     if gauge_fixing == "sign_overlap":
         The sign of the eigenvector is changed so the real part of its
         overlap with the previous eigenvector is positive.
@@ -357,7 +359,8 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
     if gauge_fixing == "phase_overlap":
         The phase of the eigenvector is determined from its overlap
         with the previous eigenvector and used to maximize the real
-        part of the overlap.
+        part of the overlap. The sign is then changed so the real
+        part of the overlap is positive.
 
     if gauge_fixing == "phase_der_couple":
         The phase of the eigenvector is determined by calculating the
@@ -380,12 +383,13 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
         Name of the output gauge-fixed eigenvectors in the state object.
     z : str
         Name of classical coordinates in the state object.
-    gauge_fixing : str, optional, default: sim.algorithm.settings.gauge_fixing
+    gauge_fixing : str, default: sim.algorithm.settings.gauge_fixing
         Gauge-fixing method to use.
 
     Variable Modifications
     -------------------
-    - ``state.{output_eigvecs}``: gauge-fixed eigenvectors.
+    state.{output_eigvecs} : ndarray
+        Gauge-fixed eigenvectors.
     """
     eigvals = getattr(state, kwargs["eigvals"])
     eigvecs = getattr(state, kwargs["eigvecs"])
@@ -397,17 +401,23 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
         "phase_der_couple": 2,
     }
     gauge_fixing_value = gauge_fixing_numerical_values[gauge_fixing]
-    if gauge_fixing_value >= 1:
+    if gauge_fixing_value not in {0, 1, 2}:
+        logger.critical("Invalid gauge_fixing value: %s", gauge_fixing)
+        raise ValueError(f"Invalid gauge_fixing value: {gauge_fixing}")
+    if gauge_fixing_value == 1:
+        # Maximize the real part of the overlap (guaranteed to be positive).
         overlap = np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2)
         phase = np.exp(-1j * np.angle(overlap))
         eigvecs *= phase[:, None, :]
-    if gauge_fixing_value >= 2:
+    if gauge_fixing_value == 2:
+        # Make the derivative couplings real-valued (but not necessarily positive).
         state, parameters = update_dh_qc_dzc(sim, state, parameters, z=kwargs["z"])
         der_couple_q_phase, _ = functions.analytic_der_couple_phase(
             sim, state.dh_qc_dzc, eigvals, eigvecs
         )
         eigvecs *= np.conj(der_couple_q_phase)[:, None, :]
-    if gauge_fixing_value >= 0:
+    if gauge_fixing_value == 0 or gauge_fixing_value == 2:
+        # Make the real part positive based on the sign of the real part of the overlap.
         overlap = np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2)
         signs = np.sign(np.real(overlap))
         eigvecs *= signs[:, None, :]
@@ -421,7 +431,7 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
                 np.abs(np.imag(der_couple_q_phase_new)) ** 2
                 + np.abs(np.imag(der_couple_p_phase_new)) ** 2
             )
-            > nnmerical_constants.SMALL
+            > numerical_constants.SMALL
         ):
             logger.error(
                 "Phase error encountered when fixing gauge analytically. %s",
@@ -452,13 +462,14 @@ def basis_transform_vec(sim, state, parameters, **kwargs):
         states.
     output : str
         Name of the output vector in the state object.
-    adb_to_db : bool, optional, default: False
+    adb_to_db : bool, default: False
         If True, transforms from adiabatic to diabatic. If False, transforms from
         adiabatic to diabatic.
 
     Variable Modifications
     -------------------
-    - ``state.{output}``: vector expressed in the new basis.
+    state.{output} : ndarray
+        Vector expressed in the new basis.
     """
     input_vec = getattr(state, kwargs["input"])
     basis = getattr(state, kwargs["basis"])
@@ -485,7 +496,7 @@ def update_act_surf_wf(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.act_surf_wf`` : ndarray
+    state.act_surf_wf : ndarray
         Wavefunction of the active surface.
     """
     num_trajs = sim.settings.batch_size
@@ -517,7 +528,7 @@ def update_wf_db_eigs(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.{wf_db}`` : ndarray
+    state.{wf_db} : ndarray
         Updated diabatic wavefunction.
     """
     eigvals = getattr(state, kwargs["eigvals"])
@@ -556,7 +567,7 @@ def update_wf_db_rk4(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.wf_db`` : ndarray
+    state.wf_db : ndarray
         Diabatic wavefunction.
     """
     dt_update = sim.settings.dt_update
@@ -582,7 +593,7 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.hop_prob`` : ndarray
+    state.hop_prob : ndarray
         Hopping probabilities between the active surface and all other surfaces.
     """
     act_surf_ind = state.act_surf_ind
@@ -641,9 +652,9 @@ def update_hop_inds_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.hop_ind`` : ndarray
+    state.hop_ind : ndarray
         Indices of trajectories that hop.
-    ``state.hop_dest`` : ndarray
+    state.hop_dest : ndarray
         Destination surface for each hop.
     """
     if sim.algorithm.settings.fssh_deterministic:
@@ -671,7 +682,7 @@ def update_hop_inds_fssh(sim, state, parameters, **kwargs):
 
 def update_z_shift_fssh(sim, state, parameters, **kwargs):
     """
-    Determine if a hop occurs and calculates the shift in the z-coordinate
+    Determine if a hop occurs and calculates the shift in the z coordinate
     at the single trajectory level.
 
     Required Constants
@@ -689,9 +700,9 @@ def update_z_shift_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.hop_successful_traj`` : bool
+    state.hop_successful_traj : bool
         Flag indicating if the hop was successful.
-    ``state.z_shift_traj`` : ndarray
+    state.z_shift_traj : ndarray
         Shift required to conserve energy.
     """
     z = kwargs["z"]
@@ -740,9 +751,9 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.z_shift`` : ndarray
+    state.z_shift : ndarray
         Shift in coordinates for each hopping trajectory.
-    ``state.hop_successful`` : ndarray
+    state.hop_successful : ndarray
         Flags indicating if each hop was successful.
     """
 
@@ -788,12 +799,7 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
             shape_traj = (1, shape[1], shape[2], shape[3])
             dh_qc_dzc_traj = (inds_traj, mels_traj, shape_traj)
             delta_z = functions.calc_delta_z_fssh(
-                eigval_diff,
-                eigvec_init_state,
-                eigvec_final_state,
-                dh_qc_dzc_traj,
-                sim.model.constants.classical_coordinate_mass,
-                sim.model.constants.classical_coordinate_weight,
+                sim, eigval_diff, eigvec_init_state, eigvec_final_state, dh_qc_dzc_traj
             )
         state, parameters = update_z_shift_fssh(
             sim,
@@ -823,7 +829,7 @@ def update_z_hop_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.z`` : ndarray
+    state.z : ndarray
         Classical coordinates.
     """
     state.z[state.hop_ind] += state.z_shift
@@ -845,9 +851,9 @@ def update_act_surf_hop_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.act_surf_ind`` : ndarray
+    state.act_surf_ind : ndarray
         Active surface indices.
-    ``state.act_surf`` : ndarray
+    state.act_surf : ndarray
         Active surface wavefunctions.
     """
     # Get the index of the trajectories that successfully hopped.
@@ -880,11 +886,11 @@ def update_h_quantum(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.h_q`` : ndarray
+    state.h_q : ndarray
         Quantum Hamiltonian matrix.
-    ``state.h_qc`` : ndarray
+    state.h_qc : ndarray
         Quantum-classical coupling matrix.
-    ``state.h_quantum`` : ndarray
+    state.h_quantum : ndarray
         Total Hamiltonian of the quantum subsystem.
     """
     z = getattr(state, kwargs["z"])
@@ -916,9 +922,9 @@ def update_z_rk4_k1(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.{output}``` : ndarray
+    state.{output} : ndarray
         Output coordinates after half step.
-    ``state.z_rk4_k1`` : ndarray
+    state.z_rk4_k1 : ndarray
         First RK4 slope.
     """
     dt_update = sim.settings.dt_update
@@ -949,9 +955,9 @@ def update_z_rk4_k2(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.{output}``` : ndarray
+    state.{output} : ndarray
         Output coordinates after half step.
-    ``state.z_rk4_k2`` : ndarray
+    state.z_rk4_k2 : ndarray
         Second RK4 slope.
     """
     dt_update = sim.settings.dt_update
@@ -982,9 +988,9 @@ def update_z_rk4_k3(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.{output}``` : ndarray
+    state.{output} : ndarray
         Output coordinates after a full step.
-    ``state.z_rk4_k3`` : ndarray
+    state.z_rk4_k3 : ndarray
         Third RK4 slope.
     """
     dt_update = sim.settings.dt_update
@@ -1015,7 +1021,7 @@ def update_z_rk4_k4(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.{output}`` : ndarray
+    state.{output} : ndarray
         Output coordinates after a full step.
     """
     dt_update = sim.settings.dt_update
@@ -1048,7 +1054,8 @@ def update_dm_db_mf(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    - ``state.dm_db``: diabatic density matrix.
+    state.dm_db : ndarray
+        Diabatic density matrix.
     """
     wf_db = state.wf_db
     state.dm_db = np.einsum("ti,tj->tij", wf_db, np.conj(wf_db), optimize="greedy")
@@ -1070,7 +1077,7 @@ def update_classical_energy(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.classical_energy`` : ndarray
+    state.classical_energy : ndarray
         Energy of the classical subsystem.
     """
     z = getattr(state, kwargs["z"])
@@ -1097,7 +1104,7 @@ def update_classical_energy_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.classical_energy`` : ndarray
+    state.classical_energy : ndarray
         Energy of the classical subsystem.
     """
     z = getattr(state, kwargs["z"])
@@ -1154,7 +1161,7 @@ def update_quantum_energy(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.quantum_energy`` : ndarray
+    state.quantum_energy : ndarray
         Quantum energy.
     """
     wf = getattr(state, kwargs["wf"])
@@ -1181,7 +1188,7 @@ def update_quantum_energy_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.quantum_energy`` : ndarray
+    state.quantum_energy : ndarray
         Quantum energy.
     """
     wf = getattr(state, kwargs["wf"])
@@ -1227,9 +1234,9 @@ def update_dm_db_fssh(sim, state, parameters, **kwargs):
 
     Variable Modifications
     -------------------
-    ``state.dm_adb_branch_flat`` : ndarray
+    state.dm_adb_branch_flat : ndarray
         Flattened branch density matrices.
-    ``state.dm_db`` : ndarray
+    state.dm_db : ndarray
         Diabatic density matrix.
     """
     dm_adb_branch = np.einsum(
