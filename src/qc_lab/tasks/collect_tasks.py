@@ -6,7 +6,7 @@ parameters objects into the output dictionary of the state object.
 
 def collect_t(sim, state, parameters):
     """
-    Collect the time in the state object.
+    Collects the time in the state object.
 
     Required Constants
     ------------------
@@ -27,7 +27,7 @@ def collect_t(sim, state, parameters):
 
 def collect_dm_db(sim, state, parameters):
     """
-    Collect the diabatic density matrix in the state object.
+    Collects the diabatic density matrix in the state object.
 
     Required Constants
     ------------------
@@ -48,7 +48,7 @@ def collect_dm_db(sim, state, parameters):
 
 def collect_classical_energy(sim, state, parameters):
     """
-    Collect the classical energy in the state object.
+    Collects the classical energy in the state object.
 
     Required Constants
     ------------------
@@ -69,7 +69,7 @@ def collect_classical_energy(sim, state, parameters):
 
 def collect_quantum_energy(sim, state, parameters):
     """
-    Collect the quantum energy in the state object.
+    Collects the quantum energy in the state object.
 
     Required Constants
     ------------------

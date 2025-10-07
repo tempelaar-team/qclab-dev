@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def initialize_variable_objects(sim, state, parameters, **kwargs):
     """
-    Populate the ``parameter`` and ``state`` objects with variables in the ``sim.initial_state`` object.
+    Populates the ``parameter`` and ``state`` objects with variables in the ``sim.initial_state`` object.
     """
     for name in sim.initial_state.__dict__.keys():
         obj = getattr(sim.initial_state, name)
@@ -39,7 +39,7 @@ def initialize_variable_objects(sim, state, parameters, **kwargs):
 
 def initialize_norm_factor(sim, state, parameters, **kwargs):
     """
-    Assign the normalization factor to the state object.
+    Assigns the normalization factor to the state object.
 
     Required Constants
     ------------------
@@ -60,7 +60,7 @@ def initialize_norm_factor(sim, state, parameters, **kwargs):
 
 def initialize_branch_seeds(sim, state, parameters, **kwargs):
     """
-    Convert seeds into branch seeds for deterministic surface hopping. This is done by
+    Converts seeds into branch seeds for deterministic surface hopping. This is done by
     first assuming that the number of branches is equal to the number of quantum states.
     Then, a branch index is created which gives the branch index of each seed in the batch.
     Then a new set of seeds is created by floor dividing the original seeds by the number
@@ -115,7 +115,7 @@ def initialize_branch_seeds(sim, state, parameters, **kwargs):
 
 def initialize_z_mcmc(sim, state, parameters, **kwargs):
     """
-    Initialize classical coordinates according to Boltzmann statistics using Markov-
+    Initializes classical coordinates according to Boltzmann statistics using Markov-
     Chain Monte Carlo with a Metropolis-Hastings algorithm.
 
     The algorithm has two modes, separable and non-separable. In the separable
@@ -241,7 +241,7 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
 
 def initialize_z(sim, state, parameters, **kwargs):
     """
-    Initialize the classical coordinate by using the init_classical function from the
+    Initializes the classical coordinate by using the init_classical function from the
     model object.
 
     Required Constants
@@ -357,7 +357,7 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
 
 def initialize_random_values_fssh(sim, state, parameters, **kwargs):
     """
-    Initialize a set of random numbers using the trajectory seeds for FSSH.
+    Initializes a set of random numbers using the trajectory seeds for FSSH.
 
     Required Constants
     ------------------
@@ -390,7 +390,7 @@ def initialize_random_values_fssh(sim, state, parameters, **kwargs):
 
 def initialize_dm_adb_0_fssh(sim, state, parameters, **kwargs):
     """
-    Initialize the initial adiabatic density matrix for FSSH.
+    Initializes the initial adiabatic density matrix for FSSH.
 
     Required Constants
     ------------------
