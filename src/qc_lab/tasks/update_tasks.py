@@ -471,6 +471,13 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
         # Make the real part positive based on the sign of the real part of the overlap.
         overlap = np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2)
         signs = np.sign(np.real(overlap))
+        if sim.settings.debug:
+            if np.any(np.abs(signs) < numerical_constants.SMALL):
+                logger.error(
+                    "Zero overlap encountered when fixing gauge.\n"
+                    "This may indicate a trivial crossing or degeneracy.\n"
+                    "Normalization will be broken and results will be incorrect."
+                )
         eigvecs *= signs[:, None, :]
 
     if gauge_fixing_value == 2 and sim.settings.debug:
