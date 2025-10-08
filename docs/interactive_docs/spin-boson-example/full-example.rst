@@ -12,11 +12,11 @@ This is what the final code looks like:
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from qc_lab import Simulation
-    from qc_lab.models import SpinBoson
-    from qc_lab.algorithms import FewestSwitchesSurfaceHopping
-    from qc_lab.dynamics import serial_driver
-    from qc_lab.ingredients import vectorize_ingredient
+    from qclab import Simulation
+    from qclab.models import SpinBoson
+    from qclab.algorithms import FewestSwitchesSurfaceHopping
+    from qclab.dynamics import serial_driver
+    from qclab.ingredients import vectorize_ingredient
 
     def update_z_reverse_frustrated_fssh(sim, state, parameters):
         """

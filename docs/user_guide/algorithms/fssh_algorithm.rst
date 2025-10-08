@@ -3,7 +3,7 @@
 Fewest-Switches Surface Hopping
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The `qc_lab.algorithms.FewestSwitchesSurfaceHopping` class implements Tully's Fewest-Switches Surface Hopping (FSSH) dynamics algorithm according to `Hammes-Schiffer 1994 <https://doi.org/10.1063/1.467455>`_.
+The `qclab.algorithms.FewestSwitchesSurfaceHopping` class implements Tully's Fewest-Switches Surface Hopping (FSSH) dynamics algorithm according to `Hammes-Schiffer 1994 <https://doi.org/10.1063/1.467455>`_.
 
 
 Settings
@@ -61,10 +61,10 @@ The following example demonstrates how to run a mean-field simulation for a spin
 .. code-block:: python
 
     import numpy as np
-    from qc_lab import Simulation # import simulation class 
-    from qc_lab.models import SpinBoson # import model class 
-    from qc_lab.algorithms import FewestSwitchesSurfaceHopping # import algorithm class 
-    from qc_lab.dynamics import serial_driver # import dynamics driver
+    from qclab import Simulation # import simulation class 
+    from qclab.models import SpinBoson # import model class 
+    from qclab.algorithms import FewestSwitchesSurfaceHopping # import algorithm class 
+    from qclab.dynamics import serial_driver # import dynamics driver
 
     sim = Simulation()
     sim.model = SpinBoson()

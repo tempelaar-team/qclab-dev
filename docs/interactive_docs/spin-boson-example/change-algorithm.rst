@@ -8,7 +8,7 @@ Sure! Following the last example you can simply swap out `sim.algorithm` to use 
 .. code-block:: python
 
 
-    from qc_lab.algorithms import FewestSwitchesSurfaceHopping
+    from qclab.algorithms import FewestSwitchesSurfaceHopping
 
     sim.algorithm = FewestSwitchesSurfaceHopping()
 

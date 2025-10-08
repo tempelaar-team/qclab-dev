@@ -24,16 +24,16 @@ First, we import the necessary modules.
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from qc_lab import Simulation # import simulation class 
-    from qc_lab.models import SpinBoson # import model class 
-    from qc_lab.algorithms import MeanField # import algorithm class 
-    from qc_lab.dynamics import serial_driver # import dynamics driver
+    from qclab import Simulation # import simulation class 
+    from qclab.models import SpinBoson # import model class 
+    from qclab.algorithms import MeanField # import algorithm class 
+    from qclab.dynamics import serial_driver # import dynamics driver
 
 
 Instantiating a Simulation Object
 ---------------------------------
 
-Next, we instantiate a simulation object from `qc_lab.Simulation`. Each object has a set of default settings which can be accessed by calling `sim.default_settings`.
+Next, we instantiate a simulation object from `qclab.Simulation`. Each object has a set of default settings which can be accessed by calling `sim.default_settings`.
 Passing a dictionary to the simulation object when instantiating it will override the default settings.
 
 .. code-block:: python
@@ -172,7 +172,7 @@ Simply import the relevant Algorithm class and set `sim.algorithm` to it and rer
 
 .. code-block:: python
 
-    from qc_lab.algorithms import FewestSwitchesSurfaceHopping
+    from qclab.algorithms import FewestSwitchesSurfaceHopping
 
     sim.algorithm = FewestSwitchesSurfaceHopping()
 
@@ -199,7 +199,7 @@ over four tasks.
 
 .. code-block:: python
 
-    from qc_lab.dynamics import parallel_driver_multiprocessing
+    from qclab.dynamics import parallel_driver_multiprocessing
 
     data = parallel_driver_multiprocessing(sim, num_tasks=4)
 

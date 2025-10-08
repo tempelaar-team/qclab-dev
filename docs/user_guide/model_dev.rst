@@ -37,7 +37,7 @@ of the model ingredients to run.
 
 ::
 
-    from qc_lab import Model  # import the model class
+    from qclab import Model  # import the model class
 
     # create a minimal spin-boson model subclass
     class MinimalSpinBoson(Model):
@@ -193,7 +193,7 @@ at the cost of some performance (it is strongly recommended to write vectorized 
 
 .. code-block:: python
 
-    import qc_lab.ingredients as ingredients
+    import qclab.ingredients as ingredients
 
     @ingredients.vectorize_ingredient
     def h_q(self, constants, parameters, **kwargs):
@@ -725,7 +725,7 @@ Using Built-in Ingredients
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 QC Lab comes with a number of built-in ingredients that can be used to construct a model rather than writing ingredients from scratch like above. These ingredients can be imported 
-from `qc_lab.ingredients` and are documented in the :ref:`ingredients` section.
+from `qclab.ingredients` and are documented in the :ref:`ingredients` section.
 
 For the present example, we can avoid writing our own optimized ingredients and simply add the available built-in ingredients to the model. 
 
@@ -733,7 +733,7 @@ First let's load the quantum Hamiltonian as the built-in two-level system Hamilt
 
 .. code-block:: python
 
-    import qc_lab.ingredients as ingredients
+    import qclab.ingredients as ingredients
     model = MinimalSpinBoson 
 
     model.h_q = ingredients.h_q_two_level

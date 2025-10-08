@@ -20,21 +20,21 @@ You can obtain the QC Lab source code in one of two ways:
    
    .. code-block:: bash
 
-      git clone https://github.com/tempelaar-team/qc_lab.git
+      git clone https://github.com/tempelaar-team/qclab.git
 
 2. **Download a ZIP archive** of the latest `main` branch:
    
    .. code-block:: bash
 
-      wget https://github.com/tempelaar-team/qc_lab/archive/refs/heads/main.zip -O qc_lab-main.zip
+      wget https://github.com/tempelaar-team/qclab/archive/refs/heads/main.zip -O qclab-main.zip
 
    Then unpack the archive:
 
    .. code-block:: bash
-      unzip qc_lab-main.zip
+      unzip qclab-main.zip
 
    If you do not have ``wget`` or ``unzip``, you can alternatively navigate to the repository page in your browser:
-   https://github.com/tempelaar-team/qc_lab and click **Code → Download ZIP**, then extract it with your preferred archive manager.
+   https://github.com/tempelaar-team/qclab and click **Code → Download ZIP**, then extract it with your preferred archive manager.
 
 Unpacking (if using ZIP or TAR)
 -------------------------------
@@ -42,15 +42,15 @@ If you downloaded a ZIP file, make sure it is unpacked:
 
 .. code-block:: bash
 
-   unzip qc_lab-main.zip       # Produces folder `qc_lab-main/`
+   unzip qclab-main.zip       # Produces folder `qclab-main/`
 
 If you downloaded a tarball (for example, if GitHub provides a `.tar.gz`), unpack with:
 
 .. code-block:: bash
 
-   tar -xzf qc_lab-main.tar.gz # Produces folder `qc_lab-main/`
+   tar -xzf qclab-main.tar.gz # Produces folder `qclab-main/`
 
-Ensure your working directory now contains a folder named `qc_lab/` (if you cloned via git) or `qc_lab-main/` (if you downloaded and unpacked).
+Ensure your working directory now contains a folder named `qclab/` (if you cloned via git) or `qclab-main/` (if you downloaded and unpacked).
 
 Installing with pip
 -------------------
@@ -59,10 +59,10 @@ Navigate into the QC Lab source directory and install via pip:
 .. code-block:: bash
 
    # If you used git:
-   cd qc_lab/
+   cd qclab/
 
    # If you downloaded and unpacked ZIP/TAR:
-   cd qc_lab-main/
+   cd qclab-main/
 
    # Install QC Lab (and its Python dependencies)
    pip install .

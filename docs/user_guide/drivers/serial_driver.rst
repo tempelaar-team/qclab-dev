@@ -3,7 +3,7 @@
 Serial Driver
 ~~~~~~~~~~~~~
 
-The `serial_driver` function in the `qc_lab.dynamics` module is used to run simulations in serial.
+The `serial_driver` function in the `qclab.dynamics` module is used to run simulations in serial.
 
 
 Function Signature
@@ -11,7 +11,7 @@ Function Signature
 
 .. code-block:: python
 
-    qc_lab.dynamics.serial_driver(sim, seeds=None, data=None, num_tasks=None)
+    qclab.dynamics.serial_driver(sim, seeds=None, data=None, num_tasks=None)
 
 Parameters
 ----------
@@ -34,7 +34,7 @@ that the simulation object has been set up according to the quickstart guide.:
 .. code-block:: python
 
     # Import the serial driver
-    from qc_lab.dynamics import serial_driver
+    from qclab.dynamics import serial_driver
 
     # Run the simulation using the parallel driver
     data = serial_driver(sim)

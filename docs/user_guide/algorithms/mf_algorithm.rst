@@ -2,7 +2,7 @@
 Mean-Field Dynamics 
 ~~~~~~~~~~~~~~~~~~~
 
-The `qc_lab.algorithms.MeanField` class implements the mean-field (Ehrenfest) dynamics algorithm according to `Tully 1998 <https://doi.org/10.1039/A801824C>`_.
+The `qclab.algorithms.MeanField` class implements the mean-field (Ehrenfest) dynamics algorithm according to `Tully 1998 <https://doi.org/10.1039/A801824C>`_.
 
 Required Model Ingredients
 ------------------------------------------------
@@ -59,10 +59,10 @@ The following example demonstrates how to run a mean-field simulation for a spin
 .. code-block:: python
 
     import numpy as np
-    from qc_lab import Simulation # import simulation class 
-    from qc_lab.models import SpinBoson # import model class 
-    from qc_lab.algorithms import MeanField # import algorithm class 
-    from qc_lab.dynamics import serial_driver # import dynamics driver
+    from qclab import Simulation # import simulation class 
+    from qclab.models import SpinBoson # import model class 
+    from qclab.algorithms import MeanField # import algorithm class 
+    from qclab.dynamics import serial_driver # import dynamics driver
 
     sim = Simulation()
     sim.model = SpinBoson()

@@ -7,8 +7,8 @@ import pytest
 import os
 import time
 import numpy as np
-from qc_lab import Simulation, Data
-from qc_lab.models import (
+from qclab import Simulation, Data
+from qclab.models import (
     SpinBoson,
     HolsteinLattice,
     HolsteinLatticeReciprocalSpace,
@@ -17,9 +17,9 @@ from qc_lab.models import (
     TullyProblemTwo,
     TullyProblemThree,
 )
-from qc_lab.algorithms import MeanField, FewestSwitchesSurfaceHopping
-from qc_lab.dynamics import serial_driver, parallel_driver_multiprocessing
-from qc_lab.numerical_constants import INVCM_TO_300K
+from qclab.algorithms import MeanField, FewestSwitchesSurfaceHopping
+from qclab.dynamics import serial_driver, parallel_driver_multiprocessing
+from qclab.numerical_constants import INVCM_TO_300K
 
 model_sim_settings = {
     "SpinBoson": {

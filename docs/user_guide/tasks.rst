@@ -21,7 +21,7 @@ For example, adding the above example task to the MeanField algorithm can be don
 
 .. code-block:: python
 
-    from qc_lab.algorithms import MeanField
+    from qclab.algorithms import MeanField
 
     myMF = MeanField()
     myMF.initialization_tasks.append(example_task)
@@ -56,7 +56,7 @@ We do this by using the ``functools.partial`` function to create a new function 
 .. code-block:: python
 
     from functools import partial
-    from qc_lab.algorithms import MeanField
+    from qclab.algorithms import MeanField
 
     myMF = MeanField()
     update_wf = partial(update_wf_rk4, wf="wf")

@@ -24,7 +24,7 @@ In each problem, the quantum-classical Hamiltonian is given by
 Tully 1: Simple Avoided Crossing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The simple avoided crossing model is `qc_lab.models.TullyProblemOne` and the quantum-classical Hamiltonian is given by
+The simple avoided crossing model is `qclab.models.TullyProblemOne` and the quantum-classical Hamiltonian is given by
 
 .. math::
 
@@ -70,7 +70,7 @@ The model constants are:
 Tully 2: Dual Avoided Crossing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The dual avoided crossing model is `qc_lab.models.TullyProblemTwo` and the quantum-classical Hamiltonian is given by
+The dual avoided crossing model is `qclab.models.TullyProblemTwo` and the quantum-classical Hamiltonian is given by
 
 .. math::
 
@@ -125,7 +125,7 @@ The model constants are:
 Tully 3: Extended Coupling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The extended coupling model is `qc_lab.models.TullyProblemThree` and the quantum-classical Hamiltonian is given by
+The extended coupling model is `qclab.models.TullyProblemThree` and the quantum-classical Hamiltonian is given by
 
 .. math::
 

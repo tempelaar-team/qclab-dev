@@ -45,7 +45,7 @@ In order to be used each algorithm class defines an internal methods that passes
 
 
 
-The tasks in QC Lab are defined in the `qc_lab.tasks` module. They are organized into three groups, the initialization tasks which are used at the outset of the simulation
+The tasks in QC Lab are defined in the `qclab.tasks` module. They are organized into three groups, the initialization tasks which are used at the outset of the simulation
 to define necessary quantities, the update tasks which are used to update the quantities at each update timestep during the simulation, and the collect tasks that collect the quantities which the user 
 wants to save in the data object at each collect timestep. 
 
@@ -54,7 +54,7 @@ Initialization Tasks
 ----------------------
 
 
-.. automodule:: qc_lab.initialization_tasks
+.. automodule:: qclab.initialization_tasks
     :members:
     :undoc-members:
     :show-inheritance:
@@ -63,7 +63,7 @@ Initialization Tasks
 Update Tasks
 ----------------------
 
-.. automodule:: qc_lab.tasks.update_tasks
+.. automodule:: qclab.tasks.update_tasks
     :members:
     :undoc-members:
     :show-inheritance:
@@ -72,7 +72,7 @@ Update Tasks
 Collect Tasks
 ----------------------
 
-.. automodule:: qc_lab.tasks.collect_tasks
+.. automodule:: qclab.tasks.collect_tasks
     :members:
     :undoc-members:
     :show-inheritance:

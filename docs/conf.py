@@ -45,7 +45,7 @@ html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 html_theme_options = {
     "body_max_width": "100%",  # Remove maximum width constraint
-    "github_url": "https://github.com/tempelaar-team/qc_lab",
+    "github_url": "https://github.com/tempelaar-team/qclab",
     "collapse_navigation": True,
     "show_nav_level": 2,
     "secondary_sidebar_items": ["page-toc", "sourcelink"],

@@ -9,15 +9,15 @@ go into detail (in this guide) about how to develop a new algorithm from scratch
 on making changes to existing algorithms.
 
 Before we proceed, let's discuss the structure of an algorithm in QC Lab. An algorithm in QC Lab is a Python
-class that inherits from the `Algorithm` class in the `qc_lab.algorithm` module. The built-in algorithms are
-found in the `qc_lab.algorithms` module and presently contain `qc_lab.algorithms.MeanField` and
-`qc_lab.algorithms.FewestSwitchesSurfaceHopping`.
+class that inherits from the `Algorithm` class in the `qclab.algorithm` module. The built-in algorithms are
+found in the `qclab.algorithms` module and presently contain `qclab.algorithms.MeanField` and
+`qclab.algorithms.FewestSwitchesSurfaceHopping`.
 
-We can start by importing the `MeanField` algorithm from the `qc_lab.algorithms` module:
+We can start by importing the `MeanField` algorithm from the `qclab.algorithms` module:
 
 .. code-block:: python
 
-    from qc_lab.algorithms import MeanField
+    from qclab.algorithms import MeanField
 
 
 Each algorithm consists of three lists of functions which are referred to as "recipes", the functions themselves are 
@@ -93,9 +93,9 @@ We can then run a simulation and calculate the corresponding spectral function,
 
 .. code-block:: python
     
-    from qc_lab import Simulation 
-    from qc_lab.dynamics import parallel_driver_multiprocessing
-    from qc_lab.models import SpinBoson
+    from qclab import Simulation 
+    from qclab.dynamics import parallel_driver_multiprocessing
+    from qclab.models import SpinBoson
 
     # instantiate a simulation
     sim = Simulation()
@@ -179,9 +179,9 @@ We can then run a simulation and plot the populations. Note that since the spin-
 
 .. code-block:: python
 
-    from qc_lab import Simulation 
-    from qc_lab.dynamics import serial_driver
-    from qc_lab.models import SpinBoson
+    from qclab import Simulation 
+    from qclab.dynamics import serial_driver
+    from qclab.models import SpinBoson
 
     # Instantiate a simulation.
     sim = Simulation()

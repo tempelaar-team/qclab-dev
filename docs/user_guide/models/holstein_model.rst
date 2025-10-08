@@ -74,10 +74,10 @@ Example
 
 ::
 
-    from qc_lab.models import HolsteinLattice
-    from qc_lab import Simulation
-    from qc_lab.algorithms import MeanField
-    from qc_lab.dynamics import serial_driver
+    from qclab.models import HolsteinLattice
+    from qclab import Simulation
+    from qclab.algorithms import MeanField
+    from qclab.dynamics import serial_driver
     import numpy as np
 
     # instantiate a simulation

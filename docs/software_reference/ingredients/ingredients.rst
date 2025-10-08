@@ -50,57 +50,57 @@ When incorporated directly into the model class (for instance when writing a mod
 Implementations available in QC Lab
 ===================================
 
-The following ingredients are implemented in QC Lab and can be accessed through the `qc_lab.ingredients` module.
+The following ingredients are implemented in QC Lab and can be accessed through the `qclab.ingredients` module.
 
 
 
 Quantum Hamiltonian (`h_q`)
 ---------------------------------
 
-.. automodule:: qc_lab.ingredients
+.. automodule:: qclab.ingredients
     :members: h_q_two_level, h_q_nearest_neighbor
 
 
 Quantum-Classical Hamiltonian (`h_qc`)
 --------------------------------------------
 
-.. automodule:: qc_lab.ingredients
+.. automodule:: qclab.ingredients
     :members: h_qc_diagonal_linear
 
 Classical Hamiltonian (`h_c`)
 -----------------------------------
 
-.. automodule:: qc_lab.ingredients
+.. automodule:: qclab.ingredients
     :members: h_c_harmonic, h_c_free
 
 Classical Initialization (`init_classical`)
 -------------------------------------------------
 
-.. automodule:: qc_lab.ingredients
+.. automodule:: qclab.ingredients
     :members: init_classical_boltzmann_harmonic, init_classical_wigner_harmonic, init_classical_wigner_coherent_state, init_classical_definite_position_momentum
 
 
 Quantum-Classical Gradients (`dh_qc_dzc`)
 -------------------------------------------------
 
-.. automodule:: qc_lab.ingredients
+.. automodule:: qclab.ingredients
     :members: dh_qc_dzc_diagonal_linear
 
 
 Classical Gradients (`dh_c_dzc`)
 ---------------------------------
 
-.. automodule:: qc_lab.ingredients
+.. automodule:: qclab.ingredients
     :members: dh_c_dzc_harmonic, dh_c_dzc_free
 
 FSSH Hop Function (`hop`)
 --------------------------------------
 
-.. automodule:: qc_lab.ingredients
+.. automodule:: qclab.ingredients
     :members: hop_harmonic, hop_free
 
 FSSH Rescaling Direction (`rescaling_direction_fssh`)
 -------------------------------------------------
 
-.. automodule:: qc_lab.ingredients
+.. automodule:: qclab.ingredients
     :members: harmonic_oscillator_rescaling_direction_fssh

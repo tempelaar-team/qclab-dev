@@ -34,7 +34,7 @@ Model Systems
 * Fenna-Matthews-Olson (FMO) complex [6, 7]
 
 
-Installing qc_lab
+Installing qclab
 -----------------
 
 This alpha release of QC Lab can be installed from source by downloading the repository and executing.::

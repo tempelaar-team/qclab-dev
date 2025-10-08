@@ -12,7 +12,7 @@ growing library of quantum-classical dynamics tools.
 **QC Lab** is developed and maintained by the Tempelaar Team in the Chemistry Department of Northwestern University in Evanston, Illinois, USA.
 
 
-The documentation for QC Lab can be found at https://tempelaar-team.github.io/qc_lab/.
+The documentation for QC Lab can be found at https://tempelaar-team.github.io/qclab/.
 
 
 Capabilities
@@ -35,7 +35,7 @@ Model Systems
 * Fenna-Matthews-Olson (FMO) complex [6, 7]
 
 
-Installing qc_lab
+Installing qclab
 -----------------
 
 This alpha release of QC Lab can be installed from source by downloading the repository and executing::

@@ -3,14 +3,14 @@
 Data Object
 -----------
 
-The data object in QC Lab is used to store the results of a simulation, it can be imported from `qc_lab.Data`. Typically, it is created by the dynamics driver
+The data object in QC Lab is used to store the results of a simulation, it can be imported from `qclab.Data`. Typically, it is created by the dynamics driver
 and contains the output variables in the dictionary `data.data_dict`. 
 
 Assuming we have a data object or have initialized one as:
 
 .. code-block:: python
 
-    from qc_lab import Data
+    from qclab import Data
     data = Data()
 
 
@@ -62,10 +62,10 @@ Example Usage
 .. code-block:: python
 
     import numpy as np
-    from qc_lab import Simulation, Data
-    from qc_lab.models import SpinBoson
-    from qc_lab.algorithms import MeanField
-    from qc_lab.dynamics import serial_driver
+    from qclab import Simulation, Data
+    from qclab.models import SpinBoson
+    from qclab.algorithms import MeanField
+    from qclab.dynamics import serial_driver
 
     # Initialize the simulation object.
     sim = Simulation()

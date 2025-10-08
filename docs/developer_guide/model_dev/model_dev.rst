@@ -32,7 +32,7 @@ of the model ingredients to run.
 
 ::
 
-    from qc_lab import Model  # import the model class
+    from qclab import Model  # import the model class
 
     # create a minimal spin-boson model subclass
     class MinimalSpinBoson(Model):
@@ -190,7 +190,7 @@ at the cost of some performance (it is strongly recommended to write vectorized 
 
 .. code-block:: python
 
-    import qc_lab.ingredients as ingredients
+    import qclab.ingredients as ingredients
 
     @ingredients.vectorize_ingredient
     def h_q(self, parameters, **kwargs):
