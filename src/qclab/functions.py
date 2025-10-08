@@ -502,7 +502,7 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
 @njit
 def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
     """
-    Take a sparse gradient of a matrix with shape ``(batch_size, num_classical_coordinates,
+    Take a sparse gradient matrix with shape ``(batch_size, num_classical_coordinates,
     num_quantum_state, num_quantum_states)`` and calculate the matrix element of
     the vectors ``vec_l_conj`` and ``vec_r`` with  shape ``(batch_size*num_quantum_states)``.
 
