@@ -75,9 +75,15 @@ def collect_classical_energy(sim, state, parameters, **kwargs):
     state.output_dict[classical_energy_output_name] : ndarray
         stores the classical energy.
     """
-    classical_energy_var_name = kwargs.get("classical_energy_var_name", "classical_energy")
-    classical_energy_output_name = kwargs.get("classical_energy_output_name", "classical_energy")
-    state.output_dict[classical_energy_output_name] = getattr(state, classical_energy_var_name)
+    classical_energy_var_name = kwargs.get(
+        "classical_energy_var_name", "classical_energy"
+    )
+    classical_energy_output_name = kwargs.get(
+        "classical_energy_output_name", "classical_energy"
+    )
+    state.output_dict[classical_energy_output_name] = getattr(
+        state, classical_energy_var_name
+    )
     return state, parameters
 
 
@@ -102,6 +108,10 @@ def collect_quantum_energy(sim, state, parameters, **kwargs):
         stores the quantum energy.
     """
     quantum_energy_var_name = kwargs.get("quantum_energy_var_name", "quantum_energy")
-    quantum_energy_output_name = kwargs.get("quantum_energy_output_name", "quantum_energy")
-    state.output_dict[quantum_energy_output_name] = getattr(state, quantum_energy_var_name)
+    quantum_energy_output_name = kwargs.get(
+        "quantum_energy_output_name", "quantum_energy"
+    )
+    state.output_dict[quantum_energy_output_name] = getattr(
+        state, quantum_energy_var_name
+    )
     return state, parameters
