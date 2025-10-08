@@ -7,13 +7,13 @@ from io import StringIO
 
 DISABLE_NUMBA = False
 try:
-    import numba
+    import numba as _
 except ImportError:
     DISABLE_NUMBA = True
 
 DISABLE_H5PY = False
 try:
-    import h5py
+    import h5py as _
 except ImportError:
     DISABLE_H5PY = True
 
@@ -31,8 +31,7 @@ def qc_lab_custom_jit(func=None, **kwargs):
 
     if func is None:
         return decorator
-    else:
-        return decorator(func)
+    return decorator(func)
 
 
 def qc_lab_custom_njit(func=None, **kwargs):
