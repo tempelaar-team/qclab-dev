@@ -43,11 +43,13 @@ Ingredients can be included in a model by appending them to the model's ``ingred
 
 
 The minimal set of ingredients required to run a simulation are: 
+
 - A quantum Hamiltonian ingredient, named ``h_q``.
 - A classical Hamiltonian ingredient, named ``h_c``.
 - A quantum-classical coupling Hamiltonian ingredient, named ``h_qc``.
 
 Additional ingredients that make the simulation more efficient or accurate are:
+
 - An initialization function for the classical coordinates, named ``init_classical``.
 - A gradient of the classical Hamiltonian with respect to the conjugate classical coordinates, named ``dh_c_dzc``.
 - A gradient of the quantum-classical coupling Hamiltonian with respect to the conjugate classical coordinates, named ``dh_qc_dzc``.
