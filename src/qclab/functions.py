@@ -23,15 +23,13 @@ def multiply_matrix_vector(mat, vec):
 
     (..., i, j) x (..., j) -> (..., i)
 
-    Args
-    ----
+    .. rubric:: Args
     mat : ndarray
         Input matrix.
     vec : ndarray
         Input vector.
 
-    Returns
-    -------
+    .. rubric:: Returns
     out : ndarray
         Result of the multiplication.
     """
@@ -51,8 +49,7 @@ def transform_vec(vec, basis, adb_to_db=False):
     and the last index of ``vec`` is the vector index. The other indices
     must be broadcastable.
 
-    Args
-    ----
+    .. rubric:: .. rubric:: Args
     vec : ndarray
         Input vector.
     basis : ndarray
@@ -61,8 +58,7 @@ def transform_vec(vec, basis, adb_to_db=False):
         If True, reverses the direction of the transformation
         by using the Hermitian conjugate of basis.
 
-    Returns
-    -------
+    .. rubric:: Returns
     out : ndarray
         Transformed matrix
     """
@@ -83,8 +79,7 @@ def transform_mat(mat, basis, adb_to_db=False):
     Assumes that the last two indices of ``mat`` and ``basis`` are the matrix
     indices. The other indices must be broadcastable.
 
-    Args
-    ----
+    .. rubric:: Args
     mat : ndarray
         Input matrix.
     basis : ndarray
@@ -93,8 +88,7 @@ def transform_mat(mat, basis, adb_to_db=False):
         If True, reverses the direction of the transformation
         by using the Hermitian conjugate of basis.
 
-    Returns
-    -------
+    .. rubric:: Returns
     out : ndarray
         Transformed matrix
     """
@@ -109,8 +103,7 @@ def update_z_rk4_k123_sum(z_k, classical_forces, quantum_classical_forces, dt_up
     Low-level function to calculate the intermediate z coordinate and k values
     for RK4 update. Applies to steps 1-3.
 
-    Args
-    ----
+    .. rubric:: Args
     z_k : ndarray
         Initial complex coordinate for that update step.
     classical_forces : ndarray
@@ -120,8 +113,7 @@ def update_z_rk4_k123_sum(z_k, classical_forces, quantum_classical_forces, dt_up
     dt_update : float
         Time step for the update.
 
-    Returns
-    -------
+    .. rubric:: Returns
     out : ndarray
         Updated complex coordinates after applying the RK4 step.
     k : ndarray
@@ -144,8 +136,7 @@ def update_z_rk4_k4_sum(
     """
     Low-level function to calculate the fourth and final step for the RK4 update.
 
-    Args
-    ----
+    .. rubric:: Args
     z_0 : ndarray
         Initial complex coordinate.
     k1 : ndarray
@@ -161,8 +152,7 @@ def update_z_rk4_k4_sum(
     dt_update : float
         Time step for the update.
 
-    Returns
-    -------
+    .. rubric:: Returns
     z_0 : ndarray
         Updated complex coordinates after applying the RK4 step.
     """
@@ -183,8 +173,7 @@ def dqdp_to_dzc(dq, dp, m, h):
     Convert derivatives w.r.t. q and p (``dq`` and ``dp``, respectively) to
     the derivative w.r.t. zc (``dzc``).
 
-    Args
-    ----
+    .. rubric:: Args
     dq : ndarray | None
         Derivative w.r.t. position coordinate.
     dp : ndarray | None
@@ -194,8 +183,7 @@ def dqdp_to_dzc(dq, dp, m, h):
     h : ndarray
         classical coordinate weight.
 
-    Returns
-    -------
+    .. rubric:: Returns
     dzc : ndarray
         Derivative w.r.t. conjugate complex coordinate.
     """
@@ -217,8 +205,7 @@ def dzdzc_to_dqdp(dz, dzc, m, h):
     If only one of ``dz`` or ``dzc`` is provided, then ``dq`` and ``dp`` are calculated assuming that
     :math:`dz = dzc^{*}`.
 
-    Args
-    ----
+    .. rubric:: Args
     dz : ndarray | None
         Derivative w.r.t. complex z coordinate.
     dzc : ndarray | None
@@ -228,8 +215,7 @@ def dzdzc_to_dqdp(dz, dzc, m, h):
     h : ndarray
         classical coordinate weight.
 
-    Returns
-    -------
+    .. rubric:: Returns
     dq : ndarray
         Derivative w.r.t. position coordinate.
     dp : ndarray
@@ -257,8 +243,7 @@ def z_to_q(z, m, h):
     """
     Convert complex coordinates to position coordinate.
 
-    Args
-    ----
+    .. rubric:: Args
     z : ndarray
         Complex coordinates.
     m : ndarray
@@ -266,8 +251,7 @@ def z_to_q(z, m, h):
     h : ndarray
         Classical coordinate weight.
 
-    Returns
-    -------
+    .. rubric:: Returns
     q : ndarray
         Position coordinates.
     """
@@ -279,8 +263,7 @@ def z_to_p(z, m, h):
     """
     Convert complex coordinates to momentum coordinate.
 
-    Args
-    ----
+    .. rubric:: Args
     z : ndarray
         Complex coordinates.
     m : ndarray
@@ -288,8 +271,7 @@ def z_to_p(z, m, h):
     h : ndarray
         Classical coordinate weight.
 
-    Returns
-    -------
+    .. rubric:: Returns
     p : ndarray
         Momentum coordinates.
     """
@@ -302,8 +284,7 @@ def qp_to_z(q, p, m, h):
     Convert real coordinates to complex coordinates.
     If only one of ``q`` or ``p`` is provided, then the other is assumed to be zero.
 
-    Args
-    ----
+    .. rubric:: Args
     q : ndarray | None
         Position coordinates.
     p : ndarray | None
@@ -313,8 +294,7 @@ def qp_to_z(q, p, m, h):
     h : ndarray
         Classical coordinate weight.
 
-    Returns
-    -------
+    .. rubric:: Returns
     z : ndarray
         Complex coordinates.
     """
@@ -333,6 +313,14 @@ def make_ingredient_sparse(ingredient):
     """
     Wrapper that converts a vectorized ingredient output to a sparse format consisting
     of the indices (``inds``), nonzero elements (``mels``), and ``shape``.
+
+    .. rubric:: Args
+    ingredient : function
+        Ingredient to be converted to sparse format.
+
+    .. rubric:: Returns
+    sparse_ingredient : function
+        Sparse version of the ingredient.
     """
 
     @functools.wraps(ingredient)
@@ -352,6 +340,14 @@ def vectorize_ingredient(ingredient):
     Wrapper that vectorizes ingredient functions.
     It assumes that any kwarg is an numpy.ndarray that is vectorized over its first
     index. Other kwargs are assumed to not be vectorized.
+
+    .. rubric:: Args
+    ingredient : function
+        Ingredient to be vectorized.
+
+    .. rubric:: Returns
+    vectorized_ingredient : function
+        Vectorized version of the ingredient.
     """
 
     @functools.wraps(ingredient)
@@ -385,8 +381,7 @@ def dh_c_dzc_harmonic_jit(z, h, w):
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to
     the conjugate ``z`` coordinate.
 
-    Args
-    ----
+    .. rubric:: Args
     z : ndarray
         Complex coordinates.
     h : ndarray
@@ -394,8 +389,7 @@ def dh_c_dzc_harmonic_jit(z, h, w):
     w : ndarray
         Harmonic frequency.
 
-    Returns
-    -------
+    .. rubric:: Returns
     out : ndarray
         Derivative of the harmonic oscillator classical Hamiltonian function with respect to
         the conjugate z coordinate.
@@ -419,15 +413,13 @@ def h_qc_diagonal_linear_jit(z, gamma):
 
     :math:`H_{nm} = \\delta_{nm}\\sum_{j} \\gamma_{nj} (z_{j} + z_{j}^*)`
 
-    Args
-    ----
+    .. rubric:: Args
     z : ndarray
         Complex coordinates.
     gamma : ndarray
         Classical coordinate coupling strengths.
 
-    Returns
-    -------
+    .. rubric:: Returns
     h_qc : ndarray
         Diagonal linear quantum-classical Hamiltonian.
     """
@@ -457,8 +449,7 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     a different random walker). If ``False``, then the same random number
     is generated for all classical coordinates (i.e., a single random walker).
 
-    Args
-    ------------
+    .. rubric:: Args
     constants : Constants
         Constants object.
     z0 : ndarray | None, default: None
@@ -469,15 +460,11 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     separable : bool, default: True
         Whether to generate a different random number for each classical coordinate.
 
-    Required constants
-    ------------------
-    num_classical_coordinates : int
-        Number of classical coordinates.
+    .. rubric:: Required constants
     mcmc_std : float, default: 1.0
         Standard deviation of the Gaussian distribution.
 
-    Returns
-    -------
+    .. rubric:: Returns
     z : ndarray
         Complex number sampled from a Gaussian distribution.
     rand : ndarray
@@ -506,8 +493,7 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
     num_quantum_state, num_quantum_states)`` and calculate the matrix element of
     the vectors ``vec_l_conj`` and ``vec_r`` with  shape ``(batch_size*num_quantum_states)``.
 
-    Args
-    ----
+    .. rubric:: Args
     inds : tuple of ndarrays
         Indices of the nonzero elements in the sparse matrix.
     mels : ndarray
@@ -520,8 +506,8 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
         Right vector for the inner product.
     out : ndarray | None
         Preallocated output array. If ``None``, a new array is created.
-    Returns
-    -------
+        
+    .. rubric:: Returns
     out : ndarray
         Result of the inner product with shape ``(batch_size, num_classical_coordinates)``.
     """
@@ -566,8 +552,7 @@ def analytic_der_couple_phase(sim, dh_qc_dzc, eigvals, eigvecs):
     degenerate eigenvalues, an error is logged and a small offset is added to the energy
     differences.
 
-    Args
-    ----
+    .. rubric:: Args
     sim: Simulation
         Simulation object.
     dh_qc_dzc : tuple
@@ -578,8 +563,7 @@ def analytic_der_couple_phase(sim, dh_qc_dzc, eigvals, eigvecs):
     eigvecs : ndarray
         Eigenvectors of the quantum subsystem.
 
-    Returns
-    -------
+    .. rubric:: 
     der_couple_q_phase : ndarray
         Phase factor for derivative couplings obtained by differentiating
         w.r.t. the position coordinate.
@@ -685,8 +669,7 @@ def wf_db_rk4(h_quantum, wf_db, dt_update):
     """
     Low-level function for quantum RK4 propagation.
 
-    Args
-    ----
+    .. rubric:: Args
     h_quantum : ndarray
         Quantum Hamiltonian.
     wf_db : ndarray
@@ -694,8 +677,7 @@ def wf_db_rk4(h_quantum, wf_db, dt_update):
     dt_update : float
         Time step for the update.
 
-    Returns
-    -------
+    .. rubric:: Returns
     wf_db : ndarray
         Updated wavefunction.
     """
@@ -723,8 +705,7 @@ def calc_delta_z_fssh(
     are properly aligned to correspond with real-valued phase space derivative couplings.
     If they are not, an error is logged.
 
-    Args
-    ----
+    .. rubric:: Args
     eigval_diff : ndarray
         Difference in eigenvalues between the initial and final states, e_final - e_initial.
     eigvec_init_state : ndarray
@@ -739,8 +720,7 @@ def calc_delta_z_fssh(
     h : ndarray
         Classical coordinate weight.
 
-    Returns
-    -------
+    .. rubric:: Returns
     dkj_zc : ndarray
         Nonadiabatic coupling vector for rescaling the z coordinate.
     """
@@ -799,8 +779,7 @@ def numerical_fssh_hop(model, parameters, **kwargs):
        corresponding shift. Otherwise, return a zero shift and indicate that the
        hop was frustrated.
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     z : ndarray
         Current complex coordinate.
     delta_z : float
@@ -809,8 +788,7 @@ def numerical_fssh_hop(model, parameters, **kwargs):
         Difference in eigenvalues between the initial and final states, ``e_final - e_initial``.
 
 
-    Required constants
-    ------------------
+    .. rubric:: Required constants
     numerical_fssh_hop_gamma_range : float, default: 5.0
         Initial range (negative to positive) of gamma values to search over.
     numerical_fssh_hop_max_iter : int, default: 20
@@ -820,8 +798,7 @@ def numerical_fssh_hop(model, parameters, **kwargs):
     numerical_fssh_hop_threshold : float, default: 1e-6
         Energy threshold for convergence.
 
-    Returns
-    -------
+    .. rubric:: Returns
     shift : ndarray
         The shift to apply to the complex coordinate to conserve energy.
     hop_successful : bool

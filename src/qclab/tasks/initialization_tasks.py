@@ -16,7 +16,7 @@ def initialize_variable_objects(sim, state, parameters, **kwargs):
     """
     Populates the ``parameter`` and ``state`` objects with variables in the ``sim.initial_state`` object.
     For any numpy ndarray in ``sim.initial_state``, a new array is created in ``state`` with shape
-    (batch_size, *original_shape) where ``original_shape`` is the shape of the array in ``sim.initial_state``.
+    ``(batch_size, *original_shape)`` where ``original_shape`` is the shape of the array in ``sim.initial_state``.
     The new array is initialized by copying the original array into each slice along the first axis.
 
     Any variable with name starting with an underscore is ignored.
