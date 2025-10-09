@@ -85,7 +85,7 @@ I want to use FSSH instead.
 
 
 I want to reverse velocities upon frustrated hops.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. container:: toggle
 

@@ -1,5 +1,6 @@
 .. _full-example:
 
+
 Putting it all together.
 ==========================
 

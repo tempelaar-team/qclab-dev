@@ -1,4 +1,4 @@
-.. _index:
+.. _interactive-docs-index:
 
 ==========
 Quick Menu
@@ -41,12 +41,4 @@ Welcome to the QC Lab documentation! Use the buttons below to navigate to the se
 
     I want to cite QC Lab.
 
-.. toctree::
-   :maxdepth: 1
-   :hidden:
 
-   install
-   spin-boson-example/spin-boson
-   overview/overview
-   ../user_guide/index
-   cite

@@ -38,4 +38,5 @@ docs = [
     "sphinx-togglebutton",
     "sphinxcontrib-mermaid",
     "graphviz",
+    "sphinx-autodoc-typehints",
 ]
