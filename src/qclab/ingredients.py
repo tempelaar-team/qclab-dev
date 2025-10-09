@@ -276,6 +276,13 @@ def hop_harmonic(model, parameters, **kwargs):
     equaling ``True`` if the hop has occurred. If not enough energy is available,
     the shift becomes zero and the Boolean is ``False``.
 
+    Solves the equation:
+
+    .. math::
+
+        H_{\mathrm{c}}(z) + \epsilon_{\mathrm{initial}} = H_{\mathrm{c}}(z + \mathrm{shift}) +
+        \epsilon_{\mathrm{final}}
+
     .. rubric:: Keyword Args
     z : ndarray
         Current classical coordinate.
@@ -336,6 +343,13 @@ def hop_free(model, parameters, **kwargs):
     coordinates such that the new classical coordinate is ``z + shift`` and a Boolean
     equaling ``True`` if the hop has occurred. If not enough energy is available,
     the shift becomes zero and the Boolean is ``False``.
+
+    Solves the equation:
+
+    .. math::
+
+        H_{\mathrm{c}}(z) + \epsilon_{\mathrm{initial}} = H_{\mathrm{c}}(z + \mathrm{shift}) +
+        \epsilon_{\mathrm{final}}
 
     .. rubric:: Keyword Args
     z : ndarray

@@ -707,7 +707,7 @@ def calc_delta_z_fssh(
 
     .. rubric:: Args
     eigval_diff : ndarray
-        Difference in eigenvalues between the initial and final states, e_final - e_initial.
+        Difference in eigenvalues between the initial and final states, ``e_final - e_initial``.
     eigvec_init_state : ndarray
         Eigenvector of the initial state.
     eigvec_final_state : ndarray
