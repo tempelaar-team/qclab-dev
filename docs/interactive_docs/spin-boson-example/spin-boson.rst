@@ -32,19 +32,18 @@ Next, we will set up the simulation object and equip it with the model and algor
     # Initialize the diabatic wavevector. 
     # Here, the first vector element refers to the upper state and the second
     # element refers to the lower state.
-    sim.state.wf_db = np.array([1, 0], dtype=complex)
+    sim.initial_state.wf_db = np.array([1, 0], dtype=complex)
     
 
 This is bound to run the spin-boson model using default values for the model constants. 
 Following the definitions from `Tempelaar & Reichman 2019 <https://doi.org/10.1063/1.5000843>`_, the model constant 
-values are `kBT=1.0`, `E=0.5`, `V=0.5`, `A=100`, `W=0.1`, and `l_reorg=0.005`.
+values are ``kBT=1.0``, ``E=0.5``, ``V=0.5``, ``A=100``, ``W=0.1``, and ``l_reorg=0.005`` (which can be found in the model's documentation).
 Finally, we can run the simulation and visualize the results:
 
 .. code-block:: python
 
     # Run the simulation.
     data = serial_driver(sim)
-   
     # Pull out the time.
     t = data.data_dict["t"]
     # Get populations from the diagonal of the density matrix.
@@ -65,8 +64,8 @@ The output of this code is:
     
 
 .. note::
-    This simulation ran in serial mode. For a speed-up at high-perofrmance architecture, consider adopting the parallel driver by 
-    running the simulation as `data = parallel_driver_multiprocessing(sim)` instead.
+    This simulation ran in serial mode. For a speed-up on high-performance architecture, consider adopting the parallel driver by
+    running the simulation as ``data = parallel_driver_multiprocessing(sim)`` instead.
 
 
 I want to increase the reorganization energy.
@@ -93,8 +92,8 @@ I want to reverse velocities upon frustrated hops.
     .. include:: modify-fssh.rst
 
 
-I want to use a different coupling term.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+I want to switch to off-diagonal coupling.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. container:: toggle
 

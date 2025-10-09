@@ -59,4 +59,10 @@ html_theme_options = {
 html_sidebars = {
     "**": ["sidebar-nav-bs.html", "sidebar-ethical-ads.html"],
     "software_reference/ingredients/ingredients": [],
+} 
+
+# Remove the right sidebar (“On this page”, buttons, etc.)
+html_theme_options = {
+    "secondary_sidebar_items": [],  # remove all right-sidebar widgets
 }
+

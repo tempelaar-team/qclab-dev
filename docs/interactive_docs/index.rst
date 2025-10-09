@@ -1,8 +1,8 @@
 .. _index:
 
-================================
-QC Lab Interactive Documentation
-================================
+==========
+Quick Menu
+==========
 
 Welcome to the QC Lab documentation! Use the buttons below to navigate to the section you need.
 
