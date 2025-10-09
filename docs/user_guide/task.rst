@@ -72,6 +72,10 @@ Built-in Tasks
 --------------------------
 Built-in tasks can be found in the ``qclab.tasks`` module and are documented below.
 
+.. note::
+
+   All tasks assume that the model object has a minimal set of constants including ``num_quantum_states`` (the number of quantum states) and ``num_classical_coordinates`` (the number of classical coordinates), ``classical_coordinate_mass`` (the mass of the classical coordinates), and ``classical_coordinate_weight`` (the weight of the classical coordinates). These constants are discussed in :ref:`Models <model>`. For berevity we exclude explicit mention of these constants in the task documentation.
+
 
 Initialization Tasks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
