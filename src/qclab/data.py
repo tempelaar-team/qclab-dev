@@ -155,7 +155,7 @@ class Data:
             The dictionary to save.
         """
         for key, item in dict.items():
-            if isinstance(item, dict):
+            if isinstance(item, type(dict)):
                 self._recursive_save(h5file, path + key + "/", item)
             else:
                 try:
