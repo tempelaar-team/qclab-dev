@@ -8,18 +8,15 @@ def collect_t(sim, state, parameters, **kwargs):
     """
     Collects the time in the state object.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     None
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     t_var_name : str, default : "t"
         Name of the time variable in the state object.
     t_output_name : str, default : "t"
 
-    Variable Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.output_dict[t_output_name] : ndarray
         stores the current time in each trajectory.
     """
@@ -33,19 +30,16 @@ def collect_dm_db(sim, state, parameters, **kwargs):
     """
     Collects the diabatic density matrix in the state object.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     None
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     dm_db_var_name : str, default : "dm_db"
         Name of the diabatic density matrix variable in the state object.
     dm_db_output_name : str, default : "dm_db"
         Name of the output variable for the diabatic density matrix.
 
-    Variable Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.output_dict[dm_db_output_name] : ndarray
         stores the diabatic density matrix.
     """
@@ -59,19 +53,16 @@ def collect_classical_energy(sim, state, parameters, **kwargs):
     """
     Collects the classical energy in the state object.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     None
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     classical_energy_var_name : str, default : "classical_energy"
         Name of the classical energy variable in the state object.
     classical_energy_output_name : str, default : "classical_energy"
         Name of the output variable for the classical energy.
 
-    Variable Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.output_dict[classical_energy_output_name] : ndarray
         stores the classical energy.
     """
@@ -91,19 +82,16 @@ def collect_quantum_energy(sim, state, parameters, **kwargs):
     """
     Collects the quantum energy in the state object.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     None
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     quantum_energy_var_name : str, default : "quantum_energy"
         Name of the quantum energy variable in the state object.
     quantum_energy_output_name : str, default : "quantum_energy"
         Name of the output variable for the quantum energy.
 
-    Variable Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.output_dict[quantum_energy_output_name] : ndarray
         stores the quantum energy.
     """

@@ -45,7 +45,9 @@ html_theme = "pydata_sphinx_theme"  # "bizstyle"#
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 html_theme_options = {
-    "secondary_sidebar_items": [],  # remove all right-sidebar widgets
+    "secondary_sidebar_items": ["page-toc", "edit-this-page"],
+    # "show_toc_level": 2,   # show h2/h3 (your subsections)
+    # "secondary_sidebar_items": [],  # remove all right-sidebar widgets
     "body_max_width": "100%",  # Remove maximum width constraint
     "github_url": "https://github.com/tempelaar-team/qclab",
     "collapse_navigation": True,
@@ -57,11 +59,15 @@ html_theme_options = {
         "image_light": "_static/images/logo-light.png",
         "image_dark": "_static/images/logo-dark.png",
     },
+    "show_toc_level": 2,  # show h2/h3 in right sidebar
 }
 
 html_sidebars = {
     "**": ["sidebar-nav-bs.html", "sidebar-ethical-ads.html"],
-    "software_reference/ingredients/ingredients": [],
+    # "software_reference/ingredients/ingredients": [],
+    # or for a whole folder
+    "interactive_docs/index": [],
+    # "interactive_docs/spin-boson-example/*": [],
 } 
 
 # Remove the right sidebar (“On this page”, buttons, etc.)

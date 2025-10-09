@@ -15,6 +15,22 @@ logger = logging.getLogger(__name__)
 def initialize_variable_objects(sim, state, parameters, **kwargs):
     """
     Populates the ``parameter`` and ``state`` objects with variables in the ``sim.initial_state`` object.
+    For any numpy ndarray in ``sim.initial_state``, a new array is created in ``state`` with shape
+    (batch_size, *original_shape) where ``original_shape`` is the shape of the array in ``sim.initial_state``.
+    The new array is initialized by copying the original array into each slice along the first axis.
+
+    Any variable with name starting with an underscore is ignored.
+
+    .. rubric:: Required Constants
+    None
+
+    .. rubric:: Keyword Arguments
+    None
+
+    .. rubric:: Variable Modifications
+    state.{initial_state.attribute.__name__} : ndarray
+        Initialized state variable with shape (batch_size, *original_shape).
+
     """
     for name in sim.initial_state.__dict__.keys():
         obj = getattr(sim.initial_state, name)
@@ -41,17 +57,14 @@ def initialize_norm_factor(sim, state, parameters, **kwargs):
     """
     Assigns the normalization factor to the state object.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     None
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     norm_factor_name : str, default: "norm_factor"
         Name of the normalization factor in the state object.
 
-    Variable Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.{norm_factor_name} : int
         Normalization factor for trajectory averages.
     """
@@ -73,19 +86,16 @@ def initialize_branch_seeds(sim, state, parameters, **kwargs):
     being equal to the number of trajectories divided by the number of
     branches in deterministic surface hopping.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     None
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     seed_name : str, default: "seed"
         Name of the seeds array in ``state``.
     branch_ind_name : str, default: "branch_ind"
         Name of the branch index array in ``state``.
 
-    State Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.{branch_ind_name} : ndarray
         Branch index for each trajectory.
     state.{seed_name} : ndarray
@@ -136,8 +146,7 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
     the classical Hamiltonian can be written as a sum of independent terms depending
     on each classical coordinate.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     mcmc_burn_in_size : int, default: 1000
         Burn-in step count.
     mcmc_sample_size : int, default: 10000
@@ -151,15 +160,13 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
     kBT : float
         Thermal quantum.
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     seed_name : str
         attribute name of the seeds array in ``state``.
     z_name : str
         name of destination attribute in the ``state`` object.
 
-    Variable Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.{z_name} : ndarray
         Initialized classical coordinates.
     """
@@ -255,19 +262,16 @@ def initialize_z(sim, state, parameters, **kwargs):
     Initializes the classical coordinate by using the init_classical function from the
     model object.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     None
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     seed_name : str
         Name of seed attribute in state object.
     z_name : str
         Name of classical coordinates in the state object.
 
-    Variable Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.{z_name} : ndarray
         initialized classical coordinates.
     """
@@ -288,19 +292,16 @@ def copy_in_state(sim, state, parameters, **kwargs):
     """
     Creates a copy of a quantity in the state object.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     None
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     copy_name : str
         Name of the copy in the state object.
     orig_name : str
         Name of the source in the state object.
 
-    Variable Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.{copy_name} : type of state.{orig_name}
         Copy of ``state.{orig_name}``.
     """
@@ -321,12 +322,10 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
     surface from the density corresponding to the initial quantum wavefunction
     in the adiabatic basis.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     None
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     act_surf_ind_0_name : str, default: "act_surf_ind_0"
         Name of the initial active surface index in the state object.
     act_surf_ind_name : str, default: "act_surf_ind"
@@ -334,8 +333,7 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
     act_surf_name : str, default: "act_surf"
         Name of the active surface in the state object.
 
-    Variable Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.{act_surf_ind_0_name} : ndarray
         Initial active surface index.
     state.{act_surf_ind_name} : ndarray
@@ -379,19 +377,16 @@ def initialize_random_values_fssh(sim, state, parameters, **kwargs):
     """
     Initializes a set of random numbers using the trajectory seeds for FSSH.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     None
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     hopping_probs_rand_vals_name : str, default: "hopping_probs_rand_vals"
         Name of the random numbers for hop decisions in the state object.
     stochastic_sh_rand_vals_name : str, default: "stochastic_sh_rand_vals"
         Name of the random numbers for active surface initialization in FSSH
 
-    Variable Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.{hopping_probs_rand_vals_name} : ndarray
         Random numbers for hop decisions.
     state.{stochastic_sh_rand_vals_name} : ndarray
@@ -423,19 +418,16 @@ def initialize_dm_adb_0_fssh(sim, state, parameters, **kwargs):
     """
     Initializes the initial adiabatic density matrix for FSSH.
 
-    Required Constants
-    ------------------
+    .. rubric:: Required Constants
     None
 
-    Keyword Arguments
-    -----------------
+    .. rubric:: Keyword Arguments
     dm_adb_0_name : str, default: "dm_adb_0"
         Name of the initial adiabatic density matrix in the state object.
     wf_adb_name : str, default: "wf_adb"
         Name of the adiabatic wavefunction in the state object.
 
-    Variable Modifications
-    -------------------
+    .. rubric:: Variable Modifications
     state.{dm_adb_0_name} : ndarray
         Initial adiabatic density matrix.
     """

@@ -6,7 +6,7 @@ Quick Menu
 ==========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    interactive_docs/index
    user_guide/index

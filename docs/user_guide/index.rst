@@ -1,11 +1,18 @@
 .. _index:
 
-
 User Guide
 ==========
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :caption: User Guide
 
     install
+    ingredient
+    task
+    model
+    algorithm
+    simulation
+    driver
+    data
+    cite
