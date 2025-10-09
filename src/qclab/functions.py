@@ -337,8 +337,8 @@ def make_ingredient_sparse(ingredient):
 
     @functools.wraps(ingredient)
     def sparse_ingredient(*args, **kwargs):
-        (model, constants, parameters) = args
-        out = ingredient(model, constants, parameters, **kwargs)
+        (model, parameters) = args
+        out = ingredient(model, parameters, **kwargs)
         inds = np.where(out != 0)
         mels = out[inds]
         shape = np.shape(out)
