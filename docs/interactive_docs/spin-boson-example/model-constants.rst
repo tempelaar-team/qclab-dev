@@ -25,7 +25,9 @@ The output changes to (dash shows previous result):
     :width: 50%
 
 
-For a complete list of model constants and their descriptions, please refer to the `Spin-Boson Model <../../user_guide/models/spin_boson_model.html>`_ documentation.
+For a complete list of model constants, please refer to the `Spin-Boson Model <spinboson_model>`_ documentation.
+
+
 
 
 

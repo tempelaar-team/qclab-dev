@@ -26,7 +26,7 @@ QC Lab's built-in vectorization decorator to automatically vectorize it.
         # Next we'll get the Required constants from the constants object.
         m = model.constants.classical_coordinate_mass
         h = model.constants.classical_coordinate_weight
-        g = model.constants.w * np.sqrt(2 * model.constants.l_reorg / model.constants.A)
+        g = model.constants.harmonic_frequency * np.sqrt(2 * model.constants.l_reorg / model.constants.A)
         # Now we can construct the empty Hamiltonian matrix as a 2x2 complex array.
         h_qc = np.zeros((2, 2), dtype=complex)
         # Then we can populate the off-diagonal elements of the Hamiltonian matrix.

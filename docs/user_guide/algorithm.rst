@@ -137,7 +137,7 @@ As an example of a complete algorithm we include the source code for the mean-fi
       :language: python
       :linenos:
 
-
+.. _fssh_source:
 Surface Hopping Example
 -------------------------------
 

@@ -37,7 +37,7 @@ Next, we will set up the simulation object and equip it with the model and algor
 
 This is bound to run the spin-boson model using default values for the model constants. 
 Following the definitions from `Tempelaar & Reichman 2019 <https://doi.org/10.1063/1.5000843>`_, the model constant 
-values are ``kBT=1.0``, ``E=0.5``, ``V=0.5``, ``A=100``, ``W=0.1``, and ``l_reorg=0.005`` (which can be found in the model's documentation).
+values are ``kBT=1.0``, ``E=0.5``, ``V=0.5``, ``A=100``, ``W=0.1``, and ``l_reorg=0.005`` (which can be found :ref:`here <spinboson_model>`).
 Finally, we can run the simulation and visualize the results:
 
 .. code-block:: python

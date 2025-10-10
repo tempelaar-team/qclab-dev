@@ -190,11 +190,39 @@ Importantly, a model's ingredients list is executed from back to front. This mea
     model.ingredients.append(("dh_qc_dzc", None))  # No analytical gradient available.
 
 
-
-Spin-Boson Model Example
+.. _spinboson_model:
+Spin-Boson Model
 --------------------------
 
-Here, we give a simple example of a model class describing the Spin-Boson model. To understand the ingredients used in this model and their necessary constants, please refer to :ref:`Ingredients <ingredient>`.
+.. list-table:: Spin-Boson Model Constants
+   :header-rows: 1
+   :widths: 25 50 25
+
+   * - Constant
+     - Description
+     - Default
+   * - ``kBT``
+     - Thermal energy.
+     - 1.0
+   * - ``V``
+     - Onsite energy.
+     - 0.5
+   * - ``E``
+     - Diabatic coupling.
+     - 0.5
+   * - ``A``
+     - Number of bosonic modes.
+     - 100
+   * - ``W``
+     - Characteristic frequency.
+     - 0.1
+   * - ``l_reorg``
+     - Reorganization energy.
+     - 0.005
+   * - ``boson_mass``
+     - Boson mass.
+     - 1.0
+
 
 .. dropdown:: View full source
    :icon: code
@@ -202,3 +230,79 @@ Here, we give a simple example of a model class describing the Spin-Boson model.
    .. literalinclude:: ../../src/qclab/models/spin_boson.py
       :language: python
       :linenos:
+
+FMO Complex Model
+--------------------------
+
+.. list-table:: FMO Model Constants
+   :header-rows: 1
+   :widths: 25 50 25
+
+   * - Constant
+     - Description
+     - Default
+   * - ``kBT``
+     - Thermal energy.
+     - 1
+   * - ``mass``
+     - Coordinate mass.
+     - 1
+   * - ``l_reorg``
+     - Reorganization energy.
+     - 35 cm :sup:`-1`
+   * - ``w_c``
+     - Characteristic frequency.
+     - 106.14 cm :sup:`-1`
+   * - ``N``
+     - Number of bosonic modes.
+     - 200
+
+
+.. dropdown:: View full source
+   :icon: code
+
+   .. literalinclude:: ../../src/qclab/models/fmo_complex.py
+      :language: python
+      :linenos:
+
+
+Tully Problem One
+--------------------------
+
+.. list-table:: Tully Problem One Model Constants
+   :header-rows: 1
+   :widths: 25 50 25
+
+   * - Constant
+     - Description
+     - Default
+   * - ``init_momentum``
+     - Initial momentum.
+     - 10.0
+   * - ``init_position``
+     - Initial position.
+     - -25.0
+   * - ``mass``
+     - Coordinate mass.
+     - 2000.0
+   * - ``A``
+     - See reference publication.
+     - 0.01
+   * - ``B``
+     - See reference publication.
+     - 1.6
+   * - ``C``
+     - See reference publication.
+     - 0.005
+   * - ``D``
+     - See reference publication.
+     - 1.0
+
+.. dropdown:: View full source
+   :icon: code
+
+   .. literalinclude:: ../../src/qclab/models/tully_problem_one.py
+      :language: python
+      :linenos:
+
+
