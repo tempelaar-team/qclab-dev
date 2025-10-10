@@ -16,10 +16,9 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     """
     Parallel driver for the dynamics core using the mpi4py library.
 
-    Args
-    ----
+    .. rubric:: Args
     sim: Simulation
-        The simulation object containing the model, algorithm, and settings.
+        The simulation object containing the model, algorithm, initial state, and settings.
     seeds: ndarray, optional
         An array of integer seeds for the trajectories. If None, seeds will be
         generated automatically.
@@ -30,8 +29,7 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
         The number of tasks to use for parallel processing. If None, the
         number of available tasks will be used.
 
-    Returns
-    -------
+    .. rubric:: Returns
     data: Data
         The updated Data object containing collected output data.
     """

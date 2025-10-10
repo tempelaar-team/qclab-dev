@@ -98,7 +98,7 @@ class Data:
         if getattr(new_data, "log", ""):
             self.log += new_data.log
 
-    def save(self, filename):
+    def save(self, filename, DISABLE_H5PY=DISABLE_H5PY):
         """
         Save the data to disk with file name ``filename``.
 
@@ -117,7 +117,7 @@ class Data:
                 self._recursive_save(h5file, "/", self.data_dict)
                 h5file.attrs["log"] = self.log
 
-    def load(self, filename):
+    def load(self, filename, DISABLE_H5PY=DISABLE_H5PY):
         """
         Load a Data object from ``filename``.
 
@@ -131,14 +131,17 @@ class Data:
         Data : Data
             The loaded Data object.
         """
+        new_data = Data()
         if DISABLE_H5PY:
-            loaded = np.load(filename)
-            self.data_dict = {key: loaded[key] for key in loaded.files if key != "log"}
-            self.log = str(loaded.get("log", ""))
+            loaded = np.load(filename, allow_pickle=True)
+            new_data.data_dict = {key: loaded[key] for key in loaded.files if key != "log"}
+            new_data.log = str(loaded.get("log", ""))
+            self.add_data(new_data)
             return self
         with h5py.File(filename, "r") as h5file:
-            self._recursive_load(h5file, "/", self.data_dict)
-            self.log = h5file.attrs["log"]
+            new_data._recursive_load(h5file, "/", new_data.data_dict)
+            new_data.log = h5file.attrs["log"]
+            self.add_data(new_data)
         return self
 
     def _recursive_save(self, h5file, path, dict):

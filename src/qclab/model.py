@@ -33,6 +33,7 @@ class Model:
         # gradients need to be updated.
         self.update_h_q = True
         self.update_dh_qc_dzc = True
+        self.initialize_constants()
 
     def get(self, ingredient_name):
         """
