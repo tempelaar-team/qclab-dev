@@ -59,7 +59,7 @@ html_theme_options = {
         "image_light": "_static/images/logo-light.png",
         "image_dark": "_static/images/logo-dark.png",
     },
-    "show_toc_level": 2,  # show h2/h3 in right sidebar
+    "show_toc_level": 3,  # show h2/h3 in right sidebar
 }
 
 html_sidebars = {
