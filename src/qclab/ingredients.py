@@ -579,9 +579,12 @@ def rescaling_direction_random(model, parameters, **kwargs):
     This function returns a random array for the rescaling direction. 
     It is only included for documentation purposes.
 
+    Note that this is not a vectorized ingredient, as it is only called on
+    the per-trajectory level.
+
     .. rubric:: Keyword Args
-    z : ndarray
-        Current classical coordinate.
+    z_traj : ndarray
+        Current classical coordinate in the trajectory being rescaled.
     init_state_ind : int
         Index of the initial quantum state.
     final_state_ind : int
@@ -595,10 +598,10 @@ def rescaling_direction_random(model, parameters, **kwargs):
         Direction in which to rescale coordinates.
     """
     del parameters
-    z = kwargs["z"]
+    z_traj = kwargs["z_traj"]
     init_state_ind = kwargs["init_state_ind"]
     final_state_ind = kwargs["final_state_ind"]
-    return np.random.normal(size=z[0].shape)
+    return np.random.normal(size=z_traj.shape)
    
 
 def gauge_field_force_zero(model, parameters, **kwargs):
