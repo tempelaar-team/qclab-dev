@@ -292,7 +292,7 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
         ).reshape(np.shape(z))
     if sim.algorithm.settings.get("use_gauge_field_force"):
         state, parameters = add_gauge_field_force_fssh(
-            sim, state, parameters, z=kwargs["z"], state_ind_name=state_ind_name
+            sim, state, parameters, z=z, state_ind_name=state_ind_name
         )
     return state, parameters
 
@@ -896,6 +896,7 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
         )
         if has_rescaling_direction_fssh:
             delta_z = rescaling_direction_fssh(
+                sim.model,
                 parameters,
                 z=z[traj_ind],
                 init_state_ind=init_state_ind,
