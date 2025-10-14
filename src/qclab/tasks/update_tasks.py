@@ -1057,6 +1057,8 @@ def update_h_quantum(sim, state, parameters, **kwargs):
     return state, parameters
 
 
+
+
 def update_z_rk4_k1(sim, state, parameters, **kwargs):
     """
     Computes the first RK4 intermediate for evolving the classical coordinates.
