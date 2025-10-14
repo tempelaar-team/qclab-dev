@@ -7,7 +7,7 @@ import logging
 import copy
 import numpy as np
 import qclab.dynamics as dynamics
-from qclab.utils import get_log_output
+from qclab.utils import get_log_output, reset_log_output
 from qclab import Variable, Data
 
 logger = logging.getLogger(__name__)
@@ -34,6 +34,8 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
     data: Data
         The updated Data object containing collected output data.
     """
+    # Clear any in-memory log output from previous runs.
+    reset_log_output()
     # First initialize the model constants.
     sim.model.initialize_constants()
     if data is None:
@@ -103,7 +105,7 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
     logger.info("Collecting results from all tasks.")
     for result in results:
         data.add_data(result)
+    logger.info("Simulation complete.")
     # Attach collected log output.
     data.log = get_log_output()
-    logger.info("Simulation complete.")
     return data

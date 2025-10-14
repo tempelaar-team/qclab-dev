@@ -5,7 +5,7 @@ This module contains the serial driver.
 import logging
 import numpy as np
 import qclab.dynamics as dynamics
-from qclab.utils import get_log_output
+from qclab.utils import get_log_output, reset_log_output
 from qclab import Data, Variable
 
 logger = logging.getLogger(__name__)
@@ -29,6 +29,8 @@ def serial_driver(sim, seeds=None, data=None):
     data: Data
         The updated Data object containing collected output data.
     """
+    # Clear any in-memory log output from previous runs.
+    reset_log_output()
     # First initialize the model constants.
     sim.model.initialize_constants()
     if data is None:
@@ -76,7 +78,7 @@ def serial_driver(sim, seeds=None, data=None):
         logger.info("Dynamics calculation completed.")
         logger.info("Collecting results.")
         data.add_data(new_data)
+    logger.info("Simulation complete.")
     # Attach the collected log output to the data object before returning.
     data.log = get_log_output()
-    logger.info("Simulation complete.")
     return data
