@@ -134,7 +134,7 @@ def update_z_rk4_k4_sum(
     z_0, k1, k2, k3, classical_forces, quantum_classical_forces, dt_update
 ):
     """
-    Low-level function to calculate the fourth and final step for the RK4 update.
+    Low-level function to calculate the fourth (and final) step for the RK4 update.
 
     .. rubric:: Args
     z_0 : ndarray
@@ -542,11 +542,9 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
 def analytic_der_couple_phase(sim, dh_qc_dzc, eigvals, eigvecs):
     """
     Calculates the phase change needed to fix the gauge using analytical derivative
-    couplings.
-
-    i.e. calculates the phase-factors :math:`u^{q}_{i}` and :math:`u^{p}_{i}` such that
-    :math:`d_{ij}^{q}u_{i}^{q*}u_{j}^{q}` and :math:`d_{ij}^{p}u_{i}^{p*}u_{j}^{p}` are
-    real-valued.
+    couplings, i.e., calculates the phase-factors :math:`u^{q}_{i}` and :math:`u^{p}_{i}` 
+    such that :math:`d_{ij}^{q}u_{i}^{q*}u_{j}^{q}` and :math:`d_{ij}^{p}u_{i}^{p*}u_{j}^{p}` 
+    are real-valued.
 
     It does this by calculating the derivative couplings analytically. In the event of
     degenerate eigenvalues, an error is logged and a small offset is added to the energy
