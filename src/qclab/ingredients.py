@@ -528,7 +528,10 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
 
     :math:`\\vert a\\rangle = \\exp(a\\hat{b}^{\\dagger} - a^{*}\\hat{b})\\vert 0\\rangle`
 
-    where :math:`a` is the complex displacement parameter of the coherent state.
+    where :math:`a` is the complex displacement parameter of the coherent state. The Wigner
+    distribution is given by
+
+    :math:`P(z) \\propto \\exp(-2\\vert(z - a)\\vert^{2})`.
 
     .. rubric:: Keyword Args
     seed : ndarray, int
