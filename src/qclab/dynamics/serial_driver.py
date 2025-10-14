@@ -47,25 +47,25 @@ def serial_driver(sim, seeds=None, data=None):
             num_trajs,
         )
         sim.settings.num_trajs = num_trajs
-    # Determine the number of simulations required to execute the total number
+    # Determine the number of batches required to execute the total number
     # of trajectories.
     if num_trajs % sim.settings.batch_size == 0:
-        num_sims = num_trajs // sim.settings.batch_size
+        num_batches = num_trajs // sim.settings.batch_size
     else:
-        num_sims = int(num_trajs / sim.settings.batch_size) + 1
+        num_batches = int(num_trajs / sim.settings.batch_size) + 1
 
     logger.info(
-        "Running %s simulations with %s seeds in each batch.",
-        num_sims,
+        "Running %s batches with %s seeds in each batch.",
+        num_batches,
         sim.settings.batch_size,
     )
-    for n in range(num_sims):
+    for n in range(num_batches):
         batch_seeds = seeds[
             n * sim.settings.batch_size : (n + 1) * sim.settings.batch_size
         ]
         if len(batch_seeds) == 0:
             break
-        logger.info("Running simulation %s with seeds %s.", n + 1, batch_seeds)
+        logger.info("Running batch %s with seeds %s.", n + 1, batch_seeds)
         sim.settings.batch_size = len(batch_seeds)
         sim.initialize_timesteps()
         parameters = Variable()
@@ -74,7 +74,9 @@ def serial_driver(sim, seeds=None, data=None):
         logger.info("Starting dynamics calculation.")
         new_data = dynamics.run_dynamics(sim, state, parameters, new_data)
         logger.info("Dynamics calculation completed.")
+        logger.info("Collecting results.")
         data.add_data(new_data)
     # Attach the collected log output to the data object before returning.
     data.log = get_log_output()
+    logger.info("Simulation complete.")
     return data
