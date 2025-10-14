@@ -506,7 +506,7 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
         Right vector for the inner product.
     out : ndarray | None
         Preallocated output array. If ``None``, a new array is created.
-        
+
     .. rubric:: Returns
     out : ndarray
         Result of the inner product with shape ``(batch_size, num_classical_coordinates)``.
@@ -542,8 +542,8 @@ def calc_sparse_inner_product(inds, mels, shape, vec_l_conj, vec_r, out=None):
 def analytic_der_couple_phase(sim, dh_qc_dzc, eigvals, eigvecs):
     """
     Calculates the phase change needed to fix the gauge using analytical derivative
-    couplings, i.e., calculates the phase-factors :math:`u^{q}_{i}` and :math:`u^{p}_{i}` 
-    such that :math:`d_{ij}^{q}u_{i}^{q*}u_{j}^{q}` and :math:`d_{ij}^{p}u_{i}^{p*}u_{j}^{p}` 
+    couplings, i.e., calculates the phase-factors :math:`u^{q}_{i}` and :math:`u^{p}_{i}`
+    such that :math:`d_{ij}^{q}u_{i}^{q*}u_{j}^{q}` and :math:`d_{ij}^{p}u_{i}^{p*}u_{j}^{p}`
     are real-valued.
 
     It does this by calculating the derivative couplings analytically. In the event of
@@ -561,7 +561,7 @@ def analytic_der_couple_phase(sim, dh_qc_dzc, eigvals, eigvecs):
     eigvecs : ndarray
         Eigenvectors of the quantum subsystem.
 
-    .. rubric:: 
+    .. rubric::
     der_couple_q_phase : ndarray
         Phase factor for derivative couplings obtained by differentiating
         w.r.t. the position coordinate.

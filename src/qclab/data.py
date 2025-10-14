@@ -133,7 +133,9 @@ class Data:
         new_data = Data()
         if disable_h5py:
             loaded = np.load(filename, allow_pickle=True)
-            new_data.data_dict = {key: loaded[key] for key in loaded.files if key != "log"}
+            new_data.data_dict = {
+                key: loaded[key] for key in loaded.files if key != "log"
+            }
             new_data.log = str(loaded.get("log", ""))
             self.add_data(new_data)
             return self

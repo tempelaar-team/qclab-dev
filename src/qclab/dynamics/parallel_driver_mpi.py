@@ -112,7 +112,9 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     for i in range(chunk_size):
         local_input_data[i][0].settings.batch_size = len(local_input_data[i][1].seed)
         logger.info(
-            "Running batch %s with seeds %s.", i + 1 + start, local_input_data[i][1].seed
+            "Running batch %s with seeds %s.",
+            i + 1 + start,
+            local_input_data[i][1].seed,
         )
     # Execute the local batches.
     logger.info("Starting dynamics calculation.")

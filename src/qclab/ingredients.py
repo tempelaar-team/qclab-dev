@@ -76,7 +76,7 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
     .. rubric:: Required Constants
     harmonic_frequency : ndarray
         Harmonic frequency of each classical coordinate.
-    
+
     .. rubric:: Returns
     dh_c_dzc : ndarray
         Gradient of the classical Hamiltonian with respect to the conjugate classical
@@ -361,7 +361,7 @@ def hop_free(model, parameters, **kwargs):
 
     .. rubric:: Required Constants
     None
-    
+
     .. rubric:: Returns
     shift : ndarray
         Shift in the classical coordinate.
@@ -412,7 +412,7 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
         Thermal quantum.
     harmonic_frequency : ndarray
         Harmonic frequency of each classical coordinate.
-    
+
     .. rubric:: Returns
     z : ndarray
         Complex classical coordinate.
@@ -456,7 +456,7 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
         Thermal quantum.
     harmonic_frequency : ndarray
         Harmonic frequency of each classical coordinate.
-    
+
     .. rubric:: Returns
     z : ndarray
         Complex classical coordinate.
@@ -504,7 +504,7 @@ def init_classical_definite_position_momentum(model, parameters, **kwargs):
         Initial position of the classical coordinates.
     init_momentum : ndarray
         Initial momentum of the classical coordinates.
-    
+
     .. rubric:: Returns
     z : ndarray
         Complex classical coordinate.
@@ -579,7 +579,7 @@ def rescaling_direction_random(model, parameters, **kwargs):
     """
     Random rescaling direction function.
 
-    This function returns a random array for the rescaling direction. 
+    This function returns a random array for the rescaling direction.
     It is only included for documentation purposes.
 
     Note that this is not a vectorized ingredient, as it is only called on
@@ -605,7 +605,7 @@ def rescaling_direction_random(model, parameters, **kwargs):
     init_state_ind = kwargs["init_state_ind"]
     final_state_ind = kwargs["final_state_ind"]
     return np.random.normal(size=z_traj.shape)
-   
+
 
 def gauge_field_force_zero(model, parameters, **kwargs):
     """
@@ -619,7 +619,7 @@ def gauge_field_force_zero(model, parameters, **kwargs):
         Current classical coordinate.
     state_ind : int
         Index of the state for which the gauge field force is calculated.
-    
+
 
     .. rubric:: Required Constants
     None
