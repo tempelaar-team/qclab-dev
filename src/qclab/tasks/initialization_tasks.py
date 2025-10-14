@@ -47,7 +47,7 @@ def initialize_variable_objects(sim, state, parameters, **kwargs):
         elif name[0] != "_":
             logger.warning(
                 "Variable %s in sim.initial_state is not a numpy.ndarray, "
-                "skipping initialization in state Variable object.",
+                "skipping initialization in state variable object.",
                 name,
             )
     return state, parameters
@@ -162,9 +162,9 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
 
     .. rubric:: Keyword Arguments
     seed_name : str
-        attribute name of the seeds array in ``state``.
+        Attribute name of the seeds array in ``state``.
     z_name : str
-        name of destination attribute in the ``state`` object.
+        Name of destination attribute in the ``state`` object.
 
     .. rubric:: Variable Modifications
     state.{z_name} : ndarray
@@ -281,10 +281,10 @@ def initialize_z(sim, state, parameters, **kwargs):
     init_classical, has_init_classical = sim.model.get("init_classical")
     if has_init_classical:
         setattr(state, z_name, init_classical(sim.model, parameters, seed=seed))
-        return state, parameters
-    state, parameters = initialize_z_mcmc(
-        sim, state, parameters, seed_name=seed_name, z_name=z_name
-    )
+    else:
+        state, parameters = initialize_z_mcmc(
+            sim, state, parameters, seed_name=seed_name, z_name=z_name
+        )
     return state, parameters
 
 
@@ -311,8 +311,8 @@ def copy_in_state(sim, state, parameters, **kwargs):
 
 def initialize_active_surface(sim, state, parameters, **kwargs):
     """
-    Initializes the active surface, active surface index and
-    initial active surface index for FSSH.
+    Initializes the active surface, active surface index, and initial active
+    surface index for FSSH.
 
     If ``fssh_deterministic=True`` it will set the initial active surface index
     to be the same as the branch index and assert that the number of branches is
