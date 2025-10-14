@@ -114,12 +114,13 @@ def update_classical_forces(sim, state, parameters, **kwargs):
     dh_c_dzc, has_dh_c_dzc = sim.model.get("dh_c_dzc")
     if has_dh_c_dzc:
         setattr(state, classical_forces_name, dh_c_dzc(sim.model, parameters, z=z))
-        return state, parameters
-    if sim.settings.debug:
-        logger.info("dh_c_dzc not found; using finite differences.")
-    return update_dh_c_dzc_finite_differences(
-        sim, state, parameters, dh_c_dzc_name=classical_forces_name, z_name=z_name
-    )
+    else:
+        if sim.settings.debug:
+            logger.info("dh_c_dzc not found; using finite differences.")
+        state, parameters = update_dh_c_dzc_finite_differences(
+            sim, state, parameters, dh_c_dzc_name=classical_forces_name, z_name=z_name
+        )
+    return state, parameters
 
 
 def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
@@ -213,10 +214,12 @@ def update_dh_qc_dzc(sim, state, parameters, **kwargs):
         dh_qc_dzc, has_dh_qc_dzc = sim.model.get("dh_qc_dzc")
         if has_dh_qc_dzc:
             setattr(state, dh_qc_dzc_name, dh_qc_dzc(sim.model, parameters, z=z))
-            return state, parameters
-        if sim.settings.debug:
-            logger.info("dh_qc_dzc not found; using finite differences.")
-        return update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs)
+        else:
+            if sim.settings.debug:
+                logger.info("dh_qc_dzc not found; using finite differences.")
+            state, parameters = update_dh_qc_dzc_finite_differences(
+                sim, state, parameters, **kwargs
+            )
     # If dh_qc_dzc has already been calculated and does not need to be updated,
     # return the existing parameters and state objects.
     return state, parameters
@@ -546,7 +549,7 @@ def update_act_surf_wf(sim, state, parameters, **kwargs):
 def update_wf_db_eigs(sim, state, parameters, **kwargs):
     """
     Evolves the diabatic wavefunction ``state.{wf_db_name}`` using the
-    eigenvalues ``state.{eigvals_name}`` and eigenvectors ``state.{eigvecs_name}```.
+    eigenvalues ``state.{eigvals_name}`` and eigenvectors ``state.{eigvecs_name}``.
 
     .. rubric:: Required Constants
     None
@@ -619,7 +622,7 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
     """
     Calculates the hopping probabilities for FSSH.
 
-    :math:`P_{a\\rightarrow b} = -2\\Re((C_{b}/C_{a})\\langle a(t)| b(t-dt)\\rangle)`
+    :math:`P_{a \\rightarrow b} = -2 \\Re \\left( (C_{b}/C_{a}) \\langle a(t) | b(t-dt) \\rangle \\right)`
 
     .. rubric:: Required Constants
     None
@@ -669,7 +672,7 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
             eigvecs[np.arange(num_trajs * num_branches, dtype=int), :, act_surf_ind]
         ),
     )
-    # Calculates -2*Re( (C_b / C_act_surf) * < act_surf(t) | b(t-dt) > )
+    # Calculates -2 Re( (C_b / C_act_surf) < act_surf(t) | b(t-dt) > )
     hop_prob = -2.0 * np.real(
         prod
         * wf_adb
@@ -1003,7 +1006,6 @@ def update_act_surf_hop_fssh(sim, state, parameters, **kwargs):
     act_surf[hop_successful_traj_ind, hop_dest_ind] = 1
     # Update the active surface index.
     act_surf_ind[hop_successful_traj_ind] = hop_dest_ind
-
     return state, parameters
 
 
@@ -1024,7 +1026,6 @@ def update_h_quantum(sim, state, parameters, **kwargs):
     h_quantum_name : str, default: "h_quantum"
         Name of the total Hamiltonian of the quantum subsystem in the state object.
         (``h_q + h_qc``)
-
 
     .. rubric:: Variable Modifications
     state.{h_q_name} : ndarray
@@ -1057,11 +1058,9 @@ def update_h_quantum(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-
-
-def update_z_rk4_k1(sim, state, parameters, **kwargs):
+def update_z_rk4_k123(sim, state, parameters, **kwargs):
     """
-    Computes the first RK4 intermediate for evolving the classical coordinates.
+    Computes the first three RK4 intermediates for evolving the classical coordinates.
 
     .. rubric:: Required Constants
     None
@@ -1071,22 +1070,32 @@ def update_z_rk4_k1(sim, state, parameters, **kwargs):
         Name of input coordinates in state object.
     z_output_name : str, default: "z_1"
         Name of the output coordinates in the state object.
-    k1_name : str, default: "z_rk4_k1"
+    k_name : str, default: "z_rk4_k1"
         Name of the first RK4 slope in the state object.
     classical_forces_name : str, default: "classical_forces"
         Name of the classical forces in the state object.
     quantum_classical_forces_name : str, default: "quantum_classical_forces"
         Name of the quantum-classical forces in the state object.
+    dt_factor : float, default: 0.5
+        Factor to multiply the time step by. Typical values are 0.5 (for k1 and k2)
+        and 1.0 (for k3).
 
     .. rubric:: Variable Modifications
     state.{z_output_name} : ndarray
         Output coordinates after half step.
-    state.z_rk4_k1 : ndarray
+    state.{k_name} : ndarray
         First RK4 slope.
     """
     z_name = kwargs.get("z_name", "z")
     z_output_name = kwargs.get("z_output_name", "z_1")
-    k1_name = kwargs.get("k1_name", "z_rk4_k1")
+    k_name = kwargs.get("k_name", "z_rk4_k1")
+    dt_factor = kwargs.get("dt_factor", 0.5)
+    if sim.settings.debug:
+        if dt_factor not in [0.5, 1.0]:
+            logger.warning(
+                "Unusual dt_factor %s passed to update_z_rk4_k123_sum. Typical values are 0.5 or 1.0.",
+                dt_factor,
+            )
     classical_forces_name = kwargs.get("classical_forces_name", "classical_forces")
     quantum_classical_forces_name = kwargs.get(
         "quantum_classical_forces_name", "quantum_classical_forces"
@@ -1095,99 +1104,11 @@ def update_z_rk4_k1(sim, state, parameters, **kwargs):
     quantum_classical_forces = getattr(state, quantum_classical_forces_name)
     dt_update = sim.settings.dt_update
     z_k = getattr(state, z_name)
-    out, k1 = functions.update_z_rk4_k123_sum(
-        z_k, classical_forces, quantum_classical_forces, 0.5 * dt_update
+    out, k = functions.update_z_rk4_k123_sum(
+        z_k, classical_forces, quantum_classical_forces, dt_factor * dt_update
     )
     setattr(state, z_output_name, out)
-    setattr(state, k1_name, k1)
-    return state, parameters
-
-
-def update_z_rk4_k2(sim, state, parameters, **kwargs):
-    """
-    Computes the second RK4 intermediate for evolving the classical coordinates.
-
-    .. rubric:: Required Constants
-    None
-
-    .. rubric:: Keyword Arguments
-    z_name : str, default: "z"
-        Name of input coordinates in state object.
-    z_output_name : str, default: "z_2"
-        Name of the output coordinates in the state object.
-    k2_name : str, default: "z_rk4_k2"
-        Name of the second RK4 slope in the state object.
-    classical_forces_name : str, default: "classical_forces"
-        Name of the classical forces in the state object.
-    quantum_classical_forces_name : str, default: "quantum_classical_forces"
-        Name of the quantum-classical forces in the state object.
-
-    .. rubric:: Variable Modifications
-    state.{z_output_name} : ndarray
-        Output coordinates after half step.
-    state.{k2_name} : ndarray
-        Second RK4 slope.
-    """
-    z_name = kwargs.get("z_name", "z")
-    z_output_name = kwargs.get("z_output_name", "z_2")
-    k2_name = kwargs.get("k2_name", "z_rk4_k2")
-    classical_forces_name = kwargs.get("classical_forces_name", "classical_forces")
-    quantum_classical_forces_name = kwargs.get(
-        "quantum_classical_forces_name", "quantum_classical_forces"
-    )
-    classical_forces = getattr(state, classical_forces_name)
-    quantum_classical_forces = getattr(state, quantum_classical_forces_name)
-    dt_update = sim.settings.dt_update
-    z_k = getattr(state, z_name)
-    out, k2 = functions.update_z_rk4_k123_sum(
-        z_k, classical_forces, quantum_classical_forces, 0.5 * dt_update
-    )
-    setattr(state, z_output_name, out)
-    setattr(state, k2_name, k2)
-    return state, parameters
-
-
-def update_z_rk4_k3(sim, state, parameters, **kwargs):
-    """
-    Computes the third RK4 intermediate for evolving the classical coordinates.
-
-    .. rubric:: Required Constants
-    None
-
-    .. rubric:: Keyword Arguments
-    z_name : str, default: "z"
-        Name of input coordinates in state object.
-    z_output_name : str, default: "z_3"
-        Name of the output coordinates in the state object.
-    k3_name : str, default: "z_rk4_k3"
-        Name of the third RK4 slope in the state object.
-    classical_forces_name : str, default: "classical_forces"
-        Name of the classical forces in the state object.
-    quantum_classical_forces_name : str, default: "quantum_classical_forces"
-        Name of the quantum-classical forces in the state object.
-
-    .. rubric:: Variable Modifications
-    state.{z_output_name} : ndarray
-        Output coordinates after a full step.
-    state.{k3_name} : ndarray
-        Third RK4 slope.
-    """
-    z_name = kwargs.get("z_name", "z")
-    z_output_name = kwargs.get("z_output_name", "z_3")
-    k3_name = kwargs.get("k3_name", "z_rk4_k3")
-    classical_forces_name = kwargs.get("classical_forces_name", "classical_forces")
-    quantum_classical_forces_name = kwargs.get(
-        "quantum_classical_forces_name", "quantum_classical_forces"
-    )
-    classical_forces = getattr(state, classical_forces_name)
-    quantum_classical_forces = getattr(state, quantum_classical_forces_name)
-    dt_update = sim.settings.dt_update
-    z_k = getattr(state, z_name)
-    out, k3 = functions.update_z_rk4_k123_sum(
-        z_k, classical_forces, quantum_classical_forces, dt_update
-    )
-    setattr(state, z_output_name, out)
-    setattr(state, k3_name, k3)
+    setattr(state, k_name, k)
     return state, parameters
 
 
@@ -1512,7 +1433,7 @@ def update_dm_db_fssh(sim, state, parameters, **kwargs):
     for nt, _ in enumerate(dm_adb):
         np.einsum("jj->j", dm_adb[nt])[...] = act_surf[nt]
     if sim.algorithm.settings.fssh_deterministic:
-        # this reweighting by num_branches simplifies the subsequent averaging.s
+        # This reweighting by num_branches simplifies the subsequent averaging.
         dm_adb = num_branches * (
             np.einsum(
                 "tbbb->tb",
