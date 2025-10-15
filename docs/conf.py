@@ -67,7 +67,6 @@ intersphinx_mapping = {
 
 
 
-
 autodoc_typehints = "both"
 
 # graphviz_output_format = "svg"
