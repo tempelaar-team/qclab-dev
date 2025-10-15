@@ -16,24 +16,24 @@ def update_t(sim, state, parameters, **kwargs):
     Updates the time in the state object with the time index in each trajectory
     multiplied by the update timestep.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
     t_name : str, default: "t"
         Name of the time variable in the state object.
 
-    .. rubric:: Variable Modifications
-    state.{t_name} : ndarray
+    .. rubric:: Input Variables
+    None
+
+    .. rubric:: Output Variables
+    state[t_name] : ndarray, (batch_size,), float
         Time of each trajectory.
+
     """
     t_name = kwargs.get("t_name", "t")
     batch_size = sim.settings.batch_size
-    setattr(
-        state,
-        t_name,
-        np.broadcast_to(sim.t_ind * sim.settings.dt_update, (batch_size,)),
-    )
+    state[t_name] = np.broadcast_to(sim.t_ind * sim.settings.dt_update, (batch_size,))
     return state, parameters
 
 
@@ -41,7 +41,7 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
     """
     Calculates the gradient of the classical Hamiltonian using finite differences.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     dh_c_dzc_finite_difference_delta : float, default : numerical_constants.FINITE_DIFFERENCE_DELTA
         Finite-difference step size.
 
@@ -51,11 +51,15 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
     dh_c_dzc_name : str, default: "dh_c_dzc"
         Name under which to store the finite-difference gradient in the state object.
 
-    .. rubric:: Variable Modifications
-    state.{dh_c_dzc_name} : ndarray
+    .. rubric:: Input Variables
+    state[z_name] : ndarray, (batch_size, num_classical_coordinates), complex
+        Classical coordinates.
+
+    .. rubric:: Output Variables
+    state[dh_c_dzc_name] : ndarray, (batch_size, num_classical_coordinates), complex
         Gradient of the classical Hamiltonian.
     """
-    z = getattr(state, kwargs.get("z_name", "z"))
+    z = state[kwargs.get("z_name", "z")]
     dh_c_dzc_name = kwargs.get("dh_c_dzc_name", "dh_c_dzc")
     delta_z = sim.model.constants.get(
         "dh_c_dzc_finite_difference_delta", numerical_constants.FINITE_DIFFERENCE_DELTA
@@ -86,7 +90,7 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
     diff_re = (h_c_re - h_c_0_exp) / delta_z
     diff_im = (h_c_im - h_c_0_exp) / delta_z
     dh_c_dzc = 0.5 * (diff_re + 1j * diff_im)
-    setattr(state, dh_c_dzc_name, dh_c_dzc)
+    state[dh_c_dzc_name] = dh_c_dzc
     return state, parameters
 
 
@@ -110,10 +114,10 @@ def update_classical_forces(sim, state, parameters, **kwargs):
     """
     z_name = kwargs.get("z_name", "z")
     classical_forces_name = kwargs.get("classical_forces_name", "classical_forces")
-    z = getattr(state, z_name)
+    z = state[z_name]
     dh_c_dzc, has_dh_c_dzc = sim.model.get("dh_c_dzc")
     if has_dh_c_dzc:
-        setattr(state, classical_forces_name, dh_c_dzc(sim.model, parameters, z=z))
+        state[classical_forces_name] = dh_c_dzc(sim.model, parameters, z=z)
     else:
         if sim.settings.debug:
             logger.info("dh_c_dzc not found; using finite differences.")
@@ -144,7 +148,7 @@ def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
     """
     z_name = kwargs.get("z_name", "z")
     dh_qc_dzc_name = kwargs.get("dh_qc_dzc_name", "dh_qc_dzc")
-    z = getattr(state, z_name)
+    z = state[z_name]
     batch_size = len(z)
     delta_z = sim.model.constants.get(
         "dh_qc_dzc_finite_difference_delta", numerical_constants.FINITE_DIFFERENCE_DELTA
@@ -183,7 +187,7 @@ def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
     mels = dh_qc_dzc[inds]
     shape = np.shape(dh_qc_dzc)
     # Update it in the state object.
-    setattr(state, dh_qc_dzc_name, (inds, mels, shape))
+    state[dh_qc_dzc_name] = (inds, mels, shape)
     return state, parameters
 
 
@@ -207,13 +211,13 @@ def update_dh_qc_dzc(sim, state, parameters, **kwargs):
     """
     z_name = kwargs.get("z_name", "z")
     dh_qc_dzc_name = kwargs.get("dh_qc_dzc_name", "dh_qc_dzc")
-    z = getattr(state, z_name)
-    if getattr(state, dh_qc_dzc_name) is None or sim.model.update_dh_qc_dzc:
+    z = state[z_name]
+    if not (dh_qc_dzc_name in state) or sim.model.update_dh_qc_dzc:
         # If dh_qc_dzc has not been calculated yet, or if the
         # model requires it to be updated, calculate it.
         dh_qc_dzc, has_dh_qc_dzc = sim.model.get("dh_qc_dzc")
         if has_dh_qc_dzc:
-            setattr(state, dh_qc_dzc_name, dh_qc_dzc(sim.model, parameters, z=z))
+            state[dh_qc_dzc_name] = dh_qc_dzc(sim.model, parameters, z=z)
         else:
             if sim.settings.debug:
                 logger.info("dh_qc_dzc not found; using finite differences.")
@@ -264,9 +268,8 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
     )
     state_ind_name = kwargs.get("state_ind_name", "act_surf_ind")
     wf_changed = kwargs.get("wf_changed", True)
-
-    z = getattr(state, z_name)
-    wf_db = getattr(state, wf_db_name)
+    z = state[z_name]
+    wf_db = state[wf_db_name]
     # Update the gradient of h_qc.
     state, parameters = update_dh_qc_dzc(
         sim, state, parameters, z_name=z_name, dh_qc_dzc_name=dh_qc_dzc_name
@@ -275,23 +278,18 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
     # If not(wf_changed) and sim.model.update_dh_qc_dzc then recalculate.
     # If wf_changed then recalculate.
     # If state.quantum_classical_forces is None then recalculate.
-    state_quantum_classical_forces = getattr(state, quantum_classical_forces_name)
     if (
-        (state_quantum_classical_forces is None)
+        not (quantum_classical_forces_name in state)
         or wf_changed
         or (not (wf_changed) and sim.model.update_dh_qc_dzc)
     ):
-        if state_quantum_classical_forces is None:
-            setattr(state, quantum_classical_forces_name, np.zeros_like(z))
-            state_quantum_classical_forces = getattr(
-                state, quantum_classical_forces_name
-            )
-
-        state_quantum_classical_forces = functions.calc_sparse_inner_product(
-            *state.dh_qc_dzc,
+        if not (quantum_classical_forces_name in state):
+            state[quantum_classical_forces_name] = np.zeros_like(z)
+        state[quantum_classical_forces_name] = functions.calc_sparse_inner_product(
+            *state[dh_qc_dzc_name],
             wf_db.conj(),
             wf_db,
-            out=state_quantum_classical_forces.reshape(-1),
+            out=state[quantum_classical_forces_name].reshape(-1),
         ).reshape(np.shape(z))
     if sim.algorithm.settings.get("use_gauge_field_force"):
         state, parameters = add_gauge_field_force_fssh(
@@ -325,18 +323,14 @@ def add_gauge_field_force_fssh(sim, state, parameters, **kwargs):
     quantum_classical_forces_name = kwargs.get(
         "quantum_classical_forces_name", "quantum_classical_forces"
     )
-    z = getattr(state, z_name)
-    adb_state_ind = getattr(state, adb_state_ind_name)
+    z = state[z_name]
+    adb_state_ind = state[adb_state_ind_name]
     gauge_field_force, has_gauge_field_force = sim.model.get("gauge_field_force")
     if has_gauge_field_force:
         gauge_field_force_val = gauge_field_force(
             sim.model, parameters, z=z, state_ind=adb_state_ind
         )
-        setattr(
-            state,
-            quantum_classical_forces_name,
-            getattr(state, quantum_classical_forces_name) + gauge_field_force_val,
-        )
+        state[quantum_classical_forces_name] += gauge_field_force_val
     else:
         if sim.settings.debug:
             logger.warning("gauge_field_force not found; skipping.")
@@ -365,10 +359,10 @@ def diagonalize_matrix(sim, state, parameters, **kwargs):
     state.{eigvecs} : ndarray
         Eigenvectors of the matrix.
     """
-    matrix = getattr(state, kwargs["matrix_name"])
+    matrix = state[kwargs["matrix_name"]]
     eigvals, eigvecs = np.linalg.eigh(matrix)
-    setattr(state, kwargs["eigvals_name"], eigvals)
-    setattr(state, kwargs["eigvecs_name"], eigvecs)
+    state[kwargs["eigvals_name"]] = eigvals
+    state[kwargs["eigvecs_name"]] = eigvecs
     return state, parameters
 
 
@@ -408,6 +402,8 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
         Name of classical coordinates in the state object.
     gauge_fixing : str, default: sim.algorithm.settings.gauge_fixing
         Gauge-fixing method to use.
+    dh_qc_dzc_name : str, default: "dh_qc_dzc"
+        Name of the gradient of the quantum-classical Hamiltonian in the state object.
 
     .. rubric:: Variable Modifications
     state.{output_eigvecs_name} : ndarray
@@ -418,9 +414,10 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
     eigvecs_previous_name = kwargs.get("eigvecs_previous_name", "eigvecs_previous")
     output_eigvecs_name = kwargs.get("output_eigvecs_name", eigvecs_name)
     z_name = kwargs.get("z_name", "z")
-    eigvals = getattr(state, eigvals_name)
-    eigvecs = getattr(state, eigvecs_name)
-    eigvecs_previous = getattr(state, eigvecs_previous_name)
+    dh_qc_dzc_name = kwargs.get("dh_qc_dzc_name", "dh_qc_dzc")
+    eigvals = state[eigvals_name]
+    eigvecs = state[eigvecs_name]
+    eigvecs_previous = state[eigvecs_previous_name]
     gauge_fixing = kwargs.get("gauge_fixing", sim.algorithm.settings.gauge_fixing)
     gauge_fixing_numerical_values = {
         "sign_overlap": 0,
@@ -440,7 +437,7 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
         # Make the derivative couplings real-valued (but not necessarily positive).
         state, parameters = update_dh_qc_dzc(sim, state, parameters, z_name=z_name)
         der_couple_q_phase, _ = functions.analytic_der_couple_phase(
-            sim, state.dh_qc_dzc, eigvals, eigvecs
+            sim, state[dh_qc_dzc_name], eigvals, eigvecs
         )
         eigvecs *= np.conj(der_couple_q_phase)[:, None, :]
     if gauge_fixing_value == 0 or gauge_fixing_value == 2:
@@ -455,10 +452,11 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
                     "Normalization will be broken and results will be incorrect."
                 )
         eigvecs *= signs[:, None, :]
-
     if gauge_fixing_value == 2 and sim.settings.debug:
         der_couple_q_phase_new, der_couple_p_phase_new = (
-            functions.analytic_der_couple_phase(sim, state.dh_qc_dzc, eigvals, eigvecs)
+            functions.analytic_der_couple_phase(
+                sim, state[dh_qc_dzc_name], eigvals, eigvecs
+            )
         )
         if (
             np.sum(
@@ -474,7 +472,7 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
                     + np.abs(np.imag(der_couple_p_phase_new)) ** 2
                 ),
             )
-    setattr(state, output_eigvecs_name, eigvecs)
+    state[output_eigvecs_name] = eigvecs
     return state, parameters
 
 
@@ -503,13 +501,11 @@ def basis_transform_vec(sim, state, parameters, **kwargs):
     state.{output_vec_name} : ndarray
         Vector expressed in the new basis.
     """
-    input_vec = getattr(state, kwargs["input_vec_name"])
-    basis = getattr(state, kwargs["basis_name"])
+    input_vec = state[kwargs["input_vec_name"]]
+    basis = state[kwargs["basis_name"]]
     adb_to_db = kwargs["adb_to_db"]
-    setattr(
-        state,
-        kwargs["output_vec_name"],
-        functions.transform_vec(input_vec, basis, adb_to_db=adb_to_db),
+    state[kwargs["output_vec_name"]] = functions.transform_vec(
+        input_vec, basis, adb_to_db=adb_to_db
     )
     return state, parameters
 
@@ -537,12 +533,10 @@ def update_act_surf_wf(sim, state, parameters, **kwargs):
     act_surf_ind_name = kwargs.get("act_surf_ind_name", "act_surf_ind")
     eigvecs_name = kwargs.get("eigvecs_name", "eigvecs")
     num_trajs = sim.settings.batch_size
-    act_surf_wf = getattr(state, eigvecs_name)[
-        np.arange(num_trajs, dtype=int),
-        :,
-        getattr(state, act_surf_ind_name),
+    act_surf_wf = state[eigvecs_name][
+        np.arange(num_trajs, dtype=int), :, state[act_surf_ind_name]
     ]
-    setattr(state, act_surf_wf_name, act_surf_wf)
+    state[act_surf_wf_name] = act_surf_wf
     return state, parameters
 
 
@@ -569,9 +563,9 @@ def update_wf_db_eigs(sim, state, parameters, **kwargs):
     wf_db_name = kwargs.get("wf_db_name", "wf_db")
     eigvals_name = kwargs.get("eigvals_name", "eigvals")
     eigvecs_name = kwargs.get("eigvecs_name", "eigvecs")
-    wf_db = getattr(state, wf_db_name)
-    eigvals = getattr(state, eigvals_name)
-    eigvecs = getattr(state, eigvecs_name)
+    wf_db = state[wf_db_name]
+    eigvals = state[eigvals_name]
+    eigvecs = state[eigvecs_name]
     batch_size = sim.settings.batch_size
     num_quantum_states = sim.model.constants.num_quantum_states
     # Calculate the propagator in the adiabatic basis.
@@ -582,12 +576,7 @@ def update_wf_db_eigs(sim, state, parameters, **kwargs):
     prop_adb[:, idx, idx] = np.exp(-1j * eigvals * sim.settings.dt_update)
     # Transform propagator to the diabatic basis.
     prop_db = functions.transform_mat(prop_adb, eigvecs, adb_to_db=True)
-    # Apply the propagator to the diabatic wavefunction.
-    setattr(
-        state,
-        wf_db_name,
-        functions.multiply_matrix_vector(prop_db, wf_db),
-    )
+    state[wf_db_name] = functions.multiply_matrix_vector(prop_db, wf_db)
     return state, parameters
 
 
@@ -612,9 +601,9 @@ def update_wf_db_rk4(sim, state, parameters, **kwargs):
     dt_update = sim.settings.dt_update
     wf_db_name = kwargs.get("wf_db_name", "wf_db")
     h_quantum_name = kwargs.get("h_quantum_name", "h_quantum")
-    wf_db = getattr(state, wf_db_name)
-    h_quantum = getattr(state, h_quantum_name)
-    setattr(state, wf_db_name, functions.wf_db_rk4(h_quantum, wf_db, dt_update))
+    wf_db = state[wf_db_name]
+    h_quantum = state[h_quantum_name]
+    state[wf_db_name] = functions.wf_db_rk4(h_quantum, wf_db, dt_update)
     return state, parameters
 
 
@@ -648,10 +637,10 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
     eigvecs_name = kwargs.get("eigvecs_name", "eigvecs")
     eigvecs_previous_name = kwargs.get("eigvecs_previous_name", "eigvecs_previous")
     hop_prob_name = kwargs.get("hop_prob_name", "hop_prob")
-    act_surf_ind = getattr(state, act_surf_ind_name)
-    wf_adb = getattr(state, wf_adb_name)
-    eigvecs = getattr(state, eigvecs_name)
-    eigvecs_previous = getattr(state, eigvecs_previous_name)
+    act_surf_ind = state[act_surf_ind_name]
+    wf_adb = state[wf_adb_name]
+    eigvecs = state[eigvecs_name]
+    eigvecs_previous = state[eigvecs_previous_name]
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
     else:
@@ -680,7 +669,7 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
     )
     # Sets hopping probabilities to 0 at the active surface.
     hop_prob[np.arange(num_branches * num_trajs), act_surf_ind] = 0.0
-    setattr(state, hop_prob_name, hop_prob)
+    state[hop_prob_name] = hop_prob
     return state, parameters
 
 
@@ -723,8 +712,8 @@ def update_hop_inds_fssh(sim, state, parameters, **kwargs):
     else:
         num_branches = 1
     num_trajs = sim.settings.batch_size // num_branches
-    hop_prob = getattr(state, hop_prob_name)
-    rand = getattr(state, hopping_probs_rand_vals_name)[:, sim.t_ind]
+    hop_prob = state[hop_prob_name]
+    rand = state[hopping_probs_rand_vals_name][:, sim.t_ind]
     cumulative_probs = np.cumsum(
         np.nan_to_num(hop_prob, nan=0, posinf=100e100, neginf=-100e100, copy=False),
         axis=1,
@@ -736,8 +725,8 @@ def update_hop_inds_fssh(sim, state, parameters, **kwargs):
     hop_dest = np.argmax(
         (cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1
     )[hop_ind]
-    setattr(state, hop_ind_name, hop_ind)
-    setattr(state, hop_dest_name, hop_dest)
+    state[hop_ind_name] = hop_ind
+    state[hop_dest_name] = hop_dest
     return state, parameters
 
 
@@ -775,9 +764,9 @@ def update_z_shift_fssh(sim, state, parameters, **kwargs):
         "hop_successful_traj_name", "hop_successful_traj"
     )
     z_shift_traj_name = kwargs.get("z_shift_traj_name", "z_shift_traj")
-    z = getattr(state, z_traj_name)
-    delta_z = getattr(state, delta_z_traj_name)
-    eigval_diff = getattr(state, eigval_diff_traj_name)
+    z = state[z_traj_name]
+    delta_z = state[delta_z_traj_name]
+    eigval_diff = state[eigval_diff_traj_name]
     hop, has_hop = sim.model.get("hop")
     if has_hop:
         z_shift, hopped = hop(
@@ -795,8 +784,8 @@ def update_z_shift_fssh(sim, state, parameters, **kwargs):
             delta_z=delta_z,
             eigval_diff=eigval_diff,
         )
-    setattr(state, hop_successful_traj_name, hopped)
-    setattr(state, z_shift_traj_name, z_shift)
+    state[hop_successful_traj_name] = hopped
+    state[z_shift_traj_name] = z_shift
     return state, parameters
 
 
@@ -867,24 +856,18 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
         "hop_successful_traj_name", "hop_successful_traj"
     )
     z_shift_traj_name = kwargs.get("z_shift_traj_name", "z_shift_traj")
-    hop_ind = getattr(state, hop_ind_name)
-    hop_dest = getattr(state, hop_dest_name)
-    setattr(
-        state,
-        z_shift_name,
-        np.zeros(
-            (len(hop_ind), sim.model.constants.num_classical_coordinates), dtype=complex
-        ),
+    hop_ind = state[hop_ind_name]
+    hop_dest = state[hop_dest_name]
+    state[z_shift_name] = np.zeros(
+        (len(hop_ind), sim.model.constants.num_classical_coordinates), dtype=complex
     )
-    setattr(state, hop_successful_name, np.zeros(len(hop_ind), dtype=bool))
-    eigvals = getattr(state, eigvals_name)
-    eigvecs = getattr(state, eigvecs_name)
-    z = getattr(state, z_name)
-    act_surf_ind = getattr(state, act_surf_ind_name)
-
-    state_hop_successful = getattr(state, hop_successful_name)
-    state_z_shift = getattr(state, z_shift_name)
-
+    state[hop_successful_name] = np.zeros(len(hop_ind), dtype=bool)
+    eigvals = state[eigvals_name]
+    eigvecs = state[eigvecs_name]
+    z = state[z_name]
+    act_surf_ind = state[act_surf_ind_name]
+    state_hop_successful = state[hop_successful_name]
+    state_z_shift = state[z_shift_name]
     hop_traj_ind = 0
     for traj_ind in hop_ind:
         final_state_ind = hop_dest[hop_traj_ind]
@@ -906,7 +889,7 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
                 final_state_ind=final_state_ind,
             )
         else:
-            inds, mels, shape = getattr(state, dh_qc_dzc_name)
+            inds, mels, shape = state[dh_qc_dzc_name]
             dh_qc_dzc_traj_ind = inds[0] == traj_ind
             inds_traj = (
                 inds[0][dh_qc_dzc_traj_ind],
@@ -920,12 +903,12 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
             delta_z = functions.calc_delta_z_fssh(
                 sim, eigval_diff, eigvec_init_state, eigvec_final_state, dh_qc_dzc_traj
             )
-        setattr(state, z_traj_name, z[traj_ind])
-        setattr(state, delta_z_traj_name, delta_z)
-        setattr(state, eigval_diff_traj_name, eigval_diff)
+        state[z_traj_name] = z[traj_ind]
+        state[delta_z_traj_name] = delta_z
+        state[eigval_diff_traj_name] = eigval_diff
         state, parameters = update_z_shift_fssh(sim, state, parameters, **kwargs)
-        state_hop_successful[hop_traj_ind] = getattr(state, hop_successful_traj_name)
-        state_z_shift[hop_traj_ind] = getattr(state, z_shift_traj_name)
+        state_hop_successful[hop_traj_ind] = state[hop_successful_traj_name]
+        state_z_shift[hop_traj_ind] = state[z_shift_traj_name]
         hop_traj_ind += 1
     return state, parameters
 
@@ -952,11 +935,11 @@ def update_z_hop_fssh(sim, state, parameters, **kwargs):
     z_shift_name = kwargs.get("z_shift_name", "z_shift")
     hop_ind_name = kwargs.get("hop_ind_name", "hop_ind")
     z_name = kwargs.get("z_name", "z")
-    z_orig = getattr(state, z_name)
-    hop_ind = getattr(state, hop_ind_name)
-    z_shift = getattr(state, z_shift_name)
+    z_orig = state[z_name]
+    hop_ind = state[hop_ind_name]
+    z_shift = state[z_shift_name]
     z_orig[hop_ind] += z_shift
-    setattr(state, z_name, z_orig)
+    state[z_name] = z_orig
     return state, parameters
 
 
@@ -991,11 +974,11 @@ def update_act_surf_hop_fssh(sim, state, parameters, **kwargs):
     hop_successful_name = kwargs.get("hop_successful_name", "hop_successful")
     act_surf_name = kwargs.get("act_surf_name", "act_surf")
     act_surf_ind_name = kwargs.get("act_surf_ind_name", "act_surf_ind")
-    hop_successful = getattr(state, hop_successful_name)
-    hop_ind = getattr(state, hop_ind_name)
-    hop_dest = getattr(state, hop_dest_name)
-    act_surf = getattr(state, act_surf_name)
-    act_surf_ind = getattr(state, act_surf_ind_name)
+    hop_successful = state[hop_successful_name]
+    hop_ind = state[hop_ind_name]
+    hop_dest = state[hop_dest_name]
+    act_surf = state[act_surf_name]
+    act_surf_ind = state[act_surf_ind_name]
     # Get the index of the trajectories that successfully hopped.
     hop_successful_traj_ind = hop_ind[hop_successful]
     # Get their destination states.
@@ -1039,22 +1022,17 @@ def update_h_quantum(sim, state, parameters, **kwargs):
     h_q_name = kwargs.get("h_q_name", "h_q")
     h_qc_name = kwargs.get("h_qc_name", "h_qc")
     h_quantum_name = kwargs.get("h_quantum_name", "h_quantum")
-    z = getattr(state, z_name)
+    z = state[z_name]
     h_q, _ = sim.model.get("h_q")
     h_qc, _ = sim.model.get("h_qc")
-    state_h_q = getattr(state, h_q_name)
-    if sim.model.update_h_q or state_h_q is None:
+    if sim.model.update_h_q or not (h_q_name in state):
         # Update the quantum Hamiltonian if required or if it is not set.
-        setattr(
-            state,
-            h_q_name,
-            h_q(sim.model, parameters, batch_size=sim.settings.batch_size),
-        )
-        state_h_q = getattr(state, h_q_name)
+        state[h_q_name] = h_q(sim.model, parameters, batch_size=sim.settings.batch_size)
+    state_h_q = state[h_q_name]
     # Update the quantum-classical Hamiltonian.
-    setattr(state, h_qc_name, h_qc(sim.model, parameters, z=z))
+    state[h_qc_name] = h_qc(sim.model, parameters, z=z)
     # Update the total Hamiltonian of the quantum subsystem.
-    setattr(state, h_quantum_name, state_h_q + getattr(state, h_qc_name))
+    state[h_quantum_name] = state_h_q + state[h_qc_name]
     return state, parameters
 
 
@@ -1100,15 +1078,15 @@ def update_z_rk4_k123(sim, state, parameters, **kwargs):
     quantum_classical_forces_name = kwargs.get(
         "quantum_classical_forces_name", "quantum_classical_forces"
     )
-    classical_forces = getattr(state, classical_forces_name)
-    quantum_classical_forces = getattr(state, quantum_classical_forces_name)
+    classical_forces = state[classical_forces_name]
+    quantum_classical_forces = state[quantum_classical_forces_name]
     dt_update = sim.settings.dt_update
-    z_k = getattr(state, z_name)
+    z_k = state[z_name]
     out, k = functions.update_z_rk4_k123_sum(
         z_k, classical_forces, quantum_classical_forces, dt_factor * dt_update
     )
-    setattr(state, z_output_name, out)
-    setattr(state, k_name, k)
+    state[z_output_name] = out
+    state[k_name] = k
     return state, parameters
 
 
@@ -1144,17 +1122,17 @@ def update_z_rk4_k4(sim, state, parameters, **kwargs):
     k1_name = kwargs.get("k1_name", "z_rk4_k1")
     k2_name = kwargs.get("k2_name", "z_rk4_k2")
     k3_name = kwargs.get("k3_name", "z_rk4_k3")
-    k1 = getattr(state, k1_name)
-    k2 = getattr(state, k2_name)
-    k3 = getattr(state, k3_name)
+    k1 = state[k1_name]
+    k2 = state[k2_name]
+    k3 = state[k3_name]
     classical_forces_name = kwargs.get("classical_forces_name", "classical_forces")
     quantum_classical_forces_name = kwargs.get(
         "quantum_classical_forces_name", "quantum_classical_forces"
     )
-    classical_forces = getattr(state, classical_forces_name)
-    quantum_classical_forces = getattr(state, quantum_classical_forces_name)
+    classical_forces = state[classical_forces_name]
+    quantum_classical_forces = state[quantum_classical_forces_name]
     dt_update = sim.settings.dt_update
-    z_0 = getattr(state, z_name)
+    z_0 = state[z_name]
     out = functions.update_z_rk4_k4_sum(
         z_0,
         k1,
@@ -1164,7 +1142,7 @@ def update_z_rk4_k4(sim, state, parameters, **kwargs):
         quantum_classical_forces,
         dt_update,
     )
-    setattr(state, z_output_name, out)
+    state[z_output_name] = out
     return state, parameters
 
 
@@ -1187,11 +1165,9 @@ def update_dm_db_mf(sim, state, parameters, **kwargs):
     """
     wf_db_name = kwargs.get("wf_db_name", "wf_db")
     dm_db_name = kwargs.get("dm_db_name", "dm_db")
-    wf_db = getattr(state, wf_db_name)
-    setattr(
-        state,
-        dm_db_name,
-        np.einsum("ti,tj->tij", wf_db, np.conj(wf_db), optimize="greedy"),
+    wf_db = state[wf_db_name]
+    state[dm_db_name] = np.einsum(
+        "ti,tj->tij", wf_db, np.conj(wf_db), optimize="greedy"
     )
     return state, parameters
 
@@ -1214,9 +1190,9 @@ def update_classical_energy(sim, state, parameters, **kwargs):
     """
     z_name = kwargs.get("z_name", "z")
     classical_energy_name = kwargs.get("classical_energy_name", "classical_energy")
-    z = getattr(state, z_name)
+    z = state[z_name]
     h_c, _ = sim.model.get("h_c")
-    setattr(state, classical_energy_name, np.real(h_c(sim.model, parameters, z=z)))
+    state[classical_energy_name] = np.real(h_c(sim.model, parameters, z=z))
     return state, parameters
 
 
@@ -1248,9 +1224,9 @@ def update_classical_energy_fssh(sim, state, parameters, **kwargs):
     classical_energy_name = kwargs.get("classical_energy_name", "classical_energy")
     dm_adb_0_name = kwargs.get("dm_adb_0_name", "dm_adb_0")
     branch_ind_name = kwargs.get("branch_ind_name", "branch_ind")
-    z = getattr(state, z_name)
-    dm_adb_0 = getattr(state, dm_adb_0_name)
-    branch_ind = getattr(state, branch_ind_name)
+    z = state[z_name]
+    dm_adb_0 = state[dm_adb_0_name]
+    branch_ind = state[branch_ind_name]
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
     else:
@@ -1279,7 +1255,7 @@ def update_classical_energy_fssh(sim, state, parameters, **kwargs):
             parameters,
             z=z_branch,
         )
-    setattr(state, classical_energy_name, classical_energy)
+    state[classical_energy_name] = classical_energy
     return state, parameters
 
 
@@ -1307,16 +1283,12 @@ def update_quantum_energy(sim, state, parameters, **kwargs):
     wf_db_name = kwargs.get("wf_db_name", "wf_db")
     h_quantum_name = kwargs.get("h_quantum_name", "h_quantum")
     quantum_energy_name = kwargs.get("quantum_energy_name", "quantum_energy")
-    wf_db = getattr(state, wf_db_name)
-    h_quantum = getattr(state, h_quantum_name)
+    wf_db = state[wf_db_name]
+    h_quantum = state[h_quantum_name]
     quantum_energy = np.real(
         np.einsum("ti,tij,tj->t", np.conj(wf_db), h_quantum, wf_db, optimize="greedy")
     )
-    setattr(
-        state,
-        quantum_energy_name,
-        quantum_energy,
-    )
+    state[quantum_energy_name] = quantum_energy
     return state, parameters
 
 
@@ -1349,10 +1321,9 @@ def update_quantum_energy_fssh(sim, state, parameters, **kwargs):
     h_quantum_name = kwargs.get("h_quantum_name", "h_quantum")
     quantum_energy_name = kwargs.get("quantum_energy_name", "quantum_energy")
     dm_adb_0_name = kwargs.get("dm_adb_0_name", "dm_adb_0")
-    h_quantum = getattr(state, h_quantum_name)
-    wf_db = getattr(state, wf_db_name)
-    dm_adb_0 = getattr(state, dm_adb_0_name)
-
+    h_quantum = state[h_quantum_name]
+    wf_db = state[wf_db_name]
+    dm_adb_0 = state[dm_adb_0_name]
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
         batch_size = sim.settings.batch_size // num_branches
@@ -1376,7 +1347,7 @@ def update_quantum_energy_fssh(sim, state, parameters, **kwargs):
                 "ti,tij,tj->t", np.conj(wf_db), h_quantum, wf_db, optimize="greedy"
             )
         )
-    setattr(state, quantum_energy_name, quantum_energy)
+    state[quantum_energy_name] = quantum_energy
     return state, parameters
 
 
@@ -1414,10 +1385,10 @@ def update_dm_db_fssh(sim, state, parameters, **kwargs):
     dm_db_name = kwargs.get("dm_db_name", "dm_db")
     dm_adb_name = kwargs.get("dm_adb_name", "dm_adb")
     eigvecs_name = kwargs.get("eigvecs_name", "eigvecs")
-    wf_adb = getattr(state, wf_adb_name)
-    dm_adb_0 = getattr(state, dm_adb_0_name)
-    act_surf = getattr(state, act_surf_name)
-    eigvecs = getattr(state, eigvecs_name)
+    wf_adb = state[wf_adb_name]
+    dm_adb_0 = state[dm_adb_0_name]
+    act_surf = state[act_surf_name]
+    eigvecs = state[eigvecs_name]
     dm_adb = np.einsum(
         "ti,tj->tij",
         wf_adb,
@@ -1444,6 +1415,6 @@ def update_dm_db_fssh(sim, state, parameters, **kwargs):
             * dm_adb
         )
     dm_db = functions.transform_mat(dm_adb, eigvecs, adb_to_db=True)
-    setattr(state, dm_adb_name, dm_adb)
-    setattr(state, dm_db_name, dm_db)
+    state[dm_adb_name] = dm_adb
+    state[dm_db_name] = dm_db
     return state, parameters

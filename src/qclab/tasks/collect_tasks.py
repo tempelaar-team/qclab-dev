@@ -22,7 +22,7 @@ def collect_t(sim, state, parameters, **kwargs):
     """
     t_var_name = kwargs.get("t_var_name", "t")
     t_output_name = kwargs.get("t_output_name", "t")
-    state.output_dict[t_output_name] = getattr(state, t_var_name)
+    state["output_dict"][t_output_name] = state[t_var_name]
     return state, parameters
 
 
@@ -45,7 +45,7 @@ def collect_dm_db(sim, state, parameters, **kwargs):
     """
     dm_db_var_name = kwargs.get("dm_db_var_name", "dm_db")
     dm_db_output_name = kwargs.get("dm_db_output_name", "dm_db")
-    state.output_dict[dm_db_output_name] = getattr(state, dm_db_var_name)
+    state["output_dict"][dm_db_output_name] = state[dm_db_var_name]
     return state, parameters
 
 
@@ -72,9 +72,9 @@ def collect_classical_energy(sim, state, parameters, **kwargs):
     classical_energy_output_name = kwargs.get(
         "classical_energy_output_name", "classical_energy"
     )
-    state.output_dict[classical_energy_output_name] = getattr(
-        state, classical_energy_var_name
-    )
+    state["output_dict"][classical_energy_output_name] = state[
+        classical_energy_var_name
+    ]
     return state, parameters
 
 
@@ -99,7 +99,5 @@ def collect_quantum_energy(sim, state, parameters, **kwargs):
     quantum_energy_output_name = kwargs.get(
         "quantum_energy_output_name", "quantum_energy"
     )
-    state.output_dict[quantum_energy_output_name] = getattr(
-        state, quantum_energy_var_name
-    )
+    state["output_dict"][quantum_energy_output_name] = state[quantum_energy_var_name]
     return state, parameters
