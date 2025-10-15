@@ -3,7 +3,6 @@ This module contains the QC Lab package initialization.
 """
 
 from qclab.simulation import Simulation
-from qclab.variable import Variable
 from qclab.data import Data
 from qclab.model import Model
 from qclab.algorithm import Algorithm

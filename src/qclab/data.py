@@ -32,8 +32,8 @@ class Data:
         .. rubric:: Args
         sim: Simulation
             The simulation object containing settings and parameters.
-        state: Variable
-            The state object containing the current simulation state.
+        state: dict
+            The dictionary containing the current simulation state.
         t_ind: int
             The current time index in the simulation.
         """

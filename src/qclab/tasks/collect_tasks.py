@@ -72,7 +72,9 @@ def collect_classical_energy(sim, state, parameters, **kwargs):
     classical_energy_output_name = kwargs.get(
         "classical_energy_output_name", "classical_energy"
     )
-    state["output_dict"][classical_energy_output_name] = state[classical_energy_var_name]
+    state["output_dict"][classical_energy_output_name] = state[
+        classical_energy_var_name
+    ]
     return state, parameters
 
 

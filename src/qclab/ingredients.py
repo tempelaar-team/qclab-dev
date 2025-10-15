@@ -25,7 +25,6 @@ def h_c_harmonic(model, parameters, **kwargs):
         Classical Hamiltonian.
         ``(batch_size,)``.
     """
-    del parameters
     z = kwargs["z"]
     w = model.constants.harmonic_frequency[np.newaxis, :]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
@@ -54,7 +53,6 @@ def h_c_free(model, parameters, **kwargs):
         Classical Hamiltonian.
         ``(batch_size,)``.
     """
-    del parameters
     z = kwargs["z"]
     m = model.constants.classical_coordinate_mass[np.newaxis, :]
     h = model.constants.classical_coordinate_weight[np.newaxis, :]
@@ -107,7 +105,6 @@ def dh_c_dzc_free(model, parameters, **kwargs):
         coordinate.
         ``(batch_size, num_classical_coordinates)``.
     """
-    del parameters
     z = kwargs["z"]
     h = model.constants.classical_coordinate_weight[np.newaxis, :]
     return 1j * h * z.imag
@@ -211,7 +208,6 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
         Quantum-classical coupling Hamiltonian.
         ``(batch_size, num_states, num_states)``.
     """
-    del parameters
     z = kwargs["z"]
     gamma = model.constants.diagonal_linear_coupling
     return functions.h_qc_diagonal_linear_jit(z, gamma)
@@ -461,7 +457,6 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
     z : ndarray
         Complex classical coordinate.
     """
-    del parameters
     seed = kwargs["seed"]
     w = model.constants.harmonic_frequency
     m = model.constants.classical_coordinate_mass
@@ -600,7 +595,6 @@ def rescaling_direction_random(model, parameters, **kwargs):
     delta_z : ndarray
         Direction in which to rescale coordinates.
     """
-    del parameters
     z_traj = kwargs["z_traj"]
     init_state_ind = kwargs["init_state_ind"]
     final_state_ind = kwargs["final_state_ind"]
@@ -628,7 +622,6 @@ def gauge_field_force_zero(model, parameters, **kwargs):
     gauge_force : ndarray
         Gauge field force.
     """
-    del parameters
     z = kwargs["z"]
     state_ind = kwargs["state_ind"]
     return np.zeros_like(z)

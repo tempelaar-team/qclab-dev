@@ -32,7 +32,6 @@ def initialize_variable_objects(sim, state, parameters, **kwargs):
         Initialized state variable with shape (batch_size, *original_shape).
 
     """
-    # for name in sim.initial_state.__dict__.keys():
     for name in sim.initial_state.keys():
         obj = sim.initial_state[name]
         if isinstance(obj, np.ndarray) and name[0] != "_":
@@ -44,7 +43,6 @@ def initialize_variable_objects(sim, state, parameters, **kwargs):
             logger.info(
                 "Initializing state variable %s with shape %s.", name, new_obj.shape
             )
-            # setattr(state, name, new_obj)
             state[name] = new_obj
         elif name[0] != "_":
             logger.warning(
@@ -72,7 +70,6 @@ def initialize_norm_factor(sim, state, parameters, **kwargs):
         Normalization factor for trajectory averages.
     """
     norm_factor_name = kwargs.get("norm_factor_name", "norm_factor")
-    # setattr(state, norm_factor_name, sim.settings.batch_size)
     state[norm_factor_name] = sim.settings.batch_size
     return state, parameters
 
@@ -125,20 +122,13 @@ def initialize_branch_seeds(sim, state, parameters, **kwargs):
     # Next, determine the number of trajectories that have been run by assuming that
     # the minimum seed in the current batch of seeds is the number of trajectories
     # that have been run modulo num_branches.
-    # orig_seed = getattr(state, seed_name)
     orig_seed = state[seed_name]
     # Now construct a branch index for each trajectory in the expanded batch.
-    # setattr(
-    #     state,
-    #     branch_ind_name,
-    #     np.tile(np.arange(num_branches), batch_size // num_branches),
-    # )
     state[branch_ind_name] = np.tile(
         np.arange(num_branches), batch_size // num_branches
     )
     # Now generate the new seeds for each trajectory in the expanded batch.
     new_seeds = orig_seed // num_branches
-    # setattr(state, seed_name, new_seeds)
     state[seed_name] = new_seeds
     return state, parameters
 
@@ -228,7 +218,6 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
             )
             sample[rand < thresh] = proposed_sample[rand < thresh]
             out_tmp[s] = sample
-            # setattr(state, z_name, out_tmp[save_inds])
             state[z_name] = out_tmp[save_inds]
         return state, parameters
     # If not separable, do the full MCMC.
@@ -263,7 +252,6 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
         if rand < thresh:
             sample = proposed_sample
         out_tmp[s] = sample
-    # setattr(state, z_name, out_tmp[save_inds])
     state[z_name] = out_tmp[save_inds]
     return state, parameters
 
@@ -287,11 +275,10 @@ def initialize_z(sim, state, parameters, **kwargs):
         initialized classical coordinates.
     """
     seed_name = kwargs.get("seed_name", "seed")
-    seed = state[seed_name]#getattr(state, seed_name)
+    seed = state[seed_name]
     z_name = kwargs.get("z_name", "z")
     init_classical, has_init_classical = sim.model.get("init_classical")
     if has_init_classical:
-        # setattr(state, z_name, init_classical(sim.model, parameters, seed=seed))
         state[z_name] = init_classical(sim.model, parameters, seed=seed)
     else:
         state, parameters = initialize_z_mcmc(
@@ -317,7 +304,6 @@ def copy_in_state(sim, state, parameters, **kwargs):
     state.{copy_name} : type of state.{orig_name}
         Copy of ``state.{orig_name}``.
     """
-    # setattr(state, kwargs["copy_name"], np.copy(getattr(state, kwargs["orig_name"])))
     state[kwargs["copy_name"]] = np.copy(state[kwargs["orig_name"]])
     return state, parameters
 
@@ -383,8 +369,6 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
         bool_mat = intervals > stochastic_sh_rand_vals[:, :, np.newaxis]
         act_surf_ind_0 = np.argmax(bool_mat, axis=-1).astype(int)
     act_surf_ind_0 = act_surf_ind_0.reshape(-1)
-    # setattr(state, act_surf_ind_0_name, np.copy(act_surf_ind_0))
-    # setattr(state, act_surf_ind_name, np.copy(act_surf_ind_0))
     state[act_surf_ind_0_name] = np.copy(act_surf_ind_0)
     state[act_surf_ind_name] = np.copy(act_surf_ind_0)
     act_surf = np.zeros((num_trajs * num_branches, num_states), dtype=int)
@@ -392,7 +376,6 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
     branch_inds = np.tile(np.arange(num_branches), num_trajs)
     traj_branch_ind = traj_inds * num_branches + branch_inds
     act_surf[traj_branch_ind, act_surf_ind_0] = 1
-    # setattr(state, act_surf_name, act_surf)
     state[act_surf_name] = act_surf
     return state, parameters
 
@@ -437,8 +420,6 @@ def initialize_random_values_fssh(sim, state, parameters, **kwargs):
         np.random.seed(seed[int(nt * num_branches)])
         hopping_probs_rand_vals[nt] = np.random.rand(len(sim.settings.t_update))
         stochastic_sh_rand_vals[nt] = np.random.rand(num_branches)
-    # setattr(state, hopping_probs_rand_vals_name, hopping_probs_rand_vals)
-    # setattr(state, stochastic_sh_rand_vals_name, stochastic_sh_rand_vals)
     state[hopping_probs_rand_vals_name] = hopping_probs_rand_vals
     state[stochastic_sh_rand_vals_name] = stochastic_sh_rand_vals
     return state, parameters
@@ -463,18 +444,7 @@ def initialize_dm_adb_0_fssh(sim, state, parameters, **kwargs):
     """
     dm_adb_0_name = kwargs.get("dm_adb_0_name", "dm_adb_0")
     wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
-    # wf_adb = getattr(state, wf_adb_name)
     wf_adb = state[wf_adb_name]
-    # setattr(
-    #     state,
-    #     dm_adb_0_name,
-    #     np.einsum(
-    #         "ti,tj->tij",
-    #         wf_adb,
-    #         np.conj(wf_adb),
-    #         optimize="greedy",
-    #     ),
-    # )
     state[dm_adb_0_name] = np.einsum(
         "ti,tj->tij",
         wf_adb,

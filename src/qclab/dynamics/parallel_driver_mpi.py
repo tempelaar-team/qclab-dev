@@ -7,7 +7,7 @@ import copy
 import numpy as np
 import qclab.dynamics as dynamics
 from qclab.utils import get_log_output, reset_log_output
-from qclab import Variable, Data
+from qclab import Data
 
 logger = logging.getLogger(__name__)
 
@@ -96,25 +96,19 @@ def parallel_driver_mpi(sim, seeds=None, data=None, num_tasks=None):
     local_input_data = [
         (
             copy.deepcopy(sim),
-            Variable(
-                {
-                    "seed": batch_seeds_list[n][~np.isnan(batch_seeds_list[n])].astype(
-                        int
-                    )
-                }
-            ),
-            Variable(),
+            {"seed": batch_seeds_list[n][~np.isnan(batch_seeds_list[n])].astype(int)},
+            {},
             Data(batch_seeds_list[n][~np.isnan(batch_seeds_list[n])].astype(int)),
         )
         for n in np.arange(num_batches)[start:end]
     ]
     # Set the batch size for each local batch.
     for i in range(chunk_size):
-        local_input_data[i][0].settings.batch_size = len(local_input_data[i][1].seed)
+        local_input_data[i][0].settings.batch_size = len(local_input_data[i][1]["seed"])
         logger.info(
             "Running batch %s with seeds %s.",
             i + 1 + start,
-            local_input_data[i][1].seed,
+            local_input_data[i][1]["seed"],
         )
     # Execute the local batches.
     logger.info("Starting dynamics calculation.")
