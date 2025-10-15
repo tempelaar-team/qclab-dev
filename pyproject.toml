@@ -39,4 +39,5 @@ docs = [
     "sphinxcontrib-mermaid",
     "graphviz",
     "sphinx-autodoc-typehints",
+    "sphinxcontrib-napoleon"
 ]

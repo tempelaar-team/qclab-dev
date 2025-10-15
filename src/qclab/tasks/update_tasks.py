@@ -5,19 +5,27 @@ during propagation.
 
 import logging
 import numpy as np
-from qclab import functions
+from qclab import Simulation, functions
 import qclab.numerical_constants as numerical_constants
 
 logger = logging.getLogger(__name__)
 
 
-def update_t(sim, state, parameters, **kwargs):
+def update_t(sim: Simulation, state: dict, parameters: dict, t_name: str = "t"):
     """
     Updates the time in the state object with the time index in each trajectory
     multiplied by the update timestep.
 
-    .. rubric:: Model Constants
-    None
+    Args:
+    sim : Simulation
+        Simulation object; must provide ``settings.batch_size``, ``settings.dt_update``,
+        and ``t_ind``.
+    state : dict
+        State object to update; will be modified in-place.
+    parameters : dict
+        Parameters object; not modified by this function.
+    t_name : str, optional
+        Key for the time variable in ``state``. Default is ``"t"``.
 
     .. rubric:: Keyword Arguments
     t_name : str, default: "t"
@@ -31,7 +39,7 @@ def update_t(sim, state, parameters, **kwargs):
         Time of each trajectory.
 
     """
-    t_name = kwargs.get("t_name", "t")
+    # t_name = kwargs.get("t_name", "t")
     batch_size = sim.settings.batch_size
     state[t_name] = np.broadcast_to(sim.t_ind * sim.settings.dt_update, (batch_size,))
     return state, parameters
@@ -41,22 +49,26 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
     """
     Calculates the gradient of the classical Hamiltonian using finite differences.
 
-    .. rubric:: Model Constants
-    dh_c_dzc_finite_difference_delta : float, default : numerical_constants.FINITE_DIFFERENCE_DELTA
+    Model Constants
+    ---------------
+    dh_c_dzc_finite_difference_delta : float
         Finite-difference step size.
 
-    .. rubric:: Keyword Arguments
-    z_name : str, default: "z"
+    Keyword Arguments
+    -----------------
+    z_name : str
         Name of the classical coordinates in the state object.
     dh_c_dzc_name : str, default: "dh_c_dzc"
         Name under which to store the finite-difference gradient in the state object.
 
-    .. rubric:: Input Variables
-    state[z_name] : ndarray, (batch_size, num_classical_coordinates), complex
+    Input Variables
+    ---------------
+    state[z_name] : ndarray
         Classical coordinates.
 
-    .. rubric:: Output Variables
-    state[dh_c_dzc_name] : ndarray, (batch_size, num_classical_coordinates), complex
+    Output Variables
+    ----------------
+    state[dh_c_dzc_name] : ndarray
         Gradient of the classical Hamiltonian.
     """
     z = state[kwargs.get("z_name", "z")]
@@ -93,13 +105,76 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
     state[dh_c_dzc_name] = dh_c_dzc
     return state, parameters
 
+def test_numpy(sim, state, parameters, **kwargs):
+    """
+    One-line summary in the imperative mood.
+
+    Extended summary (optional): what the task computes and *why* it exists.
+
+    Parameters
+    ----------
+    sim : Simulation
+        Simulation object. Must provide ``settings``, ``model``, and ``algorithm``.
+    state : MutableMapping[str, Any]
+        Mutable container of arrays and scalars. This function mutates it in place.
+    parameters : MutableMapping[str, Any]
+        Mutable container of tunables/coefficients. Mutated only if stated below.
+    **kwargs
+        Task-specific keyword arguments (see below).
+
+    Other Parameters
+    ----------------
+    <kw1> : <type>, optional
+        What it controls. Default ``"..."``.
+    <kw2> : <type>, optional
+        What it controls. Default ``"..."``.
+
+    Requires
+    --------
+    model["ingredient_name"]
+        Short description of the required model ingredient or the fallback behavior.
+
+    Reads
+    -----
+    state[<key>] : (<shape>), <dtype>
+        What is read and how it is used.
+    parameters[<key>] : (<shape>), <dtype>
+        (List more as needed.)
+
+    Writes
+    ------
+    state[<key>] : (<shape>), <dtype>
+        Whether created if missing or updated in place.
+    parameters[<key>] : (<shape>), <dtype>
+        (Only list if actually mutated.)
+
+    Shapes and dtypes
+    -----------------
+    Let ``B = batch_size``, ``C = num_classical_coordinates``.
+    - ``state[<key_in>]``: ``(B, C)``, complex (e.g., complex128)
+    - ``state[<key_out>]``: ``(B, C)``, complex
+
+    Returns
+    -------
+    (state, parameters) : tuple
+        Same objects passed in. ``state`` is mutated in place as documented above.
+
+    Notes
+    -----
+    Brief algorithmic note, fallbacks, and logging behavior.
+
+    See Also
+    --------
+    related_task, supporting_function
+    """
+    return
 
 def update_classical_forces(sim, state, parameters, **kwargs):
     """
     Updates the gradient of the classical Hamiltonian w.r.t. the conjugate classical
     coordinate.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -108,8 +183,12 @@ def update_classical_forces(sim, state, parameters, **kwargs):
     classical_forces_name : str, default: "classical_forces"
         Name under which to store the classical forces in the state object.
 
-    .. rubric:: Variable Modifications
-    state.{classical_forces_name} : ndarray
+    .. rubric:: Input Variables
+    state[z_name] : ndarray, (batch_size, num_classical_coordinates), complex
+        Classical coordinates.
+
+    .. rubric:: Output Variables
+    state.{classical_forces_name} : ndarray, (batch_size, num_classical_coordinates), complex
             Gradient of the classical Hamiltonian.
     """
     z_name = kwargs.get("z_name", "z")
@@ -132,7 +211,7 @@ def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
     Calculates the gradient of the quantum-classical Hamiltonian using finite
     differences.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     dh_qc_dzc_finite_difference_delta : float, default : numerical_constants.FINITE_DIFFERENCE_DELTA
         Finite-difference step size.
 
@@ -196,7 +275,7 @@ def update_dh_qc_dzc(sim, state, parameters, **kwargs):
     Updates the gradient of the quantum-classical Hamiltonian w.r.t. the conjugate
     classical coordinate.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -236,7 +315,7 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
     If the model has a ``gauge_field_force`` ingredient, this term will be added
     to the quantum-classical forces.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -303,7 +382,7 @@ def add_gauge_field_force_fssh(sim, state, parameters, **kwargs):
     Adds the gauge field force to the quantum-classical forces if the model has a
     ``gauge_field_force`` ingredient.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -342,7 +421,7 @@ def diagonalize_matrix(sim, state, parameters, **kwargs):
     Diagonalizes a given matrix from the state object and stores the eigenvalues and
     eigenvectors in the state object.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -386,7 +465,7 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
         derivative couplings and changed so that all the derivative
         couplings are real-valued.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -481,7 +560,7 @@ def basis_transform_vec(sim, state, parameters, **kwargs):
     Transforms a vector ``state.{input}`` to a new basis defined by
     ``state.{basis}`` and stores it in ``state.{output}``.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -514,7 +593,7 @@ def update_act_surf_wf(sim, state, parameters, **kwargs):
     """
     Updates the wavefunction corresponding to the active surface.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -545,7 +624,7 @@ def update_wf_db_eigs(sim, state, parameters, **kwargs):
     Evolves the diabatic wavefunction ``state.{wf_db_name}`` using the
     eigenvalues ``state.{eigvals_name}`` and eigenvectors ``state.{eigvecs_name}``.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -585,7 +664,7 @@ def update_wf_db_rk4(sim, state, parameters, **kwargs):
     Updates the wavefunction ``state.{wf_db_name}`` using the 4th-order Runge-Kutta method
     with the hamiltonian ``state.{h_quantum_name}``.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -613,7 +692,7 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
 
     :math:`P_{a \\rightarrow b} = -2 \\Re \\left( (C_{b}/C_{a}) \\langle a(t) | b(t-dt) \\rangle \\right)`
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -682,7 +761,7 @@ def update_hop_inds_fssh(sim, state, parameters, **kwargs):
     Stores the indices of the hopping trajectories in ``state.hop_ind``. Stores the
     destination indices of the hops in ``state.hop_dest``.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     hop_prob_name : str, default: "hop_prob"
         Name of the hopping probabilities in the state object.
     hopping_probs_rand_vals_name : str, default: "hopping_probs_rand_vals"
@@ -735,7 +814,7 @@ def update_z_shift_fssh(sim, state, parameters, **kwargs):
     Determines if a hop occurs and calculates the shift in the classical coordinate
     at the single trajectory level.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -800,7 +879,7 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
     determine the direction in which to rescale the coordinates. Otherwise, the
     direction will be calculated with ``functions.calc_delta_z_fssh``.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -917,7 +996,7 @@ def update_z_hop_fssh(sim, state, parameters, **kwargs):
     """
     Applies the shift in coordinates after successful hops.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -948,7 +1027,7 @@ def update_act_surf_hop_fssh(sim, state, parameters, **kwargs):
     Updates the active surface, active surface index, and active surface wavefunction
     following a hop in FSSH.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -996,7 +1075,7 @@ def update_h_quantum(sim, state, parameters, **kwargs):
     """
     Updates the Hamiltonian matrix of the quantum subsystem.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -1040,7 +1119,7 @@ def update_z_rk4_k123(sim, state, parameters, **kwargs):
     """
     Computes the first three RK4 intermediates for evolving the classical coordinates.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -1094,7 +1173,7 @@ def update_z_rk4_k4(sim, state, parameters, **kwargs):
     """
     Computes the final RK4 update for evolving the classical coordinates.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -1150,7 +1229,7 @@ def update_dm_db_mf(sim, state, parameters, **kwargs):
     """
     Updates the diabatic density matrix based on the wavefunction.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -1176,7 +1255,7 @@ def update_classical_energy(sim, state, parameters, **kwargs):
     """
     Updates the classical energy.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -1203,7 +1282,7 @@ def update_classical_energy_fssh(sim, state, parameters, **kwargs):
     populations. If not deterministic (and so there is only one branch), the energy is
     computed for the single branch.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -1264,7 +1343,7 @@ def update_quantum_energy(sim, state, parameters, **kwargs):
     Updates the quantum energy w.r.t. the wavefunction specified by ``state.{wf_db_name}`` by taking
     the expectation value of ``state.{h_quantum_name}``.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -1299,7 +1378,7 @@ def update_quantum_energy_fssh(sim, state, parameters, **kwargs):
     Accounts for both stochastic and deterministic FSSH modes.
     Typically, the wavefunction used is that of the active surface.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -1356,7 +1435,7 @@ def update_dm_db_fssh(sim, state, parameters, **kwargs):
     Updates the diabatic density matrix for FSSH. Accounts for both stochastic and
     deterministic FSSH modes.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments

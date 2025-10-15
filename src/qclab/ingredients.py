@@ -16,7 +16,7 @@ def h_c_harmonic(model, parameters, **kwargs):
     z : ndarray
         Complex classical coordinate.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     harmonic_frequency : ndarray
         Harmonic frequency of each classical coordinate.
 
@@ -45,7 +45,7 @@ def h_c_free(model, parameters, **kwargs):
     z : ndarray
         Complex classical coordinate.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Returns
@@ -71,7 +71,7 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
     z : ndarray
         Complex classical coordinate.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     harmonic_frequency : ndarray
         Harmonic frequency of each classical coordinate.
 
@@ -96,7 +96,7 @@ def dh_c_dzc_free(model, parameters, **kwargs):
     z : ndarray
         Complex classical coordinate.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Returns
@@ -120,7 +120,7 @@ def h_q_two_level(model, parameters, **kwargs):
     batch_size : int
         Number of trajectories in a batch.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     two_level_00 : float
         Energy of the first level.
     two_level_11 : float
@@ -159,7 +159,7 @@ def h_q_nearest_neighbor(model, parameters, **kwargs):
     batch_size : int
         Number of trajectories in a batch.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     nearest_neighbor_hopping_energy : float
         Hopping energy between sites :math:`t`.
     nearest_neighbor_periodic : bool
@@ -199,7 +199,7 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
     z : ndarray
         Complex classical coordinate.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     diagonal_linear_coupling : ndarray
         Coupling constants :math:`\\gamma`.
 
@@ -224,7 +224,7 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
     z : ndarray
         Complex classical coordinate.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     diagonal_linear_coupling : ndarray
         Coupling constants :math:`\\gamma`.
 
@@ -287,7 +287,7 @@ def hop_harmonic(model, parameters, **kwargs):
     eigval_diff : float
         Energy difference between final and initial states.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     harmonic_frequency : ndarray
         Harmonic frequency of each classical coordinate.
 
@@ -355,7 +355,7 @@ def hop_free(model, parameters, **kwargs):
     eigval_diff : float
         Energy difference between final and initial states.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Returns
@@ -403,7 +403,7 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
     seed : ndarray, int
         Random seeds for each trajectory.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     kBT : float
         Thermal quantum.
     harmonic_frequency : ndarray
@@ -447,7 +447,7 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
     seed : ndarray, int
         Random seeds for each trajectory.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     kBT : float
         Thermal quantum.
     harmonic_frequency : ndarray
@@ -494,7 +494,7 @@ def init_classical_definite_position_momentum(model, parameters, **kwargs):
     seed : ndarray, int
         Random seeds for each trajectory.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     init_position : ndarray
         Initial position of the classical coordinates.
     init_momentum : ndarray
@@ -532,7 +532,7 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
     seed : ndarray, int
         Random seeds for each trajectory.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     coherent_state_displacement : ndarray
         Complex displacement parameter of the coherent state.
     harmonic_frequency : ndarray
@@ -588,7 +588,7 @@ def rescaling_direction_random(model, parameters, **kwargs):
     final_state_ind : int
         Index of the final quantum state.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Returns
@@ -615,7 +615,7 @@ def gauge_field_force_zero(model, parameters, **kwargs):
         Index of the state for which the gauge field force is calculated.
 
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Returns

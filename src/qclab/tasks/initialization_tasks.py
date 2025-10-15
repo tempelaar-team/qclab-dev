@@ -21,7 +21,7 @@ def initialize_variable_objects(sim, state, parameters, **kwargs):
 
     Any variable with name starting with an underscore is ignored.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -58,7 +58,7 @@ def initialize_norm_factor(sim, state, parameters, **kwargs):
     """
     Assigns the normalization factor to the state object.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -87,7 +87,7 @@ def initialize_branch_seeds(sim, state, parameters, **kwargs):
     being equal to the number of trajectories divided by the number of
     branches in deterministic surface hopping.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -145,7 +145,7 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
     the classical Hamiltonian can be written as a sum of independent terms depending
     on each classical coordinate.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     mcmc_burn_in_size : int, default: 1000
         Burn-in step count.
     mcmc_sample_size : int, default: 10000
@@ -261,7 +261,7 @@ def initialize_z(sim, state, parameters, **kwargs):
     Initializes the classical coordinate by using the init_classical function from the
     model object.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -291,7 +291,7 @@ def copy_in_state(sim, state, parameters, **kwargs):
     """
     Creates a copy of a quantity in the state object.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -321,7 +321,7 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
     surface from the density corresponding to the initial quantum wavefunction
     in the adiabatic basis.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -384,7 +384,7 @@ def initialize_random_values_fssh(sim, state, parameters, **kwargs):
     """
     Initializes a set of random numbers using the trajectory seeds for FSSH.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments
@@ -429,7 +429,7 @@ def initialize_dm_adb_0_fssh(sim, state, parameters, **kwargs):
     """
     Initializes the initial adiabatic density matrix for FSSH.
 
-    .. rubric:: Required Constants
+    .. rubric:: Model Constants
     None
 
     .. rubric:: Keyword Arguments

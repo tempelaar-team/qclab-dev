@@ -460,7 +460,7 @@ def gen_sample_gaussian(constants, z0=None, seed=None, separable=True):
     separable : bool, default: True
         Whether to generate a different random number for each classical coordinate.
 
-    .. rubric:: Required constants
+    .. rubric:: Model Constants
     mcmc_std : float, default: 1.0
         Standard deviation of the Gaussian distribution.
 
@@ -786,7 +786,7 @@ def numerical_fssh_hop(model, parameters, **kwargs):
         Difference in eigenvalues between the initial and final states, ``e_final - e_initial``.
 
 
-    .. rubric:: Required constants
+    .. rubric:: Model Constants
     numerical_fssh_hop_gamma_range : float, default: 5.0
         Initial range (negative to positive) of gamma values to search over.
     numerical_fssh_hop_max_iter : int, default: 20
