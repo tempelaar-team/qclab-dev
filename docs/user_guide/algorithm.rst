@@ -71,7 +71,7 @@ After instantiating an algorithm object, the user can populate its recipes by as
             tasks.initialize_variable_objects,
             tasks.initialize_norm_factor,
             tasks.initialize_z,
-            tasks.update_h_quantum,
+            tasks.update_h_q_tot,
     ]
     # Populate the update recipe.
     algorithm.update_recipe = [

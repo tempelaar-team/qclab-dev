@@ -169,7 +169,7 @@ def test_output_fssh_gauge_fixing():
     real part of their overlap with the previous set of eigenvectors ("phase_overlap").
 
     Note that this test will only work if the ``add_random_phase`` task is between the
-    ``diagonalize_matrix`` and ``gauge_fix_eigs`` tasks in the initialization recipe.
+    ``diagonalize_matrix`` and ``update_eigvecs_gauge`` tasks in the initialization recipe.
 
     """
     reference_folder = os.path.join(os.path.dirname(__file__), "reference/")

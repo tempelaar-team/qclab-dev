@@ -86,15 +86,15 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
     h_c_re = h_c_all[:, :num_classical_coordinates]
     h_c_im = h_c_all[:, num_classical_coordinates:]
     # Calculate finite-difference derivatives.
-    h_c_0_exp = h_c_0[:, None]
-    diff_re = (h_c_re - h_c_0_exp) / delta_z
-    diff_im = (h_c_im - h_c_0_exp) / delta_z
-    dh_c_dzc = 0.5 * (diff_re + 1j * diff_im)
+    h_c_0_new_ind = h_c_0[:, None]
+    dh_c_dzc_re = (h_c_re - h_c_0_new_ind) / delta_z
+    dh_c_dzc_im = (h_c_im - h_c_0_new_ind) / delta_z
+    dh_c_dzc = 0.5 * (dh_c_dzc_re + 1j * dh_c_dzc_im)
     state[dh_c_dzc_name] = dh_c_dzc
     return state, parameters
 
 
-def update_classical_forces(sim, state, parameters, **kwargs):
+def update_classical_force(sim, state, parameters, **kwargs):
     """
     Updates the gradient of the classical Hamiltonian w.r.t. the conjugate classical
     coordinate.
@@ -105,24 +105,24 @@ def update_classical_forces(sim, state, parameters, **kwargs):
     .. rubric:: Keyword Arguments
     z_name : str, default: "z"
         Name of the classical coordinates in the state object.
-    classical_forces_name : str, default: "classical_forces"
-        Name under which to store the classical forces in the state object.
+    classical_force_name : str, default: "classical_force"
+        Name under which to store the classical force in the state object.
 
     .. rubric:: Variable Modifications
-    state.{classical_forces_name} : ndarray
+    state.{classical_force_name} : ndarray
             Gradient of the classical Hamiltonian.
     """
     z_name = kwargs.get("z_name", "z")
-    classical_forces_name = kwargs.get("classical_forces_name", "classical_forces")
+    classical_force_name = kwargs.get("classical_force_name", "classical_force")
     z = state[z_name]
     dh_c_dzc, has_dh_c_dzc = sim.model.get("dh_c_dzc")
     if has_dh_c_dzc:
-        state[classical_forces_name] = dh_c_dzc(sim.model, parameters, z=z)
+        state[classical_force_name] = dh_c_dzc(sim.model, parameters, z=z)
     else:
         if sim.settings.debug:
             logger.info("dh_c_dzc not found; using finite differences.")
         state, parameters = update_dh_c_dzc_finite_differences(
-            sim, state, parameters, dh_c_dzc_name=classical_forces_name, z_name=z_name
+            sim, state, parameters, dh_c_dzc_name=classical_force_name, z_name=z_name
         )
     return state, parameters
 
@@ -178,10 +178,10 @@ def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
     h_qc_re = h_qc_all[:, :num_classical_coordinates, :, :]
     h_qc_im = h_qc_all[:, num_classical_coordinates:, :, :]
     # Calculate finite-difference derivatives.
-    h_qc_0_exp = h_qc_0[:, None, :, :]
-    diff_re = (h_qc_re - h_qc_0_exp) / delta_z
-    diff_im = (h_qc_im - h_qc_0_exp) / delta_z
-    dh_qc_dzc = 0.5 * (diff_re + 1j * diff_im)
+    h_qc_0_new_ind = h_qc_0[:, None, :, :]
+    dh_qc_dzc_re = (h_qc_re - h_qc_0_new_ind) / delta_z
+    dh_qc_dzc_im = (h_qc_im - h_qc_0_new_ind) / delta_z
+    dh_qc_dzc = 0.5 * (dh_qc_dzc_re + 1j * dh_qc_dzc_im)
     # Get sparse representation of dh_qc_dzc.
     inds = np.where(dh_qc_dzc != 0)
     mels = dh_qc_dzc[inds]
@@ -229,12 +229,12 @@ def update_dh_qc_dzc(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_quantum_classical_forces(sim, state, parameters, **kwargs):
+def update_quantum_classical_force(sim, state, parameters, **kwargs):
     """
-    Updates the quantum-classical forces w.r.t. the wavefunction defined by ``wf_db``.
+    Updates the quantum-classical force w.r.t. the wavefunction defined by ``wf_db``.
 
     If the model has a ``gauge_field_force`` ingredient, this term will be added
-    to the quantum-classical forces.
+    to the quantum-classical force.
 
     .. rubric:: Required Constants
     None
@@ -246,25 +246,25 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
         Name of the wavefunction (in the diabatic basis) in the state object.
     dh_qc_dzc_name : str, default: "dh_qc_dzc"
         Name of the gradient of the quantum-classical Hamiltonian in the state object.
-    quantum_classical_forces_name : str, default: "quantum_classical_forces"
-        Name under which to store the quantum-classical forces in the state object.
+    quantum_classical_force_name : str, default: "quantum_classical_force"
+        Name under which to store the quantum-classical force in the state object.
     state_ind_name : str, default: "act_surf_ind"
         Name in the state object of the state index for which to obtain the gauge field force.
         Required if ``algorithm.settings.use_gauge_field_force`` is ``True``.
     wf_changed : bool, default: True
-        If ``True``, the wavefunction has changed since the last time the forces were calculated.
+        If ``True``, the wavefunction has changed since the last time the force were calculated.
 
     .. rubric:: Variable Modifications
     state.{dh_qc_dzc_name} : tuple
         Gradient of the quantum-classical Hamiltonian.
-    state.{quantum_classical_forces_name} : ndarray
-        Quantum-classical forces.
+    state.{quantum_classical_force_name} : ndarray
+        Quantum-classical force.
     """
     z_name = kwargs.get("z_name", "z")
     wf_db_name = kwargs.get("wf_db_name", "wf_db")
     dh_qc_dzc_name = kwargs.get("dh_qc_dzc_name", "dh_qc_dzc")
-    quantum_classical_forces_name = kwargs.get(
-        "quantum_classical_forces_name", "quantum_classical_forces"
+    quantum_classical_force_name = kwargs.get(
+        "quantum_classical_force_name", "quantum_classical_force"
     )
     state_ind_name = kwargs.get("state_ind_name", "act_surf_ind")
     wf_changed = kwargs.get("wf_changed", True)
@@ -277,19 +277,19 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
     # Calculate the expectation value w.r.t. the wavefunction.
     # If not(wf_changed) and sim.model.update_dh_qc_dzc then recalculate.
     # If wf_changed then recalculate.
-    # If state.quantum_classical_forces is None then recalculate.
+    # If quantum_classical_force_name not in state then recalculate.
     if (
-        not (quantum_classical_forces_name in state)
+        not (quantum_classical_force_name in state)
         or wf_changed
         or (not (wf_changed) and sim.model.update_dh_qc_dzc)
     ):
-        if not (quantum_classical_forces_name in state):
-            state[quantum_classical_forces_name] = np.zeros_like(z)
-        state[quantum_classical_forces_name] = functions.calc_sparse_inner_product(
+        if not (quantum_classical_force_name in state):
+            state[quantum_classical_force_name] = np.zeros_like(z)
+        state[quantum_classical_force_name] = functions.calc_sparse_inner_product(
             *state[dh_qc_dzc_name],
             wf_db.conj(),
             wf_db,
-            out=state[quantum_classical_forces_name].reshape(-1),
+            out=state[quantum_classical_force_name].reshape(-1),
         ).reshape(np.shape(z))
     if sim.algorithm.settings.get("use_gauge_field_force"):
         state, parameters = add_gauge_field_force_fssh(
@@ -300,7 +300,7 @@ def update_quantum_classical_forces(sim, state, parameters, **kwargs):
 
 def add_gauge_field_force_fssh(sim, state, parameters, **kwargs):
     """
-    Adds the gauge field force to the quantum-classical forces if the model has a
+    Adds the gauge field force to the quantum-classical force if the model has a
     ``gauge_field_force`` ingredient.
 
     .. rubric:: Required Constants
@@ -311,17 +311,17 @@ def add_gauge_field_force_fssh(sim, state, parameters, **kwargs):
         Name of classical coordinates in state object.
     adb_state_ind_name : str, default: "act_surf_ind"
         Name of the adiabatic state index for which to obtain the gauge field force.
-    quantum_classical_forces_name : str, default: "quantum_classical_forces"
-        Name of the quantum-classical forces in the state object.
+    quantum_classical_force_name : str, default: "quantum_classical_force"
+        Name of the quantum-classical force in the state object.
 
     .. rubric:: Variable Modifications
-    state.{quantum_classical_forces_name} : ndarray
-        Quantum-classical forces with gauge field force added.
+    state.{quantum_classical_force_name} : ndarray
+        Quantum-classical force with gauge field force added.
     """
     z_name = kwargs.get("z_name", "z")
     adb_state_ind_name = kwargs.get("adb_state_ind_name", "act_surf_ind")
-    quantum_classical_forces_name = kwargs.get(
-        "quantum_classical_forces_name", "quantum_classical_forces"
+    quantum_classical_force_name = kwargs.get(
+        "quantum_classical_force_name", "quantum_classical_force"
     )
     z = state[z_name]
     adb_state_ind = state[adb_state_ind_name]
@@ -330,7 +330,7 @@ def add_gauge_field_force_fssh(sim, state, parameters, **kwargs):
         gauge_field_force_val = gauge_field_force(
             sim.model, parameters, z=z, state_ind=adb_state_ind
         )
-        state[quantum_classical_forces_name] += gauge_field_force_val
+        state[quantum_classical_force_name] += gauge_field_force_val
     else:
         if sim.settings.debug:
             logger.warning("gauge_field_force not found; skipping.")
@@ -366,7 +366,7 @@ def diagonalize_matrix(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def gauge_fix_eigs(sim, state, parameters, **kwargs):
+def update_eigvecs_gauge(sim, state, parameters, **kwargs):
     """
     Fixes the gauge of the eigenvectors as specified by the gauge_fixing parameter.
 
@@ -424,8 +424,9 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
         "phase_overlap": 1,
         "phase_der_couple": 2,
     }
-    gauge_fixing_value = gauge_fixing_numerical_values[gauge_fixing]
-    if gauge_fixing_value not in {0, 1, 2}:
+    try:
+        gauge_fixing_value = gauge_fixing_numerical_values[gauge_fixing]
+    except KeyError:
         logger.critical("Invalid gauge_fixing value: %s", gauge_fixing)
         raise ValueError(f"Invalid gauge_fixing value: {gauge_fixing}")
     if gauge_fixing_value == 1:
@@ -436,10 +437,10 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
     if gauge_fixing_value == 2:
         # Make the derivative couplings real-valued (but not necessarily positive).
         state, parameters = update_dh_qc_dzc(sim, state, parameters, z_name=z_name)
-        der_couple_q_phase, _ = functions.analytic_der_couple_phase(
+        der_couple_dq_phase, _ = functions.analytic_der_couple_phase(
             sim, state[dh_qc_dzc_name], eigvals, eigvecs
         )
-        eigvecs *= np.conj(der_couple_q_phase)[:, None, :]
+        eigvecs *= np.conj(der_couple_dq_phase)[:, None, :]
     if gauge_fixing_value == 0 or gauge_fixing_value == 2:
         # Make the real part positive based on the sign of the real part of the overlap.
         overlap = np.sum(np.conj(eigvecs_previous) * eigvecs, axis=-2)
@@ -453,30 +454,30 @@ def gauge_fix_eigs(sim, state, parameters, **kwargs):
                 )
         eigvecs *= signs[:, None, :]
     if gauge_fixing_value == 2 and sim.settings.debug:
-        der_couple_q_phase_new, der_couple_p_phase_new = (
+        der_couple_dq_phase_new, der_couple_dp_phase_new = (
             functions.analytic_der_couple_phase(
                 sim, state[dh_qc_dzc_name], eigvals, eigvecs
             )
         )
         if (
             np.sum(
-                np.abs(np.imag(der_couple_q_phase_new)) ** 2
-                + np.abs(np.imag(der_couple_p_phase_new)) ** 2
+                np.abs(np.imag(der_couple_dq_phase_new)) ** 2
+                + np.abs(np.imag(der_couple_dp_phase_new)) ** 2
             )
             > numerical_constants.SMALL
         ):
             logger.error(
                 "Phase error encountered when fixing gauge analytically. %s",
                 np.sum(
-                    np.abs(np.imag(der_couple_q_phase_new)) ** 2
-                    + np.abs(np.imag(der_couple_p_phase_new)) ** 2
+                    np.abs(np.imag(der_couple_dq_phase_new)) ** 2
+                    + np.abs(np.imag(der_couple_dp_phase_new)) ** 2
                 ),
             )
     state[output_eigvecs_name] = eigvecs
     return state, parameters
 
 
-def basis_transform_vec(sim, state, parameters, **kwargs):
+def update_vector_basis(sim, state, parameters, **kwargs):
     """
     Transforms a vector ``state.{input}`` to a new basis defined by
     ``state.{basis}`` and stores it in ``state.{output}``.
@@ -540,7 +541,7 @@ def update_act_surf_wf(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_wf_db_eigs(sim, state, parameters, **kwargs):
+def update_wf_db_propagator(sim, state, parameters, **kwargs):
     """
     Evolves the diabatic wavefunction ``state.{wf_db_name}`` using the
     eigenvalues ``state.{eigvals_name}`` and eigenvectors ``state.{eigvecs_name}``.
@@ -576,14 +577,14 @@ def update_wf_db_eigs(sim, state, parameters, **kwargs):
     prop_adb[:, idx, idx] = np.exp(-1j * eigvals * sim.settings.dt_update)
     # Transform propagator to the diabatic basis.
     prop_db = functions.transform_mat(prop_adb, eigvecs, adb_to_db=True)
-    state[wf_db_name] = functions.multiply_matrix_vector(prop_db, wf_db)
+    state[wf_db_name] = functions.batch_matvec(prop_db, wf_db)
     return state, parameters
 
 
 def update_wf_db_rk4(sim, state, parameters, **kwargs):
     """
     Updates the wavefunction ``state.{wf_db_name}`` using the 4th-order Runge-Kutta method
-    with the hamiltonian ``state.{h_quantum_name}``.
+    with the hamiltonian ``state.{h_q_tot_name}``.
 
     .. rubric:: Required Constants
     None
@@ -591,7 +592,7 @@ def update_wf_db_rk4(sim, state, parameters, **kwargs):
     .. rubric:: Keyword Arguments
     wf_db_name : str, default: "wf_db"
         Name of the diabatic wavefunction in the state object.
-    h_quantum_name : str, default: "h_quantum"
+    h_q_tot_name : str, default: "h_q_tot"
         Name of the quantum Hamiltonian in the state object.
 
     .. rubric:: Variable Modifications
@@ -600,16 +601,23 @@ def update_wf_db_rk4(sim, state, parameters, **kwargs):
     """
     dt_update = sim.settings.dt_update
     wf_db_name = kwargs.get("wf_db_name", "wf_db")
-    h_quantum_name = kwargs.get("h_quantum_name", "h_quantum")
+    h_q_tot_name = kwargs.get("h_q_tot_name", "h_q_tot")
     wf_db = state[wf_db_name]
-    h_quantum = state[h_quantum_name]
-    state[wf_db_name] = functions.wf_db_rk4(h_quantum, wf_db, dt_update)
+    h_q_tot = state[h_q_tot_name]
+    k1 = -1j * functions.batch_matvec(h_q_tot, wf_db)
+    k2 = -1j * functions.batch_matvec(h_q_tot, (wf_db + 0.5 * dt_update * k1))
+    k3 = -1j * functions.batch_matvec(h_q_tot, (wf_db + 0.5 * dt_update * k2))
+    k4 = -1j * functions.batch_matvec(h_q_tot, (wf_db + dt_update * k3))
+    wf_db += dt_update * 0.16666666666666666 * k1
+    wf_db += dt_update * 0.3333333333333333 * k2
+    wf_db += dt_update * 0.3333333333333333 * k3
+    wf_db += dt_update * 0.16666666666666666 * k4
     return state, parameters
 
 
-def update_hop_probs_fssh(sim, state, parameters, **kwargs):
+def update_hop_prob_fssh(sim, state, parameters, **kwargs):
     """
-    Calculates the hopping probabilities for FSSH.
+    Calculates the hopping probabilities according to the FSSH algorithm.
 
     :math:`P_{a \\rightarrow b} = -2 \\Re \\left( (C_{b}/C_{a}) \\langle a(t) | b(t-dt) \\rangle \\right)`
 
@@ -654,8 +662,8 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
             logger.warning(
                 "Zero coefficient on active surface encountered when calculating hopping probabilities."
             )
-    # Calculates < act_surf(t) | b(t-dt) >
-    prod = functions.multiply_matrix_vector(
+    # Calculates < act_surf(t) | b(t-dt) > = -\dot{q} \cdot d_{act_surf,b} dt
+    nac_prod = functions.batch_matvec(
         np.swapaxes(eigvecs_previous, -1, -2),
         np.conj(
             eigvecs[np.arange(num_trajs * num_branches, dtype=int), :, act_surf_ind]
@@ -663,7 +671,7 @@ def update_hop_probs_fssh(sim, state, parameters, **kwargs):
     )
     # Calculates -2 Re( (C_b / C_act_surf) < act_surf(t) | b(t-dt) > )
     hop_prob = -2.0 * np.real(
-        prod
+        nac_prod
         * wf_adb
         / wf_adb[np.arange(num_trajs * num_branches), act_surf_ind][:, np.newaxis]
     )
@@ -685,7 +693,7 @@ def update_hop_inds_fssh(sim, state, parameters, **kwargs):
     .. rubric:: Required Constants
     hop_prob_name : str, default: "hop_prob"
         Name of the hopping probabilities in the state object.
-    hopping_probs_rand_vals_name : str, default: "hopping_probs_rand_vals"
+    hop_prob_rand_vals_name : str, default: "hop_prob_rand_vals"
         Name of the random values for hopping probabilities in the state object.
     hop_ind_name : str, default: "hop_ind"
         Name under which to store the indices of the hopping trajectories in the state object.
@@ -702,8 +710,8 @@ def update_hop_inds_fssh(sim, state, parameters, **kwargs):
         Destination surface for each hop.
     """
     hop_prob_name = kwargs.get("hop_prob_name", "hop_prob")
-    hopping_probs_rand_vals_name = kwargs.get(
-        "hopping_probs_rand_vals_name", "hopping_probs_rand_vals"
+    hop_prob_rand_vals_name = kwargs.get(
+        "hop_prob_rand_vals_name", "hop_prob_rand_vals"
     )
     hop_ind_name = kwargs.get("hop_ind_name", "hop_ind")
     hop_dest_name = kwargs.get("hop_dest_name", "hop_dest")
@@ -713,7 +721,7 @@ def update_hop_inds_fssh(sim, state, parameters, **kwargs):
         num_branches = 1
     num_trajs = sim.settings.batch_size // num_branches
     hop_prob = state[hop_prob_name]
-    rand = state[hopping_probs_rand_vals_name][:, sim.t_ind]
+    rand = state[hop_prob_rand_vals_name][:, sim.t_ind]
     cumulative_probs = np.cumsum(
         np.nan_to_num(hop_prob, nan=0, posinf=100e100, neginf=-100e100, copy=False),
         axis=1,
@@ -741,7 +749,7 @@ def update_z_shift_fssh(sim, state, parameters, **kwargs):
     .. rubric:: Keyword Arguments
     z_traj_name : str, default: "z_traj"
         Name of the classical coordinates for this trajectory in the state object.
-    delta_z_traj_name : str, default: "delta_z_traj"
+    resc_dir_z_traj_name : str, default: "resc_dir_z_traj"
         Name of the rescaling direction for this trajectory in the state object.
     eigval_diff_traj_name : str, default: "eigval_diff_traj"
         Name of the difference in eigenvalues between the initial and final states
@@ -758,14 +766,14 @@ def update_z_shift_fssh(sim, state, parameters, **kwargs):
         Shift required to conserve energy.
     """
     z_traj_name = kwargs.get("z_traj_name", "z_traj")
-    delta_z_traj_name = kwargs.get("delta_z_traj_name", "delta_z_traj")
+    resc_dir_z_traj_name = kwargs.get("resc_dir_z_traj_name", "resc_dir_z_traj")
     eigval_diff_traj_name = kwargs.get("eigval_diff_traj_name", "eigval_diff_traj")
     hop_successful_traj_name = kwargs.get(
         "hop_successful_traj_name", "hop_successful_traj"
     )
     z_shift_traj_name = kwargs.get("z_shift_traj_name", "z_shift_traj")
     z = state[z_traj_name]
-    delta_z = state[delta_z_traj_name]
+    resc_dir_z = state[resc_dir_z_traj_name]
     eigval_diff = state[eigval_diff_traj_name]
     hop, has_hop = sim.model.get("hop")
     if has_hop:
@@ -773,7 +781,7 @@ def update_z_shift_fssh(sim, state, parameters, **kwargs):
             sim.model,
             parameters,
             z=z,
-            delta_z=delta_z,
+            resc_dir_z=resc_dir_z,
             eigval_diff=eigval_diff,
         )
     else:
@@ -781,7 +789,7 @@ def update_z_shift_fssh(sim, state, parameters, **kwargs):
             sim.model,
             parameters,
             z=z,
-            delta_z=delta_z,
+            resc_dir_z=resc_dir_z,
             eigval_diff=eigval_diff,
         )
     state[hop_successful_traj_name] = hopped
@@ -798,7 +806,7 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
 
     If the model has a ``rescaling_direction_fssh`` ingredient, it will be used to
     determine the direction in which to rescale the coordinates. Otherwise, the
-    direction will be calculated with ``functions.calc_delta_z_fssh``.
+    direction will be calculated with ``functions.calc_resc_dir_z_fssh``.
 
     .. rubric:: Required Constants
     None
@@ -824,7 +832,7 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
         Name of the gradient of the quantum-classical Hamiltonian in the state object.
     z_traj_name : str, default: "z_traj"
         Name of the classical coordinates for the intermediate hopping trajectory in the state object.
-    delta_z_traj_name : str, default: "delta_z_traj"
+    resc_dir_z_traj_name : str, default: "resc_dir_z_traj"
         Name of the rescaling direction for the intermediate hopping trajectory in the state object.
     eigval_diff_traj_name : str, default: "eigval_diff_traj"
         Name of the difference in eigenvalues between the initial and final states
@@ -850,7 +858,7 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
     hop_dest_name = kwargs.get("hop_dest_name", "hop_dest")
     dh_qc_dzc_name = kwargs.get("dh_qc_dzc_name", "dh_qc_dzc")
     z_traj_name = kwargs.get("z_traj_name", "z_traj")
-    delta_z_traj_name = kwargs.get("delta_z_traj_name", "delta_z_traj")
+    resc_dir_z_traj_name = kwargs.get("resc_dir_z_traj_name", "resc_dir_z_traj")
     eigval_diff_traj_name = kwargs.get("eigval_diff_traj_name", "eigval_diff_traj")
     hop_successful_traj_name = kwargs.get(
         "hop_successful_traj_name", "hop_successful_traj"
@@ -881,7 +889,7 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
             "rescaling_direction_fssh"
         )
         if has_rescaling_direction_fssh:
-            delta_z = rescaling_direction_fssh(
+            resc_dir_z = rescaling_direction_fssh(
                 sim.model,
                 parameters,
                 z=z[traj_ind],
@@ -900,11 +908,11 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
             mels_traj = mels[dh_qc_dzc_traj_ind]
             shape_traj = (1, shape[1], shape[2], shape[3])
             dh_qc_dzc_traj = (inds_traj, mels_traj, shape_traj)
-            delta_z = functions.calc_delta_z_fssh(
+            resc_dir_z = functions.calc_resc_dir_z_fssh(
                 sim, eigval_diff, eigvec_init_state, eigvec_final_state, dh_qc_dzc_traj
             )
         state[z_traj_name] = z[traj_ind]
-        state[delta_z_traj_name] = delta_z
+        state[resc_dir_z_traj_name] = resc_dir_z
         state[eigval_diff_traj_name] = eigval_diff
         state, parameters = update_z_shift_fssh(sim, state, parameters, **kwargs)
         state_hop_successful[hop_traj_ind] = state[hop_successful_traj_name]
@@ -935,11 +943,11 @@ def update_z_hop_fssh(sim, state, parameters, **kwargs):
     z_shift_name = kwargs.get("z_shift_name", "z_shift")
     hop_ind_name = kwargs.get("hop_ind_name", "hop_ind")
     z_name = kwargs.get("z_name", "z")
-    z_orig = state[z_name]
+    z = state[z_name]
     hop_ind = state[hop_ind_name]
     z_shift = state[z_shift_name]
-    z_orig[hop_ind] += z_shift
-    state[z_name] = z_orig
+    z[hop_ind] += z_shift
+    state[z_name] = z
     return state, parameters
 
 
@@ -992,7 +1000,7 @@ def update_act_surf_hop_fssh(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_h_quantum(sim, state, parameters, **kwargs):
+def update_h_q_tot(sim, state, parameters, **kwargs):
     """
     Updates the Hamiltonian matrix of the quantum subsystem.
 
@@ -1006,7 +1014,7 @@ def update_h_quantum(sim, state, parameters, **kwargs):
         Name of the quantum Hamiltonian in the state object.
     h_qc_name : str, default: "h_qc"
         Name of the quantum-classical coupling Hamiltonian in the state object.
-    h_quantum_name : str, default: "h_quantum"
+    h_q_tot_name : str, default: "h_q_tot"
         Name of the total Hamiltonian of the quantum subsystem in the state object.
         (``h_q + h_qc``)
 
@@ -1015,24 +1023,23 @@ def update_h_quantum(sim, state, parameters, **kwargs):
         Quantum Hamiltonian matrix.
     state.{h_qc_name} : ndarray
         Quantum-classical coupling matrix.
-    state.{h_quantum_name} : ndarray
+    state.{h_q_tot_name} : ndarray
         Total Hamiltonian of the quantum subsystem.
     """
     z_name = kwargs.get("z_name", "z")
     h_q_name = kwargs.get("h_q_name", "h_q")
     h_qc_name = kwargs.get("h_qc_name", "h_qc")
-    h_quantum_name = kwargs.get("h_quantum_name", "h_quantum")
+    h_q_tot_name = kwargs.get("h_q_tot_name", "h_q_tot")
     z = state[z_name]
     h_q, _ = sim.model.get("h_q")
     h_qc, _ = sim.model.get("h_qc")
     if sim.model.update_h_q or not (h_q_name in state):
         # Update the quantum Hamiltonian if required or if it is not set.
         state[h_q_name] = h_q(sim.model, parameters, batch_size=sim.settings.batch_size)
-    state_h_q = state[h_q_name]
     # Update the quantum-classical Hamiltonian.
     state[h_qc_name] = h_qc(sim.model, parameters, z=z)
     # Update the total Hamiltonian of the quantum subsystem.
-    state[h_quantum_name] = state_h_q + state[h_qc_name]
+    state[h_q_tot_name] = state[h_q_name] + state[h_qc_name]
     return state, parameters
 
 
@@ -1050,10 +1057,10 @@ def update_z_rk4_k123(sim, state, parameters, **kwargs):
         Name of the output coordinates in the state object.
     k_name : str, default: "z_rk4_k1"
         Name of the first RK4 slope in the state object.
-    classical_forces_name : str, default: "classical_forces"
-        Name of the classical forces in the state object.
-    quantum_classical_forces_name : str, default: "quantum_classical_forces"
-        Name of the quantum-classical forces in the state object.
+    classical_force_name : str, default: "classical_force"
+        Name of the classical force in the state object.
+    quantum_classical_force_name : str, default: "quantum_classical_force"
+        Name of the quantum-classical force in the state object.
     dt_factor : float, default: 0.5
         Factor to multiply the time step by. Typical values are 0.5 (for k1 and k2)
         and 1.0 (for k3).
@@ -1074,18 +1081,18 @@ def update_z_rk4_k123(sim, state, parameters, **kwargs):
                 "Unusual dt_factor %s passed to update_z_rk4_k123_sum. Typical values are 0.5 or 1.0.",
                 dt_factor,
             )
-    classical_forces_name = kwargs.get("classical_forces_name", "classical_forces")
-    quantum_classical_forces_name = kwargs.get(
-        "quantum_classical_forces_name", "quantum_classical_forces"
+    classical_force_name = kwargs.get("classical_force_name", "classical_force")
+    quantum_classical_force_name = kwargs.get(
+        "quantum_classical_force_name", "quantum_classical_force"
     )
-    classical_forces = state[classical_forces_name]
-    quantum_classical_forces = state[quantum_classical_forces_name]
+    classical_force = state[classical_force_name]
+    quantum_classical_force = state[quantum_classical_force_name]
     dt_update = sim.settings.dt_update
-    z_k = state[z_name]
-    out, k = functions.update_z_rk4_k123_sum(
-        z_k, classical_forces, quantum_classical_forces, dt_factor * dt_update
+    z = state[z_name]
+    z_k, k = functions.update_z_rk4_k123_sum(
+        z, classical_force, quantum_classical_force, dt_factor * dt_update
     )
-    state[z_output_name] = out
+    state[z_output_name] = z_k
     state[k_name] = k
     return state, parameters
 
@@ -1108,10 +1115,10 @@ def update_z_rk4_k4(sim, state, parameters, **kwargs):
         Name of the second RK4 slope in the state object.
     k3_name : str, default: "z_rk4_k3"
         Name of the third RK4 slope in the state object.
-    classical_forces_name : str, default: "classical_forces"
-        Name of the classical forces in the state object.
-    quantum_classical_forces_name : str, default: "quantum_classical_forces"
-        Name of the quantum-classical forces in the state object.
+    classical_force_name : str, default: "classical_force"
+        Name of the classical force in the state object.
+    quantum_classical_force_name : str, default: "quantum_classical_force"
+        Name of the quantum-classical force in the state object.
 
     .. rubric:: Variable Modifications
     state.{z_output_name} : ndarray
@@ -1125,28 +1132,27 @@ def update_z_rk4_k4(sim, state, parameters, **kwargs):
     k1 = state[k1_name]
     k2 = state[k2_name]
     k3 = state[k3_name]
-    classical_forces_name = kwargs.get("classical_forces_name", "classical_forces")
-    quantum_classical_forces_name = kwargs.get(
-        "quantum_classical_forces_name", "quantum_classical_forces"
+    classical_force_name = kwargs.get("classical_force_name", "classical_force")
+    quantum_classical_force_name = kwargs.get(
+        "quantum_classical_force_name", "quantum_classical_force"
     )
-    classical_forces = state[classical_forces_name]
-    quantum_classical_forces = state[quantum_classical_forces_name]
-    dt_update = sim.settings.dt_update
-    z_0 = state[z_name]
+    classical_force = state[classical_force_name]
+    quantum_classical_force = state[quantum_classical_force_name]
+    z = state[z_name]
     out = functions.update_z_rk4_k4_sum(
-        z_0,
+        z,
         k1,
         k2,
         k3,
-        classical_forces,
-        quantum_classical_forces,
-        dt_update,
+        classical_force,
+        quantum_classical_force,
+        sim.settings.dt_update,
     )
     state[z_output_name] = out
     return state, parameters
 
 
-def update_dm_db_mf(sim, state, parameters, **kwargs):
+def update_dm_db_wf(sim, state, parameters, **kwargs):
     """
     Updates the diabatic density matrix based on the wavefunction.
 
@@ -1248,9 +1254,8 @@ def update_classical_energy_fssh(sim, state, parameters, **kwargs):
                 z=z_branch,
             )
     else:
-        classical_energy = 0.0
         z_branch = z[branch_ind == 0]
-        classical_energy += h_c(
+        classical_energy = h_c(
             sim.model,
             parameters,
             z=z_branch,
@@ -1259,10 +1264,10 @@ def update_classical_energy_fssh(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_quantum_energy(sim, state, parameters, **kwargs):
+def update_quantum_energy_wf(sim, state, parameters, **kwargs):
     """
     Updates the quantum energy w.r.t. the wavefunction specified by ``state.{wf_db_name}`` by taking
-    the expectation value of ``state.{h_quantum_name}``.
+    the expectation value of ``state.{h_q_tot_name}``.
 
     .. rubric:: Required Constants
     None
@@ -1270,7 +1275,7 @@ def update_quantum_energy(sim, state, parameters, **kwargs):
     .. rubric:: Keyword Arguments
     wf_db_name : str, default: "wf_db"
         Name of the wavefunction in the state object.
-    h_quantum_name : str, default: "h_quantum"
+    h_q_tot_name : str, default: "h_q_tot"
         Name of the total Hamiltonian of the quantum subsystem in the state object.
         (``h_q + h_qc``)
     quantum_energy_name : str, default: "quantum_energy"
@@ -1281,21 +1286,24 @@ def update_quantum_energy(sim, state, parameters, **kwargs):
         Quantum energy.
     """
     wf_db_name = kwargs.get("wf_db_name", "wf_db")
-    h_quantum_name = kwargs.get("h_quantum_name", "h_quantum")
+    h_q_tot_name = kwargs.get("h_q_tot_name", "h_q_tot")
     quantum_energy_name = kwargs.get("quantum_energy_name", "quantum_energy")
     wf_db = state[wf_db_name]
-    h_quantum = state[h_quantum_name]
+    h_q_tot = state[h_q_tot_name]
     quantum_energy = np.real(
-        np.einsum("ti,tij,tj->t", np.conj(wf_db), h_quantum, wf_db, optimize="greedy")
+        np.einsum("ti,tij,tj->t", np.conj(wf_db), h_q_tot, wf_db, optimize="greedy")
     )
     state[quantum_energy_name] = quantum_energy
     return state, parameters
 
 
-def update_quantum_energy_fssh(sim, state, parameters, **kwargs):
+def update_quantum_energy_act_surf(sim, state, parameters, **kwargs):
     """
+    Updates the quantum energy using the active surface index.
+
+
     Updates the quantum energy w.r.t. the wavefunction specified by ``state.{wf_db_name}`` by taking
-    the expectation value of ``state.{h_quantum_name}``.
+    the expectation value of ``state.{h_q_tot_name}``.
     Accounts for both stochastic and deterministic FSSH modes.
     Typically, the wavefunction used is that of the active surface.
 
@@ -1305,7 +1313,7 @@ def update_quantum_energy_fssh(sim, state, parameters, **kwargs):
     .. rubric:: Keyword Arguments
     wf_db_name : str, default: act_surf_wf
         Name of the wavefunction in the state object.
-    h_quantum_name : str, default: "h_quantum"
+    h_q_tot_name : str, default: "h_q_tot"
         Name of the total Hamiltonian of the quantum subsystem in the state object.
         (``h_q + h_qc``)
     quantum_energy_name : str, default: "quantum_energy"
@@ -1318,10 +1326,10 @@ def update_quantum_energy_fssh(sim, state, parameters, **kwargs):
         Quantum energy.
     """
     wf_db_name = kwargs.get("wf_db_name", "act_surf_wf")
-    h_quantum_name = kwargs.get("h_quantum_name", "h_quantum")
+    h_q_tot_name = kwargs.get("h_q_tot_name", "h_q_tot")
     quantum_energy_name = kwargs.get("quantum_energy_name", "quantum_energy")
     dm_adb_0_name = kwargs.get("dm_adb_0_name", "dm_adb_0")
-    h_quantum = state[h_quantum_name]
+    h_q_tot = state[h_q_tot_name]
     wf_db = state[wf_db_name]
     dm_adb_0 = state[dm_adb_0_name]
     if sim.algorithm.settings.fssh_deterministic:
@@ -1338,13 +1346,13 @@ def update_quantum_energy_fssh(sim, state, parameters, **kwargs):
         )
         quantum_energy = np.real(
             np.einsum(
-                "ti,tij,tj->t", np.conj(wf_db), h_quantum, wf_db, optimize="greedy"
+                "ti,tij,tj->t", np.conj(wf_db), h_q_tot, wf_db, optimize="greedy"
             )
         )
     else:
         quantum_energy = np.real(
             np.einsum(
-                "ti,tij,tj->t", np.conj(wf_db), h_quantum, wf_db, optimize="greedy"
+                "ti,tij,tj->t", np.conj(wf_db), h_q_tot, wf_db, optimize="greedy"
             )
         )
     state[quantum_energy_name] = quantum_energy

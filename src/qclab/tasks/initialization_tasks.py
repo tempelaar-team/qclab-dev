@@ -35,9 +35,9 @@ def initialize_variable_objects(sim, state, parameters, **kwargs):
     for name in sim.initial_state.keys():
         obj = sim.initial_state[name]
         if isinstance(obj, np.ndarray) and name[0] != "_":
-            init_shape = np.shape(obj)
+            initial_shape = np.shape(obj)
             new_obj = np.ascontiguousarray(
-                np.zeros((sim.settings.batch_size, *init_shape), dtype=obj.dtype)
+                np.zeros((sim.settings.batch_size, *initial_shape), dtype=obj.dtype)
                 + obj[np.newaxis]
             )
             logger.info(
@@ -183,76 +183,88 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
     for s, seed_s in enumerate(seed):
         np.random.seed(seed_s)
         save_inds[s] = np.random.randint(0, sample_size)
-    mcmc_init_z, _ = functions.gen_sample_gaussian(
-        sim.model.constants, z0=None, seed=0, separable=False
+    mcmc_z_initial, _ = functions.gen_sample_gaussian(
+        sim.model.constants, z_initial=None, seed=0, separable=False
     )
-    sample = sim.model.constants.get("mcmc_init_z", mcmc_init_z)
+    sample = sim.model.constants.get("mcmc_initial_z", mcmc_z_initial)
     h_c, _ = sim.model.get("h_c")
     if mcmc_h_c_separable:
         for s, seed_s in enumerate(burn_in_seeds):
-            last_sample = np.copy(sample)
-            last_z = np.diag(last_sample)
-            last_e = h_c(sim.model, parameters, z=last_z, batch_size=len(last_z))
+            previous_sample = np.copy(sample)
+            previous_z = np.diag(previous_sample)
+            previous_energy = h_c(
+                sim.model, parameters, z=previous_z, batch_size=len(previous_z)
+            )
             proposed_sample, rand = functions.gen_sample_gaussian(
-                sim.model.constants, z0=last_sample, seed=seed_s, separable=True
+                sim.model.constants, z_initial=previous_sample, seed=seed_s, separable=True
             )
             new_z = np.diag(proposed_sample)
-            new_e = h_c(sim.model, parameters, z=new_z, batch_size=len(new_z))
+            new_energy = h_c(sim.model, parameters, z=new_z, batch_size=len(new_z))
             thresh = np.minimum(
                 np.ones(sim.model.constants.num_classical_coordinates),
-                np.exp(-(new_e - last_e) / sim.model.constants.kBT),
+                np.exp(-(new_energy - previous_energy) / sim.model.constants.kBT),
             )
             sample[rand < thresh] = proposed_sample[rand < thresh]
         for s, seed_s in enumerate(sample_seeds):
-            last_sample = np.copy(sample)
-            last_z = np.diag(last_sample)
-            last_e = h_c(sim.model, parameters, z=last_z, batch_size=len(last_z))
+            previous_sample = np.copy(sample)
+            previous_z = np.diag(previous_sample)
+            previous_energy = h_c(
+                sim.model, parameters, z=previous_z, batch_size=len(previous_z)
+            )
             proposed_sample, rand = functions.gen_sample_gaussian(
-                sim.model.constants, z0=last_sample, seed=seed_s, separable=True
+                sim.model.constants, z_initial=previous_sample, seed=seed_s, separable=True
             )
             new_z = np.diag(proposed_sample)
-            new_e = h_c(sim.model, parameters, z=new_z, batch_size=len(new_z))
+            new_energy = h_c(sim.model, parameters, z=new_z, batch_size=len(new_z))
             thresh = np.minimum(
                 np.ones(sim.model.constants.num_classical_coordinates),
-                np.exp(-(new_e - last_e) / sim.model.constants.kBT),
+                np.exp(-(new_energy - previous_energy) / sim.model.constants.kBT),
             )
             sample[rand < thresh] = proposed_sample[rand < thresh]
             out_tmp[s] = sample
             state[z_name] = out_tmp[save_inds]
-        return state, parameters
-    # If not separable, do the full MCMC.
-    for s, seed_s in enumerate(burn_in_seeds):
-        last_sample = np.copy(sample)
-        last_e = h_c(sim.model, parameters, z=last_sample, batch_size=len(last_sample))
-        proposed_sample, rand = functions.gen_sample_gaussian(
-            sim.model.constants, z0=last_sample, seed=seed_s, separable=False
-        )
-        new_e = h_c(
-            sim.model,
-            parameters,
-            z=proposed_sample,
-            batch_size=len(proposed_sample),
-        )
-        thresh = min(1, np.exp(-(new_e - last_e) / sim.model.constants.kBT))
-        if rand < thresh:
-            sample = proposed_sample
-    for s, seed_s in enumerate(sample_seeds):
-        last_sample = np.copy(sample)
-        last_e = h_c(sim.model, parameters, z=last_sample, batch_size=len(last_sample))
-        proposed_sample, rand = functions.gen_sample_gaussian(
-            sim.model.constants, z0=last_sample, seed=seed_s, separable=False
-        )
-        new_e = h_c(
-            sim.model,
-            parameters,
-            z=proposed_sample,
-            batch_size=len(proposed_sample),
-        )
-        thresh = min(1, np.exp(-(new_e - last_e) / sim.model.constants.kBT))
-        if rand < thresh:
-            sample = proposed_sample
-        out_tmp[s] = sample
-    state[z_name] = out_tmp[save_inds]
+    else:
+        # If not separable, do the full MCMC.
+        for s, seed_s in enumerate(burn_in_seeds):
+            previous_sample = np.copy(sample)
+            previous_energy = h_c(
+                sim.model, parameters, z=previous_sample, batch_size=len(previous_sample)
+            )
+            proposed_sample, rand = functions.gen_sample_gaussian(
+                sim.model.constants, z_initial=previous_sample, seed=seed_s, separable=False
+            )
+            new_energy = h_c(
+                sim.model,
+                parameters,
+                z=proposed_sample,
+                batch_size=len(proposed_sample),
+            )
+            thresh = min(
+                1, np.exp(-(new_energy - previous_energy) / sim.model.constants.kBT)
+            )
+            if rand < thresh:
+                sample = proposed_sample
+        for s, seed_s in enumerate(sample_seeds):
+            previous_sample = np.copy(sample)
+            previous_energy = h_c(
+                sim.model, parameters, z=previous_sample, batch_size=len(previous_sample)
+            )
+            proposed_sample, rand = functions.gen_sample_gaussian(
+                sim.model.constants, z_initial=previous_sample, seed=seed_s, separable=False
+            )
+            new_energy = h_c(
+                sim.model,
+                parameters,
+                z=proposed_sample,
+                batch_size=len(proposed_sample),
+            )
+            thresh = min(
+                1, np.exp(-(new_energy - previous_energy) / sim.model.constants.kBT)
+            )
+            if rand < thresh:
+                sample = proposed_sample
+            out_tmp[s] = sample
+        state[z_name] = out_tmp[save_inds]
     return state, parameters
 
 
@@ -331,7 +343,7 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
         Name of the active surface index in the state object.
     act_surf_name : str, default: "act_surf"
         Name of the active surface in the state object.
-    stochastic_sh_rand_vals_name : str, default: "stochastic_sh_rand_vals"
+    init_act_surf_rand_vals_name : str, default: "init_act_surf_rand_vals"
         Name of the random numbers for active surface initialization in FSSH.
     wf_adb_name : str, default: "wf_adb"
         Name of the adiabatic wavefunction in the state object.
@@ -347,12 +359,12 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
     act_surf_ind_0_name = kwargs.get("act_surf_ind_0_name", "act_surf_ind_0")
     act_surf_ind_name = kwargs.get("act_surf_ind_name", "act_surf_ind")
     act_surf_name = kwargs.get("act_surf_name", "act_surf")
-    stochastic_sh_rand_vals_name = kwargs.get(
-        "stochastic_sh_rand_vals_name", "stochastic_sh_rand_vals"
+    init_act_surf_rand_vals_name = kwargs.get(
+        "init_act_surf_rand_vals_name", "init_act_surf_rand_vals"
     )
     wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
     wf_adb = state[wf_adb_name]
-    stochastic_sh_rand_vals = state[stochastic_sh_rand_vals_name]
+    init_act_surf_rand_vals = state[init_act_surf_rand_vals_name]
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
     else:
@@ -362,12 +374,13 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
     if sim.algorithm.settings.fssh_deterministic:
         act_surf_ind_0 = np.tile(np.arange(num_branches, dtype=int), (num_trajs, 1))
     else:
-        intervals = np.cumsum(
+        cumulative_pops = np.cumsum(
             np.real(np.abs(wf_adb.reshape((num_trajs, num_branches, num_states))) ** 2),
             axis=-1,
         )
-        bool_mat = intervals > stochastic_sh_rand_vals[:, :, np.newaxis]
-        act_surf_ind_0 = np.argmax(bool_mat, axis=-1).astype(int)
+        act_surf_ind_0 = np.argmax(
+            cumulative_pops > init_act_surf_rand_vals[:, :, np.newaxis], axis=-1
+        ).astype(int)
     act_surf_ind_0 = act_surf_ind_0.reshape(-1)
     state[act_surf_ind_0_name] = np.copy(act_surf_ind_0)
     state[act_surf_ind_name] = np.copy(act_surf_ind_0)
@@ -388,24 +401,24 @@ def initialize_random_values_fssh(sim, state, parameters, **kwargs):
     None
 
     .. rubric:: Keyword Arguments
-    hopping_probs_rand_vals_name : str, default: "hopping_probs_rand_vals"
+    hop_prob_rand_vals_name : str, default: "hop_prob_rand_vals"
         Name of the random numbers for hop decisions in the state object.
-    stochastic_sh_rand_vals_name : str, default: "stochastic_sh_rand_vals"
+    init_act_surf_rand_vals_name : str, default: "init_act_surf_rand_vals"
         Name of the random numbers for active surface initialization in FSSH.
     seed_name : str, default: "seed"
         Name of the seeds array in the state object.
 
     .. rubric:: Variable Modifications
-    state.{hopping_probs_rand_vals_name} : ndarray
+    state.{hop_prob_rand_vals_name} : ndarray
         Random numbers for hop decisions.
-    state.{stochastic_sh_rand_vals_name} : ndarray
+    state.{init_act_surf_rand_vals_name} : ndarray
         Random numbers for active surface selection in stochastic FSSH.
     """
-    hopping_probs_rand_vals_name = kwargs.get(
-        "hopping_probs_rand_vals_name", "hopping_probs_rand_vals"
+    hop_prob_rand_vals_name = kwargs.get(
+        "hop_prob_rand_vals_name", "hop_prob_rand_vals"
     )
-    stochastic_sh_rand_vals_name = kwargs.get(
-        "stochastic_sh_rand_vals_name", "stochastic_sh_rand_vals"
+    init_act_surf_rand_vals_name = kwargs.get(
+        "init_act_surf_rand_vals_name", "init_act_surf_rand_vals"
     )
     seed_name = kwargs.get("seed_name", "seed")
     seed = state[seed_name]
@@ -414,14 +427,14 @@ def initialize_random_values_fssh(sim, state, parameters, **kwargs):
     else:
         num_branches = 1
     batch_size = sim.settings.batch_size // num_branches
-    hopping_probs_rand_vals = np.zeros((batch_size, len(sim.settings.t_update)))
-    stochastic_sh_rand_vals = np.zeros((batch_size, num_branches))
+    hop_prob_rand_vals = np.zeros((batch_size, len(sim.settings.t_update)))
+    init_act_surf_rand_vals = np.zeros((batch_size, num_branches))
     for nt in range(batch_size):
         np.random.seed(seed[int(nt * num_branches)])
-        hopping_probs_rand_vals[nt] = np.random.rand(len(sim.settings.t_update))
-        stochastic_sh_rand_vals[nt] = np.random.rand(num_branches)
-    state[hopping_probs_rand_vals_name] = hopping_probs_rand_vals
-    state[stochastic_sh_rand_vals_name] = stochastic_sh_rand_vals
+        hop_prob_rand_vals[nt] = np.random.rand(len(sim.settings.t_update))
+        init_act_surf_rand_vals[nt] = np.random.rand(num_branches)
+    state[hop_prob_rand_vals_name] = hop_prob_rand_vals
+    state[init_act_surf_rand_vals_name] = init_act_surf_rand_vals
     return state, parameters
 
 
