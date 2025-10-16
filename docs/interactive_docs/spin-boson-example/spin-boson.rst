@@ -32,7 +32,7 @@ Next, we will set up the simulation object and equip it with the model and algor
     # Initialize the diabatic wavevector. 
     # Here, the first vector element refers to the upper state and the second
     # element refers to the lower state.
-    sim.initial_state.wf_db = np.array([1, 0], dtype=complex)
+    sim.initial_state["wf_db"] = np.array([1, 0], dtype=complex)
     
 
 This is bound to run the spin-boson model using default values for the model constants. 
