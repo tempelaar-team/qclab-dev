@@ -6,6 +6,8 @@ Running a Spin-Boson Model
 
 Here's a simple example of how to run a spin-boson model with mean-field dynamics in QC Lab.
 
+A jupyter notebook version of this tutorial can be found `here <https://github.com/tempelaar-team/qclab/blob/main/examples/interactive_docs_example.ipynb>`_.
+
 
 First, we will need to import the necessary modules:
 
