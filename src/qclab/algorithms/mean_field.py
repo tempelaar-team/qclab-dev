@@ -36,9 +36,7 @@ class MeanField(Algorithm):
             z_name="z_1",
             wf_changed=False,
         ),
-        partial(
-            tasks.update_z_rk4_k123, z_name="z", z_output_name="z_2", k_name="z_rk4_k2"
-        ),
+        partial(tasks.update_z_rk4_k123, z_name="z", z_k_name="z_2", k_name="z_rk4_k2"),
         partial(tasks.update_classical_force, z_name="z_2"),
         partial(
             tasks.update_quantum_classical_force,
@@ -48,7 +46,7 @@ class MeanField(Algorithm):
         partial(
             tasks.update_z_rk4_k123,
             z_name="z",
-            z_output_name="z_3",
+            z_k_name="z_3",
             k_name="z_rk4_k3",
             dt_factor=1.0,
         ),

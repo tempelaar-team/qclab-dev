@@ -19,11 +19,11 @@ from qclab.models import (
 )
 from qclab.algorithms import MeanField, FewestSwitchesSurfaceHopping
 from qclab.dynamics import serial_driver, parallel_driver_multiprocessing
-try: 
+
+try:
     from tests.reference_settings import model_sim_settings, model_settings
 except ImportError:
     from reference_settings import model_sim_settings, model_settings
-
 
 
 def test_output_serial():

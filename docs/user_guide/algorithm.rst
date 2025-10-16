@@ -118,7 +118,7 @@ By default, each variable object has an attribute ``output_dict`` which is an em
 
 .. code-block:: python
 
-    state.output_dict['dm_db'] = state.dm_db
+    state["output_dict"]['dm_db'] = state.dm_db
 
 then the output of the simulation will contain an entry with key ``'dm_db'`` and value equal to the contents of the attribute ``state.dm_db`` averaged over its batch dimension.
 

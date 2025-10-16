@@ -14,12 +14,13 @@ logger = logging.getLogger(__name__)
 
 def initialize_variable_objects(sim, state, parameters, **kwargs):
     """
-    Populates the ``parameter`` and ``state`` objects with variables in the ``sim.initial_state`` object.
-    For any numpy ndarray in ``sim.initial_state``, a new array is created in ``state`` with shape
-    ``(batch_size, *original_shape)`` where ``original_shape`` is the shape of the array in ``sim.initial_state``.
-    The new array is initialized by copying the original array into each slice along the first axis.
+    Populates the state object with non-private variables in ``sim.initial_state``, and an empty
+    dictionary for storing output quantities.
 
-    Any variable with name starting with an underscore is ignored.
+    For any non-private (i.e. not beginning with "_") ndarray in ``sim.initial_state``,
+    a new array is created in ``state`` with shape `(batch_size, *original_shape)`` where
+    ``original_shape`` is the shape of the array in ``sim.initial_state``.
+    The new array is initialized by copying the original array into each slice along the first axis.
 
     .. rubric:: Required Constants
     None
@@ -28,8 +29,11 @@ def initialize_variable_objects(sim, state, parameters, **kwargs):
     None
 
     .. rubric:: Variable Modifications
-    state.{initial_state.attribute.__name__} : ndarray
+    state[name] : ndarray
         Initialized state variable with shape (batch_size, *original_shape).
+        ``name`` is the name of the variable in ``sim.initial_state``.
+    state["output_dict"] : dict
+        Dictionary to store output quantities during the simulation.
 
     """
     for name in sim.initial_state.keys():
@@ -66,7 +70,7 @@ def initialize_norm_factor(sim, state, parameters, **kwargs):
         Name of the normalization factor in the state object.
 
     .. rubric:: Variable Modifications
-    state.{norm_factor_name} : int
+    state[norm_factor_name] : int
         Normalization factor for trajectory averages.
     """
     norm_factor_name = kwargs.get("norm_factor_name", "norm_factor")
@@ -76,8 +80,9 @@ def initialize_norm_factor(sim, state, parameters, **kwargs):
 
 def initialize_branch_seeds(sim, state, parameters, **kwargs):
     """
-    Converts seeds into branch seeds for deterministic surface hopping. This is done by
-    first assuming that the number of branches is equal to the number of quantum states.
+    Converts seeds into branch seeds for deterministic surface hopping.
+
+    This is done by first assuming that the number of branches is equal to the number of quantum states.
     Then, a branch index is created which gives the branch index of each seed in the batch.
     Then a new set of seeds is created by floor dividing the original seeds by the number
     of branches so that the seeds corresponding to different branches within the same
@@ -97,9 +102,9 @@ def initialize_branch_seeds(sim, state, parameters, **kwargs):
         Name of the branch index array in ``state``.
 
     .. rubric:: Variable Modifications
-    state.{branch_ind_name} : ndarray
+    state[branch_ind_name] : ndarray
         Branch index for each trajectory.
-    state.{seed_name} : ndarray
+    state[seed_name] : ndarray
         Seeds remapped for branches.
     """
     seed_name = kwargs.get("seed_name", "seed")
@@ -166,7 +171,7 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
         Name of destination attribute in the ``state`` object.
 
     .. rubric:: Variable Modifications
-    state.{z_name} : ndarray
+    state[z_name] : ndarray
         Initialized classical coordinates.
     """
     seed = getattr(state, kwargs["seed_name"])
@@ -196,7 +201,10 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
                 sim.model, parameters, z=previous_z, batch_size=len(previous_z)
             )
             proposed_sample, rand = functions.gen_sample_gaussian(
-                sim.model.constants, z_initial=previous_sample, seed=seed_s, separable=True
+                sim.model.constants,
+                z_initial=previous_sample,
+                seed=seed_s,
+                separable=True,
             )
             new_z = np.diag(proposed_sample)
             new_energy = h_c(sim.model, parameters, z=new_z, batch_size=len(new_z))
@@ -212,7 +220,10 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
                 sim.model, parameters, z=previous_z, batch_size=len(previous_z)
             )
             proposed_sample, rand = functions.gen_sample_gaussian(
-                sim.model.constants, z_initial=previous_sample, seed=seed_s, separable=True
+                sim.model.constants,
+                z_initial=previous_sample,
+                seed=seed_s,
+                separable=True,
             )
             new_z = np.diag(proposed_sample)
             new_energy = h_c(sim.model, parameters, z=new_z, batch_size=len(new_z))
@@ -228,10 +239,16 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
         for s, seed_s in enumerate(burn_in_seeds):
             previous_sample = np.copy(sample)
             previous_energy = h_c(
-                sim.model, parameters, z=previous_sample, batch_size=len(previous_sample)
+                sim.model,
+                parameters,
+                z=previous_sample,
+                batch_size=len(previous_sample),
             )
             proposed_sample, rand = functions.gen_sample_gaussian(
-                sim.model.constants, z_initial=previous_sample, seed=seed_s, separable=False
+                sim.model.constants,
+                z_initial=previous_sample,
+                seed=seed_s,
+                separable=False,
             )
             new_energy = h_c(
                 sim.model,
@@ -247,10 +264,16 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
         for s, seed_s in enumerate(sample_seeds):
             previous_sample = np.copy(sample)
             previous_energy = h_c(
-                sim.model, parameters, z=previous_sample, batch_size=len(previous_sample)
+                sim.model,
+                parameters,
+                z=previous_sample,
+                batch_size=len(previous_sample),
             )
             proposed_sample, rand = functions.gen_sample_gaussian(
-                sim.model.constants, z_initial=previous_sample, seed=seed_s, separable=False
+                sim.model.constants,
+                z_initial=previous_sample,
+                seed=seed_s,
+                separable=False,
             )
             new_energy = h_c(
                 sim.model,
@@ -283,7 +306,7 @@ def initialize_z(sim, state, parameters, **kwargs):
         Name of classical coordinates in the state object.
 
     .. rubric:: Variable Modifications
-    state.{z_name} : ndarray
+    state[z_name] : ndarray
         initialized classical coordinates.
     """
     seed_name = kwargs.get("seed_name", "seed")
@@ -301,7 +324,7 @@ def initialize_z(sim, state, parameters, **kwargs):
 
 def copy_in_state(sim, state, parameters, **kwargs):
     """
-    Creates a copy of a quantity in the state object.
+    Creates a copy of a variable in the state object with a new name.
 
     .. rubric:: Required Constants
     None
@@ -313,8 +336,8 @@ def copy_in_state(sim, state, parameters, **kwargs):
         Name of the source in the state object.
 
     .. rubric:: Variable Modifications
-    state.{copy_name} : type of state.{orig_name}
-        Copy of ``state.{orig_name}``.
+    state[copy_name] : type of state[orig_name]
+        Copy of ``state[orig_name]``.
     """
     state[kwargs["copy_name"]] = np.copy(state[kwargs["orig_name"]])
     return state, parameters
@@ -349,11 +372,11 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
         Name of the adiabatic wavefunction in the state object.
 
     .. rubric:: Variable Modifications
-    state.{act_surf_ind_0_name} : ndarray
+    state[act_surf_ind_0_name] : ndarray
         Initial active surface index.
-    state.{act_surf_ind_name} : ndarray
+    state[act_surf_ind_name] : ndarray
         Current active surface index.
-    state.{act_surf_name} : ndarray
+    state[act_surf_name] : ndarray
         Active surface wavefunctions.
     """
     act_surf_ind_0_name = kwargs.get("act_surf_ind_0_name", "act_surf_ind_0")
@@ -409,9 +432,9 @@ def initialize_random_values_fssh(sim, state, parameters, **kwargs):
         Name of the seeds array in the state object.
 
     .. rubric:: Variable Modifications
-    state.{hop_prob_rand_vals_name} : ndarray
+    state[hop_prob_rand_vals_name] : ndarray
         Random numbers for hop decisions.
-    state.{init_act_surf_rand_vals_name} : ndarray
+    state[init_act_surf_rand_vals_name] : ndarray
         Random numbers for active surface selection in stochastic FSSH.
     """
     hop_prob_rand_vals_name = kwargs.get(
@@ -452,7 +475,7 @@ def initialize_dm_adb_0_fssh(sim, state, parameters, **kwargs):
         Name of the adiabatic wavefunction in the state object.
 
     .. rubric:: Variable Modifications
-    state.{dm_adb_0_name} : ndarray
+    state[dm_adb_0_name] : ndarray
         Initial adiabatic density matrix.
     """
     dm_adb_0_name = kwargs.get("dm_adb_0_name", "dm_adb_0")

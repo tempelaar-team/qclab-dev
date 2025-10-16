@@ -485,8 +485,12 @@ def gen_sample_gaussian(constants, z_initial=None, seed=None, separable=True):
     if z_initial is None:
         z_initial = np.zeros(num_classical_coordinates, dtype=complex)
     mcmc_std = constants.get("mcmc_std", 1.0)
-    z_re = np.random.normal(loc=z_initial.real, scale=mcmc_std, size=num_classical_coordinates)
-    z_im = np.random.normal(loc=z_initial.imag, scale=mcmc_std, size=num_classical_coordinates)
+    z_re = np.random.normal(
+        loc=z_initial.real, scale=mcmc_std, size=num_classical_coordinates
+    )
+    z_im = np.random.normal(
+        loc=z_initial.imag, scale=mcmc_std, size=num_classical_coordinates
+    )
     z = z_re + 1j * z_im
     return z, rand
 

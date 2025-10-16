@@ -308,9 +308,12 @@ def hop_harmonic(model, parameters, **kwargs):
     # Here, akj_z, bkj_z, ckj_z are the coefficients of the quadratic equation
     # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0
     akj_z = np.sum(
-        2.0 * resc_dir_zc * resc_dir_z * b_const - a_const * (resc_dir_z**2 + resc_dir_zc**2)
+        2.0 * resc_dir_zc * resc_dir_z * b_const
+        - a_const * (resc_dir_z**2 + resc_dir_zc**2)
     )
-    bkj_z = 2.0 * np.sum(h * z.imag * resc_dir_z.real - (w**2 / h) * z.real * resc_dir_z.imag)
+    bkj_z = 2.0 * np.sum(
+        h * z.imag * resc_dir_z.real - (w**2 / h) * z.real * resc_dir_z.imag
+    )
     ckj_z = eigval_diff
     disc = bkj_z**2 - 4.0 * akj_z * ckj_z
     if disc >= 0:
