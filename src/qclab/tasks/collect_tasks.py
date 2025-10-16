@@ -3,289 +3,101 @@ This module contains tasks that are used to collect data from the state or
 parameters objects into the output dictionary of the state object.
 """
 
-from qclab.simulation import Simulation
 
-def blank(
-    sim: Simulation,
-    state: dict,
-    parameters: dict,
-):
+def collect_t(sim, state, parameters, **kwargs):
     """
-    One line description
+    Collects the time in the state object.
 
-    Extended description
+    .. rubric:: Required Constants
+    None
 
-    Parameters
-    ----------
-    sim : Simulation
-        The simulation object.
-    state : dict
-        The state object.
-    parameters : dict
-        The parameters object.
-
-    Other Parameters
-    ----------------
-
-    Requires
-    --------
-
-    Reads
-    -----
-
-    Writes
-    ------
-
-    Shapes and dtypes
-    -------------------
-
-    Returns
-    -------
-    (state, parameters) : tuple(dict, dict)
-        The updated state and parameters objects.
-
-    Raises
-    ------
-
-    Notes
-    -----
-
-    See Also
-    --------
-    """
-    return state, parameters
-
-def collect_t(
-    sim: Simulation,
-    state: dict,
-    parameters: dict,
-    t_var_name: str = "t",
-    t_output_name: str = "t",
-):
-    """
-    Collects the time into the output dictionary of the state object.
-
-    Parameters
-    ----------
-    sim : Simulation
-        The simulation object.
-    state : dict
-        The state object.
-    parameters : dict
-        The parameters object.
-
-    Other Parameters
-    ----------------
-    t_var_name
+    .. rubric:: Keyword Arguments
+    t_var_name : str, default : "t"
         Name of the time variable in the state object.
-    t_output_name
-        Name of the output variable for the time.
+    t_output_name : str, default : "t"
 
-    Requires
-    --------
-
-    Reads
-    -----
-    state[t_var_name] : ndarray, (B), float64
-        The time in each trajectory.
-
-    Writes
-    ------
-    state["output_dict"][t_output_name] : ndarray, (B), float64
+    .. rubric:: Variable Modifications
+    state.output_dict[t_output_name] : ndarray
         stores the current time in each trajectory.
-
-    Shapes and dtypes
-    -------------------
-    B = sim.settings.batch_size
-
-    Returns
-    -------
-    (state, parameters) : tuple(dict, dict)
-        The updated state and parameters objects.
-
-    Raises
-    ------
-
-    Notes
-    -----
-
-    See Also
-    --------
-    qclab.tasks.update_tasks.update_t
     """
+    t_var_name = kwargs.get("t_var_name", "t")
+    t_output_name = kwargs.get("t_output_name", "t")
     state["output_dict"][t_output_name] = state[t_var_name]
     return state, parameters
 
 
-def collect_dm_db(
-    sim: Simulation,
-    state: dict,
-    parameters: dict,
-    dm_db_var_name: str = "dm_db",
-    dm_db_output_name: str = "dm_db",
-):
+def collect_dm_db(sim, state, parameters, **kwargs):
     """
-    Collects the diabatic density matrix into the output dictionary of the state object.
+    Collects the diabatic density matrix in the state object.
 
-    Parameters
-    ----------
-    sim : Simulation
-        The simulation object.
-    state : dict
-        The state object.
-    parameters : dict
-        The parameters object.
+    .. rubric:: Required Constants
+    None
 
-    Other Parameters
-    ----------------
-    dm_db_var_name
-        Name of the diabatic density matrix in the state object.
-    dm_db_output_name
-        Name of the diabatic density matrix in the output dictionary.
+    .. rubric:: Keyword Arguments
+    dm_db_var_name : str, default : "dm_db"
+        Name of the diabatic density matrix variable in the state object.
+    dm_db_output_name : str, default : "dm_db"
+        Name of the output variable for the diabatic density matrix.
 
-    Reads
-    -----
-    state[dm_db_var_name] : ndarray, (B, N, N), complex128
-        The diabatic density matrix in each trajectory.
-
-    Writes
-    ------
-    state["output_dict"][dm_db_output_name] : ndarray, (B, N, N), complex128
-        The diabatic density matrix in each trajectory.
-
-    Shapes and dtypes
-    -------------------
-    B = sim.settings.batch_size
-    N = sim.model.constants.num_quantum_states
-
-    Requires
-    --------
-    sim.model.constants.num_quantum_states : int
-        Number of quantum states.
-    sim.settings.batch_size : int
-        Number of trajectories in the batch.
-
-    Returns
-    -------
-    (state, parameters) : tuple(dict, dict)
-        The updated state and parameters objects.
-
-    See Also
-    --------
-    qclab.tasks.update_tasks.update_dm_db
-    qclab.tasks.update_tasks.update_dm_db_fssh
+    .. rubric:: Variable Modifications
+    state.output_dict[dm_db_output_name] : ndarray
+        stores the diabatic density matrix.
     """
+    dm_db_var_name = kwargs.get("dm_db_var_name", "dm_db")
+    dm_db_output_name = kwargs.get("dm_db_output_name", "dm_db")
     state["output_dict"][dm_db_output_name] = state[dm_db_var_name]
     return state, parameters
 
 
-def collect_classical_energy(
-    sim: Simulation,
-    state: dict,
-    parameters: dict,
-    classical_energy_var_name: str = "classical_energy",
-    classical_energy_output_name: str = "classical_energy",
-):
+def collect_classical_energy(sim, state, parameters, **kwargs):
     """
-    Collects the classical energy into the output dictionary of the state object.
+    Collects the classical energy in the state object.
 
-    Parameters
-    ----------
-    sim : Simulation
-        The simulation object.
-    state : dict
-        The state object.
-    parameters : dict
-        The parameters object.
-
-    Other Parameters
-    ----------------
-    classical_energy_var_name
-        Name of the classical energy variable in the state object.
-    classical_energy_output_name
-        Name of the output variable for the classical energy.
-
-    Reads
-    -----
-    state[classical_energy_var_name] : ndarray, (B), float64
-        The classical energy in each trajectory.
-
-    Writes
-    ------
-    state["output_dict"][classical_energy_output_name] : ndarray, (B), float64
-        stores the classical energy.
-
-    Shapes and dtypes
-    -------------------
-    B = sim.settings.batch_size
-
-    Requires
-    --------
+    .. rubric:: Required Constants
     None
 
-    Returns
-    -------
-    (state, parameters) : tuple(dict, dict)
-        The updated state and parameters objects.
+    .. rubric:: Keyword Arguments
+    classical_energy_var_name : str, default : "classical_energy"
+        Name of the classical energy variable in the state object.
+    classical_energy_output_name : str, default : "classical_energy"
+        Name of the output variable for the classical energy.
 
-    See Also
-    --------
-    qclab.tasks.update_tasks.update_classical_energy
-    qclab.tasks.update_tasks.update_classical_energy_fssh
+    .. rubric:: Variable Modifications
+    state.output_dict[classical_energy_output_name] : ndarray
+        stores the classical energy.
     """
+    classical_energy_var_name = kwargs.get(
+        "classical_energy_var_name", "classical_energy"
+    )
+    classical_energy_output_name = kwargs.get(
+        "classical_energy_output_name", "classical_energy"
+    )
     state["output_dict"][classical_energy_output_name] = state[
         classical_energy_var_name
     ]
     return state, parameters
 
 
-def collect_quantum_energy(sim: Simulation, state: dict, parameters: dict, quantum_energy_var_name: str = "quantum_energy", quantum_energy_output_name: str = "quantum_energy"):
+def collect_quantum_energy(sim, state, parameters, **kwargs):
     """
-    Collects the quantum energy into the output dictionary of the state object.
+    Collects the quantum energy in the state object.
 
-    Parameters
-    ----------
-    sim : Simulation
-        The simulation object.
-    state : dict
-        The state object.
-    parameters : dict
-        The parameters object.
-
-    Other Parameters
-    ----------------
-    quantum_energy_var_name
-        Name of the quantum energy variable in the state object.
-    quantum_energy_output_name
-        Name of the output variable for the quantum energy.
-
-    Reads
-    -----
-    state[quantum_energy_var_name] : ndarray, (B), float64
-        The quantum energy in each trajectory.
-    
-    Writes
-    ------
-    state["output_dict"][quantum_energy_output_name] : ndarray, (B), float64
-        The quantum energy in each trajectory.
-
-    Shapes and dtypes
-    -------------------
-    B = sim.settings.batch_size
-
-    Requires
-    --------
+    .. rubric:: Required Constants
     None
 
-    Returns
-    -------
-    (state, parameters) : tuple(dict, dict)
-        The updated state and parameters objects.
+    .. rubric:: Keyword Arguments
+    quantum_energy_var_name : str, default : "quantum_energy"
+        Name of the quantum energy variable in the state object.
+    quantum_energy_output_name : str, default : "quantum_energy"
+        Name of the output variable for the quantum energy.
 
-    See Also
-    --------
-    qclab.tasks.update_tasks.update_quantum_energy
-    qclab.tasks.update_tasks.update_quantum_energy_fssh
+    .. rubric:: Variable Modifications
+    state.output_dict[quantum_energy_output_name] : ndarray
+        stores the quantum energy.
     """
+    quantum_energy_var_name = kwargs.get("quantum_energy_var_name", "quantum_energy")
+    quantum_energy_output_name = kwargs.get(
+        "quantum_energy_output_name", "quantum_energy"
+    )
     state["output_dict"][quantum_energy_output_name] = state[quantum_energy_var_name]
     return state, parameters
