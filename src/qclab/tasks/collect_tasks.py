@@ -5,6 +5,55 @@ parameters objects into the output dictionary of the state object.
 
 from qclab.simulation import Simulation
 
+def blank(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+):
+    """
+    One line description
+
+    Extended description
+
+    Parameters
+    ----------
+    sim : Simulation
+        The simulation object.
+    state : dict
+        The state object.
+    parameters : dict
+        The parameters object.
+
+    Other Parameters
+    ----------------
+
+    Requires
+    --------
+
+    Reads
+    -----
+
+    Writes
+    ------
+
+    Shapes and dtypes
+    -------------------
+
+    Returns
+    -------
+    (state, parameters) : tuple(dict, dict)
+        The updated state and parameters objects.
+
+    Raises
+    ------
+
+    Notes
+    -----
+
+    See Also
+    --------
+    """
+    return state, parameters
 
 def collect_t(
     sim: Simulation,
@@ -32,6 +81,9 @@ def collect_t(
     t_output_name
         Name of the output variable for the time.
 
+    Requires
+    --------
+
     Reads
     -----
     state[t_var_name] : ndarray, (B), float64
@@ -46,14 +98,16 @@ def collect_t(
     -------------------
     B = sim.settings.batch_size
 
-    Requires
-    --------
-    None
-
     Returns
     -------
     (state, parameters) : tuple(dict, dict)
         The updated state and parameters objects.
+
+    Raises
+    ------
+
+    Notes
+    -----
 
     See Also
     --------

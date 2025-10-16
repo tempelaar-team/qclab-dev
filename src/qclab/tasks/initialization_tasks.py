@@ -7,29 +7,67 @@ These are typically used in the initialization recipe of the algorithm object.
 
 import logging
 import numpy as np
-from qclab import functions
+from qclab import Simulation, functions
 
 logger = logging.getLogger(__name__)
 
 
-def initialize_variable_objects(sim, state, parameters, **kwargs):
+def initialize_variable_objects(sim: Simulation, state: dict, parameters: dict):
     """
-    Populates the ``parameter`` and ``state`` objects with variables in the ``sim.initial_state`` object.
-    For any numpy ndarray in ``sim.initial_state``, a new array is created in ``state`` with shape
-    ``(batch_size, *original_shape)`` where ``original_shape`` is the shape of the array in ``sim.initial_state``.
-    The new array is initialized by copying the original array into each slice along the first axis.
+    Initialize entries in ``state`` from ``sim.initial_state``.
 
-    Any variable with name starting with an underscore is ignored.
+    Every non-private (i.e. not beginning with "_") ndarray in ``sim.initial_state`` is copied
+    to ``state`` as a new ndarray with shape ``(batch_size, *original_shape)`` where
+    ``original_shape`` is the shape of the ndarray in ``sim.initial_state``. The contents of the
+    original ndarray is copied into each slice along the first axis of the new ndarray.
 
-    .. rubric:: Model Constants
-    None
+    Parameters
+    ----------
+    sim : Simulation
+        The simulation object.
+    state : dict
+        The state object.
+    parameters : dict
+        The parameters object.
 
-    .. rubric:: Keyword Arguments
-    None
+    Other Parameters
+    ----------------
 
-    .. rubric:: Variable Modifications
-    state.{initial_state.attribute.__name__} : ndarray
-        Initialized state variable with shape (batch_size, *original_shape).
+    Reads
+    -----
+    sim.initial_state[name] : ndarray, (*S,), obj.dtype
+        ndarray to be copied into ``state``.
+
+    Writes
+    ------
+    state[name] : ndarray, (B, *S), obj.dtype
+        New ndarray created for each ndarray in ``sim.initial_state``.
+    state["output_dict"] : dict
+        Initialized to an empty dictionary to store output variables.
+
+    Shapes and dtypes
+    -------------------
+    B = sim.settings.batch_size
+
+    Requires
+    --------
+    sim.settings.batch_size : int
+        Batch size for the simulation.
+    sim.initial_state : dict
+        Dictionary of initial state variables.
+
+    Returns
+    -------
+    (state, parameters) : tuple(dict, dict)
+        The updated state and parameters objects.
+
+    Notes
+    -----
+    Logs an INFO message for each initialized variable.
+    Logs a WARNING message for any non-private variable in ``sim.initial_state`` that is not a ndarray.
+
+    See Also
+    --------
 
     """
     for name in sim.initial_state.keys():
@@ -54,22 +92,60 @@ def initialize_variable_objects(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def initialize_norm_factor(sim, state, parameters, **kwargs):
+def initialize_norm_factor(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    norm_factor_name: str = "norm_factor",
+):
     """
     Assigns the normalization factor to the state object.
 
-    .. rubric:: Model Constants
-    None
+    Parameters
+    ----------
+    sim : Simulation
+        The simulation object.
+    state : dict
+        The state object.
+    parameters : dict
+        The parameters object.
 
-    .. rubric:: Keyword Arguments
-    norm_factor_name : str, default: "norm_factor"
+    Other Parameters
+    ----------------
+    norm_factor_name
         Name of the normalization factor in the state object.
 
-    .. rubric:: Variable Modifications
-    state.{norm_factor_name} : int
+    Requires
+    --------
+    sim.settings.batch_size : int
+        Batch size for the simulation.
+
+    Reads
+    -----
+
+    Writes
+    ------
+    state[norm_factor_name] : int
         Normalization factor for trajectory averages.
+
+    Shapes and dtypes
+    -------------------
+
+    Returns
+    -------
+    (state, parameters) : tuple(dict, dict)
+        The updated state and parameters objects.
+
+    Raises
+    ------
+
+    Notes
+    -----
+
+    See Also
+    --------
+
     """
-    norm_factor_name = kwargs.get("norm_factor_name", "norm_factor")
     state[norm_factor_name] = sim.settings.batch_size
     return state, parameters
 
