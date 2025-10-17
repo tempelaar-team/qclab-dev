@@ -51,6 +51,10 @@ QC Lab can be installed from source by downloading the repository and executing:
 
 from inside its topmost directory (where the `pyproject.toml` file is located).
 
+Please note that QC Lab does not enforce compatibility between the versions of its dependencies.
+If you run into issues installing it we suggest creating a fresh Python environment using `venv` or `conda`
+and installing QC Lab there, or ensuring compatibility of the dependencies manually.
+
 
 Bibliography
 ------------
