@@ -206,9 +206,9 @@ def dqdp_to_dzc(dq, dp, m, h):
 @njit
 def dzdzc_to_dqdp(dz, dzc, m, h):
     """
-    Convert derivatives w.r.t. z and zc (``dz`` and ``dzc``) to derivatives w.r.t. q and p (``dq`` and ``dp``).
-    If only one of ``dz`` or ``dzc`` is provided, then ``dq`` and ``dp`` are calculated assuming that
-    :math:`dz = dzc^{*}`.
+    Convert derivatives w.r.t. z and zc (``dz`` and ``dzc``) to derivatives w.r.t.
+    q and p (``dq`` and ``dp``). If only one of ``dz`` or ``dzc`` is provided, then
+    ``dq`` and ``dp`` are calculated assuming that :math:`dz = dzc^{*}`.
 
     .. rubric:: Args
     dz : ndarray | None
@@ -343,7 +343,7 @@ def make_ingredient_sparse(ingredient):
 def vectorize_ingredient(ingredient):
     """
     Wrapper that vectorizes ingredient functions.
-    It assumes that any kwarg is an numpy.ndarray that is vectorized over its first
+    It assumes that any kwarg is an ndarray that is vectorized over its first
     index. Other kwargs are assumed to not be vectorized.
 
     .. rubric:: Args
@@ -384,7 +384,7 @@ def vectorize_ingredient(ingredient):
 def dh_c_dzc_harmonic_jit(z, h, w):
     """
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to
-    the conjugate ``z`` coordinate.
+    the conjugate z coordinate.
 
     .. rubric:: Args
     z : ndarray
@@ -443,10 +443,10 @@ def h_qc_diagonal_linear_jit(z, gamma):
 
 def gen_sample_gaussian(constants, z_initial=None, seed=None, separable=True):
     """
-    Generate a complex number sampled from a Gaussian distribution.
+    Generates a complex number sampled from a Gaussian distribution.
 
-    If ``z0`` is provided, then a Gaussian distribution centered around ``z0`` is sampled.
-    If ``z0`` is not provided, then a Gaussian distribution centered around the
+    If ``z_initial`` is provided, then a Gaussian distribution centered around ``z_initial`` is sampled.
+    If ``z_initial`` is not provided, then a Gaussian distribution centered around the
     origin is sampled.
 
     If ``separable`` is ``True``, then a different random number is generated
@@ -457,7 +457,7 @@ def gen_sample_gaussian(constants, z_initial=None, seed=None, separable=True):
     .. rubric:: Args
     constants : Constants
         Constants object.
-    z0 : ndarray | None, default: None
+    z_initial : ndarray | None, default: None
         Center of the Gaussian distribution. If ``None``, the distribution is
         centered around the origin.
     seed : int | None
@@ -681,7 +681,7 @@ def calc_resc_dir_z_fssh(
     This function is not vectorized over multiple trajectories and is intended to be
     only called when needed in that trajectory.
 
-    It calculates both the derivative coupling w.r.t. z and zc, and checks that they
+    It calculates both the derivative coupling w.r.t. z and z*, and checks that they
     are properly aligned to correspond with real-valued phase space derivative couplings.
     If they are not, an error is logged.
 
@@ -703,6 +703,7 @@ def calc_resc_dir_z_fssh(
     .. rubric:: Returns
     dkj_zc : ndarray
         Nonadiabatic coupling vector for rescaling the z coordinate.
+        Derivative is w.r.t. z*.
     """
     inds, mels, shape = dh_qc_dzc_traj
     num_classical_coordinates = shape[1]
