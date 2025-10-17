@@ -47,9 +47,7 @@ from inside its topmost directory (where the `pyproject.toml` file is located).
 
 .. note::
 
-      QC Lab does not enforce compatibility between the versions of its dependencies.
-      If you run into issues installing it we suggest creating a fresh Python environment using `venv` or `conda`
-      and installing QC Lab there, or ensuring compatibility of the dependencies manually.
+      QC Lab doesn’t enforce third-party dependencies. If you hit resolver conflicts or install errors, the quickest fix is to install in a clean Python environment (via `venv` or `conda`). Alternatively, reconcile package versions in your existing environment until the requirements are satisfied.
 
 
 That’s it! QC Lab should now be installed and ready for use.
