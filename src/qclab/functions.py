@@ -445,9 +445,10 @@ def gen_sample_gaussian(constants, z_initial=None, seed=None, separable=True):
     """
     Generates a complex number sampled from a Gaussian distribution.
 
-    If ``z_initial`` is provided, then a Gaussian distribution centered around ``z_initial`` is sampled.
-    If ``z_initial`` is not provided, then a Gaussian distribution centered around the
-    origin is sampled.
+    If ``z_initial`` is provided, then a Gaussian distribution centered around
+    ``z_initial`` is sampled.
+    If ``z_initial`` is not provided, then a Gaussian distribution centered around
+    the origin is sampled.
 
     If ``separable`` is ``True``, then a different random number is generated
     for each classical coordinate (i.e., each coordinate corresponds to
@@ -748,7 +749,8 @@ def numerical_fssh_hop(model, parameters, **kwargs):
 
     The algorithm is as follows:
     1. Calculate the initial energy using the Hamiltonian function at the current ``z``.
-    2. Define a grid from ``-gamma_range`` to ``+gamma_range`` with ``num_points`` points uniformly spaced.
+    2. Define a grid from ``-gamma_range`` to ``+gamma_range`` with ``num_points`` points
+       uniformly spaced.
     3. Calculate the energy at each point in the grid using the Hamiltonian function.
     4. Find the point in the grid that minimizes the difference between the energy
        difference and the calculated energy difference.
