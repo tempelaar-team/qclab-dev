@@ -31,6 +31,7 @@ Model Systems
 * Spin-boson model [4]
 * Holstein lattice model [5]
 * Fenna-Matthews-Olson (FMO) complex [6, 7]
+* Tully problems I, II, & III [8]
 
 
 Installing qclab
@@ -52,6 +53,7 @@ QC Lab can be installed from source by downloading the repository and executing:
    pip install ./
 
 from inside its topmost directory (where the `pyproject.toml` file is located).
+The latest release of QC Lab can be found on the GitHub releases page: `https://github.com/tempelaar-team/qclab/releases`.
 
 QC Lab doesn’t enforce third-party dependencies. If you hit resolver conflicts or install errors, the quickest fix is to install in a clean Python environment (via `venv` or `conda`). Alternatively, reconcile package versions in your existing environment until the requirements are satisfied.
 
@@ -66,3 +68,4 @@ Bibliography
 5. Krotz, A.; Provazza, J.; Tempelaar, R. A Reciprocal-Space Formulation of Mixed Quantum–Classical Dynamics. J. Chem. Phys. 2021, 154 (22), 224101. https://doi.org/10.1063/5.0053177.
 6. Fenna, R. E. & Matthews, B. W. Chlorophyll arrangement in a bacteriochlorophyll protein from Chlorobium limicola. Nature 258, 573–577 (1975). https://doi.org/10.1038/258573a0.
 7. Mulvihill, E.; Lenn, K. M.; Gao, X.; Schubert, A.; Dunietz, B. D.; Geva, E. Simulating Energy Transfer Dynamics in the Fenna–Matthews–Olson Complex via the Modified Generalized Quantum Master Equation. The Journal of Chemical Physics 2021, 154 (20), 204109. https://doi.org/10.1063/5.0051101.
+8. Tully, J. C. Molecular dynamics with electronic transitions. J. Chem. Phys. 93, 1061 (1990); https://doi.org/10.1063/1.459170
