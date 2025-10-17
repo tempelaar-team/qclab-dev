@@ -727,16 +727,19 @@ def calc_resc_dir_z_fssh(
             * eigvec_final_state[inds[2]]
             / eigval_diff,
         )
-        re_part = dkj_zc + dkj_z
-        im_part = 1j * (dkj_zc - dkj_z)
-        if np.any(np.abs(re_part) > numerical_constants.SMALL) or np.any(
-            np.abs(im_part) > numerical_constants.SMALL
-        ):
+        # Determine the position of the maximum derivative coupling.
+        max_pos = np.argmax(np.abs(dkj_zc))
+        dkj_zc_max = dkj_zc[max_pos]
+        dkj_z_max = dkj_z[max_pos]
+        # Calculate the fraction of error in the real and imaginary parts.
+        # i.e. the deviation from dkj_zc = dkj_z*.
+        alignment_error = np.abs(dkj_zc_max - np.conj(dkj_z_max)) / np.abs(dkj_zc_max)
+        if alignment_error > numerical_constants.GAUGE_FIX_THRESHOLD:
             logger.warning(
-                "Derivative couplings are complex-valued. "
-                "Gauge fixing may be needed.\n %s\n %s",
-                re_part,
-                im_part,
+                "Derivative couplings are not properly aligned. "
+                "Gauge fixing may be needed.\n"
+                "Fraction of alignment error: %s",
+                alignment_error,
             )
 
     return dkj_zc
