@@ -9,3 +9,4 @@ This development plan outlines proposed standards and practices for the QC Lab p
    :maxdepth: 1
 
    docstring_format.rst
+   change_log.rst
