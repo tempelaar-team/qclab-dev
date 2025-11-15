@@ -12,5 +12,12 @@ GAUGE_FIX_THRESHOLD = 1e-3
 # Conversion factor from wavenumbers to kBT at 300 K.
 INVCM_TO_300K = 1 / 208.521
 
+# Conversion factor from electronvolts to kBT at 300 K.
+EV_TO_300K = 0.025852
+
+# Conversion factor from Hartrees to kBT at 300 K.
+HA_TO_300K = EV_TO_300K / 27.211
+
 # Finite difference step size.
 FINITE_DIFFERENCE_DELTA = 1e-6
+
