@@ -10,6 +10,11 @@ The proposed docstring format for Tasks is:
 .. literalinclude:: task_format.py
     :language: python
 
+
+Parameters --> optional keyword arguments
+Get rid of REturns/Return type 
+
+
 When rendered this looks like:
 
 
