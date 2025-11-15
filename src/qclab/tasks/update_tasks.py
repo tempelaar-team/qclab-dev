@@ -1410,3 +1410,115 @@ def update_dm_db_fssh(sim, state, parameters, **kwargs):
     state[dm_adb_name] = dm_adb
     state[dm_db_name] = dm_db
     return state, parameters
+
+
+def update_adb_connection(sim, state, parameters, **kwargs):
+    """
+    Updates the Adiabatic Connection matrix.
+
+    This matrix describes the coupling between different adiabatic states.
+
+    A = B - B^{\dagger}
+
+    where 
+
+    B = \\dot{z}^{*}\\cdot U^{\\dagger}\\partial_{z^{*}} U 
+
+    .. rubric:: Required Constants
+    None
+
+    .. rubric:: Keyword Arguments
+    eigvecs_adb_prev_name : str, default: "eigvecs_adb_prev"
+        Name of the adiabatic eigenvectors from the previous time step in the state object.
+    h_q_tot_adb_name : str, default: "h_q_tot_adb"
+        Name of the total Hamiltonian of the quantum subsystem in the adiabatic basis
+        in the state object.
+    adb_connection_name : str, default: "adb_connection"
+        Name under which to store the adiabatic connection in the state object.
+    z_name : str, default: "z"
+        Name of classical coordinates in the state object.
+    classical_force_name : str, default: "classical_force"
+        Name of the classical force in the state object.
+    quantum_classical_force_name : str, default: "quantum_classical_force"
+        Name of the quantum-classical force in the state object.
+
+    .. rubric:: Modifications
+    state[h_q_tot_adb_name] : ndarray
+        Total Hamiltonian of the quantum subsystem in the adiabatic basis.
+    """
+
+    adb_connection_name = kwargs.get("adb_connection_name", "adb_connection")
+    z_name = kwargs.get("z_name", "z")
+    z = state[z_name]
+    adb_conn, has_adb_conn = sim.model.get("adb_connection")
+    if has_adb_conn:
+        state[adb_connection_name] = adb_conn(
+            sim.model,
+            parameters,
+            state,
+            z=z,
+        )
+    else:
+        classical_force_name = kwargs.get("classical_force_name", "classical_force")
+        quantum_classical_force_name = kwargs.get(
+            "quantum_classical_force_name", "quantum_classical_force"
+        )
+        dz_dt = -1j * (state[classical_force_name] + state[quantum_classical_force_name])
+        derivative_coupling_dzc, _ = sim.model.get("derivative_coupling_dzc")
+        B = np.sum(
+            np.conj(dz_dt)[:, :, np.newaxis, np.newaxis]
+            * derivative_coupling_dzc(sim.model, parameters, z=z),
+            axis=1,
+        )
+        state[adb_connection_name] = B - np.conj(B).transpose((0, 2, 1))
+        # p = functions.z_to_p(
+        #     z,
+        #     sim.model.constants.classical_coordinate_mass[np.newaxis],
+        #     sim.model.constants.classical_coordinate_weight[np.newaxis],
+        # )
+        # dq_dt = p / sim.model.constants.classical_coordinate_mass[np.newaxis]
+        # state[adb_connection_name] = np.sum(
+        #     dq_dt[:, :, np.newaxis, np.newaxis]
+        #     * derivative_coupling(sim.model, parameters, z=z),
+        #     axis=1,
+        # )
+    return state, parameters
+
+
+def update_wf_adb_rk4(sim, state, parameters, **kwargs):
+    """
+    Updates the adiabatic wavefunction using the 4th-order Runge-Kutta method.
+
+    .. rubric:: Required Constants
+    None
+
+    .. rubric:: Keyword Arguments
+    wf_adb_name : str, default: "wf_adb"
+        Name of the diabatic wavefunction in the state object.
+    h_q_tot_name : str, default: "h_q_tot"
+        Name of the quantum Hamiltonian in the state object.
+    adb_connection_name : str, default: "adb_connection"
+        Name of the adiabatic connection in the state object.
+
+    .. rubric:: Modifications
+    state[wf_adb_name] : ndarray
+        Updated adiabatic wavefunction.
+    """
+    dt_update = sim.settings.dt_update
+    wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
+    h_q_tot_name = kwargs.get("h_q_tot_name", "h_q_tot")
+    adb_connection_name = kwargs.get("adb_connection_name", "adb_connection")
+    wf_adb = state[wf_adb_name]
+    h_q_tot = state[h_q_tot_name]
+    adb_connection = state[adb_connection_name]
+    # Include the adiabatic connection in the Hamiltonian.
+    h_q_tot_adb = h_q_tot - 1j * adb_connection
+    k1 = -1j * functions.batch_matvec(h_q_tot_adb, wf_adb)
+    k2 = -1j * functions.batch_matvec(h_q_tot_adb, (wf_adb + 0.5 * dt_update * k1))
+    k3 = -1j * functions.batch_matvec(h_q_tot_adb, (wf_adb + 0.5 * dt_update * k2))
+    k4 = -1j * functions.batch_matvec(h_q_tot_adb, (wf_adb + dt_update * k3))
+    wf_adb += dt_update * 0.16666666666666666 * k1
+    wf_adb += dt_update * 0.3333333333333333 * k2
+    wf_adb += dt_update * 0.3333333333333333 * k3
+    wf_adb += dt_update * 0.16666666666666666 * k4
+    return state, parameters
