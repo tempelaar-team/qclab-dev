@@ -24,6 +24,7 @@ dependencies = [
     "tqdm",
     "h5py",
     "numba",
+    "ase",
 ]
 
 [project.optional-dependencies]
