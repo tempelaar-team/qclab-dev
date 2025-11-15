@@ -125,18 +125,16 @@ class QChemASE(Model):
         return out
 
     @vectorize_ingredient
-    def derivative_coupling(self, parameters, **kwargs):
+    def derivative_coupling_zc(self, parameters, **kwargs):
         z = kwargs["z"]
         num_classical_coordinates = self.constants.num_classical_coordinates
         num_quantum_states = self.constants.num_quantum_states
+        m = self.constants.classical_coordinate_mass
+        h = self.constants.classical_coordinate_weight
         mol = self.constants.ase_atoms_object
         qchem_args = self.constants.qchem_args
         qchem_tddft_args = self.constants.qchem_tddft_args
-        q = z_to_q(
-            z,
-            self.constants.classical_coordinate_mass,
-            self.constants.classical_coordinate_weight,
-        )
+        q = z_to_q(z, m, h)
         mol.set_positions(q.reshape((num_classical_coordinates // 3, 3)))
         out = np.zeros(
             (num_classical_coordinates, num_quantum_states, num_quantum_states),
@@ -155,9 +153,9 @@ class QChemASE(Model):
         )
         mol.calc.execute()
         mol.calc.read_results()
-        derivative_coupling = mol.calc.results["derivative_coupling"]
-        for key, val in derivative_coupling.items():
-            out[:, key[0], key[1]] = val.flatten()
+        derivative_coupling_dq = mol.calc.results["derivative_coupling"]
+        for key, val in derivative_coupling_dq.items():
+            out[:, key[0], key[1]] = dqdp_to_dzc(val.flatten(), None, m, h)
             out[:, key[1], key[0]] = -np.conj(out[:, key[0], key[1]])
         return out
 
@@ -168,7 +166,7 @@ class QChemASE(Model):
         ("dh_c_dzc", ingredients.dh_c_dzc_free),
         ("dh_qc_dzc", dh_qc_dzc),
         ("init_classical", ingredients.init_classical_definite_position_momentum),
-        ("derivative_coupling", derivative_coupling),
+        ("derivative_coupling_zc", derivative_coupling_zc),
         ("_init_model", _init_model),
     ]
 
