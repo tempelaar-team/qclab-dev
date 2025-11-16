@@ -65,7 +65,6 @@ class QChemASE(Model):
     def h_qc(self, parameters, **kwargs):
         z = kwargs["z"]
         num_quantum_states = self.constants.num_quantum_states
-        out = np.zeros((num_quantum_states, num_quantum_states), dtype=complex)
         mol = self.constants.ase_atoms_object
         qchem_args = self.constants.qchem_args
         qchem_tddft_args = self.constants.qchem_tddft_args
@@ -79,7 +78,11 @@ class QChemASE(Model):
         mol.calc.write_input(mol, properties=["energy"])
         mol.calc.execute()
         mol.calc.read_results()
-        return np.diag(mol.calc.results["energy"] * HA_TO_300K)
+        diag_h_qc = mol.calc.results["energy"] * HA_TO_300K
+        assert (
+            len(diag_h_qc) == num_quantum_states
+        ), "Number of quantum states mismatch."
+        return np.diag(diag_h_qc)
 
     @make_ingredient_sparse
     @vectorize_ingredient
@@ -126,7 +129,7 @@ class QChemASE(Model):
         return out
 
     @vectorize_ingredient
-    def derivative_coupling_zc(self, parameters, **kwargs):
+    def derivative_coupling_dzc(self, parameters, **kwargs):
         z = kwargs["z"]
         num_classical_coordinates = self.constants.num_classical_coordinates
         num_quantum_states = self.constants.num_quantum_states
@@ -167,7 +170,7 @@ class QChemASE(Model):
         ("dh_c_dzc", ingredients.dh_c_dzc_free),
         ("dh_qc_dzc", dh_qc_dzc),
         ("init_classical", ingredients.init_classical_definite_position_momentum),
-        ("derivative_coupling_zc", derivative_coupling_zc),
+        ("derivative_coupling_dzc", derivative_coupling_dzc),
         ("_init_model", _init_model),
     ]
 
@@ -179,7 +182,7 @@ class QCLabQChemCalculator(FileIOCalculator):
     Based on the ASE Q-Chem calculator:
     https://wiki.fysik.dtu.dk/ase/ase/calculators/qchem
 
-    
+
     """
 
     name = "QChem"

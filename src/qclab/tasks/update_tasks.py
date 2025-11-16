@@ -1420,9 +1420,9 @@ def update_adb_connection(sim, state, parameters, **kwargs):
 
     A = B - B^{\dagger}
 
-    where 
+    where
 
-    B = \\dot{z}^{*}\\cdot U^{\\dagger}\\partial_{z^{*}} U 
+    B = \\dot{z}^{*}\\cdot U^{\\dagger}\\partial_{z^{*}} U
 
     .. rubric:: Required Constants
     None
@@ -1463,7 +1463,9 @@ def update_adb_connection(sim, state, parameters, **kwargs):
         quantum_classical_force_name = kwargs.get(
             "quantum_classical_force_name", "quantum_classical_force"
         )
-        dz_dt = -1j * (state[classical_force_name] + state[quantum_classical_force_name])
+        dz_dt = -1j * (
+            state[classical_force_name] + state[quantum_classical_force_name]
+        )
         derivative_coupling_dzc, _ = sim.model.get("derivative_coupling_dzc")
         B = np.sum(
             np.conj(dz_dt)[:, :, np.newaxis, np.newaxis]
@@ -1471,17 +1473,6 @@ def update_adb_connection(sim, state, parameters, **kwargs):
             axis=1,
         )
         state[adb_connection_name] = B - np.conj(B).transpose((0, 2, 1))
-        # p = functions.z_to_p(
-        #     z,
-        #     sim.model.constants.classical_coordinate_mass[np.newaxis],
-        #     sim.model.constants.classical_coordinate_weight[np.newaxis],
-        # )
-        # dq_dt = p / sim.model.constants.classical_coordinate_mass[np.newaxis]
-        # state[adb_connection_name] = np.sum(
-        #     dq_dt[:, :, np.newaxis, np.newaxis]
-        #     * derivative_coupling(sim.model, parameters, z=z),
-        #     axis=1,
-        # )
     return state, parameters
 
 
