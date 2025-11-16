@@ -104,10 +104,10 @@ class QChemASE(Model):
         mol.set_positions(q.reshape((num_classical_coordinates // 3, 3)))
         for state_ind in range(num_quantum_states):
             if state_ind == 0:
-                # Just do a ground state calculation for this one
+                # For state_ind == 0 do a ground state calculation.
                 calc = QCLabQChemCalculator(**{**qchem_args})
             else:
-                # Now specify the excited state index.
+                # Otherwise do an excited state calculation.
                 calc = QCLabQChemCalculator(
                     **{
                         **qchem_args,
@@ -119,6 +119,7 @@ class QChemASE(Model):
             mol.calc.write_input(mol, properties=["gradient"])
             mol.calc.execute()
             mol.calc.read_results()
+            # Convert to derivative w.r.t. zc.
             out[:, state_ind, state_ind] = dqdp_to_dzc(
                 mol.calc.results["gradient"].flatten() * HA_TO_300K, None, m, h
             )
@@ -173,7 +174,12 @@ class QChemASE(Model):
 
 class QCLabQChemCalculator(FileIOCalculator):
     """
-    QChem calculator implemented for QC Lab calculations.
+    Q-Chem ASE calculator for QC Lab calculations.
+
+    Based on the ASE Q-Chem calculator:
+    https://wiki.fysik.dtu.dk/ase/ase/calculators/qchem
+
+    
     """
 
     name = "QChem"
