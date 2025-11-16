@@ -47,7 +47,9 @@ napoleon_custom_sections = [
     ("Reads", "params_style"),
     ("Writes", "params_style"),
     ("Shapes and dtypes", "params_style"),
+    ("Optional Keyword Arguments", "params_style"),
 ]
+
 
 # Map your favorite short type names to canonical refs (optional)
 napoleon_type_aliases = {
