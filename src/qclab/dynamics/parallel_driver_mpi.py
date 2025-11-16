@@ -8,24 +8,6 @@ import numpy as np
 import qclab.dynamics as dynamics
 from qclab.utils import get_log_output, reset_log_output
 from qclab import Data
-
-logger = logging.getLogger(__name__)
-
-
-"""
-Parallel driver using mpi4py.
-Rank 0: master, owns the progress bars and collects results.
-Ranks 1..N-1: workers, run dynamics and send progress/results to rank 0.
-"""
-
-from mpi4py import MPI
-import logging
-import copy
-import numpy as np
-
-import qclab.dynamics as dynamics
-from qclab.utils import get_log_output, reset_log_output
-from qclab import Data
 from .progressbar_utils import ProgressAggregator
 
 logger = logging.getLogger(__name__)
@@ -70,6 +52,15 @@ def parallel_driver_mpi(sim, seeds=None, data=None, comm=None):
         On rank 0: merged Data object with results and log.
         On worker ranks: None.
     """
+    try:
+        from mpi4py import MPI
+    except ImportError:
+        raise ImportError(
+            "The package mpi4py is required for the parallel_driver_mpi driver."
+        ) from None
+    except Exception as e:
+        raise RuntimeError(f"An error occurred when importing mpi4py: {e}") from None
+
     if comm is None:
         comm = MPI.COMM_WORLD
 
