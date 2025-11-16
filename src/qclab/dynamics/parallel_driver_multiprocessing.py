@@ -186,7 +186,6 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
         agg.close()
 
     logger.info("Starting dynamics calculation (multiprocessing with Pool).")
-    print("starting calculation (Pool + progress thread)")
 
     # Start the progress thread
     progress_thread = threading.Thread(target=progress_loop, daemon=True)
