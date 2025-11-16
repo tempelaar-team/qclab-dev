@@ -10,7 +10,7 @@ from qclab.numerical_constants import INVCM_TO_300K
 
 class FMOComplex(Model):
     """
-    A model representing the Fenna-Matthews-Olson (FMO) complex.
+    A Model class representing the Fenna-Matthews-Olson (FMO) complex.
 
     All quantities in this model are taken to be in units of kBT at 300 K.
 

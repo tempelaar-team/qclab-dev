@@ -9,7 +9,7 @@ from qclab import ingredients
 
 class HolsteinLattice(Model):
     """
-    A model representing a nearest-neighbor tight-binding model with Holstein-type
+    A Model class representing a nearest-neighbor tight-binding model with Holstein-type
     electron-phonon coupling with a single optical mode.
 
     Reference publication:
