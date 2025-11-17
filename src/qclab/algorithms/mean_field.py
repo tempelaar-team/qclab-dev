@@ -87,6 +87,7 @@ class AdiabaticMeanField(Algorithm):
 
     initialization_recipe = [
         tasks.initialize_variable_objects,
+        partial(tasks.copy_to_parameters, state_name="seed", parameters_name="seed"),
         tasks.initialize_norm_factor,
         tasks.initialize_z,
         tasks.update_h_q_tot,

@@ -155,10 +155,11 @@ def parallel_driver_mpi(sim, seeds=None, data=None, comm=None):
         # Send task lists to each worker
         for r in range(1, size):
             comm.send(tasks_for_rank[r], dest=r, tag=TAG_TASKS)
-
-        # Setup progress aggregator on master
-        steps_per_task = [len(sim.settings.t_update_n)] * num_tasks_actual
-        agg = ProgressAggregator(steps_per_task)
+            
+        # Number of progress updates per task is len(t_update_n) - 1
+        n_updates = max(1, len(sim.settings.t_update_n) - 1)
+        steps_per_batch = [n_updates] * num_batches
+        agg = ProgressAggregator(steps_per_batch)
 
         logger.info("Starting MPI dynamics calculation. Master waiting for results.")
         # print("MPI master: starting progress + result collection")

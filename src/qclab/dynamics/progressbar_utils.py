@@ -92,7 +92,6 @@ class ProgressAggregator:
         return slowest_idx
 
     # ---- public API ----
-
     def handle(self, batch_idx: int, inc: int = 1):
         """
         Called whenever any batch makes progress by `inc` steps.
@@ -104,6 +103,13 @@ class ProgressAggregator:
         # clamp to avoid n > total
         if self.per_batch[batch_idx] > self.steps_per_batch[batch_idx]:
             self.per_batch[batch_idx] = self.steps_per_batch[batch_idx]
+
+        # *** NEW: immediately update the active batch bar, if this is it ***
+        if self.active_batch == batch_idx:
+            total = self.steps_per_batch[batch_idx]
+            done = min(self.per_batch[batch_idx], total)
+            self.pbar_batch.n = done
+            self.pbar_batch.refresh()
 
         # check for completion of this batch (first time only)
         if (not self.batch_completed[batch_idx] and
@@ -117,13 +123,15 @@ class ProgressAggregator:
             slowest_idx = self._pick_slowest_started_unfinished()
             if slowest_idx is not None:
                 self._set_active_batch(slowest_idx)
-                return
+            return
 
         # if current active batch just finished, force switch to new slowest
         if self.active_batch is not None and self.batch_completed[self.active_batch]:
             slowest_idx = self._pick_slowest_started_unfinished()
             if slowest_idx is not None:
                 self._set_active_batch(slowest_idx)
+            # if slowest_idx is None, all batches are done; we already
+            # set the bar to total above for the last increment
             return
 
         # otherwise consider switching based on "slowest" with hysteresis
@@ -147,18 +155,43 @@ class ProgressAggregator:
 
         should_switch = (
             (self.active_batch is None or
-             slow_frac + self.min_fraction_gap < active_frac)
+            slow_frac + self.min_fraction_gap < active_frac)
             and self.updates_since_switch >= self.min_updates_between_switches
         )
 
         if should_switch:
             self._set_active_batch(slowest_idx)
-        elif self.active_batch is not None:
-            # stay on current batch; just update its n (clamped)
-            total = self.steps_per_batch[self.active_batch]
-            done = min(self.per_batch[self.active_batch], total)
-            self.pbar_batch.n = done
-            self.pbar_batch.refresh()
-
+        # no need for an extra "elif active_batch" update block anymore,
+        # because we updated the active bar at the top of the function
     def close(self):
+        """
+        Ensure both bars are visually complete and turn green
+        (in notebooks) before closing.
+        """
+        # --- total bar ---
+        # Force it to show all batches done
+        if self.pbar_total.n < self.pbar_total.total:
+            self.pbar_total.n = self.pbar_total.total
+            self.pbar_total.refresh()
+
+        # In notebook mode, tqdm exposes an ipywidgets Progress with bar_style
+        if hasattr(self.pbar_total, "bar_style"):
+            # 'success' is the green style in ipywidgets
+            self.pbar_total.bar_style = "success"
+
+        # --- batch bar ---
+        if self.active_batch is not None:
+            total = self.steps_per_batch[self.active_batch]
+            if self.pbar_batch.total != total:
+                self.pbar_batch.total = total
+
+            if self.pbar_batch.n < total:
+                self.pbar_batch.n = total
+                self.pbar_batch.refresh()
+
+        if hasattr(self.pbar_batch, "bar_style"):
+            self.pbar_batch.bar_style = "success"
+
+        # Finally close both
         self.pbar_total.close()
+        self.pbar_batch.close()

@@ -50,7 +50,18 @@ class QChemASE(Model):
         )
         self.constants.init_position = mol.get_positions().flatten()
         np.random.seed(10)
-        self.constants.init_momentum = np.random.rand(num_atoms * 3)
+        self.constants.init_momentum = np.random.rand(num_atoms * 3) * 0
+        mol.calc = QCLabQChemCalculator(
+            **{
+                **self.constants.qchem_args,
+                **self.constants.qchem_tddft_args,
+                "seed": None,
+            }
+        )
+        mol.calc.write_input(mol, properties=["energy"])
+        mol.calc.execute()
+        mol.calc.read_results()
+        self.constants.energy_offset = mol.calc.results["energy"][0] * HA_TO_300K
 
     def h_q(self, parameters, **kwargs):
         batch_size = kwargs["batch_size"]
@@ -74,14 +85,20 @@ class QChemASE(Model):
             self.constants.classical_coordinate_weight,
         )
         mol.set_positions(q.reshape((self.constants.num_classical_coordinates // 3, 3)))
-        mol.calc = QCLabQChemCalculator(**{**qchem_args, **qchem_tddft_args})
+        mol.calc = QCLabQChemCalculator(
+            **{
+                **qchem_args,
+                **qchem_tddft_args,
+                "seed": None,
+            }
+        )
         mol.calc.write_input(mol, properties=["energy"])
         mol.calc.execute()
         mol.calc.read_results()
-        diag_h_qc = mol.calc.results["energy"] * HA_TO_300K
+        diag_h_qc = mol.calc.results["energy"][:num_quantum_states] * HA_TO_300K - self.constants.energy_offset
         assert (
             len(diag_h_qc) == num_quantum_states
-        ), "Number of quantum states mismatch."
+        ), "Number of quantum states mismatch." + str(diag_h_qc)
         return np.diag(diag_h_qc)
 
     @make_ingredient_sparse
@@ -108,7 +125,9 @@ class QChemASE(Model):
         for state_ind in range(num_quantum_states):
             if state_ind == 0:
                 # For state_ind == 0 do a ground state calculation.
-                calc = QCLabQChemCalculator(**{**qchem_args})
+                calc = QCLabQChemCalculator(
+                    **{**qchem_args, "seed": parameters["seed"][kwargs["traj_ind"]]}
+                )
             else:
                 # Otherwise do an excited state calculation.
                 calc = QCLabQChemCalculator(
@@ -116,6 +135,7 @@ class QChemASE(Model):
                         **qchem_args,
                         **qchem_tddft_args,
                         "CIS_STATE_DERIV": str(state_ind),
+                        "seed": None,
                     }
                 )
             mol.calc = calc
@@ -144,12 +164,15 @@ class QChemASE(Model):
             (num_classical_coordinates, num_quantum_states, num_quantum_states),
             dtype=complex,
         )
+        if num_quantum_states < 2:
+            return out
         mol.calc = QCLabQChemCalculator(
             **{
                 **qchem_args,
                 **qchem_tddft_args,
                 "CALC_NAC": "True",
                 "CIS_DER_NUMSTATE": str(num_quantum_states),
+                "seed": None,
             }
         )
         mol.calc.write_input(
@@ -186,7 +209,6 @@ class QCLabQChemCalculator(FileIOCalculator):
     """
 
     name = "QChem"
-
     implemented_properties = ["energy", "gradient", "derivative_coupling"]
     _legacy_default_command = "qchem PREFIX.inp PREFIX.out"
     default_parameters = {"jobtype": None}
@@ -204,6 +226,7 @@ class QCLabQChemCalculator(FileIOCalculator):
         ecpfile=None,
         atoms=None,
         silent=True,
+        seed=None,
         **kwargs,
     ):
         """
@@ -250,6 +273,8 @@ class QCLabQChemCalculator(FileIOCalculator):
 
         self.basisfile = basisfile
         self.ecpfile = ecpfile
+        if not (seed is None):
+            self.label += f"_{seed}"
 
     def read(self, label):
         raise NotImplementedError
@@ -269,7 +294,7 @@ class QCLabQChemCalculator(FileIOCalculator):
                     raise SCFError()
                 elif " Total energy in the final basis set =" in line:
                     convert = ase.units.Hartree
-                    self.results["energy"] = float(line.split()[8]) * convert
+                    self.results["energy"] = np.array([float(line.split()[8]) * convert])
                 elif " Total energy for state  " in line:
                     ind = int(line.split()[-3].split(":")[:-1][0])
                     convert = ase.units.Hartree

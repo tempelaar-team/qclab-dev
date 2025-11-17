@@ -32,8 +32,8 @@ def _run_dynamics_worker(sim, state, parameters, data, task_id):
     Batches progress updates so we don't spam the queue every timestep.
     """
 
-    # target ~100 progress updates per task
-    total_steps = len(getattr(sim.settings, "t_update_n", [])) or 1
+    t_update = getattr(sim.settings, "t_update_n", [])
+    total_steps = max(1, len(t_update) - 1)
     chunk = max(1, total_steps // 100)
 
     pending = 0
@@ -150,11 +150,13 @@ def parallel_driver_multiprocessing(sim, seeds=None, data=None, num_tasks=None):
         data.log = get_log_output()
         return data
 
-    # Progress aggregation: one task per batch, each with len(t_update_n) steps
-    steps_per_batch = [len(sim.settings.t_update_n)] * num_batches
+    # Number of progress updates per task is len(t_update_n)
+    n_updates = max(1, len(sim.settings.t_update_n))
+    steps_per_batch = [n_updates] * num_batches
     agg = ProgressAggregator(steps_per_batch)
 
-    ctx = mp.get_context("spawn")
+
+    ctx = mp.get_context("fork")
     progress_queue = ctx.Queue()
     worker_args = [
         (sim_copy, state, parameters, new_data, task_id)

@@ -342,6 +342,26 @@ def copy_in_state(sim, state, parameters, **kwargs):
     state[kwargs["copy_name"]] = np.copy(state[kwargs["orig_name"]])
     return state, parameters
 
+def copy_to_parameters(sim, state, parameters, **kwargs):
+    """
+    Copies a variable from the state object to the parameters object.
+
+    .. rubric:: Required Constants
+    None
+
+    .. rubric:: Keyword Arguments
+    state_name : str
+        Name of the variable in the state object.
+    parameters_name : str
+        Name of the variable in the parameters object.
+
+    .. rubric:: Modifications
+    parameters[parameters_name] : type of state[state_name]
+        Copy of ``state[state_name]``.
+    """
+    parameters[kwargs["parameters_name"]] = np.copy(state[kwargs["state_name"]])
+    return state, parameters
+
 
 def initialize_active_surface(sim, state, parameters, **kwargs):
     """

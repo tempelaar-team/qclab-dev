@@ -365,7 +365,7 @@ def vectorize_ingredient(ingredient):
         keys = kwargs.keys()
         kwargs_list = []
         for n in range(batch_size):
-            kwargs_n = {}
+            kwargs_n = {"traj_ind": n}
             for key in keys:
                 if isinstance(kwargs[key], np.ndarray):
                     kwargs_n[key] = kwargs[key][n]
