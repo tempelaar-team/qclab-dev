@@ -217,6 +217,14 @@ def test_incommensurate_batch_size_multiprocessing():
     print("results match!")
     return
 
+
+
+def _update_z_reverse_frustrated_fssh(sim, state, parameters):
+    frustrated_indices = state["hop_ind"][~state["hop_successful"]]
+    state["z"][frustrated_indices] = state["z"][frustrated_indices].conj()
+    return state, parameters
+
+
 def test_new_task_multiprocessing():
     """
     This test checks that a new task can be run in the multiprocessing driver.
@@ -253,11 +261,7 @@ def test_new_task_multiprocessing():
         (sim.model.constants.num_quantum_states), dtype=complex
     )
     sim.initial_state["wf_db"][0] += 1.0
-    def update_z_reverse_frustrated_fssh(sim, state, parameters):
-        frustrated_indices = state["hop_ind"][~state["hop_successful"]]
-        state["z"][frustrated_indices] = state["z"][frustrated_indices].conj()
-        return state, parameters
-    sim.algorithm.update_recipe.append(update_z_reverse_frustrated_fssh)
+    sim.algorithm.update_recipe.append(_update_z_reverse_frustrated_fssh)
     data = parallel_driver_multiprocessing(sim)
     return
 
