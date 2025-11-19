@@ -78,6 +78,7 @@ class QChemASE(Model):
                 .reshape((len(self.constants.harmonic_frequency), num_atoms * 3))
                 .T
             )
+        self.constants.init_position = mol.get_positions().flatten()
 
     def init_classical(self, parameters, **kwargs):
         # temporarily set the masses to 1 for mass-weighted normal mode sampling.
@@ -102,8 +103,11 @@ class QChemASE(Model):
             z_mwnm, self.constants.classical_coordinate_mass[np.newaxis], self.constants.classical_coordinate_weight[np.newaxis]
         )
         # convert back to Cartesian coordinates.
-        q = np.einsum("tm, cm ->tc", q_mwnm, normal_modes)
+        q = np.einsum("tm, cm ->tc", q_mwnm, normal_modes) + old_constants.init_position
         p = np.einsum("tm, cm ->tc", p_mwnm, normal_modes)
+        print('Initialized classical coordinates.')
+        print(q)
+        print(p)
         self.constants = old_constants
         z = qp_to_z(
             q, p, self.constants.classical_coordinate_mass[np.newaxis], self.constants.classical_coordinate_weight[np.newaxis]
