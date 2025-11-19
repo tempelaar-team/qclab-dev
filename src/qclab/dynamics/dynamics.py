@@ -3,9 +3,10 @@ This module contains the dynamics core.
 """
 
 import numpy as np
+from tqdm import tqdm
 
 
-def run_dynamics(sim, state, parameters, data, report_progress, task_id):
+def run_dynamics(sim, state, parameters, data):
     """
     Dynamics core for QC Lab.
 
@@ -23,10 +24,13 @@ def run_dynamics(sim, state, parameters, data, report_progress, task_id):
     data: Data
         The updated data object containing collected output data.
     """
+    # Define an update iterator using tqdm if progress_bar is True.
+    t_update_iterator = sim.settings.t_update_n
+    if getattr(sim.settings, "progress_bar", True):
+        t_update_iterator = tqdm(t_update_iterator)
 
     # Iterate over each time step.
-    for sim.t_ind in sim.settings.t_update_n:
-        report_progress(task_id, 1)
+    for sim.t_ind in t_update_iterator:
         if sim.t_ind == 0:
             # Execute initialization recipe.
             state, parameters = sim.algorithm.execute_recipe(

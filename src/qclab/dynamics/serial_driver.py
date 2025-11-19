@@ -7,7 +7,6 @@ import numpy as np
 import qclab.dynamics as dynamics
 from qclab.utils import get_log_output, reset_log_output
 from qclab import Data
-from .progressbar_utils import ProgressAggregator
 
 logger = logging.getLogger(__name__)
 
@@ -62,30 +61,6 @@ def serial_driver(sim, seeds=None, data=None):
         num_batches,
         sim.settings.batch_size,
     )
-    # Initialize timesteps once (per sim)
-    sim.initialize_timesteps()
-    # Number of progress updates per batch is len(t_update_n) - 1 (not len)
-    n_updates = max(1, len(sim.settings.t_update_n))
-
-    steps_per_batch_list = [n_updates] * num_batches
-    agg = ProgressAggregator(steps_per_batch_list)
-
-    # Throttle progress: only send ~100 visual updates per batch
-    steps_per_batch = steps_per_batch_list[0] if steps_per_batch_list else 1
-    chunk = max(1, steps_per_batch // 100)
-
-    pending = [0] * num_batches
-
-    def report_progress(batch_id, inc=1):
-        """
-        Called by run_dynamics at every timestep, but only forwards
-        progress to the aggregator every `chunk` steps.
-        """
-        pending[batch_id] += inc
-        if pending[batch_id] >= chunk:
-            agg.handle(batch_id, pending[batch_id])
-            pending[batch_id] = 0
-            
     for n in range(num_batches):
         batch_seeds = seeds[
             n * sim.settings.batch_size : (n + 1) * sim.settings.batch_size
@@ -94,12 +69,12 @@ def serial_driver(sim, seeds=None, data=None):
             break
         logger.info("Running batch %s with seeds %s.", n + 1, batch_seeds)
         sim.settings.batch_size = len(batch_seeds)
-        # sim.initialize_timesteps()
+        sim.initialize_timesteps()
         parameters = {}
         state = {"seed": batch_seeds}
         new_data = Data(batch_seeds)
         logger.info("Starting dynamics calculation.")
-        new_data = dynamics.run_dynamics(sim, state, parameters, new_data, report_progress, n)
+        new_data = dynamics.run_dynamics(sim, state, parameters, new_data)
         logger.info("Dynamics calculation completed.")
         logger.info("Collecting results.")
         data.add_data(new_data)
