@@ -1513,3 +1513,89 @@ def update_wf_adb_rk4(sim, state, parameters, **kwargs):
     wf_adb += dt_update * 0.3333333333333333 * k3
     wf_adb += dt_update * 0.16666666666666666 * k4
     return state, parameters
+
+
+def update_wf_adb_eig(sim, state, parameters, **kwargs):
+    """
+    Updates the adiabatic wavefunction by diagonalizing the Hamiltonian.
+
+    .. rubric:: Required Constants
+    None
+
+    .. rubric:: Keyword Arguments
+    h_q_tot_name : str, default: "h_q_tot"
+        Name of the quantum Hamiltonian in the state object.
+    wf_adb_name : str, default: "wf_adb"
+        Name of the adiabatic wavefunction in the state object.
+
+    .. rubric:: Modifications
+    state[wf_adb_name] : ndarray
+        Updated adiabatic wavefunction.
+    """
+    dt_update = sim.settings.dt_update
+    wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
+    h_q_tot_name = kwargs.get("h_q_tot_name", "h_q_tot")
+    adb_connection_name = kwargs.get("adb_connection_name", "adb_connection")
+    wf_adb = state[wf_adb_name]
+    h_q_tot = state[h_q_tot_name]
+    adb_connection = state[adb_connection_name]
+    # Include the adiabatic connection in the Hamiltonian.
+    h_q_tot_adb = h_q_tot - 1j * adb_connection
+    eigvals, eigvecs = np.linalg.eigh(h_q_tot_adb)
+    print(np.abs(state[wf_adb_name])**2)
+    state[wf_adb_name] = np.einsum('tia,ta,tja,tj->ti',eigvecs, np.exp(-1j * eigvals * dt_update), np.conj(eigvecs), wf_adb, optimize="greedy")
+    return state, parameters
+
+
+def update_q_velocity_verlet(sim, state, parameters, **kwargs):
+    """
+    """
+    dt_update = sim.settings.dt_update
+    z_name = kwargs.get("z_name", "z")
+    z = state[z_name]
+    classical_force_name = kwargs.get("classical_force_name", "classical_force")
+    quantum_classical_force_name = kwargs.get(
+        "quantum_classical_force_name", "quantum_classical_force"
+    )
+    classical_force = state[classical_force_name]
+    quantum_classical_force = state[quantum_classical_force_name]
+    m = sim.model.constants.classical_coordinate_mass
+    h = sim.model.constants.classical_coordinate_weight
+    q = functions.z_to_q(z, m[np.newaxis], h[np.newaxis])
+    p = functions.z_to_p(z, m[np.newaxis], h[np.newaxis])
+    f = (classical_force + quantum_classical_force)
+    f_dp, _ = functions.dzdzc_to_dqdp(None, f, m[np.newaxis], h[np.newaxis])
+    q_dt = q + (p / m[np.newaxis]) * dt_update - 0.5 * (f_dp / m[np.newaxis]) * dt_update**2
+    z_dt = functions.qp_to_z(q_dt, p, m[np.newaxis], h[np.newaxis])
+    state[z_name] = z_dt
+    return state, parameters
+
+
+def update_p_velocity_verlet(sim, state, parameters, **kwargs):
+    """
+    """
+    dt_update = sim.settings.dt_update
+    z_name = kwargs.get("z_name", "z")
+    z = state[z_name]
+    classical_force_name = kwargs.get("classical_force_name", "classical_force")
+    quantum_classical_force_name = kwargs.get(
+        "quantum_classical_force_name", "quantum_classical_force"
+    )
+    quantum_classical_force_prev_name = kwargs.get(
+        "quantum_classical_force_prev_name", "quantum_classical_force_prev"
+    )
+    classical_force = state[classical_force_name]
+    quantum_classical_force = state[quantum_classical_force_name]
+    quantum_classical_force_prev = state[quantum_classical_force_prev_name]
+    m = sim.model.constants.classical_coordinate_mass
+    h = sim.model.constants.classical_coordinate_weight
+    p = functions.z_to_p(z, m[np.newaxis], h[np.newaxis])
+    f = (classical_force + quantum_classical_force)
+    f_dt = (classical_force + quantum_classical_force_prev)
+    f_dq, _ = functions.dzdzc_to_dqdp(None, f, m[np.newaxis], h[np.newaxis])
+    f_dq_dt, _ = functions.dzdzc_to_dqdp(None, f_dt, m[np.newaxis], h[np.newaxis])
+    p_dt = p - 0.5 * (f_dq + f_dq_dt) * dt_update
+    q_dt = functions.z_to_q(z, m[np.newaxis], h[np.newaxis])
+    z_dt = functions.qp_to_z(q_dt, p_dt, m[np.newaxis], h[np.newaxis])
+    state[z_name] = z_dt
+    return state, parameters

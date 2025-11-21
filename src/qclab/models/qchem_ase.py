@@ -16,7 +16,7 @@ from qclab.functions import (
 )
 from qclab.model import Model, Constants
 from qclab import ingredients
-from qclab.numerical_constants import HA_TO_300K, INVCM_TO_300K
+from qclab.numerical_constants import EV_TO_HA, INVCM_TO_HA, ANGSTROM_TO_BOHR, AMU_TO_EMASS
 import copy
 
 
@@ -41,10 +41,11 @@ class QChemASE(Model):
         super().__init__(self.default_constants, constants)
         self.update_dh_qc_dzc = True
         self.update_h_q = False
+        self.results = {}
 
     def _init_model(self, parameters, **kwargs):
         mol = self.constants.ase_atoms_object
-        atom_masses = mol.get_masses()
+        atom_masses = mol.get_masses() * AMU_TO_EMASS
         num_atoms = len(atom_masses)
         self.constants.num_classical_coordinates = num_atoms * 3
         self.constants.classical_coordinate_mass = (
@@ -65,20 +66,24 @@ class QChemASE(Model):
             mol.calc.write_input(mol, properties=["energy"])
             mol.calc.execute()
             mol.calc.read_results()
-            self.constants.energy_offset = mol.calc.results["energy"][0] * HA_TO_300K
+            self.constants.energy_offset = mol.calc.results["energy"][0] * EV_TO_HA # In Hartrees
         if not "harmonic_frequency" in self.constants.__dict__:
             print('Calculating harmonic frequencies and normal modes')
             mol.calc = QCLabQChemCalculator(**{**self.constants.qchem_args, "seed": None})
             mol.calc.write_input(mol, properties=["frequency"])
             mol.calc.execute()
             mol.calc.read_results()
-            self.constants.harmonic_frequency = mol.calc.results["frequency"] * INVCM_TO_300K
+            self.constants.harmonic_frequency = mol.calc.results["frequency"] * INVCM_TO_HA
+            print("frequencies in Hartrees:", self.constants.harmonic_frequency)
+            if np.any(self.constants.harmonic_frequency < 0):
+                raise ValueError("Negative harmonic frequencies found.")
             self.constants.mass_weighted_normal_modes = (
                 mol.calc.results["normal_mode"]
                 .reshape((len(self.constants.harmonic_frequency), num_atoms * 3))
                 .T
             )
-        self.constants.init_position = mol.get_positions().flatten()
+        self.constants.init_position = mol.get_positions().flatten() * ANGSTROM_TO_BOHR
+        self.constants.finite_difference_delta = 1e-2
 
     def init_classical(self, parameters, **kwargs):
         # temporarily set the masses to 1 for mass-weighted normal mode sampling.
@@ -105,12 +110,20 @@ class QChemASE(Model):
         # convert back to Cartesian coordinates.
         q = np.einsum("tm, cm ->tc", q_mwnm, normal_modes) + old_constants.init_position
         p = np.einsum("tm, cm ->tc", p_mwnm, normal_modes)
+        print('MWNM coordinates:')
+        print(q_mwnm)
+        print(p_mwnm)
         print('Initialized classical coordinates.')
-        print(q)
+        print(q - old_constants.init_position)
         print(p)
         self.constants = old_constants
+        print('Harmonic frequencies (Hartrees):')
+        print(self.constants.harmonic_frequency)
         z = qp_to_z(
-            q, p, self.constants.classical_coordinate_mass[np.newaxis], self.constants.classical_coordinate_weight[np.newaxis]
+            q,
+            p,
+            self.constants.classical_coordinate_mass[np.newaxis],
+            self.constants.classical_coordinate_weight[np.newaxis]
         )
         return z
 
@@ -124,31 +137,13 @@ class QChemASE(Model):
 
     @vectorize_ingredient
     def h_qc(self, parameters, **kwargs):
-        z = kwargs["z"]
+        # z = kwargs["z"]
         num_quantum_states = self.constants.num_quantum_states
-        mol = self.constants.ase_atoms_object
-        qchem_args = self.constants.qchem_args
-        qchem_tddft_args = self.constants.qchem_tddft_args
-        q = z_to_q(
-            z,
-            self.constants.classical_coordinate_mass,
-            self.constants.classical_coordinate_weight,
-        )
-        mol.set_positions(q.reshape((self.constants.num_classical_coordinates // 3, 3)))
-        mol.calc = QCLabQChemCalculator(
-            **{
-                **qchem_args,
-                **qchem_tddft_args,
-                "seed": None,
-            }
-        )
-        mol.calc.write_input(mol, properties=["energy"])
-        mol.calc.execute()
-        mol.calc.read_results()
         diag_h_qc = (
-            mol.calc.results["energy"][:num_quantum_states] * HA_TO_300K
+            self.results["energy"][:num_quantum_states] * EV_TO_HA
             - self.constants.energy_offset
         )
+        print(diag_h_qc)
         assert (
             len(diag_h_qc) == num_quantum_states
         ), "Number of quantum states mismatch." + str(diag_h_qc)
@@ -174,7 +169,7 @@ class QChemASE(Model):
             self.constants.classical_coordinate_mass,
             self.constants.classical_coordinate_weight,
         )
-        mol.set_positions(q.reshape((num_classical_coordinates // 3, 3)))
+        mol.set_positions(q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR)
         for state_ind in range(num_quantum_states):
             if state_ind == 0:
                 # For state_ind == 0 do a ground state calculation.
@@ -195,9 +190,11 @@ class QChemASE(Model):
             mol.calc.write_input(mol, properties=["gradient"])
             mol.calc.execute()
             mol.calc.read_results()
+            if state_ind == num_quantum_states - 1:
+                self.results = mol.calc.results
             # Convert to derivative w.r.t. zc.
             out[:, state_ind, state_ind] = dqdp_to_dzc(
-                mol.calc.results["gradient"].flatten() * HA_TO_300K, None, m, h
+                mol.calc.results["gradient"].flatten() * EV_TO_HA / ANGSTROM_TO_BOHR, None, m, h
             )
         return out
 
@@ -212,7 +209,7 @@ class QChemASE(Model):
         qchem_args = self.constants.qchem_args
         qchem_tddft_args = self.constants.qchem_tddft_args
         q = z_to_q(z, m, h)
-        mol.set_positions(q.reshape((num_classical_coordinates // 3, 3)))
+        mol.set_positions(q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR)
         out = np.zeros(
             (num_classical_coordinates, num_quantum_states, num_quantum_states),
             dtype=complex,
@@ -235,7 +232,7 @@ class QChemASE(Model):
         mol.calc.read_results()
         derivative_coupling_dq = mol.calc.results["derivative_coupling"]
         for key, val in derivative_coupling_dq.items():
-            out[:, key[0], key[1]] = dqdp_to_dzc(val.flatten(), None, m, h)
+            out[:, key[0], key[1]] = dqdp_to_dzc(val.flatten(), None, m, h) / ANGSTROM_TO_BOHR # convert from 1/A to 1/Bohr
             out[:, key[1], key[0]] = -np.conj(out[:, key[0], key[1]])
         return out
 
@@ -250,6 +247,15 @@ class QChemASE(Model):
         ("_init_model", _init_model),
     ]
 
+import re
+import numpy as np
+import ase.units
+from ase.calculators.calculator import FileIOCalculator, CalculationFailed
+
+
+class SCFError(CalculationFailed):
+    pass
+
 
 class QCLabQChemCalculator(FileIOCalculator):
     """
@@ -257,8 +263,6 @@ class QCLabQChemCalculator(FileIOCalculator):
 
     Based on the ASE Q-Chem calculator:
     https://wiki.fysik.dtu.dk/ase/ase/calculators/qchem
-
-
     """
 
     name = "QChem"
@@ -282,42 +286,19 @@ class QCLabQChemCalculator(FileIOCalculator):
         seed=None,
         **kwargs,
     ):
-        """
-        The scratch directory, number of processor and threads as well as a few
-        other command line options can be set using the arguments explained
-        below. The remaining kwargs are copied as options to the input file.
-        The calculator will convert these options to upper case
-        (Q-Chem standard) when writing the input file.
-
-        scratch: str
-            path of the scratch directory
-        np: int
-            number of processors for the -np command line flag
-        nt: int
-            number of threads for the -nt command line flag
-        pbs: boolean
-            command line flag for pbs scheduler (see Q-Chem manual)
-        basisfile: str
-            path to file containing the basis. Use in combination with
-            basis='gen' keyword argument.
-        ecpfile: str
-            path to file containing the effective core potential. Use in
-            combination with ecp='gen' keyword argument.
-        """
-
         FileIOCalculator.__init__(
             self, restart, ignore_bad_restart_file, label, atoms, **kwargs
         )
 
-        # Augment the command by various flags
+        # Build command
         if pbs:
             self.command = "qchem -pbs "
         else:
             self.command = "qchem "
         if np != 1:
-            self.command += "-np %d " % np
+            self.command += f"-np {np} "
         if nt != 1:
-            self.command += "-nt %d " % nt
+            self.command += f"-nt {nt} "
         self.command += "PREFIX.inp PREFIX.out"
         if scratch is not None:
             self.command += f" {scratch}"
@@ -326,11 +307,170 @@ class QCLabQChemCalculator(FileIOCalculator):
 
         self.basisfile = basisfile
         self.ecpfile = ecpfile
-        if not (seed is None):
+        if seed is not None:
             self.label += f"_{seed}"
 
     def read(self, label):
         raise NotImplementedError
+
+    # ------------------------------------------------------------
+    # property list -> job specs (for multi-job inputs)
+    # ------------------------------------------------------------
+    def _build_job_specs(self, properties):
+        """
+        Map ASE properties -> list of Q-Chem jobs.
+
+        Each job spec is a dict with:
+            name  : label (e.g. 'gradient', 'derivative_coupling', 'frequency', 'energy')
+            jobtype : Q-Chem JOBTYPE ('FORCE', 'FREQ', 'SP')
+            write_derivative_coupling : bool, whether to emit $derivative_coupling
+        """
+        if properties is None:
+            properties = ["energy"]
+        props = set(properties)
+
+        job_specs = []
+
+        if "gradient" in props:
+            job_specs.append(
+                {
+                    "name": "gradient",
+                    "jobtype": "FORCE",
+                    "write_derivative_coupling": False,
+                }
+            )
+
+        if "frequency" in props:
+            job_specs.append(
+                {
+                    "name": "frequency",
+                    "jobtype": "FREQ",
+                    "write_derivative_coupling": False,
+                }
+            )
+
+        if "derivative_coupling" in props:
+            job_specs.append(
+                {
+                    "name": "derivative_coupling",
+                    "jobtype": "SP",
+                    "write_derivative_coupling": True,
+                }
+            )
+
+        if not job_specs:
+            job_specs.append(
+                {
+                    "name": "energy",
+                    "jobtype": "SP",
+                    "write_derivative_coupling": False,
+                }
+            )
+
+        return job_specs
+
+    def _write_single_job(self, fileobj, atoms, job_spec, num_states=None):
+        """
+        Write a single Q-Chem job (one $rem/$molecule block, plus optional
+        $derivative_coupling/$basis/$ecp) to `fileobj`.
+        """
+
+        # --- $comment ---
+        fileobj.write("$comment\n")
+        fileobj.write(f"   ASE generated input file ({job_spec['name']} job)\n")
+        fileobj.write("$end\n\n")
+
+        # --- $rem ---
+        fileobj.write("$rem\n")
+
+        # JOBTYPE: from parameters or from job_spec
+        user_jobtype = self.parameters.get("jobtype", None)
+        if user_jobtype is None and job_spec.get("jobtype") is not None:
+            fileobj.write("   %-25s   %s\n" % ("JOBTYPE", job_spec["jobtype"]))
+        elif user_jobtype is not None:
+            fileobj.write("   %-25s   %s\n" % ("JOBTYPE", str(user_jobtype).upper()))
+
+        # Special per-job logic:
+
+        # 1) Gradient job: CIS_STATE_DERIV
+        cis_state_deriv = self.parameters.get("cis_state_deriv", None)
+        if job_spec["name"] == "gradient" and cis_state_deriv is not None:
+            fileobj.write(
+                "   %-25s   %s\n" % ("CIS_STATE_DERIV", str(cis_state_deriv))
+            )
+            fileobj.write(
+                "   %-25s   %d\n" % ("CIS_DER_NUMSTATE", int(num_states))
+            )
+
+        # # 2) NAC job: CIS_DER_NUMSTATE if user didn't set explicitly
+        # if job_spec["name"] == "derivative_coupling" and num_states is not None:
+        #     if "cis_der_numstate" not in self.parameters:
+        #         fileobj.write(
+        #             "   %-25s   %d\n" % ("CIS_DER_NUMSTATE", int(num_states))
+        #         )
+
+        # Other $rem keywords (shared)
+        for prm, val in self.parameters.items():
+            if prm in ["charge", "multiplicity", "jobtype", "cis_state_deriv", "cis_der_numstate"]:
+                continue
+            if val is None:
+                continue
+            if isinstance(val, str):
+                v_str = val.upper()
+            else:
+                v_str = str(val)
+            fileobj.write("   %-25s   %s\n" % (prm.upper(), v_str))
+
+        # Always ignore symmetry
+        fileobj.write("   %-25s   %s\n" % ("SYM_IGNORE", "TRUE"))
+        fileobj.write("$end\n\n")
+
+        # --- $derivative_coupling (if needed) ---
+        if job_spec.get("write_derivative_coupling", False):
+            if num_states is None:
+                raise ValueError(
+                    "num_states must be provided when requesting derivative_coupling"
+                )
+            fileobj.write("$derivative_coupling\n")
+            fileobj.write("0 is the reference state\n")
+            fileobj.write(
+                (("%d " * num_states).rstrip() + "\n") % tuple(range(num_states))
+            )
+            fileobj.write("$end\n\n")
+
+        # --- $molecule ---
+        fileobj.write("$molecule\n")
+        if (
+            "multiplicity" not in self.parameters
+            or self.parameters["multiplicity"] is None
+        ):
+            tot_magmom = atoms.get_initial_magnetic_moments().sum()
+            mult = int(tot_magmom) + 1
+        else:
+            mult = int(self.parameters["multiplicity"])
+        charge = int(self.parameters.get("charge", 0))
+        fileobj.write("   %d %d\n" % (charge, mult))
+
+        for a in atoms:
+            fileobj.write(
+                "   {}  {:f}  {:f}  {:f}\n".format(a.symbol, a.x, a.y, a.z)
+            )
+        fileobj.write("$end\n\n")
+
+        # --- $basis / $ecp (optional; repeat per job for simplicity) ---
+        if self.basisfile is not None:
+            with open(self.basisfile) as f_in:
+                basis = f_in.readlines()
+            fileobj.write("$basis\n")
+            fileobj.writelines(basis)
+            fileobj.write("$end\n\n")
+
+        if self.ecpfile is not None:
+            with open(self.ecpfile) as f_in:
+                ecp = f_in.readlines()
+            fileobj.write("$ecp\n")
+            fileobj.writelines(ecp)
+            fileobj.write("$end\n\n")
 
     def read_results(self):
         filename = self.label + ".out"
@@ -340,26 +480,13 @@ class QCLabQChemCalculator(FileIOCalculator):
 
         # --- helper to parse vibrational analysis (freqs + modes) ---
         def _parse_vibrational_analysis(lines):
-            """
-            Parse Q-Chem VIBRATIONAL ANALYSIS section.
-
-            Returns
-            -------
-            freqs : np.ndarray, shape (nmodes,)
-                Harmonic frequencies in cm^-1.
-            modes_mw : np.ndarray, shape (nmodes, natoms, 3)
-                Mass-weighted normal mode displacements:
-                modes_mw[k, A, :] = sqrt(m_A) * d_{A}^{(k)},
-                where d are the Cartesian displacements printed by Q-Chem.
-            """
             nlines = len(lines)
 
-            # 1) Number of atoms from "Standard Nuclear Orientation"
+            # 1) natoms from "Standard Nuclear Orientation"
             natoms = None
             for i, line in enumerate(lines):
                 if "Standard Nuclear Orientation" in line:
                     j = i
-                    # find dashed line
                     while j < nlines and not lines[j].strip().startswith("----"):
                         j += 1
                     j += 1  # first atom line
@@ -374,24 +501,22 @@ class QCLabQChemCalculator(FileIOCalculator):
             if natoms is None:
                 return None, None
 
-            # 2) Atomic masses from "Atom   1 Element C  Has Mass   12.00000"
+            # 2) masses (not actually used for modes here, but parsed)
             masses = [None] * natoms
             for line in lines:
                 s = line.strip()
                 if s.startswith("Atom") and "Has Mass" in s:
                     parts = s.split()
-                    # "Atom", "1", "Element", "C", "Has", "Mass", "12.00000"
                     idx = int(parts[1]) - 1
                     mass = float(parts[-1])
                     masses[idx] = mass
 
             if any(m is None for m in masses):
-                # No thermochemistry / masses => probably no vib analysis
                 return None, None
 
             masses = np.array(masses, dtype=float)
 
-            # 3) Find start of VIBRATIONAL ANALYSIS
+            # 3) find "VIBRATIONAL ANALYSIS"
             vib_start = None
             for i, line in enumerate(lines):
                 if "VIBRATIONAL ANALYSIS" in line:
@@ -402,32 +527,32 @@ class QCLabQChemCalculator(FileIOCalculator):
                 return None, None
 
             freqs = []
-            modes = []  # list of (natoms, 3)
+            modes = []
             i = vib_start + 1
 
             while i < nlines:
                 line = lines[i]
 
-                # End of vibrational section
                 if line.strip().startswith("STANDARD THERMODYNAMIC QUANTITIES"):
                     break
 
                 if line.strip().startswith("Mode:"):
-                    # Example: " Mode:                 1                      2                      3"
                     after = line.split("Mode:")[1]
                     mode_nums = [int(tok) for tok in after.split() if tok.isdigit()]
                     n_block = len(mode_nums)
 
-                    # Frequencies line is next
+                    # frequencies line
                     freq_line = lines[i + 1]
-                    block_freqs = [float(x) for x in re.findall(r"[-+]?\d+\.\d*", freq_line)]
+                    block_freqs = [
+                        float(x) for x in re.findall(r"[-+]?\d+\.\d*", freq_line)
+                    ]
                     if len(block_freqs) != n_block:
                         raise RuntimeError(
                             f"Frequency count mismatch in mode block at line {i}."
                         )
                     freqs.extend(block_freqs)
 
-                    # Find "X      Y      Z" header for the displacement block
+                    # "X      Y      Z" header
                     header_idx = None
                     for j in range(i, min(i + 40, nlines)):
                         if "X      Y      Z" in lines[j]:
@@ -436,17 +561,16 @@ class QCLabQChemCalculator(FileIOCalculator):
                     if header_idx is None:
                         raise RuntimeError("Could not find X Y Z header for mode block.")
 
-                    # Allocate [n_block, natoms, 3]
+                    # [n_block, natoms, 3]
                     block_coords = [
                         [[0.0, 0.0, 0.0] for _ in range(natoms)]
                         for _ in range(n_block)
                     ]
 
-                    # Each of the next natoms lines contains displacements
+                    # displacement lines
                     for atom_idx in range(natoms):
                         atom_line = lines[header_idx + 1 + atom_idx]
                         parts = atom_line.split()
-                        # parts[0] is element label, remaining are 3*n_block floats
                         float_vals = list(map(float, parts[1:]))
                         if len(float_vals) != 3 * n_block:
                             raise RuntimeError(
@@ -454,12 +578,12 @@ class QCLabQChemCalculator(FileIOCalculator):
                                 f"Line: {atom_line}"
                             )
                         for m in range(n_block):
-                            x, y, z = float_vals[3*m:3*m+3]
+                            x, y, z = float_vals[3 * m : 3 * m + 3]
                             block_coords[m][atom_idx] = [x, y, z]
 
                     modes.extend(block_coords)
 
-                    # Skip this block: atom lines + TransDip line
+                    # skip atom lines + TransDip line
                     i = header_idx + 1 + natoms + 1
                     continue
 
@@ -472,7 +596,7 @@ class QCLabQChemCalculator(FileIOCalculator):
             modes = np.array(modes, dtype=float)  # (nmodes, natoms, 3)
             return freqs, modes
 
-        # --- main parsing: energies, gradients, derivative couplings ---
+        # --- main parsing: energies, gradients, NACs ---
         with open(filename) as fileobj:
             lines = fileobj.readlines()
 
@@ -497,7 +621,6 @@ class QCLabQChemCalculator(FileIOCalculator):
                 )
 
             elif " Gradient of the state energy" in line:
-                # Read gradient as 3 by N array and transpose at the end
                 gradient = [[] for _ in range(3)]
                 next(lineiter)  # skip atom numbering line
                 while True:
@@ -538,7 +661,6 @@ class QCLabQChemCalculator(FileIOCalculator):
                         break
 
             elif "CIS Derivative Couplings" in line:
-                # now inside that section
                 for line in lineiter:
                     if "between states" in line:
                         parts = line.split()
@@ -570,74 +692,20 @@ class QCLabQChemCalculator(FileIOCalculator):
                                 derivative_coupling[(ind_i, ind_j)] = np.array(rows)
                                 break
 
-        # Store derivative couplings
         self.results["derivative_coupling"] = derivative_coupling
 
-        # Parse vibrational frequencies + mass-weighted modes
         freqs, modes = _parse_vibrational_analysis(lines)
-        self.results["frequency"] = freqs               # (nmodes,)
-        self.results["normal_mode"] = modes              # (nmodes, natoms, 3)
+        self.results["frequency"] = freqs
+        self.results["normal_mode"] = modes
 
     def write_input(self, atoms, properties=None, system_changes=None, num_states=None):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
         filename = self.label + ".inp"
 
+        job_specs = self._build_job_specs(properties)
+
         with open(filename, "w") as fileobj:
-            fileobj.write("$comment\n   ASE generated input file\n$end\n\n")
-
-            fileobj.write("$rem\n")
-            if self.parameters["jobtype"] is None:
-                if "gradient" in properties:
-                    fileobj.write("   %-25s   %s\n" % ("JOBTYPE", "FORCE"))
-                elif "frequency" in properties:
-                    fileobj.write("   %-25s   %s\n" % ("JOBTYPE", "FREQ"))
-                else:
-                    fileobj.write("   %-25s   %s\n" % ("JOBTYPE", "SP"))
-            for prm in self.parameters:
-                if prm not in ["charge", "multiplicity"]:
-                    if self.parameters[prm] is not None:
-                        fileobj.write(
-                            "   %-25s   %s\n"
-                            % (prm.upper(), self.parameters[prm].upper())
-                        )
-
-            # Not even a parameters as this is an absolute necessity
-            fileobj.write("   %-25s   %s\n" % ("SYM_IGNORE", "TRUE"))
-            fileobj.write("$end\n\n")
-
-            if "derivative_coupling" in properties:
-                fileobj.write("$derivative_coupling\n")
-                fileobj.write("0 is the reference state\n")
-                fileobj.write(
-                    (("%d " * num_states) + "\n") % tuple(np.arange(num_states))
-                )
-                fileobj.write("$end\n\n")
-
-            fileobj.write("$molecule\n")
-            # Following the example set by the gaussian calculator
-            if "multiplicity" not in self.parameters:
-                tot_magmom = atoms.get_initial_magnetic_moments().sum()
-                mult = tot_magmom + 1
-            else:
-                mult = self.parameters["multiplicity"]
-            # Default charge of 0 is defined in default_parameters
-            fileobj.write("   %d %d\n" % (self.parameters["charge"], mult))
-            for a in atoms:
-                fileobj.write(
-                    "   {}  {:f}  {:f}  {:f}\n".format(a.symbol, a.x, a.y, a.z)
-                )
-            fileobj.write("$end\n\n")
-
-            if self.basisfile is not None:
-                with open(self.basisfile) as f_in:
-                    basis = f_in.readlines()
-                fileobj.write("$basis\n")
-                fileobj.writelines(basis)
-                fileobj.write("$end\n\n")
-
-            if self.ecpfile is not None:
-                with open(self.ecpfile) as f_in:
-                    ecp = f_in.readlines()
-                fileobj.write("$ecp\n")
-                fileobj.writelines(ecp)
-                fileobj.write("$end\n\n")
+            for idx, job_spec in enumerate(job_specs):
+                if idx > 0:
+                    fileobj.write("@@@\n\n")
+                self._write_single_job(fileobj, atoms, job_spec, num_states=num_states)

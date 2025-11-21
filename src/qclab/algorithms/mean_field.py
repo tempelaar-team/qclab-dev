@@ -130,7 +130,55 @@ class AdiabaticMeanField(Algorithm):
         ),
         tasks.update_z_rk4_k4,
         # End RK4 integration steps.
-        tasks.update_wf_adb_rk4,
+        tasks.update_wf_adb_eig,
+        tasks.update_h_q_tot,
+    ]
+
+    collect_recipe = [
+        tasks.update_t,
+        partial(tasks.update_dm_db_wf, wf_db_name="wf_adb"),
+        partial(tasks.update_quantum_energy_wf, wf_db_name="wf_adb"),
+        tasks.update_classical_energy,
+        tasks.collect_t,
+        tasks.collect_dm_db,
+        tasks.collect_classical_energy,
+        tasks.collect_quantum_energy,
+    ]
+
+
+class AbInitioMeanField(Algorithm):
+    """
+    Adiabatic Mean-field dynamics algorithm class.
+
+    Uses velocity verlet integration for the classical degrees of freedom,
+    suitable for ab inito calculations or any other problem where the quantum-classical
+    Hamiltonian only depends on the position (real part of z) coordinate.
+    """
+
+    def __init__(self, settings=None):
+        if settings is None:
+            settings = {}
+        self.default_settings = {}
+        super().__init__(self.default_settings, settings)
+
+    initialization_recipe = [
+        tasks.initialize_variable_objects,
+        partial(tasks.copy_to_parameters, state_name="seed", parameters_name="seed"),
+        tasks.initialize_norm_factor,
+        tasks.initialize_z,
+        tasks.update_classical_force,
+        partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb"),
+        tasks.update_h_q_tot,
+    ]
+
+    update_recipe = [
+        tasks.update_adb_connection,
+        partial(tasks.copy_in_state, copy_name="quantum_classical_force_prev", orig_name="quantum_classical_force"),
+        tasks.update_q_velocity_verlet,
+        partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb"),
+        tasks.update_p_velocity_verlet,
+        partial(tasks.update_classical_force, z_name="z"),
+        tasks.update_wf_adb_eig,
         tasks.update_h_q_tot,
     ]
 
