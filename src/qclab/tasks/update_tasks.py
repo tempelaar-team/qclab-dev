@@ -1520,11 +1520,18 @@ def update_wf_adb_eig(sim, state, parameters, **kwargs):
     Updates the adiabatic wavefunction by diagonalizing the Hamiltonian.
 
     .. rubric:: Required Constants
-    None
+    update_wf_adb_eig_num_substeps : int, default : 1
+        Number of substeps to use when updating the adiabatic wavefunction.
 
     .. rubric:: Keyword Arguments
     h_q_tot_name : str, default: "h_q_tot"
         Name of the quantum Hamiltonian in the state object.
+    adb_connection_name : str, default: "adb_connection"
+        Name of the adiabatic connection in the state object.
+    h_q_tot_prev_name : str, default: "h_q_tot_prev"
+        Name of the quantum Hamiltonian from the previous time step in the state object.
+    adb_connection_prev_name : str, default: "adb_connection_prev"
+        Name of the adiabatic connection from the previous time step in the state object.
     wf_adb_name : str, default: "wf_adb"
         Name of the adiabatic wavefunction in the state object.
 
@@ -1532,23 +1539,59 @@ def update_wf_adb_eig(sim, state, parameters, **kwargs):
     state[wf_adb_name] : ndarray
         Updated adiabatic wavefunction.
     """
-    dt_update = sim.settings.dt_update
-    wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
     h_q_tot_name = kwargs.get("h_q_tot_name", "h_q_tot")
     adb_connection_name = kwargs.get("adb_connection_name", "adb_connection")
+    h_q_tot_prev_name = kwargs.get("h_q_tot_prev_name", "h_q_tot_prev")
+    adb_connection_prev_name = kwargs.get(
+        "adb_connection_prev_name", "adb_connection_prev"
+    )
+    wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
+    num_substeps = sim.model.constants.get("update_wf_adb_eig_num_substeps", 1)
     wf_adb = state[wf_adb_name]
     h_q_tot = state[h_q_tot_name]
     adb_connection = state[adb_connection_name]
-    # Include the adiabatic connection in the Hamiltonian.
-    h_q_tot_adb = h_q_tot - 1j * adb_connection
-    eigvals, eigvecs = np.linalg.eigh(h_q_tot_adb)
-    print(np.abs(state[wf_adb_name])**2)
-    state[wf_adb_name] = np.einsum('tia,ta,tja,tj->ti',eigvecs, np.exp(-1j * eigvals * dt_update), np.conj(eigvecs), wf_adb, optimize="greedy")
+    h_q_tot_prev = state[h_q_tot_prev_name]
+    adb_connection_prev = state[adb_connection_prev_name]
+    dt_update = sim.settings.dt_update
+    for substep_ind in range(num_substeps):
+        h_q_tot_interp = (substep_ind / num_substeps) * (
+            h_q_tot - h_q_tot_prev
+        ) + h_q_tot_prev
+        adb_connection_interp = (substep_ind / num_substeps) * (
+            adb_connection - adb_connection_prev
+        ) + adb_connection_prev
+        h_q_tot_adb_interp = h_q_tot_interp - 1j * adb_connection_interp
+        eigvals, eigvecs = np.linalg.eigh(h_q_tot_adb_interp)
+        wf_adb = np.einsum(
+            "tia,ta,tja,tj->ti",
+            eigvecs,
+            np.exp(-1j * eigvals * dt_update / num_substeps),
+            np.conj(eigvecs),
+            wf_adb,
+            optimize="greedy",
+        )
+    state[wf_adb_name] = wf_adb
     return state, parameters
 
 
 def update_q_velocity_verlet(sim, state, parameters, **kwargs):
     """
+    Updates the position component of the classical coordinates using Velocity Verlet.
+
+    .. rubric:: Required Constants
+    None
+
+    .. rubric:: Keyword Arguments
+    z_name : str, default: "z"
+        Name of classical coordinates in the state object.
+    classical_force_name : str, default: "classical_force"
+        Name of the classical force in the state object.
+    quantum_classical_force_name : str, default: "quantum_classical_force"
+        Name of the quantum-classical force in the state object.
+
+    .. rubric:: Modifications
+    state[z_name] : ndarray
+        Updated classical coordinates.
     """
     dt_update = sim.settings.dt_update
     z_name = kwargs.get("z_name", "z")
@@ -1563,9 +1606,13 @@ def update_q_velocity_verlet(sim, state, parameters, **kwargs):
     h = sim.model.constants.classical_coordinate_weight
     q = functions.z_to_q(z, m[np.newaxis], h[np.newaxis])
     p = functions.z_to_p(z, m[np.newaxis], h[np.newaxis])
-    f = (classical_force + quantum_classical_force)
+    f = classical_force + quantum_classical_force
     f_dp, _ = functions.dzdzc_to_dqdp(None, f, m[np.newaxis], h[np.newaxis])
-    q_dt = q + (p / m[np.newaxis]) * dt_update - 0.5 * (f_dp / m[np.newaxis]) * dt_update**2
+    q_dt = (
+        q
+        + (p / m[np.newaxis]) * dt_update
+        - 0.5 * (f_dp / m[np.newaxis]) * dt_update**2
+    )
     z_dt = functions.qp_to_z(q_dt, p, m[np.newaxis], h[np.newaxis])
     state[z_name] = z_dt
     return state, parameters
@@ -1573,6 +1620,24 @@ def update_q_velocity_verlet(sim, state, parameters, **kwargs):
 
 def update_p_velocity_verlet(sim, state, parameters, **kwargs):
     """
+    Updates the momentum component of the classical coordinates using Velocity Verlet.
+
+    .. rubric:: Required Constants
+    None
+    .. rubric:: Keyword Arguments
+    z_name : str, default: "z"
+        Name of classical coordinates in the state object.
+    classical_force_name : str, default: "classical_force"
+        Name of the classical force in the state object.
+    quantum_classical_force_name : str, default: "quantum_classical_force"
+        Name of the quantum-classical force in the state object.
+    quantum_classical_force_prev_name : str, default: "quantum_classical_force_prev"
+        Name of the quantum-classical force from the previous time step in the state object.
+
+    .. rubric:: Modifications
+    state[z_name] : ndarray
+        Updated classical coordinates.
+
     """
     dt_update = sim.settings.dt_update
     z_name = kwargs.get("z_name", "z")
@@ -1590,8 +1655,8 @@ def update_p_velocity_verlet(sim, state, parameters, **kwargs):
     m = sim.model.constants.classical_coordinate_mass
     h = sim.model.constants.classical_coordinate_weight
     p = functions.z_to_p(z, m[np.newaxis], h[np.newaxis])
-    f = (classical_force + quantum_classical_force)
-    f_dt = (classical_force + quantum_classical_force_prev)
+    f = classical_force + quantum_classical_force
+    f_dt = classical_force + quantum_classical_force_prev
     f_dq, _ = functions.dzdzc_to_dqdp(None, f, m[np.newaxis], h[np.newaxis])
     f_dq_dt, _ = functions.dzdzc_to_dqdp(None, f_dt, m[np.newaxis], h[np.newaxis])
     p_dt = p - 0.5 * (f_dq + f_dq_dt) * dt_update

@@ -153,6 +153,8 @@ class AbInitioMeanField(Algorithm):
     Uses velocity verlet integration for the classical degrees of freedom,
     suitable for ab inito calculations or any other problem where the quantum-classical
     Hamiltonian only depends on the position (real part of z) coordinate.
+
+    Uses a substep propagation for the quantum wavefunction within each ``dt_update`` timestep.
     """
 
     def __init__(self, settings=None):
@@ -168,18 +170,21 @@ class AbInitioMeanField(Algorithm):
         tasks.initialize_z,
         tasks.update_classical_force,
         partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb"),
+        tasks.update_adb_connection,
         tasks.update_h_q_tot,
     ]
 
     update_recipe = [
-        tasks.update_adb_connection,
+        partial(tasks.copy_in_state, copy_name="adb_connection_prev", orig_name="adb_connection"),
+        partial(tasks.copy_in_state, copy_name="h_q_tot_prev", orig_name="h_q_tot"),
         partial(tasks.copy_in_state, copy_name="quantum_classical_force_prev", orig_name="quantum_classical_force"),
         tasks.update_q_velocity_verlet,
         partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb"),
         tasks.update_p_velocity_verlet,
         partial(tasks.update_classical_force, z_name="z"),
-        tasks.update_wf_adb_eig,
         tasks.update_h_q_tot,
+        tasks.update_adb_connection,
+        tasks.update_wf_adb_eig,
     ]
 
     collect_recipe = [
