@@ -1520,7 +1520,7 @@ def update_wf_adb_eig(sim, state, parameters, **kwargs):
     Updates the adiabatic wavefunction by diagonalizing the Hamiltonian.
 
     .. rubric:: Required Constants
-    update_wf_adb_eig_num_substeps : int, default : 1
+    sim.algorithm.settings.update_wf_adb_eig_num_substeps : int, default : 1
         Number of substeps to use when updating the adiabatic wavefunction.
 
     .. rubric:: Keyword Arguments
@@ -1546,7 +1546,7 @@ def update_wf_adb_eig(sim, state, parameters, **kwargs):
         "adb_connection_prev_name", "adb_connection_prev"
     )
     wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
-    num_substeps = sim.model.constants.get("update_wf_adb_eig_num_substeps", 1)
+    num_substeps = sim.algorithm.settings.get("update_wf_adb_eig_num_substeps", 1)
     wf_adb = state[wf_adb_name]
     h_q_tot = state[h_q_tot_name]
     adb_connection = state[adb_connection_name]
