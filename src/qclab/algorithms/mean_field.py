@@ -160,7 +160,9 @@ class AbInitioMeanField(Algorithm):
     def __init__(self, settings=None):
         if settings is None:
             settings = {}
-        self.default_settings = {}
+        self.default_settings = {
+            "update_wf_adb_eig_num_substeps": 10,
+        }
         super().__init__(self.default_settings, settings)
 
     initialization_recipe = [
