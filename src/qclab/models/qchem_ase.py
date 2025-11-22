@@ -37,6 +37,7 @@ class QChemASE(Model):
             "qchem_tddft_args": None,
             "num_quantum_states": None,
             "kBT": 1.0,
+            "seed": 0,
         }
         super().__init__(self.default_constants, constants)
         self.update_dh_qc_dzc = True
@@ -63,13 +64,16 @@ class QChemASE(Model):
                     "seed": None,
                 }
             )
+            mol.calc.label += "_" + str(self.constants.seed)
             mol.calc.write_input(mol, properties=["energy"])
             mol.calc.execute()
             mol.calc.read_results()
             self.constants.energy_offset = mol.calc.results["energy"][0] * EV_TO_HA # In Hartrees
+            print("Energy offset in Hartrees:", self.constants.energy_offset)
         if not "harmonic_frequency" in self.constants.__dict__:
             print('Calculating harmonic frequencies and normal modes')
             mol.calc = QCLabQChemCalculator(**{**self.constants.qchem_args, "seed": None})
+            mol.calc.label += "_" + str(self.constants.seed)
             mol.calc.write_input(mol, properties=["frequency"])
             mol.calc.execute()
             mol.calc.read_results()
@@ -147,6 +151,8 @@ class QChemASE(Model):
         assert (
             len(diag_h_qc) == num_quantum_states
         ), "Number of quantum states mismatch." + str(diag_h_qc)
+        if not(np.all(np.diff(diag_h_qc) > 0)):
+            print("Excited states are lower in energy!")
         return np.diag(diag_h_qc)
 
     @make_ingredient_sparse
@@ -186,6 +192,7 @@ class QChemASE(Model):
                         "seed": None,
                     }
                 )
+            calc.label += "_"+str(state_ind)+"_" + str(self.constants.seed)
             mol.calc = calc
             mol.calc.write_input(mol, properties=["gradient"])
             mol.calc.execute()
@@ -225,6 +232,7 @@ class QChemASE(Model):
                 "seed": None,
             }
         )
+        mol.calc.label += "_" + str(self.constants.seed)
         mol.calc.write_input(
             mol, properties=["derivative_coupling"], num_states=num_quantum_states
         )
