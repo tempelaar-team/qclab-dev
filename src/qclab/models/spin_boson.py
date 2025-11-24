@@ -106,7 +106,7 @@ class AdiabaticSpinBoson(Model):
             "boson_mass": 1.0,
         }
         super().__init__(self.default_constants, constants)
-        self.update_dh_qc_dzc = False
+        self.update_dh_qc_dzc = True
         self.update_h_q = False
 
     def _init_h_qc(self, parameters, **kwargs):
@@ -143,8 +143,8 @@ class AdiabaticSpinBoson(Model):
         out = np.zeros(
             (batch_size, num_quantum_states, num_quantum_states), dtype=complex
         )
-        a = -(self.constants.E[np.newaxis, :] + np.sum(self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,axis=1))
-        b = np.broadcast_to(self.constants.V, (batch_size,))
+        a = -(self.constants.E + np.sum(self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,axis=1))
+        b = self.constants.V
         r = np.sqrt(a**2 + b**2)
         out[:, 0, 0] = -r
         out[:, 1, 1] = r
@@ -155,8 +155,8 @@ class AdiabaticSpinBoson(Model):
         batch_size = len(z)
         num_classical_coordinates = self.constants.num_classical_coordinates
         num_quantum_states = self.constants.num_quantum_states
-        a = -(self.constants.E[np.newaxis, :] + np.sum(self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,axis=1))
-        b = np.broadcast_to(self.constants.V, (batch_size,))
+        a = -(self.constants.E + np.sum(self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,axis=1))[:,np.newaxis]
+        b = self.constants.V
         r = np.sqrt(a**2 + b**2)
         dh_qc_dzc = np.zeros(
             (batch_size, num_classical_coordinates, num_quantum_states, num_quantum_states),
@@ -176,8 +176,8 @@ class AdiabaticSpinBoson(Model):
         batch_size = len(z)
         num_classical_coordinates = self.constants.num_classical_coordinates
         num_quantum_states = self.constants.num_quantum_states
-        a = -(self.constants.E[np.newaxis, :] + np.sum(self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,axis=1))
-        b = np.broadcast_to(self.constants.V, (batch_size,))
+        a = -(self.constants.E + np.sum(self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,axis=1))[:,np.newaxis]
+        b = self.constants.V
         r = np.sqrt(a**2 + b**2)
         out = np.zeros(
             (batch_size, num_classical_coordinates, num_quantum_states, num_quantum_states),
@@ -199,14 +199,14 @@ class AdiabaticSpinBoson(Model):
         return
 
     ingredients = [
-        ("h_q", ingredients.h_q_two_level),
-        ("h_qc", ingredients.h_qc_diagonal_linear),
+        ("h_q", h_q),
+        ("h_qc", h_qc),
         ("h_c", ingredients.h_c_harmonic),
-        ("dh_qc_dzc", ingredients.dh_qc_dzc_diagonal_linear),
+        ("dh_qc_dzc", dh_qc_dzc),
         ("dh_c_dzc", ingredients.dh_c_dzc_harmonic),
         ("init_classical", ingredients.init_classical_boltzmann_harmonic),
         ("hop", ingredients.hop_harmonic),
-        ("_init_h_q", _init_h_q),
+        ("derivative_coupling_dzc", derivative_coupling_dzc),
         ("_init_h_qc", _init_h_qc),
         ("_init_model", _init_model),
         ("_init_h_c", _init_h_c),

@@ -253,6 +253,8 @@ def update_quantum_classical_force(sim, state, parameters, **kwargs):
         Required if ``algorithm.settings.use_gauge_field_force`` is ``True``.
     wf_changed : bool, default: True
         If ``True``, the wavefunction has changed since the last time the force were calculated.
+    h_q_tot_name : str, default: "h_q_tot"
+        Name under which to store the total Hamiltonian in the state object.
 
     .. rubric:: Modifications
     state[dh_qc_dzc_name] : tuple
@@ -267,6 +269,7 @@ def update_quantum_classical_force(sim, state, parameters, **kwargs):
         "quantum_classical_force_name", "quantum_classical_force"
     )
     state_ind_name = kwargs.get("state_ind_name", "act_surf_ind")
+    h_q_tot_name = kwargs.get("h_q_tot_name", "h_q_tot")
     wf_changed = kwargs.get("wf_changed", True)
     z = state[z_name]
     wf_db = state[wf_db_name]
@@ -291,10 +294,22 @@ def update_quantum_classical_force(sim, state, parameters, **kwargs):
             wf_db,
             out=state[quantum_classical_force_name].reshape(-1),
         ).reshape(np.shape(z))
+        # Add force arising from derivative coupling if it is defined in the model.
+        derivative_coupling_dzc_func, has_derivative_coupling_dzc = sim.model.get(
+        "derivative_coupling_dzc"
+        )
+        if has_derivative_coupling_dzc:
+            derivative_coupling_dzc = derivative_coupling_dzc_func(sim.model, parameters, z=z)
+            diag_e = np.einsum('tii->ti', state[h_q_tot_name])
+            diff_e = diag_e[:, None, :] - diag_e[:, :, None]
+            derivative_coupling_force = np.einsum('ti,tcij,tj->tc',np.conj(wf_db), diff_e[:, np.newaxis, :, :] * derivative_coupling_dzc, wf_db, optimize='greedy')
+            state[quantum_classical_force_name] += derivative_coupling_force
     if sim.algorithm.settings.get("use_gauge_field_force"):
         state, parameters = add_gauge_field_force(
             sim, state, parameters, z=z, state_ind_name=state_ind_name
         )
+    
+        
     return state, parameters
 
 
@@ -1473,6 +1488,21 @@ def update_adb_connection(sim, state, parameters, **kwargs):
             axis=1,
         )
         state[adb_connection_name] = B - np.conj(B).transpose((0, 2, 1))
+        # m = sim.model.constants.classical_coordinate_mass
+        # h = sim.model.constants.classical_coordinate_weight
+        # p = functions.z_to_p(z, m[np.newaxis], h[np.newaxis])
+        # dq_dt = p / m[np.newaxis]
+        # derivative_coupling_dzc_func, _ = sim.model.get("derivative_coupling_dzc")
+        # derivative_coupling_dzc = derivative_coupling_dzc_func(
+        #     sim.model, parameters, z=z
+        # )
+        # derivative_coupling_dq, _ = functions.dzdzc_to_dqdp(None, derivative_coupling_dzc, m[np.newaxis,:,np.newaxis,np.newaxis], h[np.newaxis,:,np.newaxis,np.newaxis])
+        # state[adb_connection_name] = np.sum(
+        #     dq_dt[:, :, np.newaxis, np.newaxis]
+        #     * derivative_coupling_dq,
+        #     axis=1,
+        # )
+        # print(state[adb_connection_name])
     return state, parameters
 
 
@@ -1546,7 +1576,7 @@ def update_wf_adb_eig(sim, state, parameters, **kwargs):
         "adb_connection_prev_name", "adb_connection_prev"
     )
     wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
-    num_substeps = sim.algorithm.settings.get("update_wf_adb_eig_num_substeps", 1)
+    num_substeps = sim.algorithm.settings.get("update_wf_adb_eig_num_substeps", 100)
     wf_adb = state[wf_adb_name]
     h_q_tot = state[h_q_tot_name]
     adb_connection = state[adb_connection_name]
@@ -1663,4 +1693,24 @@ def update_p_velocity_verlet(sim, state, parameters, **kwargs):
     q_dt = functions.z_to_q(z, m[np.newaxis], h[np.newaxis])
     z_dt = functions.qp_to_z(q_dt, p_dt, m[np.newaxis], h[np.newaxis])
     state[z_name] = z_dt
+    return state, parameters
+
+
+def update_wf_adb_coeffs(sim, state, parameters, **kwargs):
+    """
+    Updates the coefficients of the adiabatic wavefunction to those at a new
+    classical configuration. 
+
+    \vert\psi(z + \Delta z)\rangle = \exp(i (A(t+\Delta t) - A(t))) \vert\psi(z)\rangle
+
+    """
+    dt_update = sim.settings.dt_update
+    adb_connection_name = kwargs.get("adb_connection_name", "adb_connection")
+    wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
+    wf_adb_dt_name = kwargs.get("wf_adb_dt_name", "wf_adb_dt")
+    adb_connection = state[adb_connection_name]
+    wf_adb = state[wf_adb_name]
+    eigvals, eigvecs = np.linalg.eigh(dt_update*adb_connection)
+    prop = np.einsum('tia,ta,tja->tij', eigvecs, np.exp(-eigvals), np.conj(eigvecs), optimize='greedy')
+    state[wf_adb_dt_name] = np.einsum('tij,tj->ti', prop, wf_adb, optimize='greedy')
     return state, parameters

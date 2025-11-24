@@ -130,17 +130,17 @@ class AdiabaticMeanField(Algorithm):
         ),
         tasks.update_z_rk4_k4,
         # End RK4 integration steps.
-        tasks.update_wf_adb_eig,
+        tasks.update_wf_adb_rk4,
         tasks.update_h_q_tot,
     ]
 
     collect_recipe = [
         tasks.update_t,
-        partial(tasks.update_dm_db_wf, wf_db_name="wf_adb"),
+        partial(tasks.update_dm_db_wf, wf_db_name="wf_adb", dm_db_name="dm_adb"),
         partial(tasks.update_quantum_energy_wf, wf_db_name="wf_adb"),
         tasks.update_classical_energy,
         tasks.collect_t,
-        tasks.collect_dm_db,
+        partial(tasks.collect_dm_db, dm_db_name="dm_adb", dm_db_output_name="dm_adb"),
         tasks.collect_classical_energy,
         tasks.collect_quantum_energy,
     ]
@@ -170,10 +170,10 @@ class AbInitioMeanField(Algorithm):
         partial(tasks.copy_to_parameters, state_name="seed", parameters_name="seed"),
         tasks.initialize_norm_factor,
         tasks.initialize_z,
+        tasks.update_h_q_tot,
         tasks.update_classical_force,
         partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb"),
         tasks.update_adb_connection,
-        tasks.update_h_q_tot,
     ]
 
     update_recipe = [
@@ -181,11 +181,12 @@ class AbInitioMeanField(Algorithm):
         partial(tasks.copy_in_state, copy_name="h_q_tot_prev", orig_name="h_q_tot"),
         partial(tasks.copy_in_state, copy_name="quantum_classical_force_prev", orig_name="quantum_classical_force"),
         tasks.update_q_velocity_verlet,
+        # tasks.update_wf_adb_coeffs,
         partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb"),
         tasks.update_p_velocity_verlet,
         partial(tasks.update_classical_force, z_name="z"),
-        tasks.update_h_q_tot,
         tasks.update_adb_connection,
+        tasks.update_h_q_tot,
         tasks.update_wf_adb_eig,
     ]
 

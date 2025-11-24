@@ -15,8 +15,11 @@ Version 1.0.1
 - Added QChemASE Model class that uses the Q-Chem interface of the Atomic Simulation Environment (ASE) to perform ab initio quantum chemistry calculations.
 - Added custom ASE Q-Chem calculator. 
 - Added numerical constants. 
-
-
+- AdiabaticMeanField algorithm will by default use RK4 integration for the classical degrees of freedom. We will include
+  a tutorial on replacing it with Velocity Verlet for ab initio calculations as well.
+- Added AbInitioMeanField algorithm that uses Velocity Verlet integration for the classical degrees of freedom,
+  suitable for ab initio calculations or any other problem where the quantum-classical Hamiltonian only depends on the position (real part of z) coordinate.
+  
 New Capabilities
 --------------------
 
