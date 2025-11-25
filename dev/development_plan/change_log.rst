@@ -24,6 +24,7 @@ Bug Fixes
 - Fixed typo in the ``h_qc`` ingredient of ``HolsteinLatticeReciprocalSpace`` model affecting the calculation of the quantum-classical coupling Hamiltonian.
   Similar to the previous fix, the coupling terms now correctly scale with the ``classical_coordinate_weight`` parameter. This typo had no impact on the correctness of the ``HolsteinLatticeReciprocalSpace`` model where ``classical_coordinate_weight`` was set to ``harmonic_frequency``. If this was changed, however, the results would have been incorrect.
 - Fixed critical typo in tasks.initialize_z_mcmc.
+- Fixed typo in numerical_constants.INVCM_TO_300K (1/208.521 --> 1/208.512) (ALEX MAKE THIS CHANGE..)
 
 
 New Capabilities

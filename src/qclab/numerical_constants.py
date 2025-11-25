@@ -16,7 +16,7 @@ EV_TO_INVCM = 8065.610420
 HA_TO_EV = 27.21138625
 
 # Conversion factor from wavenumbers to kBT at 300 K.
-INVCM_TO_300K = 1 / 208.512
+INVCM_TO_300K = 1 / 208.521
 
 # Conversion factor from electronvolts to kBT at 300 K.
 EV_TO_300K = 0.025852
