@@ -3,24 +3,38 @@ This module contains tasks that are used to collect data from the state or
 parameters objects into the output dictionary of the state object.
 """
 
+from qclab import Simulation
 
-def collect_t(sim, state, parameters, **kwargs):
+
+def collect_t(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    t_name: str = "t",
+    t_output_name: str = "t",
+):
     """
     Collects the time from the state object and stores it in the output
     dictionary.
 
-    .. rubric:: Required Constants
-    None
-
-    .. rubric:: Keyword Arguments
-    t_name : str, default : "t"
+    Optional Keyword Arguments
+    --------------------------
+    t_name:
         Name of the time in the state object.
-    t_output_name : str, default : "t"
+    t_output_name:
         Name of the time in the output dictionary.
 
-    .. rubric:: Modifications
-    state["output_dict"][t_output_name] : ndarray
-        stores the current time in each trajectory.
+    Reads
+    -----
+    state[t_name]: ndarray of shape (B,)
+
+    Writes
+    ------
+    state["output_dict"][t_output_name]: ndarray of shape (B,)
+
+    Notes
+    -----
+    Symbols: B = sim.settings.batch_size
     """
     t_name = kwargs.get("t_name", "t")
     t_output_name = kwargs.get("t_output_name", "t")
@@ -28,7 +42,7 @@ def collect_t(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def collect_dm_db(sim, state, parameters, **kwargs):
+def collect_dm_db(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Collects the diabatic density matrix from the state object and stores it
     in the output dictionary.
@@ -52,7 +66,7 @@ def collect_dm_db(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def collect_classical_energy(sim, state, parameters, **kwargs):
+def collect_classical_energy(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Collects the classical energy from the state object and stores it in the
     output dictionary.
@@ -78,7 +92,7 @@ def collect_classical_energy(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def collect_quantum_energy(sim, state, parameters, **kwargs):
+def collect_quantum_energy(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Collects the quantum energy from the state object and stores it in the
     output dictionary.

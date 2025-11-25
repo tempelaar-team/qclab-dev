@@ -11,7 +11,7 @@ import qclab.numerical_constants as numerical_constants
 logger = logging.getLogger(__name__)
 
 
-def update_t(sim, state, parameters, **kwargs):
+def update_t(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the time in the state object with the time index in each trajectory
     multiplied by the update timestep.
@@ -37,7 +37,7 @@ def update_t(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
+def update_dh_c_dzc_finite_differences(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the gradient of the classical Hamiltonian using finite differences.
 
@@ -94,7 +94,7 @@ def update_dh_c_dzc_finite_differences(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_classical_force(sim, state, parameters, **kwargs):
+def update_classical_force(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the gradient of the classical Hamiltonian w.r.t. the conjugate classical
     coordinate.
@@ -127,7 +127,7 @@ def update_classical_force(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
+def update_dh_qc_dzc_finite_differences(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the gradient of the quantum-classical Hamiltonian using finite
     differences.
@@ -191,7 +191,7 @@ def update_dh_qc_dzc_finite_differences(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_dh_qc_dzc(sim, state, parameters, **kwargs):
+def update_dh_qc_dzc(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the gradient of the quantum-classical Hamiltonian w.r.t. the conjugate
     classical coordinate.
@@ -229,7 +229,7 @@ def update_dh_qc_dzc(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_quantum_classical_force(sim, state, parameters, **kwargs):
+def update_quantum_classical_force(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the quantum-classical force w.r.t. the wavefunction defined by ``wf_db``.
 
@@ -313,7 +313,7 @@ def update_quantum_classical_force(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def add_gauge_field_force(sim, state, parameters, **kwargs):
+def add_gauge_field_force(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Adds the quantum-classical force with the gauge field force if the model has a
     ``gauge_field_force`` ingredient.
@@ -352,7 +352,7 @@ def add_gauge_field_force(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def diagonalize_matrix(sim, state, parameters, **kwargs):
+def diagonalize_matrix(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Diagonalizes a given matrix from the state object and stores the eigenvalues and
     eigenvectors in the state object.
@@ -381,7 +381,7 @@ def diagonalize_matrix(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_eigvecs_gauge(sim, state, parameters, **kwargs):
+def update_eigvecs_gauge(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the gauge of the eigenvectors as specified by the gauge_fixing parameter.
 
@@ -492,7 +492,7 @@ def update_eigvecs_gauge(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_vector_basis(sim, state, parameters, **kwargs):
+def update_vector_basis(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Transforms a vector to a new basis.
 
@@ -525,7 +525,7 @@ def update_vector_basis(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_act_surf_wf(sim, state, parameters, **kwargs):
+def update_act_surf_wf(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the wavefunction corresponding to the active surface.
 
@@ -555,7 +555,7 @@ def update_act_surf_wf(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_wf_db_propagator(sim, state, parameters, **kwargs):
+def update_wf_db_propagator(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the diabatic wavefunction by calculating and applying the propagator.
 
@@ -594,7 +594,7 @@ def update_wf_db_propagator(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_wf_db_rk4(sim, state, parameters, **kwargs):
+def update_wf_db_rk4(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the wavefunction using the 4th-order Runge-Kutta method.
 
@@ -627,7 +627,7 @@ def update_wf_db_rk4(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_hop_prob_fssh(sim, state, parameters, **kwargs):
+def update_hop_prob_fssh(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Calculates the hopping probabilities according to the FSSH algorithm.
 
@@ -693,7 +693,7 @@ def update_hop_prob_fssh(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_hop_inds_fssh(sim, state, parameters, **kwargs):
+def update_hop_inds_fssh(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates indices of trajectories that hop according to their probabilities (but may later be frustrated) and their destination state indices.
 
@@ -745,7 +745,7 @@ def update_hop_inds_fssh(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_z_shift_fssh(sim, state, parameters, **kwargs):
+def update_z_shift_fssh(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Determines if a hop occurs and calculates the shift in the classical coordinate
     at the single trajectory level.
@@ -804,7 +804,7 @@ def update_z_shift_fssh(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_hop_vals_fssh(sim, state, parameters, **kwargs):
+def update_hop_vals_fssh(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates trajectory hopping information for FSSH.
 
@@ -929,7 +929,7 @@ def update_hop_vals_fssh(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_z_hop(sim, state, parameters, **kwargs):
+def update_z_hop(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the classical coordinates in trajectories that have hopped.
 
@@ -959,7 +959,7 @@ def update_z_hop(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_act_surf_hop(sim, state, parameters, **kwargs):
+def update_act_surf_hop(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the active surface, active surface index, and active surface wavefunction
     following a hop.
@@ -1008,7 +1008,7 @@ def update_act_surf_hop(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_h_q_tot(sim, state, parameters, **kwargs):
+def update_h_q_tot(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the Hamiltonian matrix of the quantum subsystem.
 
@@ -1051,7 +1051,7 @@ def update_h_q_tot(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_z_rk4_k123(sim, state, parameters, **kwargs):
+def update_z_rk4_k123(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Computes the first three RK4 intermediates for evolving the classical coordinates.
 
@@ -1105,7 +1105,7 @@ def update_z_rk4_k123(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_z_rk4_k4(sim, state, parameters, **kwargs):
+def update_z_rk4_k4(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Computes the final RK4 update for evolving the classical coordinates.
 
@@ -1157,7 +1157,7 @@ def update_z_rk4_k4(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_dm_db_wf(sim, state, parameters, **kwargs):
+def update_dm_db_wf(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the diabatic density matrix based on the wavefunction.
 
@@ -1183,7 +1183,7 @@ def update_dm_db_wf(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_classical_energy(sim, state, parameters, **kwargs):
+def update_classical_energy(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the classical energy.
 
@@ -1207,7 +1207,7 @@ def update_classical_energy(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_classical_energy_fssh(sim, state, parameters, **kwargs):
+def update_classical_energy_fssh(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the classical energy for FSSH simulations.
 
@@ -1271,7 +1271,7 @@ def update_classical_energy_fssh(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_quantum_energy_wf(sim, state, parameters, **kwargs):
+def update_quantum_energy_wf(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the quantum energy w.r.t. the wavefunction.
 
@@ -1303,7 +1303,7 @@ def update_quantum_energy_wf(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_quantum_energy_act_surf(sim, state, parameters, **kwargs):
+def update_quantum_energy_act_surf(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the quantum energy using the active surface wavefunction.
 
@@ -1357,7 +1357,7 @@ def update_quantum_energy_act_surf(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_dm_db_fssh(sim, state, parameters, **kwargs):
+def update_dm_db_fssh(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the diabatic density matrix for FSSH.
 
@@ -1427,7 +1427,7 @@ def update_dm_db_fssh(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_adb_connection(sim, state, parameters, **kwargs):
+def update_adb_connection(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the Adiabatic Connection matrix.
 
@@ -1506,7 +1506,7 @@ def update_adb_connection(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_wf_adb_rk4(sim, state, parameters, **kwargs):
+def update_wf_adb_rk4(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the adiabatic wavefunction using the 4th-order Runge-Kutta method.
 
@@ -1545,7 +1545,7 @@ def update_wf_adb_rk4(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_wf_adb_eig(sim, state, parameters, **kwargs):
+def update_wf_adb_eig(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the adiabatic wavefunction by diagonalizing the Hamiltonian.
 
@@ -1604,7 +1604,7 @@ def update_wf_adb_eig(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_q_velocity_verlet(sim, state, parameters, **kwargs):
+def update_q_velocity_verlet(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the position component of the classical coordinates using Velocity Verlet.
 
@@ -1648,7 +1648,7 @@ def update_q_velocity_verlet(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_p_velocity_verlet(sim, state, parameters, **kwargs):
+def update_p_velocity_verlet(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the momentum component of the classical coordinates using Velocity Verlet.
 
@@ -1696,7 +1696,7 @@ def update_p_velocity_verlet(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def update_wf_adb_coeffs(sim, state, parameters, **kwargs):
+def update_wf_adb_coeffs(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the coefficients of the adiabatic wavefunction to those at a new
     classical configuration. 

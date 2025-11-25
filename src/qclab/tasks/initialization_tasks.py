@@ -12,7 +12,7 @@ from qclab import functions
 logger = logging.getLogger(__name__)
 
 
-def initialize_variable_objects(sim, state, parameters, **kwargs):
+def initialize_variable_objects(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Populates the state object with non-private variables in ``sim.initial_state``, and an empty
     dictionary for storing output quantities.
@@ -58,7 +58,7 @@ def initialize_variable_objects(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def initialize_norm_factor(sim, state, parameters, **kwargs):
+def initialize_norm_factor(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Assigns the normalization factor to the state object.
 
@@ -78,7 +78,7 @@ def initialize_norm_factor(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def initialize_branch_seeds(sim, state, parameters, **kwargs):
+def initialize_branch_seeds(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Converts seeds into branch seeds for deterministic surface hopping.
 
@@ -138,7 +138,7 @@ def initialize_branch_seeds(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def initialize_z_mcmc(sim, state, parameters, **kwargs):
+def initialize_z_mcmc(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Initializes classical coordinates according to Boltzmann statistics using Markov-
     Chain Monte Carlo with a Metropolis-Hastings algorithm.
@@ -291,7 +291,7 @@ def initialize_z_mcmc(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def initialize_z(sim, state, parameters, **kwargs):
+def initialize_z(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Initializes the classical coordinate by using the init_classical function from the
     model object.
@@ -322,7 +322,7 @@ def initialize_z(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def copy_in_state(sim, state, parameters, **kwargs):
+def copy_in_state(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Creates a copy of a variable in the state object with a new name.
 
@@ -342,7 +342,7 @@ def copy_in_state(sim, state, parameters, **kwargs):
     state[kwargs["copy_name"]] = np.copy(state[kwargs["orig_name"]])
     return state, parameters
 
-def copy_to_parameters(sim, state, parameters, **kwargs):
+def copy_to_parameters(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Copies a variable from the state object to the parameters object.
 
@@ -363,7 +363,7 @@ def copy_to_parameters(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def initialize_active_surface(sim, state, parameters, **kwargs):
+def initialize_active_surface(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Initializes the active surface, active surface index, and initial active
     surface index for FSSH.
@@ -436,7 +436,7 @@ def initialize_active_surface(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def initialize_random_values_fssh(sim, state, parameters, **kwargs):
+def initialize_random_values_fssh(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Initializes a set of random numbers using the trajectory seeds for FSSH.
 
@@ -481,7 +481,7 @@ def initialize_random_values_fssh(sim, state, parameters, **kwargs):
     return state, parameters
 
 
-def initialize_dm_adb_0_fssh(sim, state, parameters, **kwargs):
+def initialize_dm_adb_0_fssh(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Initializes the initial adiabatic density matrix for FSSH.
 
