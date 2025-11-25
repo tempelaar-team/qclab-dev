@@ -5,30 +5,25 @@ during propagation.
 
 import logging
 import numpy as np
-from qclab import functions
+from qclab import functions, Simulation
 import qclab.numerical_constants as numerical_constants
 
 logger = logging.getLogger(__name__)
 
 
-def update_t(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_t(sim: Simulation, state: dict, parameters: dict, t_name: str = "t"):
     """
     Updates the time in the state object with the time index in each trajectory
     multiplied by the update timestep.
 
-    .. rubric:: Model Constants
-    None
-
-    .. rubric:: Keyword Arguments
-    t_name : str, default: "t"
+    Optional Keyword Arguments
+    --------------------------
+    t_name:
         Name of the time variable in the state object.
 
-    .. rubric:: Input Variables
-    None
-
-    .. rubric:: Output Variables
-    state[t_name] : ndarray, (batch_size,), float
-        Time of each trajectory.
+    Writes
+    ------
+    state[t_name]: ndarray, (B,) dtype=
 
     """
     t_name = kwargs.get("t_name", "t")
@@ -37,27 +32,43 @@ def update_t(sim: Simulation, state: dict, parameters: dict, **kwargs):
     return state, parameters
 
 
-def update_dh_c_dzc_finite_differences(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_dh_c_dzc_finite_differences(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    z_name: str = "z",
+    dh_c_dzc_name: str = "dh_c_dzc",
+):
     """
     Updates the gradient of the classical Hamiltonian using finite differences.
 
-    .. rubric:: Model Constants
+    Optional Keyword Arguments
+    --------------------------
+    z_name:
+        Name of the classical coordinates in the state object.
+    dh_c_dzc_name:
+        Name under which to store the finite-difference gradient in the state object.
+
+    Constants and Settings
+    ----------------------
     dh_c_dzc_finite_difference_delta : float, default : numerical_constants.FINITE_DIFFERENCE_DELTA
         Finite-difference step size.
 
-    .. rubric:: Keyword Arguments
-    z_name : str, default: "z"
-        Name of the classical coordinates in the state object.
-    dh_c_dzc_name : str, default: "dh_c_dzc"
-        Name under which to store the finite-difference gradient in the state object.
+    Ingredients
+    -----------
+    h_c:
+        Classical Hamiltonian.
 
-    .. rubric:: Input Variables
+    Reads
+    -----
     state[z_name] : ndarray, (batch_size, num_classical_coordinates), complex
         Classical coordinates.
 
-    .. rubric:: Output Variables
+    Writes
+    ------
     state[dh_c_dzc_name] : ndarray, (batch_size, num_classical_coordinates), complex
         Gradient of the classical Hamiltonian.
+
     """
     z = state[kwargs.get("z_name", "z")]
     dh_c_dzc_name = kwargs.get("dh_c_dzc_name", "dh_c_dzc")
@@ -127,7 +138,9 @@ def update_classical_force(sim: Simulation, state: dict, parameters: dict, **kwa
     return state, parameters
 
 
-def update_dh_qc_dzc_finite_differences(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_dh_qc_dzc_finite_differences(
+    sim: Simulation, state: dict, parameters: dict, **kwargs
+):
     """
     Updates the gradient of the quantum-classical Hamiltonian using finite
     differences.
@@ -229,7 +242,9 @@ def update_dh_qc_dzc(sim: Simulation, state: dict, parameters: dict, **kwargs):
     return state, parameters
 
 
-def update_quantum_classical_force(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_quantum_classical_force(
+    sim: Simulation, state: dict, parameters: dict, **kwargs
+):
     """
     Updates the quantum-classical force w.r.t. the wavefunction defined by ``wf_db``.
 
@@ -296,20 +311,27 @@ def update_quantum_classical_force(sim: Simulation, state: dict, parameters: dic
         ).reshape(np.shape(z))
         # Add force arising from derivative coupling if it is defined in the model.
         derivative_coupling_dzc_func, has_derivative_coupling_dzc = sim.model.get(
-        "derivative_coupling_dzc"
+            "derivative_coupling_dzc"
         )
         if has_derivative_coupling_dzc:
-            derivative_coupling_dzc = derivative_coupling_dzc_func(sim.model, parameters, z=z)
-            diag_e = np.einsum('tii->ti', state[h_q_tot_name])
+            derivative_coupling_dzc = derivative_coupling_dzc_func(
+                sim.model, parameters, z=z
+            )
+            diag_e = np.einsum("tii->ti", state[h_q_tot_name])
             diff_e = diag_e[:, None, :] - diag_e[:, :, None]
-            derivative_coupling_force = np.einsum('ti,tcij,tj->tc',np.conj(wf_db), diff_e[:, np.newaxis, :, :] * derivative_coupling_dzc, wf_db, optimize='greedy')
+            derivative_coupling_force = np.einsum(
+                "ti,tcij,tj->tc",
+                np.conj(wf_db),
+                diff_e[:, np.newaxis, :, :] * derivative_coupling_dzc,
+                wf_db,
+                optimize="greedy",
+            )
             state[quantum_classical_force_name] += derivative_coupling_force
     if sim.algorithm.settings.get("use_gauge_field_force"):
         state, parameters = add_gauge_field_force(
             sim, state, parameters, z=z, state_ind_name=state_ind_name
         )
-    
-        
+
     return state, parameters
 
 
@@ -1207,7 +1229,9 @@ def update_classical_energy(sim: Simulation, state: dict, parameters: dict, **kw
     return state, parameters
 
 
-def update_classical_energy_fssh(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_classical_energy_fssh(
+    sim: Simulation, state: dict, parameters: dict, **kwargs
+):
     """
     Updates the classical energy for FSSH simulations.
 
@@ -1303,7 +1327,9 @@ def update_quantum_energy_wf(sim: Simulation, state: dict, parameters: dict, **k
     return state, parameters
 
 
-def update_quantum_energy_act_surf(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_quantum_energy_act_surf(
+    sim: Simulation, state: dict, parameters: dict, **kwargs
+):
     """
     Updates the quantum energy using the active surface wavefunction.
 
@@ -1699,7 +1725,7 @@ def update_p_velocity_verlet(sim: Simulation, state: dict, parameters: dict, **k
 def update_wf_adb_coeffs(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Updates the coefficients of the adiabatic wavefunction to those at a new
-    classical configuration. 
+    classical configuration.
 
     It does so by applying the translation operator
 
@@ -1712,7 +1738,13 @@ def update_wf_adb_coeffs(sim: Simulation, state: dict, parameters: dict, **kwarg
     wf_adb_dt_name = kwargs.get("wf_adb_dt_name", "wf_adb_dt")
     adb_connection = state[adb_connection_name]
     wf_adb = state[wf_adb_name]
-    eigvals, eigvecs = np.linalg.eigh(dt_update*adb_connection)
-    prop = np.einsum('tia,ta,tja->tij', eigvecs, np.exp(-eigvals), np.conj(eigvecs), optimize='greedy')
-    state[wf_adb_dt_name] = np.einsum('tij,tj->ti', prop, wf_adb, optimize='greedy')
+    eigvals, eigvecs = np.linalg.eigh(dt_update * adb_connection)
+    prop = np.einsum(
+        "tia,ta,tja->tij",
+        eigvecs,
+        np.exp(-eigvals),
+        np.conj(eigvecs),
+        optimize="greedy",
+    )
+    state[wf_adb_dt_name] = np.einsum("tij,tj->ti", prop, wf_adb, optimize="greedy")
     return state, parameters

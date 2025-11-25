@@ -26,11 +26,13 @@ def collect_t(
 
     Reads
     -----
-    state[t_name]: ndarray of shape (B,)
+    state[t_name]: ndarray of shape (B,), dtype=float64
+        Time in each trajectory.
 
     Writes
     ------
-    state["output_dict"][t_output_name]: ndarray of shape (B,)
+    state["output_dict"][t_output_name]: ndarray of shape (B,), dtype=float64
+        Time in each trajectory.
 
     Notes
     -----
@@ -42,23 +44,37 @@ def collect_t(
     return state, parameters
 
 
-def collect_dm_db(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def collect_dm_db(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    dm_db_name: str = "dm_db",
+    dm_db_output_name: str = "dm_db",
+):
     """
     Collects the diabatic density matrix from the state object and stores it
     in the output dictionary.
 
-    .. rubric:: Required Constants
-    None
-
-    .. rubric:: Keyword Arguments
-    dm_db_name : str, default : "dm_db"
+    Optional Keyword Arguments
+    --------------------------
+    dm_db_name:
         Name of the diabatic density matrix in the state object.
-    dm_db_output_name : str, default : "dm_db"
+    dm_db_output_name:
         Name of the diabatic density matrix in the output dictionary.
 
-    .. rubric:: Modifications
-    state["output_dict"][dm_db_output_name] : ndarray
-        Stores the diabatic density matrix.
+    Reads
+    -----
+    state[dm_db_name]: ndarray of shape (B, N, N), dtype=complex128
+        Density matrix in the diabatic basis.
+
+    Writes
+    ------
+    state["output_dict"][dm_db_output_name]: ndarray of shape (B, N, N), dtype=complex128
+        Density matrix in the diabatic basis.
+
+    Notes
+    -----
+    Symbols: B = sim.settings.batch_size, N = sim.settings.num_quantum_states
     """
     dm_db_name = kwargs.get("dm_db_name", "dm_db")
     dm_db_output_name = kwargs.get("dm_db_output_name", "dm_db")
@@ -66,23 +82,37 @@ def collect_dm_db(sim: Simulation, state: dict, parameters: dict, **kwargs):
     return state, parameters
 
 
-def collect_classical_energy(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def collect_classical_energy(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    classical_energy_name: str = "classical_energy",
+    classical_energy_output_name: str = "classical_energy",
+):
     """
     Collects the classical energy from the state object and stores it in the
     output dictionary.
 
-    .. rubric:: Required Constants
-    None
-
-    .. rubric:: Keyword Arguments
-    classical_energy_name : str, default : "classical_energy"
+    Optional Keyword Arguments
+    --------------------------
+    classical_energy_name:
         Name of the classical energy in the state object.
-    classical_energy_output_name : str, default : "classical_energy"
+    classical_energy_output_name:
         Name of the classical energy in the output dictionary.
 
-    .. rubric:: Modifications
-    state["output_dict"][classical_energy_output_name] : ndarray
-        stores the classical energy.
+    Reads
+    -----
+    state[classical_energy_name]: ndarray of shape (B,), dtype=float64
+        Classical energy of each trajectory.
+
+    Writes
+    ------
+    state["output_dict"][classical_energy_output_name] : ndarray of shape (B,), dtype=float64
+        Classical energy of each trajectory.
+
+    Notes
+    -----
+    Symbols: B = sim.settings.batch_size, N = sim.settings.num_quantum_states
     """
     classical_energy_name = kwargs.get("classical_energy_name", "classical_energy")
     classical_energy_output_name = kwargs.get(
@@ -92,23 +122,34 @@ def collect_classical_energy(sim: Simulation, state: dict, parameters: dict, **k
     return state, parameters
 
 
-def collect_quantum_energy(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def collect_quantum_energy(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    quantum_energy_name: str = "quantum_energy",
+    quantum_energy_output_name: str = "quantum_energy",
+):
     """
     Collects the quantum energy from the state object and stores it in the
     output dictionary.
 
-    .. rubric:: Required Constants
-    None
-
-    .. rubric:: Keyword Arguments
-    quantum_energy_name : str, default : "quantum_energy"
+    Optional Keyword Arguments
+    --------------------------
+    quantum_energy_name:
         Name of the quantum energy in the state object.
-    quantum_energy_output_name : str, default : "quantum_energy"
+    quantum_energy_output_name:
         Name of the quantum energy in the output dictionary.
 
-    .. rubric:: Modifications
-    state["output_dict"][quantum_energy_output_name] : ndarray
-        Stores the quantum energy.
+    Reads
+    -----
+    state[quantum_energy_name]: ndarray of shape (B,) with dtype=float64
+        Quantum energy in each trajectory.
+
+    Writes
+    ------
+    state["output_dict"][quantum_energy_output_name]: ndarray of shape (B,) with dtype=float64
+        Quantum energy in each trajectory.
+
     """
     quantum_energy_name = kwargs.get("quantum_energy_name", "quantum_energy")
     quantum_energy_output_name = kwargs.get(

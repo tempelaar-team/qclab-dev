@@ -7,12 +7,12 @@ These are typically used in the initialization recipe of the algorithm object.
 
 import logging
 import numpy as np
-from qclab import functions
+from qclab import functions, Simulation
 
 logger = logging.getLogger(__name__)
 
 
-def initialize_variable_objects(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def initialize_variable_objects(sim: Simulation, state: dict, parameters: dict):
     """
     Populates the state object with non-private variables in ``sim.initial_state``, and an empty
     dictionary for storing output quantities.
@@ -22,18 +22,21 @@ def initialize_variable_objects(sim: Simulation, state: dict, parameters: dict, 
     ``original_shape`` is the shape of the array in ``sim.initial_state``.
     The new array is initialized by copying the original array into each slice along the first axis.
 
-    .. rubric:: Required Constants
-    None
+    Reads
+    -----
+    sim.initial_state[name]: ndarray of shape original_shape with dtype=original_dtype
+        Any ndarray in initial_state that does not have a key beginning with "_".
 
-    .. rubric:: Keyword Arguments
-    None
+    Writes
+    ------
+    state[name]: ndarray of shape (B, *original_shape) and dtype=original_dtype
+        Corresponding ndarray with a shape expanded over a new trajecgtory index.
+    state["output_dict"]: dict
+        Dictionary to store output quantities during a simulation.
 
-    .. rubric:: Modifications
-    state[name] : ndarray
-        Initialized state variable with shape (batch_size, *original_shape).
-        ``name`` is the name of the variable in ``sim.initial_state``.
-    state["output_dict"] : dict
-        Dictionary to store output quantities during the simulation.
+    Notes
+    -----
+    Symbols: B = sim.settings.batch_size
 
     """
     for name in sim.initial_state.keys():
@@ -58,19 +61,27 @@ def initialize_variable_objects(sim: Simulation, state: dict, parameters: dict, 
     return state, parameters
 
 
-def initialize_norm_factor(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def initialize_norm_factor(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    norm_factor_name: str = "norm_factor",
+):
     """
     Assigns the normalization factor to the state object.
 
-    .. rubric:: Required Constants
-    None
+    When collected values are summed in the Data object the normalization factor
+    is used to normalize the sum to a trajectory average. In all algorithms in
+    QC Lab this is equivalent to the batch size.
 
-    .. rubric:: Keyword Arguments
-    norm_factor_name : str, default: "norm_factor"
+    Optional Keyword Arguments
+    --------------------------
+    norm_factor_name:
         Name of the normalization factor in the state object.
 
-    .. rubric:: Modifications
-    state[norm_factor_name] : int
+    Writes
+    ------
+    state[norm_factor_name]:
         Normalization factor for trajectory averages.
     """
     norm_factor_name = kwargs.get("norm_factor_name", "norm_factor")
@@ -78,7 +89,13 @@ def initialize_norm_factor(sim: Simulation, state: dict, parameters: dict, **kwa
     return state, parameters
 
 
-def initialize_branch_seeds(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def initialize_branch_seeds(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    seed_name: str = "seed",
+    branch_ind_name: str = "branch_ind",
+):
     """
     Converts seeds into branch seeds for deterministic surface hopping.
 
@@ -92,20 +109,28 @@ def initialize_branch_seeds(sim: Simulation, state: dict, parameters: dict, **kw
     being equal to the number of trajectories divided by the number of
     branches in deterministic surface hopping.
 
-    .. rubric:: Required Constants
-    None
-
-    .. rubric:: Keyword Arguments
-    seed_name : str, default: "seed"
+    Optional Keyword Arguments
+    --------------------------
+    seed_name:
         Name of the seeds array in ``state``.
-    branch_ind_name : str, default: "branch_ind"
+    branch_ind_name:
         Name of the branch index array in ``state``.
 
-    .. rubric:: Modifications
-    state[branch_ind_name] : ndarray
+    Reads
+    -----
+    state[seed_name]: ndarray with shape (B,), dtype=int
+        Seed for each trajectory.
+
+    Writes
+    ------
+    state[seed_name]
+        Seed for each trajectory remapped for the number of branches.
+    state[branch_ind_name]
         Branch index for each trajectory.
-    state[seed_name] : ndarray
-        Seeds remapped for branches.
+
+    Notes
+    -----
+    Symbols: B = sim.settings.batch_size
     """
     seed_name = kwargs.get("seed_name", "seed")
     branch_ind_name = kwargs.get("branch_ind_name", "branch_ind")
@@ -138,7 +163,7 @@ def initialize_branch_seeds(sim: Simulation, state: dict, parameters: dict, **kw
     return state, parameters
 
 
-def initialize_z_mcmc(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def initialize_z_mcmc(sim: Simulation, state: dict, parameters: dict, seed_name: str="seed", z_name: str="z"):
     """
     Initializes classical coordinates according to Boltzmann statistics using Markov-
     Chain Monte Carlo with a Metropolis-Hastings algorithm.
@@ -150,32 +175,48 @@ def initialize_z_mcmc(sim: Simulation, state: dict, parameters: dict, **kwargs):
     the classical Hamiltonian can be written as a sum of independent terms depending
     on each classical coordinate.
 
-    .. rubric:: Required Constants
-    mcmc_burn_in_size : int, default: 1000
-        Burn-in step count.
-    mcmc_sample_size : int, default: 10000
-        Number of retained samples.
-    mcmc_std : float, default: 1.0
-        Sampling standard deviation.
-    mcmc_h_c_separable : bool, default: True
-        Whether the classical Hamiltonian is separable.
-    mcmc_init_z : ndarray, default: output of ``gen_sample_gaussian``
-        Initial coordinate sample.
-    kBT : float
-        Thermal quantum.
-
-    .. rubric:: Keyword Arguments
-    seed_name : str
+    Optional Keyword Arguments
+    --------------------------
+    seed_name:
         Attribute name of the seeds array in ``state``.
-    z_name : str
-        Name of destination attribute in the ``state`` object.
+    z_name:
+        Name of destination attribute in ``state``.
 
-    .. rubric:: Modifications
-    state[z_name] : ndarray
-        Initialized classical coordinates.
+    Constants and Settings
+    ----------------------
+    sim.model.constants.mcmc_burn_in_size: int, default: 1000
+        Burn-in step count.
+    sim.model.constants.mcmc_sample_size: int, default: 10000
+        Number of retained samples.
+    sim.model.constants.mcmc_std: float, default: 1.0
+        Sampling standard deviation.
+    sim.model.constants.mcmc_init_z: ndarray, default: random sample generated by ``functions.gen_sample_gaussian``
+        Initial value of the coordinate at the outset of sampling.
+    sim.model.constants.kBT: float
+        Thermal energy. 
+
+    Ingredients
+    -----------
+    h_c:
+        Classical Hamiltonian.
+
+    Reads
+    -----
+    state[seed_name]: ndarray with shape (B,), dtype=int
+        Seed for each trajectory.
+
+    Writes
+    ------
+    state[z_name]: ndarray with shape (B, C), dtype=complex128
+        Classical coordinate in each trajectory.
+
+    Notes
+    -----
+    Symbols: B = sim.settings.batch_size, C = sim.settings.num_classical_coordinates
     """
-    seed = getattr(state, kwargs["seed_name"])
-    z_name = kwargs["z_name"]
+    seed_name = kwargs.get("seed_name", "seed")
+    z_name = kwargs.get("z_name", "z")
+    seed = state[seed_name]
     burn_in_size = sim.model.constants.get("mcmc_burn_in_size", 1000)
     sample_size = sim.model.constants.get("mcmc_sample_size", 10000)
     mcmc_h_c_separable = sim.model.constants.get("mcmc_h_c_separable", True)
@@ -342,6 +383,7 @@ def copy_in_state(sim: Simulation, state: dict, parameters: dict, **kwargs):
     state[kwargs["copy_name"]] = np.copy(state[kwargs["orig_name"]])
     return state, parameters
 
+
 def copy_to_parameters(sim: Simulation, state: dict, parameters: dict, **kwargs):
     """
     Copies a variable from the state object to the parameters object.
@@ -436,7 +478,9 @@ def initialize_active_surface(sim: Simulation, state: dict, parameters: dict, **
     return state, parameters
 
 
-def initialize_random_values_fssh(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def initialize_random_values_fssh(
+    sim: Simulation, state: dict, parameters: dict, **kwargs
+):
     """
     Initializes a set of random numbers using the trajectory seeds for FSSH.
 

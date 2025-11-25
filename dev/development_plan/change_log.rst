@@ -19,7 +19,7 @@ Version 1.0.1
   a tutorial on replacing it with Velocity Verlet for ab initio calculations as well.
 - Added AbInitioMeanField algorithm that uses Velocity Verlet integration for the classical degrees of freedom,
   suitable for ab initio calculations or any other problem where the quantum-classical Hamiltonian only depends on the position (real part of z) coordinate.
-  
+- Fixed critical typo in tasks.initialize_z_mcmc.
 New Capabilities
 --------------------
 
