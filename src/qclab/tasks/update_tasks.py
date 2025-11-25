@@ -26,7 +26,6 @@ def update_t(sim: Simulation, state: dict, parameters: dict, t_name: str = "t"):
     state[t_name]: ndarray, (B,) dtype=
 
     """
-    t_name = kwargs.get("t_name", "t")
     batch_size = sim.settings.batch_size
     state[t_name] = np.broadcast_to(sim.t_ind * sim.settings.dt_update, (batch_size,))
     return state, parameters
@@ -70,8 +69,7 @@ def update_dh_c_dzc_finite_differences(
         Gradient of the classical Hamiltonian.
 
     """
-    z = state[kwargs.get("z_name", "z")]
-    dh_c_dzc_name = kwargs.get("dh_c_dzc_name", "dh_c_dzc")
+    z = state[z_name]
     delta_z = sim.model.constants.get(
         "dh_c_dzc_finite_difference_delta", numerical_constants.FINITE_DIFFERENCE_DELTA
     )
