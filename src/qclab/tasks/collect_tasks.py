@@ -38,8 +38,6 @@ def collect_t(
     -----
     Symbols: B = sim.settings.batch_size
     """
-    t_name = kwargs.get("t_name", "t")
-    t_output_name = kwargs.get("t_output_name", "t")
     state["output_dict"][t_output_name] = state[t_name]
     return state, parameters
 
@@ -76,8 +74,6 @@ def collect_dm_db(
     -----
     Symbols: B = sim.settings.batch_size, N = sim.settings.num_quantum_states
     """
-    dm_db_name = kwargs.get("dm_db_name", "dm_db")
-    dm_db_output_name = kwargs.get("dm_db_output_name", "dm_db")
     state["output_dict"][dm_db_output_name] = state[dm_db_name]
     return state, parameters
 
@@ -114,10 +110,6 @@ def collect_classical_energy(
     -----
     Symbols: B = sim.settings.batch_size, N = sim.settings.num_quantum_states
     """
-    classical_energy_name = kwargs.get("classical_energy_name", "classical_energy")
-    classical_energy_output_name = kwargs.get(
-        "classical_energy_output_name", "classical_energy"
-    )
     state["output_dict"][classical_energy_output_name] = state[classical_energy_name]
     return state, parameters
 
@@ -151,9 +143,5 @@ def collect_quantum_energy(
         Quantum energy in each trajectory.
 
     """
-    quantum_energy_name = kwargs.get("quantum_energy_name", "quantum_energy")
-    quantum_energy_output_name = kwargs.get(
-        "quantum_energy_output_name", "quantum_energy"
-    )
     state["output_dict"][quantum_energy_output_name] = state[quantum_energy_name]
     return state, parameters

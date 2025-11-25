@@ -85,7 +85,6 @@ def initialize_norm_factor(
     state[norm_factor_name]:
         Normalization factor for trajectory averages.
     """
-    norm_factor_name = kwargs.get("norm_factor_name", "norm_factor")
     state[norm_factor_name] = sim.settings.batch_size
     return state, parameters
 
@@ -133,8 +132,6 @@ def initialize_branch_seeds(
     -----
     Symbols: B = sim.settings.batch_size
     """
-    seed_name = kwargs.get("seed_name", "seed")
-    branch_ind_name = kwargs.get("branch_ind_name", "branch_ind")
     # First ensure that the number of branches is correct.
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -221,8 +218,6 @@ def initialize_z_mcmc(
     -----
     Symbols: B = sim.settings.batch_size, C = sim.settings.num_classical_coordinates
     """
-    seed_name = kwargs.get("seed_name", "seed")
-    z_name = kwargs.get("z_name", "z")
     seed = state[seed_name]
     burn_in_size = sim.model.constants.get("mcmc_burn_in_size", 1000)
     sample_size = sim.model.constants.get("mcmc_sample_size", 10000)
@@ -376,9 +371,7 @@ def initialize_z(
     -----
     Symbols: B = sim.settings.batch_size, C = sim.settings.num_classical_coordinates
     """
-    seed_name = kwargs.get("seed_name", "seed")
     seed = state[seed_name]
-    z_name = kwargs.get("z_name", "z")
     init_classical, has_init_classical = sim.model.get("init_classical")
     if has_init_classical:
         state[z_name] = init_classical(sim.model, parameters, seed=seed)
@@ -413,7 +406,7 @@ def copy_in_state(
     state[copy_name]:
         Copy of object.
     """
-    state[kwargs["copy_name"]] = copy.copy(state[kwargs["orig_name"]])
+    state[copy_name] = copy.copy(state[orig_name])
     return state, parameters
 
 
@@ -444,7 +437,7 @@ def copy_to_parameters(
     parameters[parameters_name]:
         Copy of object.
     """
-    parameters[kwargs["parameters_name"]] = copy.copy(state[kwargs["state_name"]])
+    parameters[parameters_name] = copy.copy(state[state_name])
     return state, parameters
 
 
@@ -506,13 +499,6 @@ def initialize_active_surface(
     -----
     Symbols: B = sim.settings.batch_size, N = sim.settings.num_quantum_states
     """
-    act_surf_ind_0_name = kwargs.get("act_surf_ind_0_name", "act_surf_ind_0")
-    act_surf_ind_name = kwargs.get("act_surf_ind_name", "act_surf_ind")
-    act_surf_name = kwargs.get("act_surf_name", "act_surf")
-    init_act_surf_rand_vals_name = kwargs.get(
-        "init_act_surf_rand_vals_name", "init_act_surf_rand_vals"
-    )
-    wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
     wf_adb = state[wf_adb_name]
     init_act_surf_rand_vals = state[init_act_surf_rand_vals_name]
     if sim.algorithm.settings.fssh_deterministic:
@@ -586,13 +572,6 @@ def initialize_random_values_fssh(
     -----
     Symbols: B = sim.settings.batch_size, b = sim.model.constants.num_quantum_states if fssh_deterministic == True, b = 1 otherwise, t is the number of update timesteps.
     """
-    hop_prob_rand_vals_name = kwargs.get(
-        "hop_prob_rand_vals_name", "hop_prob_rand_vals"
-    )
-    init_act_surf_rand_vals_name = kwargs.get(
-        "init_act_surf_rand_vals_name", "init_act_surf_rand_vals"
-    )
-    seed_name = kwargs.get("seed_name", "seed")
     seed = state[seed_name]
     if sim.algorithm.settings.fssh_deterministic:
         num_branches = sim.model.constants.num_quantum_states
@@ -643,8 +622,6 @@ def initialize_dm_adb_0_fssh(
     -----
     Symbols: B = sim.settings.batch_size, N = sim.model.constants.num_quantum_states
     """
-    dm_adb_0_name = kwargs.get("dm_adb_0_name", "dm_adb_0")
-    wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
     wf_adb = state[wf_adb_name]
     state[dm_adb_0_name] = np.einsum(
         "ti,tj->tij",
