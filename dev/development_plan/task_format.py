@@ -30,10 +30,17 @@ def action_variable_specs(
 
     Reads
     -----
-    state["test"] : updates a number
+    state["test"]: ndarray of shape (B, C), dtype=complex128
+        Description of state["test"],
+    parameters["test2"]: ndarray of shape (B, C), dtype=complex128
+        Description of parameters["test2"]
 
     Writes
     ------
+    state["test3"]: ndarray of shape (B, C), dtype=complex128
+        Description of state["test3"],
+    parameters["test4"]: ndarray of shape (B, C), dtype=complex128
+        Description of parameters["test4"]
 
     Raises
     ------

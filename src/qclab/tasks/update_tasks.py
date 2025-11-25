@@ -1701,7 +1701,9 @@ def update_wf_adb_coeffs(sim, state, parameters, **kwargs):
     Updates the coefficients of the adiabatic wavefunction to those at a new
     classical configuration. 
 
-    \vert\psi(z + \Delta z)\rangle = \exp(i (A(t+\Delta t) - A(t))) \vert\psi(z)\rangle
+    It does so by applying the translation operator
+
+    :math:`P() = \exp(\Delta t A(z(t)))`
 
     """
     dt_update = sim.settings.dt_update
