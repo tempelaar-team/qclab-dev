@@ -24,19 +24,11 @@ EV_TO_300K = 0.025852
 # Conversion factor from Hartrees to kBT at 300 K.
 HA_TO_300K = EV_TO_300K / HA_TO_EV
 
-"""
-For ab initio calculations we use the following unit convention (referred to as ABU):
-\hbar = 1
-mass: atomic mass units
-length: Angstroms
-
-"""
-
 # Conversion factor from eV to Hartrees.
 EV_TO_HA = 1 / HA_TO_EV
 
 # Conversion factor from wavenumbers to Hartrees.
-INVCM_TO_HA =  (1 / EV_TO_INVCM) * EV_TO_HA
+INVCM_TO_HA = (1 / EV_TO_INVCM) * EV_TO_HA
 
 # Conversion factor from Angstroms to Bohr.
 ANGSTROM_TO_BOHR = 1.8897259886
@@ -48,7 +40,5 @@ AMU_TO_EMASS = 1822.89
 AU_TIME_TO_FS = 0.02419
 
 
-
 # Finite difference step size.
 FINITE_DIFFERENCE_DELTA = 1e-6
-

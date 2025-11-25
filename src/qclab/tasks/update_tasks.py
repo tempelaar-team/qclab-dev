@@ -1457,7 +1457,7 @@ def update_adb_connection(sim: Simulation, state: dict, parameters: dict, **kwar
 
     This matrix describes the coupling between different adiabatic states.
 
-    A = B - B^{\dagger}
+    A = B - B^{\\dagger}
 
     where
 
@@ -1727,7 +1727,7 @@ def update_wf_adb_coeffs(sim: Simulation, state: dict, parameters: dict, **kwarg
 
     It does so by applying the translation operator
 
-    :math:`P() = \exp(\Delta t A(z(t)))`
+    :math:`P() = \\exp(\\Delta t A(z(t)))`
 
     """
     dt_update = sim.settings.dt_update
