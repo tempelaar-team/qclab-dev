@@ -37,7 +37,7 @@ def initialize_variable_objects(sim: Simulation, state: dict, parameters: dict):
 
     Notes
     -----
-    Symbols: B = sim.settings.batch_size
+    B = sim.settings.batch_size
 
     """
     for name in sim.initial_state.keys():
@@ -130,7 +130,7 @@ def initialize_branch_seeds(
 
     Notes
     -----
-    Symbols: B = sim.settings.batch_size
+    B = sim.settings.batch_size
     """
     # First ensure that the number of branches is correct.
     if sim.algorithm.settings.fssh_deterministic:
@@ -216,7 +216,8 @@ def initialize_z_mcmc(
 
     Notes
     -----
-    Symbols: B = sim.settings.batch_size, C = sim.settings.num_classical_coordinates
+    B = sim.settings.batch_size
+    C = sim.model.constants.num_classical_coordinates
     """
     seed = state[seed_name]
     burn_in_size = sim.model.constants.get("mcmc_burn_in_size", 1000)
@@ -369,7 +370,7 @@ def initialize_z(
 
     Notes
     -----
-    Symbols: B = sim.settings.batch_size, C = sim.settings.num_classical_coordinates
+    Symbols: B = sim.settings.batch_size, C = sim.model.constants.num_classical_coordinates
     """
     seed = state[seed_name]
     init_classical, has_init_classical = sim.model.get("init_classical")
@@ -497,7 +498,8 @@ def initialize_active_surface(
 
     Notes
     -----
-    Symbols: B = sim.settings.batch_size, N = sim.settings.num_quantum_states
+    B = sim.settings.batch_size
+    N = sim.model.constants.num_quantum_states
     """
     wf_adb = state[wf_adb_name]
     init_act_surf_rand_vals = state[init_act_surf_rand_vals_name]
@@ -570,7 +572,9 @@ def initialize_random_values_fssh(
 
     Notes
     -----
-    Symbols: B = sim.settings.batch_size, b = sim.model.constants.num_quantum_states if fssh_deterministic == True, b = 1 otherwise, t is the number of update timesteps.
+    B = sim.settings.batch_size
+    b = sim.model.constants.num_quantum_states if fssh_deterministic == True, b = 1 otherwise.
+    t is the number of update timesteps.
     """
     seed = state[seed_name]
     if sim.algorithm.settings.fssh_deterministic:
@@ -620,7 +624,8 @@ def initialize_dm_adb_0_fssh(
 
     Notes
     -----
-    Symbols: B = sim.settings.batch_size, N = sim.model.constants.num_quantum_states
+    B = sim.settings.batch_size
+    N = sim.model.constants.num_quantum_states
     """
     wf_adb = state[wf_adb_name]
     state[dm_adb_0_name] = np.einsum(

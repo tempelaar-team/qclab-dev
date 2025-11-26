@@ -41,3 +41,6 @@ Version 2.0.0
 -----------------
 
 - Change the diagonal_linear_coupling term so that the constant is not changing wrt h
+- Move Model flags like ``update_dh_qc_dzc`` and ``update_h_q`` to Model class settings.
+- Change force convention so the force is minus the gradient.
+

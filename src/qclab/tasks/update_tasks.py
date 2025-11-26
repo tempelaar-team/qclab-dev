@@ -23,7 +23,12 @@ def update_t(sim: Simulation, state: dict, parameters: dict, t_name: str = "t"):
 
     Writes
     ------
-    state[t_name]: ndarray, (B,) dtype=
+    state[t_name]: ndarray of shape (B,) dtype=float64
+        Time variable in each trajectory.
+
+    Notes
+    -----
+    B = sim.settings.batch_size
 
     """
     batch_size = sim.settings.batch_size
@@ -103,26 +108,45 @@ def update_dh_c_dzc_finite_differences(
     return state, parameters
 
 
-def update_classical_force(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_classical_force(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    z_name: str = "z",
+    classical_force_name: str = "classical_force",
+):
     """
     Updates the gradient of the classical Hamiltonian w.r.t. the conjugate classical
     coordinate.
 
-    .. rubric:: Required Constants
-    None
-
-    .. rubric:: Keyword Arguments
-    z_name : str, default: "z"
+    Optional Keyword Arguments
+    --------------------------
+    z_name : str, default:
         Name of the classical coordinates in the state object.
-    classical_force_name : str, default: "classical_force"
+    classical_force_name:
         Name under which to store the classical force in the state object.
 
-    .. rubric:: Modifications
-    state[classical_force_name] : ndarray
-            Gradient of the classical Hamiltonian.
+    Ingredients
+    -----------
+    dh_c_dzc:
+        Gradient of the classical Hamiltonian with respect to the conjugate classical
+        coordinate.
+
+    Reads
+    -----
+    state[z_name]: ndarray of shape (B, C), dtype=complex128
+        Complex-valued classical coordinate.
+
+    Writes
+    ------
+    state[classical_force_name]: ndarray of shape (B, C), dtype=complex128
+        Force arising from the classical Hamiltonian.
+
+    Notes
+    -----
+    B = sim.settings.batch_size
+    C = sim.model.constants.num_classical_coordinates
     """
-    z_name = kwargs.get("z_name", "z")
-    classical_force_name = kwargs.get("classical_force_name", "classical_force")
     z = state[z_name]
     dh_c_dzc, has_dh_c_dzc = sim.model.get("dh_c_dzc")
     if has_dh_c_dzc:
@@ -137,7 +161,11 @@ def update_classical_force(sim: Simulation, state: dict, parameters: dict, **kwa
 
 
 def update_dh_qc_dzc_finite_differences(
-    sim: Simulation, state: dict, parameters: dict, **kwargs
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    z_name: str = "z",
+    dh_qc_dzc_name: str = "dh_qc_dzc",
 ):
     """
     Updates the gradient of the quantum-classical Hamiltonian using finite
@@ -147,18 +175,37 @@ def update_dh_qc_dzc_finite_differences(
     dh_qc_dzc_finite_difference_delta : float, default : numerical_constants.FINITE_DIFFERENCE_DELTA
         Finite-difference step size.
 
-    .. rubric:: Keyword Arguments
-    z_name : str, default: "z"
+    Optional Keyword Arguments
+    --------------------------
+    z_name:
         Name of classical coordinates in the state object.
-    dh_qc_dzc_name : str, default: "dh_qc_dzc"
+    dh_qc_dzc_name:
         Name under which to store the gradient of the quantum-classical Hamiltonian in the state object.
 
-    .. rubric:: Modifications
-    state[dh_qc_dzc_name] : tuple
-        Gradient of the quantum-classical Hamiltonian.
+    Constants and Settings
+    sim.model.constants.dh_qc_dzc_finite_difference_delta: float, default : numerical_constants.FINITE_DIFFERENCE_DELTA
+        Finite-difference step size.
+
+    Ingredients
+    -----------
+    h_qc:
+        Quantum-classical Hamiltonian.
+
+    Reads
+    -----
+    state[z_name]: ndarray of shape (B, C), dtype=complex128
+        Complex-valued classical coordinates.
+
+    Writes
+    ------
+    state[dh_qc_dzc_name]: tuple
+        Gradient of the quantum-classical Hamiltonian in sparse matrix format.
+
+    Notes
+    -----
+    B = sim.settings.batch_size
+    C = sim.model.constants.num_classical_coordinates
     """
-    z_name = kwargs.get("z_name", "z")
-    dh_qc_dzc_name = kwargs.get("dh_qc_dzc_name", "dh_qc_dzc")
     z = state[z_name]
     batch_size = len(z)
     delta_z = sim.model.constants.get(
@@ -202,7 +249,13 @@ def update_dh_qc_dzc_finite_differences(
     return state, parameters
 
 
-def update_dh_qc_dzc(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_dh_qc_dzc(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    z_name: str = "z",
+    dh_qc_dzc_name: str = "dh_qc_dzc",
+):
     """
     Updates the gradient of the quantum-classical Hamiltonian w.r.t. the conjugate
     classical coordinate.
@@ -210,15 +263,32 @@ def update_dh_qc_dzc(sim: Simulation, state: dict, parameters: dict, **kwargs):
     .. rubric:: Required Constants
     None
 
-    .. rubric:: Keyword Arguments
-    z_name : str, default: "z"
+    Optional Keyword Arguments
+    --------------------------
+    z_name:
         Name of classical coordinates in state object.
-    dh_qc_dzc_name : str, default: "dh_qc_dzc"
+    dh_qc_dzc_name:
         Name under which to store the gradient of the quantum-classical Hamiltonian in the state object.
 
-    .. rubric:: Modifications
-    state[dh_qc_dzc_name] : tuple
+    Ingredients
+    -----------
+    dh_qc_dzc:
         Gradient of the quantum-classical Hamiltonian.
+
+    Reads
+    -----
+    state[z_name]: ndarray of shape (B, C), dtype=complex128
+        Complex-valued classical coordinates.
+
+    Writes
+    ------
+    state[dh_qc_dzc_name]: tuple
+        Gradient of the quantum-classical Hamiltonian in spare format.
+
+    Notes
+    -----
+    B = sim.settings.batch_size
+    C = sim.model.constants.num_classical_coordinates
     """
     z_name = kwargs.get("z_name", "z")
     dh_qc_dzc_name = kwargs.get("dh_qc_dzc_name", "dh_qc_dzc")
@@ -241,7 +311,16 @@ def update_dh_qc_dzc(sim: Simulation, state: dict, parameters: dict, **kwargs):
 
 
 def update_quantum_classical_force(
-    sim: Simulation, state: dict, parameters: dict, **kwargs
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    z_name: str = "z",
+    wf_db_name: str = "wf_db",
+    dh_qc_dzc_name: str = "dh_qc_dzc",
+    quantum_classical_force_name: str = "quantum_classical_force",
+    state_ind_name: str = "act_surf_ind",
+    wf_changed: bool = True,
+    h_q_tot_name: str = "h_q_tot",
 ):
     """
     Updates the quantum-classical force w.r.t. the wavefunction defined by ``wf_db``.
@@ -249,41 +328,59 @@ def update_quantum_classical_force(
     If the model has a ``gauge_field_force`` ingredient, this term will be added
     to the quantum-classical force.
 
-    .. rubric:: Required Constants
-    None
+    If the model has a ``derivative_coupling_dzc`` ingredient, this conribution will
+    be added to the quantum-classical force.
 
-    .. rubric:: Keyword Arguments
-    z_name : str, default: "z"
+    Optional Keyword Arguments
+    --------------------------
+    z_name:
         Name of classical coordinates in state object.
-    wf_db_name : str, default: "wf_db"
+    wf_db_name:
         Name of the wavefunction (in the diabatic basis) in the state object.
-    dh_qc_dzc_name : str, default: "dh_qc_dzc"
+    dh_qc_dzc_name:
         Name of the gradient of the quantum-classical Hamiltonian in the state object.
-    quantum_classical_force_name : str, default: "quantum_classical_force"
+    quantum_classical_force_name:
         Name under which to store the quantum-classical force in the state object.
-    state_ind_name : str, default: "act_surf_ind"
+    state_ind_name:
         Name in the state object of the state index for which to obtain the gauge field force.
         Required if ``algorithm.settings.use_gauge_field_force`` is ``True``.
-    wf_changed : bool, default: True
+    wf_changed:
         If ``True``, the wavefunction has changed since the last time the force were calculated.
-    h_q_tot_name : str, default: "h_q_tot"
+    h_q_tot_name:
         Name under which to store the total Hamiltonian in the state object.
 
-    .. rubric:: Modifications
-    state[dh_qc_dzc_name] : tuple
-        Gradient of the quantum-classical Hamiltonian.
-    state[quantum_classical_force_name] : ndarray
+    Constants and Settings
+    ----------------------
+    sim.model.update_dh_qc_dzc: Bool, default: False
+        Model flag indicating if the quantum-classical Hamiltonian is to be updated at each timestep.
+    sim.algorithm.settings.use_gauge_field_force: Bool, default: False
+        Boolean indicating if a gauge field force is to be added to the quantum-classical force.
+
+    Ingredients
+    -----------
+    derivative_coupling_dzc:
+        Derivative coupling tensor.
+
+
+    Reads
+    -----
+    state[z_name]: ndarray of shape (B, C), dtype=complex128
+        Complex-valued classical coordinates.
+    state[wf_db_name]: ndarray of shape (B, N), dtype=complex128
+        Wavefunction coefficients in the diabatic basis.
+    state[dh_qc_dzc_name]: tuple
+        Gradient of the quantum-classical Hamiltonian in sparse format.
+
+    Writes
+    ------
+    state[quantum_classical_force_name]: ndarray of shape (B, C), dtype=complex128
         Quantum-classical force.
+
+    Notes
+    -----
+    B = sim.settings.batch_size
+    C = sim.model.constants.num_classical_coordinates
     """
-    z_name = kwargs.get("z_name", "z")
-    wf_db_name = kwargs.get("wf_db_name", "wf_db")
-    dh_qc_dzc_name = kwargs.get("dh_qc_dzc_name", "dh_qc_dzc")
-    quantum_classical_force_name = kwargs.get(
-        "quantum_classical_force_name", "quantum_classical_force"
-    )
-    state_ind_name = kwargs.get("state_ind_name", "act_surf_ind")
-    h_q_tot_name = kwargs.get("h_q_tot_name", "h_q_tot")
-    wf_changed = kwargs.get("wf_changed", True)
     z = state[z_name]
     wf_db = state[wf_db_name]
     # Update the gradient of h_qc.
@@ -333,7 +430,14 @@ def update_quantum_classical_force(
     return state, parameters
 
 
-def add_gauge_field_force(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def add_gauge_field_force(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    z_name: str = "z",
+    adb_state_ind_name: str = "act_surf_ind",
+    quantum_classical_force_name: str = "quantum_classical_force",
+):
     """
     Adds the quantum-classical force with the gauge field force if the model has a
     ``gauge_field_force`` ingredient.

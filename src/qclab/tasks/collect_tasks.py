@@ -36,7 +36,7 @@ def collect_t(
 
     Notes
     -----
-    Symbols: B = sim.settings.batch_size
+    B = sim.settings.batch_size
     """
     state["output_dict"][t_output_name] = state[t_name]
     return state, parameters
@@ -72,7 +72,8 @@ def collect_dm_db(
 
     Notes
     -----
-    Symbols: B = sim.settings.batch_size, N = sim.settings.num_quantum_states
+    B = sim.settings.batch_size
+    N = sim.model.constants.num_quantum_states
     """
     state["output_dict"][dm_db_output_name] = state[dm_db_name]
     return state, parameters
@@ -108,7 +109,8 @@ def collect_classical_energy(
 
     Notes
     -----
-    Symbols: B = sim.settings.batch_size, N = sim.settings.num_quantum_states
+    B = sim.settings.batch_size
+    N = sim.model.constants.num_quantum_states
     """
     state["output_dict"][classical_energy_output_name] = state[classical_energy_name]
     return state, parameters
