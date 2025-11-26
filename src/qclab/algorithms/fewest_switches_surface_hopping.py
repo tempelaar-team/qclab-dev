@@ -254,7 +254,6 @@ class AdiabaticFewestSwitchesSurfaceHopping(Algorithm):
     ]
 
 
-
 class AbInitioFewestSwitchesSurfaceHopping(Algorithm):
     """
     Fewest switches surface hopping algorithm class.

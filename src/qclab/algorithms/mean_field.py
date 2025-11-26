@@ -177,9 +177,17 @@ class AbInitioMeanField(Algorithm):
     ]
 
     update_recipe = [
-        partial(tasks.copy_in_state, copy_name="adb_connection_prev", orig_name="adb_connection"),
+        partial(
+            tasks.copy_in_state,
+            copy_name="adb_connection_prev",
+            orig_name="adb_connection",
+        ),
         partial(tasks.copy_in_state, copy_name="h_q_tot_prev", orig_name="h_q_tot"),
-        partial(tasks.copy_in_state, copy_name="quantum_classical_force_prev", orig_name="quantum_classical_force"),
+        partial(
+            tasks.copy_in_state,
+            copy_name="quantum_classical_force_prev",
+            orig_name="quantum_classical_force",
+        ),
         tasks.update_q_velocity_verlet,
         tasks.update_wf_adb_coeffs,
         partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb_dt"),

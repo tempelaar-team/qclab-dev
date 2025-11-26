@@ -16,7 +16,12 @@ from qclab.functions import (
 )
 from qclab.model import Model, Constants
 from qclab import ingredients
-from qclab.numerical_constants import EV_TO_HA, INVCM_TO_HA, ANGSTROM_TO_BOHR, AMU_TO_EMASS
+from qclab.numerical_constants import (
+    EV_TO_HA,
+    INVCM_TO_HA,
+    ANGSTROM_TO_BOHR,
+    AMU_TO_EMASS,
+)
 import copy
 
 
@@ -56,7 +61,7 @@ class QChemASE(Model):
             self.constants.num_classical_coordinates
         )
         if not "energy_offset" in self.constants.__dict__:
-            print('Calculating energy offset')
+            print("Calculating energy offset")
             mol.calc = QCLabQChemCalculator(
                 **{
                     **self.constants.qchem_args,
@@ -68,16 +73,22 @@ class QChemASE(Model):
             mol.calc.write_input(mol, properties=["energy"])
             mol.calc.execute()
             mol.calc.read_results()
-            self.constants.energy_offset = mol.calc.results["energy"][0] * EV_TO_HA # In Hartrees
+            self.constants.energy_offset = (
+                mol.calc.results["energy"][0] * EV_TO_HA
+            )  # In Hartrees
             print("Energy offset in Hartrees:", self.constants.energy_offset)
         if not "harmonic_frequency" in self.constants.__dict__:
-            print('Calculating harmonic frequencies and normal modes')
-            mol.calc = QCLabQChemCalculator(**{**self.constants.qchem_args, "seed": None})
+            print("Calculating harmonic frequencies and normal modes")
+            mol.calc = QCLabQChemCalculator(
+                **{**self.constants.qchem_args, "seed": None}
+            )
             mol.calc.label += "_" + str(self.constants.seed)
             mol.calc.write_input(mol, properties=["frequency"])
             mol.calc.execute()
             mol.calc.read_results()
-            self.constants.harmonic_frequency = mol.calc.results["frequency"] * INVCM_TO_HA
+            self.constants.harmonic_frequency = (
+                mol.calc.results["frequency"] * INVCM_TO_HA
+            )
             print("frequencies in Hartrees:", self.constants.harmonic_frequency)
             if np.any(self.constants.harmonic_frequency < 0):
                 raise ValueError("Negative harmonic frequencies found.")
@@ -96,7 +107,9 @@ class QChemASE(Model):
         )
         old_constants = copy.deepcopy(self.constants)
         self.constants = Constants()
-        self.constants.num_classical_coordinates = len(old_constants.harmonic_frequency)# set to number of normal modes
+        self.constants.num_classical_coordinates = len(
+            old_constants.harmonic_frequency
+        )  # set to number of normal modes
         self.constants.classical_coordinate_mass = np.ones(
             self.constants.num_classical_coordinates
         )
@@ -106,28 +119,32 @@ class QChemASE(Model):
         z_mwnm = ingredients.init_classical_wigner_harmonic(self, parameters, **kwargs)
         # convert back to mass-weighted normal coordinates
         q_mwnm = z_to_q(
-            z_mwnm, self.constants.classical_coordinate_mass[np.newaxis], self.constants.classical_coordinate_weight[np.newaxis]
+            z_mwnm,
+            self.constants.classical_coordinate_mass[np.newaxis],
+            self.constants.classical_coordinate_weight[np.newaxis],
         )
         p_mwnm = z_to_p(
-            z_mwnm, self.constants.classical_coordinate_mass[np.newaxis], self.constants.classical_coordinate_weight[np.newaxis]
+            z_mwnm,
+            self.constants.classical_coordinate_mass[np.newaxis],
+            self.constants.classical_coordinate_weight[np.newaxis],
         )
         # convert back to Cartesian coordinates.
         q = np.einsum("tm, cm ->tc", q_mwnm, normal_modes) + old_constants.init_position
         p = np.einsum("tm, cm ->tc", p_mwnm, normal_modes)
-        print('MWNM coordinates:')
+        print("MWNM coordinates:")
         print(q_mwnm)
         print(p_mwnm)
-        print('Initialized classical coordinates.')
+        print("Initialized classical coordinates.")
         print(q - old_constants.init_position)
         print(p)
         self.constants = old_constants
-        print('Harmonic frequencies (Hartrees):')
+        print("Harmonic frequencies (Hartrees):")
         print(self.constants.harmonic_frequency)
         z = qp_to_z(
             q,
             p,
             self.constants.classical_coordinate_mass[np.newaxis],
-            self.constants.classical_coordinate_weight[np.newaxis]
+            self.constants.classical_coordinate_weight[np.newaxis],
         )
         return z
 
@@ -151,7 +168,7 @@ class QChemASE(Model):
         assert (
             len(diag_h_qc) == num_quantum_states
         ), "Number of quantum states mismatch." + str(diag_h_qc)
-        if not(np.all(np.diff(diag_h_qc) > 0)):
+        if not (np.all(np.diff(diag_h_qc) > 0)):
             print("Excited states are lower in energy!")
         return np.diag(diag_h_qc)
 
@@ -175,13 +192,13 @@ class QChemASE(Model):
             self.constants.classical_coordinate_mass,
             self.constants.classical_coordinate_weight,
         )
-        mol.set_positions(q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR)
+        mol.set_positions(
+            q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR
+        )
         for state_ind in range(num_quantum_states):
             if state_ind == 0:
                 # For state_ind == 0 do a ground state calculation.
-                calc = QCLabQChemCalculator(
-                    **{**qchem_args, "seed": None}
-                )
+                calc = QCLabQChemCalculator(**{**qchem_args, "seed": None})
             else:
                 # Otherwise do an excited state calculation.
                 calc = QCLabQChemCalculator(
@@ -192,7 +209,7 @@ class QChemASE(Model):
                         "seed": None,
                     }
                 )
-            calc.label += "_"+str(state_ind)+"_" + str(self.constants.seed)
+            calc.label += "_" + str(state_ind) + "_" + str(self.constants.seed)
             mol.calc = calc
             mol.calc.write_input(mol, properties=["gradient"])
             mol.calc.execute()
@@ -201,7 +218,10 @@ class QChemASE(Model):
                 self.results = mol.calc.results
             # Convert to derivative w.r.t. zc.
             out[:, state_ind, state_ind] = dqdp_to_dzc(
-                mol.calc.results["gradient"].flatten() * EV_TO_HA / ANGSTROM_TO_BOHR, None, m, h
+                mol.calc.results["gradient"].flatten() * EV_TO_HA / ANGSTROM_TO_BOHR,
+                None,
+                m,
+                h,
             )
         return out
 
@@ -216,7 +236,9 @@ class QChemASE(Model):
         qchem_args = self.constants.qchem_args
         qchem_tddft_args = self.constants.qchem_tddft_args
         q = z_to_q(z, m, h)
-        mol.set_positions(q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR)
+        mol.set_positions(
+            q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR
+        )
         out = np.zeros(
             (num_classical_coordinates, num_quantum_states, num_quantum_states),
             dtype=complex,
@@ -240,7 +262,9 @@ class QChemASE(Model):
         mol.calc.read_results()
         derivative_coupling_dq = mol.calc.results["derivative_coupling"]
         for key, val in derivative_coupling_dq.items():
-            out[:, key[0], key[1]] = dqdp_to_dzc(val.flatten(), None, m, h) / ANGSTROM_TO_BOHR # convert from 1/A to 1/Bohr
+            out[:, key[0], key[1]] = (
+                dqdp_to_dzc(val.flatten(), None, m, h) / ANGSTROM_TO_BOHR
+            )  # convert from 1/A to 1/Bohr
             out[:, key[1], key[0]] = -np.conj(out[:, key[0], key[1]])
         return out
 
@@ -254,6 +278,7 @@ class QChemASE(Model):
         ("derivative_coupling_dzc", derivative_coupling_dzc),
         ("_init_model", _init_model),
     ]
+
 
 import re
 import numpy as np
@@ -403,12 +428,8 @@ class QCLabQChemCalculator(FileIOCalculator):
         # 1) Gradient job: CIS_STATE_DERIV
         cis_state_deriv = self.parameters.get("cis_state_deriv", None)
         if job_spec["name"] == "gradient" and cis_state_deriv is not None:
-            fileobj.write(
-                "   %-25s   %s\n" % ("CIS_STATE_DERIV", str(cis_state_deriv))
-            )
-            fileobj.write(
-                "   %-25s   %d\n" % ("CIS_DER_NUMSTATE", int(num_states))
-            )
+            fileobj.write("   %-25s   %s\n" % ("CIS_STATE_DERIV", str(cis_state_deriv)))
+            fileobj.write("   %-25s   %d\n" % ("CIS_DER_NUMSTATE", int(num_states)))
 
         # # 2) NAC job: CIS_DER_NUMSTATE if user didn't set explicitly
         # if job_spec["name"] == "derivative_coupling" and num_states is not None:
@@ -419,7 +440,13 @@ class QCLabQChemCalculator(FileIOCalculator):
 
         # Other $rem keywords (shared)
         for prm, val in self.parameters.items():
-            if prm in ["charge", "multiplicity", "jobtype", "cis_state_deriv", "cis_der_numstate"]:
+            if prm in [
+                "charge",
+                "multiplicity",
+                "jobtype",
+                "cis_state_deriv",
+                "cis_der_numstate",
+            ]:
                 continue
             if val is None:
                 continue
@@ -460,9 +487,7 @@ class QCLabQChemCalculator(FileIOCalculator):
         fileobj.write("   %d %d\n" % (charge, mult))
 
         for a in atoms:
-            fileobj.write(
-                "   {}  {:f}  {:f}  {:f}\n".format(a.symbol, a.x, a.y, a.z)
-            )
+            fileobj.write("   {}  {:f}  {:f}  {:f}\n".format(a.symbol, a.x, a.y, a.z))
         fileobj.write("$end\n\n")
 
         # --- $basis / $ecp (optional; repeat per job for simplicity) ---
@@ -567,12 +592,13 @@ class QCLabQChemCalculator(FileIOCalculator):
                             header_idx = j
                             break
                     if header_idx is None:
-                        raise RuntimeError("Could not find X Y Z header for mode block.")
+                        raise RuntimeError(
+                            "Could not find X Y Z header for mode block."
+                        )
 
                     # [n_block, natoms, 3]
                     block_coords = [
-                        [[0.0, 0.0, 0.0] for _ in range(natoms)]
-                        for _ in range(n_block)
+                        [[0.0, 0.0, 0.0] for _ in range(natoms)] for _ in range(n_block)
                     ]
 
                     # displacement lines
@@ -617,9 +643,7 @@ class QCLabQChemCalculator(FileIOCalculator):
 
             elif " Total energy in the final basis set =" in line:
                 convert = ase.units.Hartree
-                self.results["energy"] = np.array(
-                    [float(line.split()[8]) * convert]
-                )
+                self.results["energy"] = np.array([float(line.split()[8]) * convert])
 
             elif " Total energy for state  " in line:
                 ind = int(line.split()[-3].split(":")[:-1][0])

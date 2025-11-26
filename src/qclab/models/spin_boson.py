@@ -127,7 +127,7 @@ class AdiabaticSpinBoson(Model):
             np.arange(0.5, A + 0.5, 1.0) * np.pi * 0.5 / A
         )
         return
-    
+
     def h_q(self, parameters, **kwargs):
         batch_size = kwargs["batch_size"]
         num_quantum_states = self.constants.num_quantum_states
@@ -143,49 +143,77 @@ class AdiabaticSpinBoson(Model):
         out = np.zeros(
             (batch_size, num_quantum_states, num_quantum_states), dtype=complex
         )
-        a = -(self.constants.E + np.sum(self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,axis=1))
+        a = -(
+            self.constants.E
+            + np.sum(
+                self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,
+                axis=1,
+            )
+        )
         b = self.constants.V
         r = np.sqrt(a**2 + b**2)
         out[:, 0, 0] = -r
         out[:, 1, 1] = r
         return out
-    
+
     def dh_qc_dzc(self, parameters, **kwargs):
         z = kwargs["z"]
         batch_size = len(z)
         num_classical_coordinates = self.constants.num_classical_coordinates
         num_quantum_states = self.constants.num_quantum_states
-        a = -(self.constants.E + np.sum(self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,axis=1))[:,np.newaxis]
+        a = -(
+            self.constants.E
+            + np.sum(
+                self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,
+                axis=1,
+            )
+        )[:, np.newaxis]
         b = self.constants.V
         r = np.sqrt(a**2 + b**2)
         dh_qc_dzc = np.zeros(
-            (batch_size, num_classical_coordinates, num_quantum_states, num_quantum_states),
+            (
+                batch_size,
+                num_classical_coordinates,
+                num_quantum_states,
+                num_quantum_states,
+            ),
             dtype=complex,
         )
         da_dzc = -self.constants.diagonal_linear_coupling[np.newaxis, :]
         db_dzc = 0 * da_dzc
-        dh_qc_dzc[:, :, 0, 0] = -(1/(r)) * (a * da_dzc + b * db_dzc)
+        dh_qc_dzc[:, :, 0, 0] = -(1 / (r)) * (a * da_dzc + b * db_dzc)
         dh_qc_dzc[:, :, 1, 1] = -dh_qc_dzc[:, :, 0, 0]
         inds = np.where(dh_qc_dzc != 0)
         mels = dh_qc_dzc[inds]
         shape = np.shape(dh_qc_dzc)
         return inds, mels, shape
-    
+
     def derivative_coupling_dzc(self, parameters, **kwargs):
         z = kwargs["z"]
         batch_size = len(z)
         num_classical_coordinates = self.constants.num_classical_coordinates
         num_quantum_states = self.constants.num_quantum_states
-        a = -(self.constants.E + np.sum(self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,axis=1))[:,np.newaxis]
+        a = -(
+            self.constants.E
+            + np.sum(
+                self.constants.diagonal_linear_coupling[np.newaxis, :] * 2 * z.real,
+                axis=1,
+            )
+        )[:, np.newaxis]
         b = self.constants.V
         r = np.sqrt(a**2 + b**2)
         out = np.zeros(
-            (batch_size, num_classical_coordinates, num_quantum_states, num_quantum_states),
+            (
+                batch_size,
+                num_classical_coordinates,
+                num_quantum_states,
+                num_quantum_states,
+            ),
             dtype=complex,
         )
         da_dzc = -self.constants.diagonal_linear_coupling[np.newaxis, :]
         db_dzc = 0 * da_dzc
-        out[:, :, 0, 1] = (1/(2*r**2)) * (b * da_dzc - a * db_dzc)
+        out[:, :, 0, 1] = (1 / (2 * r**2)) * (b * da_dzc - a * db_dzc)
         out[:, :, 1, 0] = -out[:, :, 0, 1].conj()
         return out
 

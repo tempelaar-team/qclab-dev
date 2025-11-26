@@ -145,7 +145,7 @@ class HolsteinLatticeReciprocalSpace(Model):
         h = self.constants.classical_coordinate_weight
         z_kap_mat = z[:, self.constants.k_diff_inds]
         zc_mkap_mat = np.conj(z[:, self.constants.k_diff_inds.transpose()])
-        h_qc = (g * w  * np.sqrt(w / h) / np.sqrt(self.constants.num_quantum_states)) * (
+        h_qc = (g * w * np.sqrt(w / h) / np.sqrt(self.constants.num_quantum_states)) * (
             z_kap_mat + zc_mkap_mat
         )
         return h_qc
