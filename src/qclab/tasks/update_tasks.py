@@ -290,8 +290,6 @@ def update_dh_qc_dzc(
     B = sim.settings.batch_size
     C = sim.model.constants.num_classical_coordinates
     """
-    z_name = kwargs.get("z_name", "z")
-    dh_qc_dzc_name = kwargs.get("dh_qc_dzc_name", "dh_qc_dzc")
     z = state[z_name]
     if not (dh_qc_dzc_name in state) or sim.model.update_dh_qc_dzc:
         # If dh_qc_dzc has not been calculated yet, or if the
@@ -303,7 +301,7 @@ def update_dh_qc_dzc(
             if sim.settings.debug:
                 logger.info("dh_qc_dzc not found; using finite differences.")
             state, parameters = update_dh_qc_dzc_finite_differences(
-                sim, state, parameters, **kwargs
+                sim, state, parameters, z_name=z_name, dh_qc_dzc_name=dh_qc_dzc_name
             )
     # If dh_qc_dzc has already been calculated and does not need to be updated,
     # return the existing parameters and state objects.
@@ -457,11 +455,6 @@ def add_gauge_field_force(
     state[quantum_classical_force_name] : ndarray
         Quantum-classical force with gauge field force added.
     """
-    z_name = kwargs.get("z_name", "z")
-    adb_state_ind_name = kwargs.get("adb_state_ind_name", "act_surf_ind")
-    quantum_classical_force_name = kwargs.get(
-        "quantum_classical_force_name", "quantum_classical_force"
-    )
     z = state[z_name]
     adb_state_ind = state[adb_state_ind_name]
     gauge_field_force, has_gauge_field_force = sim.model.get("gauge_field_force")
