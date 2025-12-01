@@ -1440,9 +1440,9 @@ def update_z_rk4_k123(
     parameters: dict,
     z_name: str = "z",
     z_k_name: str = "z_1",
-    k_name: str = "z_rk4_1",
+    k_name: str = "z_rk4_k1",
     classical_force_name: str = "classical_force",
-    quantum_classical_force_name: str = "quantum_classical_force_name",
+    quantum_classical_force_name: str = "quantum_classical_force",
     dt_factor: float = 0.5,
 ):
     """
@@ -1512,7 +1512,7 @@ def update_z_rk4_k4(
     k2_name: str = "z_rk4_k2",
     k3_name: str = "z_rk4_k3",
     classical_force_name: str = "classical_force",
-    quantum_classical_force_name: str = "quantum_classical_force_name",
+    quantum_classical_force_name: str = "quantum_classical_force",
 ):
     """
     Computes the final RK4 update for evolving the classical coordinates.
@@ -1980,7 +1980,7 @@ def update_adb_connection(
     adb_connection_name: str = "adb_connection",
     z_name: str = "z",
     classical_force_name: str = "classical_force",
-    quantum_classical_force_name: str = "quantum_classical_force_name",
+    quantum_classical_force_name: str = "quantum_classical_force",
 ):
     """
     Updates the Adiabatic Connection matrix.
@@ -2126,39 +2126,63 @@ def update_wf_adb_rk4(
     return state, parameters
 
 
-def update_wf_adb_eig(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_wf_adb_eig(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    h_q_tot_name: str = "h_q_tot",
+    adb_connection_name: str = "adb_connection",
+    h_q_tot_prev_name: str = "h_q_tot_prev",
+    adb_connection_prev_name: str = "adb_connection_prev",
+    wf_adb_name: str = "wf_adb",
+):
     """
     Updates the adiabatic wavefunction by diagonalizing the Hamiltonian.
 
     .. rubric:: Required Constants
-    sim.algorithm.settings.update_wf_adb_eig_num_substeps : int, default : 1
-        Number of substeps to use when updating the adiabatic wavefunction.
 
     Optional Keyword Arguments
     --------------------------
-    h_q_tot_name : str, default: "h_q_tot"
+    h_q_tot_name:
         Name of the quantum Hamiltonian in the state object.
-    adb_connection_name : str, default: "adb_connection"
+    adb_connection_name:
         Name of the adiabatic connection in the state object.
-    h_q_tot_prev_name : str, default: "h_q_tot_prev"
+    h_q_tot_prev_name:
         Name of the quantum Hamiltonian from the previous time step in the state object.
-    adb_connection_prev_name : str, default: "adb_connection_prev"
+    adb_connection_prev_name:
         Name of the adiabatic connection from the previous time step in the state object.
-    wf_adb_name : str, default: "wf_adb"
+    wf_adb_name:
         Name of the adiabatic wavefunction in the state object.
 
-    .. rubric:: Modifications
-    state[wf_adb_name] : ndarray
-        Updated adiabatic wavefunction.
+    Constants and Settings
+    ----------------------
+    sim.algorithm.settings.update_wf_adb_eig_num_substeps: int, default: 1
+        Number of substeps to use when updating the adiabatic wavefunction.
+
+    Reads
+    -----
+    state[wf_adb_name]: ndarray of shape (B, N), dtype=complex128
+        Wavefunction coefficients in the adiabatic basis.
+    state[h_q_tot_name]: ndarray of shape (B, N, N), dtype=complex128
+        Total quantum Hamiltonian in the adiabatic basis.
+    state[adb_connection_name]: ndarray of shape (B, N, N), dtype=complex128
+        Adiabatic connection matrix.
+    state[h_q_tot_prev_name]: ndarray of shape (B, N, N), dtype=complex128
+        Total quantum Hamiltonian in the adiabatic basis at the previous timestep.
+    state[adb_connection_prev_name]: ndarray of shape (B, N, N), dtype=complex128
+        Adiabatic connection matrix at the previous timestep.
+
+    Writes
+    ------
+    state[wf_adb_name]: ndarray of shape (B, N), dtype=complex128
+        Wavefunction coefficients in the adiabatic basis.
+
+    Notes
+    -----
+    * B = sim.settings.batch_size
+    * N = sim.model.constants.num_quantum_states
     """
-    h_q_tot_name = kwargs.get("h_q_tot_name", "h_q_tot")
-    adb_connection_name = kwargs.get("adb_connection_name", "adb_connection")
-    h_q_tot_prev_name = kwargs.get("h_q_tot_prev_name", "h_q_tot_prev")
-    adb_connection_prev_name = kwargs.get(
-        "adb_connection_prev_name", "adb_connection_prev"
-    )
-    wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
-    num_substeps = sim.algorithm.settings.get("update_wf_adb_eig_num_substeps", 100)
+    num_substeps = sim.algorithm.settings.get("update_wf_adb_eig_num_substeps", 1)
     wf_adb = state[wf_adb_name]
     h_q_tot = state[h_q_tot_name]
     adb_connection = state[adb_connection_name]
@@ -2186,33 +2210,47 @@ def update_wf_adb_eig(sim: Simulation, state: dict, parameters: dict, **kwargs):
     return state, parameters
 
 
-def update_q_velocity_verlet(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_q_velocity_verlet(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    z_name: str = "z",
+    classical_force_name: str = "classical_force",
+    quantum_classical_force_name: str = "quantum_classical_force",
+):
     """
     Updates the position component of the classical coordinates using Velocity Verlet.
 
-    .. rubric:: Required Constants
-    None
-
     Optional Keyword Arguments
     --------------------------
-    z_name : str, default: "z"
+    z_name:
         Name of classical coordinates in the state object.
-    classical_force_name : str, default: "classical_force"
+    classical_force_name:
         Name of the classical force in the state object.
-    quantum_classical_force_name : str, default: "quantum_classical_force"
+    quantum_classical_force_name:
         Name of the quantum-classical force in the state object.
 
-    .. rubric:: Modifications
-    state[z_name] : ndarray
+    Reads
+    -----
+    state[z_name] : ndarray of shape (B, C), dtype=complex128
         Updated classical coordinates.
+    state[classical_force_name]: ndarray of shape (B, C), dtype=complex128
+        Force arising from the classical Hamiltonian.
+    state[quantum_classical_force_name]: ndarray of shape (B, C), dtype=complex128
+        Force arising from the quantum-classical Hamiltonian.
+
+    Writes
+    ------
+    state[z_name]: ndarray of shape (B, C), dtype=complex128
+        Updated complex-valued classical coordinates.
+
+    Notes
+    -----
+    * B = sim.settings.batch_size
+    * C = sim.model.constants.num_classical_coordinates
     """
     dt_update = sim.settings.dt_update
-    z_name = kwargs.get("z_name", "z")
     z = state[z_name]
-    classical_force_name = kwargs.get("classical_force_name", "classical_force")
-    quantum_classical_force_name = kwargs.get(
-        "quantum_classical_force_name", "quantum_classical_force"
-    )
     classical_force = state[classical_force_name]
     quantum_classical_force = state[quantum_classical_force_name]
     m = sim.model.constants.classical_coordinate_mass
@@ -2231,38 +2269,52 @@ def update_q_velocity_verlet(sim: Simulation, state: dict, parameters: dict, **k
     return state, parameters
 
 
-def update_p_velocity_verlet(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_p_velocity_verlet(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    z_name: str = "z",
+    classical_force_name: str = "classical_force",
+    quantum_classical_force_name: str = "quantum_classical_force",
+    quantum_classical_force_prev_name: str = "quantum_classical_force_prev",
+):
     """
     Updates the momentum component of the classical coordinates using Velocity Verlet.
 
-    .. rubric:: Required Constants
-    None
     Optional Keyword Arguments
     --------------------------
-    z_name : str, default: "z"
+    z_name:
         Name of classical coordinates in the state object.
-    classical_force_name : str, default: "classical_force"
+    classical_force_name:
         Name of the classical force in the state object.
-    quantum_classical_force_name : str, default: "quantum_classical_force"
+    quantum_classical_force_name:
         Name of the quantum-classical force in the state object.
-    quantum_classical_force_prev_name : str, default: "quantum_classical_force_prev"
+    quantum_classical_force_prev_name:
         Name of the quantum-classical force from the previous time step in the state object.
 
-    .. rubric:: Modifications
-    state[z_name] : ndarray
+    Reads
+    -----
+    state[z_name] : ndarray of shape (B, C), dtype=complex128
         Updated classical coordinates.
+    state[classical_force_name]: ndarray of shape (B, C), dtype=complex128
+        Force arising from the classical Hamiltonian.
+    state[quantum_classical_force_name]: ndarray of shape (B, C), dtype=complex128
+        Force arising from the quantum-classical Hamiltonian.
+    state[quantum_classical_force_prev_name]: ndarray of shape (B, C), dtype=complex128
+        Force arising from the quantum-classical Hamiltonian at the previous timestep.
 
+    Writes
+    ------
+    state[z_name]: ndarray of shape (B, C), dtype=complex128
+        Updated complex-valued classical coordinates.
+
+    Notes
+    -----
+    * B = sim.settings.batch_size
+    * C = sim.model.constants.num_classical_coordinates
     """
     dt_update = sim.settings.dt_update
-    z_name = kwargs.get("z_name", "z")
     z = state[z_name]
-    classical_force_name = kwargs.get("classical_force_name", "classical_force")
-    quantum_classical_force_name = kwargs.get(
-        "quantum_classical_force_name", "quantum_classical_force"
-    )
-    quantum_classical_force_prev_name = kwargs.get(
-        "quantum_classical_force_prev_name", "quantum_classical_force_prev"
-    )
     classical_force = state[classical_force_name]
     quantum_classical_force = state[quantum_classical_force_name]
     quantum_classical_force_prev = state[quantum_classical_force_prev_name]
@@ -2280,7 +2332,14 @@ def update_p_velocity_verlet(sim: Simulation, state: dict, parameters: dict, **k
     return state, parameters
 
 
-def update_wf_adb_coeffs(sim: Simulation, state: dict, parameters: dict, **kwargs):
+def update_wf_adb_coeffs(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    adb_connection_name: str = "adb_connection",
+    wf_adb_name: str = "wf_adb",
+    wf_adb_dt_name: str = "wf_adb_dt",
+):
     """
     Updates the coefficients of the adiabatic wavefunction to those at a new
     classical configuration.
@@ -2289,11 +2348,33 @@ def update_wf_adb_coeffs(sim: Simulation, state: dict, parameters: dict, **kwarg
 
     :math:`P() = \\exp(\\Delta t A(z(t)))`
 
+    Optional Keyword Arguments
+    --------------------------
+    adb_connection_name:
+        Name of the adiabatic connection.
+    wf_adb_name:
+        Name of the wavefunction coefficients in the adiabtic basis.
+    wf_adb_dt_name:
+        Name of the increment of time forward in which to obtain the new wavefunction coefficients.
+
+    Reads
+    -----
+    state[adb_connection_name]: ndarray of shape (B, N, N), dtype=complex128
+        Adiabatic connection matrix.
+    state[wf_adb_name]: ndarray of shape (B, N), dtype=complex128
+        Wavefunction coefficients in the adiabatic basis.
+
+    Writes
+    ------
+    state[wf_adb_dt_name]: ndarray of shape (B, N), dtype=complex128
+        Wavefunction coefficients in the adiabatic basis one timestep forwards.
+
+    Notes
+    -----
+    * B = sim.settings.batch_size
+    * N = sim.model.constants.num_quantum_states
     """
     dt_update = sim.settings.dt_update
-    adb_connection_name = kwargs.get("adb_connection_name", "adb_connection")
-    wf_adb_name = kwargs.get("wf_adb_name", "wf_adb")
-    wf_adb_dt_name = kwargs.get("wf_adb_dt_name", "wf_adb_dt")
     adb_connection = state[adb_connection_name]
     wf_adb = state[wf_adb_name]
     eigvals, eigvecs = np.linalg.eigh(dt_update * adb_connection)
