@@ -1689,7 +1689,7 @@ def update_classical_energy_fssh(
     ----------------------
     sim.algorithm.settings.fssh_deterministic: Bool
         Boolean indicating if the FSSH simulation is deterministic.
-        
+
 
     Ingredients
     -----------
@@ -1733,18 +1733,23 @@ def update_classical_energy_fssh(
         )
         for branch_num in range(num_branches):
             z_branch = z[branch_ind == branch_num]
-            classical_energy += np.real(branch_weights[:, branch_num] * h_c(
+            classical_energy += np.real(
+                branch_weights[:, branch_num]
+                * h_c(
+                    sim.model,
+                    parameters,
+                    z=z_branch,
+                )
+            )
+    else:
+        z_branch = z[branch_ind == 0]
+        classical_energy = np.real(
+            h_c(
                 sim.model,
                 parameters,
                 z=z_branch,
-            ))
-    else:
-        z_branch = z[branch_ind == 0]
-        classical_energy = np.real(h_c(
-            sim.model,
-            parameters,
-            z=z_branch,
-        ))
+            )
+        )
     state[classical_energy_name] = classical_energy
     return state, parameters
 
@@ -1789,19 +1794,21 @@ def update_quantum_energy_wf(
     """
     wf_db = state[wf_db_name]
     h_q_tot = state[h_q_tot_name]
-    quantum_energy = np.real(np.einsum(
-        "ti,tij,tj->t", np.conj(wf_db), h_q_tot, wf_db, optimize="greedy"
-    ))
+    quantum_energy = np.real(
+        np.einsum("ti,tij,tj->t", np.conj(wf_db), h_q_tot, wf_db, optimize="greedy")
+    )
     state[quantum_energy_name] = quantum_energy
     return state, parameters
 
 
 def update_quantum_energy_act_surf(
-    sim: Simulation, state: dict, parameters: dict,
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
     wf_db_name: str = "act_surf_wf",
     h_q_tot_name: str = "h_q_tot",
     quantum_energy_name: str = "quantum_energy",
-    dm_adb_0_name: str = "dm_adb_0"
+    dm_adb_0_name: str = "dm_adb_0",
 ):
     """
     Updates the quantum energy using the active surface wavefunction.
@@ -1870,13 +1877,17 @@ def update_quantum_energy_act_surf(
     return state, parameters
 
 
-def update_dm_db_fssh(sim: Simulation, state: dict, parameters: dict,
-                      wf_adb_name: str = "wf_adb",
-                      dm_adb_0_name: str = "dm_adb_0",
-                      act_surf_name: str = "act_surf",
-                      dm_db_name: str = "dm_db",
-                      dm_adb_name: str = "dm_adb",
-                      eigvecs_name: str = "eigvecs"):
+def update_dm_db_fssh(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    wf_adb_name: str = "wf_adb",
+    dm_adb_0_name: str = "dm_adb_0",
+    act_surf_name: str = "act_surf",
+    dm_db_name: str = "dm_db",
+    dm_adb_name: str = "dm_adb",
+    eigvecs_name: str = "eigvecs",
+):
     """
     Updates the diabatic density matrix for FSSH.
 
@@ -1901,7 +1912,7 @@ def update_dm_db_fssh(sim: Simulation, state: dict, parameters: dict,
     ----------------------
     sim.algorithm.settings.fssh_deterministic: Bool
         Boolean indicating if the FSSH simulation is deterministic.
-    
+
     Reads
     -----
     state[wf_adb_name]: ndarray of shape (B, N), dtype=complex128
@@ -1960,13 +1971,17 @@ def update_dm_db_fssh(sim: Simulation, state: dict, parameters: dict,
     return state, parameters
 
 
-def update_adb_connection(sim: Simulation, state: dict, parameters: dict,
-                          eigvecs_adb_prev_name: str = "eigvecs_adb_prev",
-                          h_q_tot_adb_name: str = "h_q_tot_adb",
-                          adb_connection_name: str = "adb_connection",
-                          z_name: str = "z",
-                          classical_force_name: str = "classical_force",
-                          quantum_classical_force_name: str = "quantum_classical_force_name"):
+def update_adb_connection(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    eigvecs_adb_prev_name: str = "eigvecs_adb_prev",
+    h_q_tot_adb_name: str = "h_q_tot_adb",
+    adb_connection_name: str = "adb_connection",
+    z_name: str = "z",
+    classical_force_name: str = "classical_force",
+    quantum_classical_force_name: str = "quantum_classical_force_name",
+):
     """
     Updates the Adiabatic Connection matrix.
 
@@ -2055,10 +2070,14 @@ def update_adb_connection(sim: Simulation, state: dict, parameters: dict,
     return state, parameters
 
 
-def update_wf_adb_rk4(sim: Simulation, state: dict, parameters: dict,
-                      wf_adb_name: str = "wf_adb",
-                      h_q_tot_name: str = "h_q_tot",
-                      adb_connection_name: str = "adb_connection"):
+def update_wf_adb_rk4(
+    sim: Simulation,
+    state: dict,
+    parameters: dict,
+    wf_adb_name: str = "wf_adb",
+    h_q_tot_name: str = "h_q_tot",
+    adb_connection_name: str = "adb_connection",
+):
     """
     Updates the adiabatic wavefunction using the 4th-order Runge-Kutta method.
 
@@ -2079,7 +2098,7 @@ def update_wf_adb_rk4(sim: Simulation, state: dict, parameters: dict,
         Total quantum Hamiltonian in the adiabatic basis.
     state[adb_connection_name]: ndarray of shape (B, N, N), dtype=complex128
         Adiabatic connection matrix.
-    
+
     Writes
     ------
     state[wf_adb_name]: ndarray of shape (B, N), dtype=complex128
