@@ -144,6 +144,9 @@ def collect_quantum_energy(
     state["output_dict"][quantum_energy_output_name]: ndarray of shape (B,) with dtype=float64
         Quantum energy in each trajectory.
 
+    Notes
+    -----
+    * B = sim.settings.batch_size
     """
     state["output_dict"][quantum_energy_output_name] = state[quantum_energy_name]
     return state, parameters
