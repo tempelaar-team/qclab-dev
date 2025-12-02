@@ -5,8 +5,7 @@ Running a Spin-Boson Model
 ===========================
 
 Here's a simple example of how to run a spin-boson model with mean-field dynamics in QC Lab.
-
-A jupyter notebook version of this tutorial can be found `here <https://github.com/tempelaar-team/qclab/blob/main/examples/interactive_docs_example.ipynb>`_.
+A Jupyter Notebook version of this tutorial can be found `here <https://github.com/tempelaar-team/qclab/blob/main/examples/interactive_docs_example.ipynb>`_.
 
 
 First, we will need to import the necessary modules:
@@ -21,11 +20,11 @@ First, we will need to import the necessary modules:
     from qclab.dynamics import serial_driver
 
 
-Next, we will set up the simulation object and equip it with the model and algorithm objects:
+Next, we will set up the Simulation object and equip it with the model and algorithm objects:
 
 .. code-block:: python
 
-    # Initialize the simulation object.
+    # Initialize the Simulation object.
     sim = Simulation()
     # Equip it with a spin-boson model object.
     sim.model = SpinBoson()

@@ -5,7 +5,7 @@ Tasks
 ==========================
 
 Tasks are functions that carry out the elementary operations of an algorithm by modifying a
-``state`` object and optionally a ``parameters`` object, which are both dictionaries.
+State object and optionally a Parameters object, which are both dictionaries.
 Built-in tasks can be found in the ``qclab.tasks`` module and are documented on this page.
 
 A generic tasks has the form:
@@ -51,13 +51,13 @@ Examples of these tasks are:
 .. code-block:: python
 
     def my_initialization_task(sim, state, parameters, **kwargs):
-        # Create an attribute in the state object.
+        # Create an attribute in the State object.
         shape = (sim.settings.num_trajs, sim.model.constants.num_quantum_states)
         state.new_attribute = np.zeros(shape, dtype=complex)
         return state, parameters
 
     def my_update_task(sim, state, parameters, **kwargs):
-        # Update an attribute in the state object.
+        # Update an attribute in the State object.
         state.new_attribute += 1j
         return state, parameters
 
@@ -66,7 +66,7 @@ Examples of these tasks are:
         state["output_dict"]['new_attribute'] = state.new_attribute
         return state, parameters
 
-These tasks can then be included in the appropriate recipe of an algorithm object (see :ref:`Algorithms <algorithm>`). Notice that none of these tasks have keyword arguments and so can be included directly in recipes without using ``partial``.
+These tasks can then be included in the appropriate recipe of an Algorithm object (see :ref:`Algorithms <algorithm>`). Notice that none of these tasks have keyword arguments and so can be included directly in recipes without using ``partial``.
 
 Built-in Tasks
 --------------------------

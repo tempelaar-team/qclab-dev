@@ -5,7 +5,7 @@ Drivers
 ==========================
 
 
-QC Lab comes equipped with three dynamics drivers. These are functions that take a simulation object (see :ref:`Simulations <simulation>`) as input and carry out the dynamics by executing the recipes of the algorithm object (see :ref:`Algorithms <algorithm>`) associated with the simulation. The three drivers are:
+QC Lab comes equipped with three dynamics drivers. These are functions that take a Simulation object (see :ref:`Simulations <simulation>`) as input and carry out the dynamics by executing the recipes of the Algorithm object (see :ref:`Algorithms <algorithm>`) associated with the simulation. The three drivers are:
 
 - ``serial_driver``: a serial driver that runs the simulation on a single CPU core,
 - ``multiprocessing_driver``: a parallel driver that uses Python's built-in ``multiprocessing`` module to run the simulation on multiple CPU cores,

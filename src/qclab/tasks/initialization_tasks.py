@@ -2,7 +2,7 @@
 This module contains the tasks that initialize quantities in the state and parameters
 objects.
 
-These are typically used in the initialization recipe of the algorithm object.
+These are typically used in the initialization recipe of the Algorithm object.
 """
 
 import logging
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def initialize_variable_objects(sim: Simulation, state: dict, parameters: dict):
     """
-    Populates the state object with non-private variables in ``sim.initial_state``, and an empty
+    Populates the State object with non-private variables in ``sim.initial_state``, and an empty
     dictionary for storing output quantities.
 
     For any non-private (i.e. not beginning with "_") ndarray in ``sim.initial_state``,
@@ -68,7 +68,7 @@ def initialize_norm_factor(
     norm_factor_name: str = "norm_factor",
 ):
     """
-    Assigns the normalization factor to the state object.
+    Assigns the normalization factor to the State object.
 
     When collected values are summed in the Data object the normalization factor
     is used to normalize the sum to a trajectory average. In all algorithms in
@@ -77,7 +77,7 @@ def initialize_norm_factor(
     Optional Keyword Arguments
     --------------------------
     norm_factor_name:
-        Name of the normalization factor in the state object.
+        Name of the normalization factor in the State object.
 
     Writes
     ------
@@ -111,7 +111,7 @@ def initialize_branch_seeds(
     Optional Keyword Arguments
     --------------------------
     seed_name:
-        Name of seed array in state object.
+        Name of seed array in State object.
     branch_ind_name:
         Name of the branch index array in ``state``.
 
@@ -181,7 +181,7 @@ def initialize_z_mcmc(
     Optional Keyword Arguments
     --------------------------
     seed_name:
-        Name of seed array in state object.
+        Name of seed array in State object.
     z_name:
         Name of destination attribute in ``state``.
 
@@ -348,9 +348,9 @@ def initialize_z(
     Optional Keyword Arguments
     --------------------------
     seed_name:
-        Name of seed array in state object.
+        Name of seed array in State object.
     z_name:
-        Name of classical coordinate in state object.
+        Name of classical coordinate in State object.
 
     Ingredients
     -----------
@@ -387,15 +387,15 @@ def copy_in_state(
     sim: Simulation, state: dict, parameters: dict, orig_name: str, copy_name: str
 ):
     """
-    Creates a copy of a variable in the state object with a new name.
+    Creates a copy of a variable in the State object with a new name.
 
 
     Optional Keyword Arguments
     --------------------------
     orig_name:
-        Name of the original in the state object.
+        Name of the original in the State object.
     copy_name:
-        Name of the copy in the state object.
+        Name of the copy in the State object.
 
     Reads
     -----
@@ -419,14 +419,14 @@ def copy_to_parameters(
     parameters_name: str,
 ):
     """
-    Copies an object from the state object to the parameters object.
+    Copies an object from the State object to the Parameters object.
 
     Optional Keyword Arguments
     --------------------------
     state_name:
-        Name of the object in the state object.
+        Name of the object in the State object.
     parameters_name:
-        Name of the object in the parameters object.
+        Name of the object in the Parameters object.
 
     Reads
     -----
@@ -467,15 +467,15 @@ def initialize_active_surface(
     Optional Keyword Arguments
     --------------------------
     act_surf_ind_0_name:
-        Name of the initial active surface index in the state object.
+        Name of the initial active surface index in the State object.
     act_surf_ind_name:
-        Name of the active surface index in the state object.
+        Name of the active surface index in the State object.
     act_surf_name:
-        Name of the active surface in the state object.
+        Name of the active surface in the State object.
     init_act_surf_rand_vals_name: str, default:
         Name of the random numbers for active surface initialization in FSSH.
     wf_adb_name: str, default:
-        Name of the adiabatic wavefunction in the state object.
+        Name of the adiabatic wavefunction in the State object.
 
     Constants and Settings
     ----------------------
@@ -548,11 +548,11 @@ def initialize_random_values_fssh(
     Optional Keyword Arguments
     --------------------------
     hop_prob_rand_vals_name:
-        Name of the random numbers for hop decisions in the state object.
+        Name of the random numbers for hop decisions in the State object.
     init_act_surf_rand_vals_name:
         Name of the random numbers for active surface initialization in FSSH.
     seed_name:
-        Name of seed array in state object.
+        Name of seed array in State object.
 
     Constants and Settings
     ----------------------
@@ -606,9 +606,9 @@ def initialize_dm_adb_0_fssh(
     Optional Keyword Arguments
     --------------------------
     dm_adb_0_name:
-        Name of the initial adiabatic density matrix in the state object.
+        Name of the initial adiabatic density matrix in the State object.
     wf_adb_name:
-        Name of the adiabatic wavefunction in the state object.
+        Name of the adiabatic wavefunction in the State object.
 
     Reads
     -----

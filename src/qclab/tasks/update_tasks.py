@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 
 def update_t(sim: Simulation, state: dict, parameters: dict, t_name: str = "t"):
     """
-    Updates the time in the state object with the time index in each trajectory
+    Updates the time in the State object with the time index in each trajectory
     multiplied by the update timestep.
 
     Optional Keyword Arguments
     --------------------------
     t_name:
-        Name of the time variable in the state object.
+        Name of the time variable in the State object.
 
     Writes
     ------
@@ -49,9 +49,9 @@ def update_dh_c_dzc_finite_differences(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of the classical coordinates in the state object.
+        Name of the classical coordinates in the State object.
     dh_c_dzc_name:
-        Name under which to store the finite-difference gradient in the state object.
+        Name under which to store the finite-difference gradient in the State object.
 
     Constants and Settings
     ----------------------
@@ -122,9 +122,9 @@ def update_classical_force(
     Optional Keyword Arguments
     --------------------------
     z_name : str, default:
-        Name of the classical coordinates in the state object.
+        Name of the classical coordinates in the State object.
     classical_force_name:
-        Name under which to store the classical force in the state object.
+        Name under which to store the classical force in the State object.
 
     Ingredients
     -----------
@@ -178,9 +178,9 @@ def update_dh_qc_dzc_finite_differences(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of classical coordinates in the state object.
+        Name of classical coordinates in the State object.
     dh_qc_dzc_name:
-        Name under which to store the gradient of the quantum-classical Hamiltonian in the state object.
+        Name under which to store the gradient of the quantum-classical Hamiltonian in the State object.
 
     Constants and Settings
     sim.model.constants.dh_qc_dzc_finite_difference_delta: float, default: numerical_constants.FINITE_DIFFERENCE_DELTA
@@ -244,7 +244,7 @@ def update_dh_qc_dzc_finite_differences(
     inds = np.where(dh_qc_dzc != 0)
     mels = dh_qc_dzc[inds]
     shape = np.shape(dh_qc_dzc)
-    # Update it in the state object.
+    # Update it in the State object.
     state[dh_qc_dzc_name] = (inds, mels, shape)
     return state, parameters
 
@@ -263,9 +263,9 @@ def update_dh_qc_dzc(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of classical coordinates in state object.
+        Name of classical coordinates in State object.
     dh_qc_dzc_name:
-        Name under which to store the gradient of the quantum-classical Hamiltonian in the state object.
+        Name under which to store the gradient of the quantum-classical Hamiltonian in the State object.
 
     Ingredients
     -----------
@@ -329,20 +329,20 @@ def update_quantum_classical_force(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of classical coordinates in state object.
+        Name of classical coordinates in State object.
     wf_db_name:
-        Name of the wavefunction (in the diabatic basis) in the state object.
+        Name of the wavefunction (in the diabatic basis) in the State object.
     dh_qc_dzc_name:
-        Name of the gradient of the quantum-classical Hamiltonian in the state object.
+        Name of the gradient of the quantum-classical Hamiltonian in the State object.
     quantum_classical_force_name:
-        Name under which to store the quantum-classical force in the state object.
+        Name under which to store the quantum-classical force in the State object.
     state_ind_name:
-        Name in the state object of the state index for which to obtain the gauge field force.
+        Name in the State object of the state index for which to obtain the gauge field force.
         Required if ``algorithm.settings.use_gauge_field_force`` is ``True``.
     wf_changed:
         If ``True``, the wavefunction has changed since the last time the force were calculated.
     h_q_tot_name:
-        Name under which to store the total Hamiltonian in the state object.
+        Name under which to store the total Hamiltonian in the State object.
 
     Constants and Settings
     ----------------------
@@ -439,11 +439,11 @@ def add_gauge_field_force(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of classical coordinates in state object.
+        Name of classical coordinates in State object.
     adb_state_ind_name:
         Name of the adiabatic state index for which to obtain the gauge field force.
     quantum_classical_force_name:
-        Name of the quantum-classical force in the state object.
+        Name of the quantum-classical force in the State object.
 
     Ingredients
     -----------
@@ -490,17 +490,17 @@ def diagonalize_matrix(
     eigvecs_name: str,
 ):
     """
-    Diagonalizes a given matrix from the state object and stores the eigenvalues and
-    eigenvectors in the state object.
+    Diagonalizes a given matrix from the State object and stores the eigenvalues and
+    eigenvectors in the State object.
 
     Optional Keyword Arguments
     --------------------------
     matrix_name:
-        Name of the matrix to diagonalize in the state object.
+        Name of the matrix to diagonalize in the State object.
     eigvals_name:
-        Name of the eigenvalues in the state object.
+        Name of the eigenvalues in the State object.
     eigvecs_name:
-        Name of the eigenvectors in the state object.
+        Name of the eigenvectors in the State object.
 
     Reads
     -----
@@ -553,19 +553,19 @@ def update_eigvecs_gauge(
     Optional Keyword Arguments
     --------------------------
     eigvals_name:
-        Name of the eigenvalues in the state object.
+        Name of the eigenvalues in the State object.
     eigvecs_name:
-        Name of the eigenvectors in the state object.
+        Name of the eigenvectors in the State object.
     eigvecs_previous_name:
-        Name of the previous eigenvectors in the state object.
+        Name of the previous eigenvectors in the State object.
     output_eigvecs_name:
-        Name of the output gauge-fixed eigenvectors in the state object.
+        Name of the output gauge-fixed eigenvectors in the State object.
     z_name:
-        Name of classical coordinates in the state object.
+        Name of classical coordinates in the State object.
     gauge_fixing: default: ``sim.algorithm.settings.gauge_fixing``
         Gauge-fixing method to use.
     dh_qc_dzc_name:
-        Name of the gradient of the quantum-classical Hamiltonian in the state object.
+        Name of the gradient of the quantum-classical Hamiltonian in the State object.
 
     Constants and Settings
     ----------------------
@@ -670,13 +670,13 @@ def update_vector_basis(
     Optional Keyword Arguments
     --------------------------
     input_vec_name:
-        Name of the vector to transform in the state object.
+        Name of the vector to transform in the State object.
     basis_name:
-        Name of the basis to transform to in the state object.
+        Name of the basis to transform to in the State object.
         Assumed to be column vectors corresponding to adiabatic
         states.
     output_vec_name:
-        Name of the output vector in the state object.
+        Name of the output vector in the State object.
     adb_to_db:
         If True, transforms from adiabatic to diabatic. If False, transforms from
         adiabatic to diabatic.
@@ -715,11 +715,11 @@ def update_act_surf_wf(
     Optional Keyword Arguments
     --------------------------
     act_surf_wf_name:
-        Name of the active surface wavefunction in the state object.
+        Name of the active surface wavefunction in the State object.
     act_surf_ind_name:
-        Name of the active surface index in the state object.
+        Name of the active surface index in the State object.
     eigvecs_name:
-        Name of the eigenvectors in the state object.
+        Name of the eigenvectors in the State object.
 
     Reads
     -----
@@ -758,11 +758,11 @@ def update_wf_db_propagator(
     Optional Keyword Arguments
     --------------------------
     wf_db_name:
-        Name of the diabatic wavefunction in the state object.
+        Name of the diabatic wavefunction in the State object.
     eigvals_name:
-        Name of the eigenvalues in the state object.
+        Name of the eigenvalues in the State object.
     eigvecs_name:
-        Name of the eigenvectors in the state object.
+        Name of the eigenvectors in the State object.
 
     Reads
     -----
@@ -813,9 +813,9 @@ def update_wf_db_rk4(
     Optional Keyword Arguments
     --------------------------
     wf_db_name:
-        Name of the diabatic wavefunction in the state object.
+        Name of the diabatic wavefunction in the State object.
     h_q_tot_name:
-        Name of the quantum Hamiltonian in the state object.
+        Name of the quantum Hamiltonian in the State object.
 
     Reads
     -----
@@ -866,15 +866,15 @@ def update_hop_prob_fssh(
     Optional Keyword Arguments
     --------------------------
     act_surf_ind_name:
-        Name of the active surface index in the state object.
+        Name of the active surface index in the State object.
     wf_adb_name:
-        Name of the adiabatic wavefunction in the state object.
+        Name of the adiabatic wavefunction in the State object.
     eigvecs_name:
-        Name of the eigenvectors in the state object.
+        Name of the eigenvectors in the State object.
     eigvecs_previous_name:
-        Name of the previous eigenvectors in the state object.
+        Name of the previous eigenvectors in the State object.
     hop_prob_name:
-        Name under which to store the hopping probabilities in the state object.
+        Name under which to store the hopping probabilities in the State object.
 
     Constants and Settings
     ----------------------
@@ -953,13 +953,13 @@ def update_hop_inds_fssh(
     Optional Keyword Arguments
     --------------------------
     hop_prob_name:
-        Name of the hopping probabilities in the state object.
+        Name of the hopping probabilities in the State object.
     hop_prob_rand_vals_name:
-        Name of the random values for hopping probabilities in the state object.
+        Name of the random values for hopping probabilities in the State object.
     hop_ind_name:
-        Name under which to store the indices of the hopping trajectories in the state object.
+        Name under which to store the indices of the hopping trajectories in the State object.
     hop_dest_name:
-        Name under which to store the destination indices of the hopping trajectories in the state object.
+        Name under which to store the destination indices of the hopping trajectories in the State object.
 
     Constants and Settings
     ----------------------
@@ -1026,16 +1026,16 @@ def update_z_shift_fssh(
     Optional Keyword Arguments
     --------------------------
     z_traj_name:
-        Name of the classical coordinates for this trajectory in the state object.
+        Name of the classical coordinates for this trajectory in the State object.
     resc_dir_z_traj_name:
-        Name of the rescaling direction for this trajectory in the state object.
+        Name of the rescaling direction for this trajectory in the State object.
     eigval_diff_traj_name:
         Name of the difference in eigenvalues between the initial and final states
-        ``(e_final - e_initial)`` for this trajectory in the state object.
+        ``(e_final - e_initial)`` for this trajectory in the State object.
     hop_successful_traj_name:
-        Name under which to store whether the hop was successful for this trajectory in the state object.
+        Name under which to store whether the hop was successful for this trajectory in the State object.
     z_shift_traj_name:
-        Name under which to store the shift in classical coordinates for this trajectory in the state object.
+        Name under which to store the shift in classical coordinates for this trajectory in the State object.
 
     Ingredients
     -----------
@@ -1119,34 +1119,34 @@ def update_hop_vals_fssh(
     Optional Keyword Arguments
     --------------------------
     z_shift_name:
-        Name under which to store the shift in coordinates for each hopping trajectory in the state object.
+        Name under which to store the shift in coordinates for each hopping trajectory in the State object.
     hop_successful_name:
-        Name under which to store flags indicating if each hop was successful in the state object.
+        Name under which to store flags indicating if each hop was successful in the State object.
     hop_ind_name:
-        Name of the indices of the trajectories that are attempting to hop in the state object.
+        Name of the indices of the trajectories that are attempting to hop in the State object.
     hop_dest_name:
-        Name of the destination states of the trajectories that are attempting to hop in the state object.
+        Name of the destination states of the trajectories that are attempting to hop in the State object.
     eigvals_name:
-        Name of the eigenvalues in the state object.
+        Name of the eigenvalues in the State object.
     eigvecs_name:
-        Name of the eigenvectors in the state object.
+        Name of the eigenvectors in the State object.
     z_name:
-        Name of classical coordinates in the state object.
+        Name of classical coordinates in the State object.
     act_surf_ind_name:
-        Name of the active surface index in the state object.
+        Name of the active surface index in the State object.
     dh_qc_dzc_name :
-        Name of the gradient of the quantum-classical Hamiltonian in the state object.
+        Name of the gradient of the quantum-classical Hamiltonian in the State object.
     z_traj_name:
-        Name of the classical coordinates for the intermediate hopping trajectory in the state object.
+        Name of the classical coordinates for the intermediate hopping trajectory in the State object.
     resc_dir_z_traj_name:
-        Name of the rescaling direction for the intermediate hopping trajectory in the state object.
+        Name of the rescaling direction for the intermediate hopping trajectory in the State object.
     eigval_diff_traj_name:
         Name of the difference in eigenvalues between the initial and final states
-        ``(e_final - e_initial)`` for the intermediate hopping trajectory in the state object.
+        ``(e_final - e_initial)`` for the intermediate hopping trajectory in the State object.
     hop_successful_traj_name:
-        Name under which to store whether the hop was successful for the intermediate hopping trajectory in the state object.
+        Name under which to store whether the hop was successful for the intermediate hopping trajectory in the State object.
     z_shift_traj_name:
-        Name under which to store the shift in classical coordinates for the intermediate hopping trajectory in the state object.
+        Name under which to store the shift in classical coordinates for the intermediate hopping trajectory in the State object.
 
     Ingredients
     -----------
@@ -1263,11 +1263,11 @@ def update_z_hop(
     Optional Keyword Arguments
     --------------------------
     z_shift_name:
-        Name of the shift in coordinates for each hopping trajectory in the state object.
+        Name of the shift in coordinates for each hopping trajectory in the State object.
     hop_ind_name:
-        Name of the indices of the trajectories that are attempting to hop in the state object.
+        Name of the indices of the trajectories that are attempting to hop in the State object.
     z_name: ndarray of shape (B, C), dtype=complex128
-        Name of classical coordinates in the state object.
+        Name of classical coordinates in the State object.
 
     Reads
     -----
@@ -1314,15 +1314,15 @@ def update_act_surf_hop(
     Optional Keyword Arguments
     --------------------------
     hop_ind_name:
-        Name of the indices of the trajectories that are attempting to hop in the state object.
+        Name of the indices of the trajectories that are attempting to hop in the State object.
     hop_dest_name:
-        Name of the destination states of the trajectories that are attempting to hop in the state object.
+        Name of the destination states of the trajectories that are attempting to hop in the State object.
     hop_successful_name:
-        Name of the flags indicating if each hop was successful in the state object.
+        Name of the flags indicating if each hop was successful in the State object.
     act_surf_name:
-        Name of the active surface wavefunction in the state object.
+        Name of the active surface wavefunction in the State object.
     act_surf_ind_name:
-        Name of the active surface index in the state object.
+        Name of the active surface index in the State object.
 
     Reads
     -----
@@ -1380,13 +1380,13 @@ def update_h_q_tot(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of classical coordinates in state object.
+        Name of classical coordinates in State object.
     h_q_name:
-        Name of the quantum Hamiltonian in the state object.
+        Name of the quantum Hamiltonian in the State object.
     h_qc_name:
-        Name of the quantum-classical coupling Hamiltonian in the state object.
+        Name of the quantum-classical coupling Hamiltonian in the State object.
     h_q_tot_name:
-        Name of the total Hamiltonian of the quantum subsystem in the state object.
+        Name of the total Hamiltonian of the quantum subsystem in the State object.
         (``h_q + h_qc``)
 
     Constants and Settings
@@ -1451,15 +1451,15 @@ def update_z_rk4_k123(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of input coordinates in state object.
+        Name of input coordinates in State object.
     z_k_name:
-        Name of the output coordinates in the state object.
+        Name of the output coordinates in the State object.
     k_name:
-        Name of the k-th RK4 slope in the state object.
+        Name of the k-th RK4 slope in the State object.
     classical_force_name:
-        Name of the classical force in the state object.
+        Name of the classical force in the State object.
     quantum_classical_force_name:
-        Name of the quantum-classical force in the state object.
+        Name of the quantum-classical force in the State object.
     dt_factor:
         Factor to multiply the time step by. Typical values are 0.5 (for k1 and k2)
         and 1.0 (for k3).
@@ -1520,17 +1520,17 @@ def update_z_rk4_k4(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of input coordinates in state object.
+        Name of input coordinates in State object.
     k1_name:
-        Name of the first RK4 slope in the state object.
+        Name of the first RK4 slope in the State object.
     k2_name:
-        Name of the second RK4 slope in the state object.
+        Name of the second RK4 slope in the State object.
     k3_name:
-        Name of the third RK4 slope in the state object.
+        Name of the third RK4 slope in the State object.
     classical_force_name:
-        Name of the classical force in the state object.
+        Name of the classical force in the State object.
     quantum_classical_force_name:
-        Name of the quantum-classical force in the state object.
+        Name of the quantum-classical force in the State object.
 
     Reads
     -----
@@ -1589,9 +1589,9 @@ def update_dm_db_wf(
     Optional Keyword Arguments
     --------------------------
     wf_db_name:
-        Name of the diabatic wavefunction in the state object.
+        Name of the diabatic wavefunction in the State object.
     dm_db_name:
-        Name of the diabatic density matrix in the state object.
+        Name of the diabatic density matrix in the State object.
 
     Reads
     -----
@@ -1628,9 +1628,9 @@ def update_classical_energy(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of the classical coordinates in the state object.
+        Name of the classical coordinates in the State object.
     classical_energy_name:
-        Name under which to store the classical energy in the state object.
+        Name under which to store the classical energy in the State object.
 
     Ingredients
     -----------
@@ -1677,13 +1677,13 @@ def update_classical_energy_fssh(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of classical coordinates in state object.
+        Name of classical coordinates in State object.
     dm_adb_0_name:
-        Name of the initial adiabatic density matrix in the state object.
+        Name of the initial adiabatic density matrix in the State object.
     branch_ind_name:
-        Name of the branch indices in the state object.
+        Name of the branch indices in the State object.
     classical_energy_name:
-        Name under which to store the classical energy in the state object.
+        Name under which to store the classical energy in the State object.
 
     Constants and Settings
     ----------------------
@@ -1768,12 +1768,12 @@ def update_quantum_energy_wf(
     Optional Keyword Arguments
     --------------------------
     wf_db_name:
-        Name of the wavefunction in the state object.
+        Name of the wavefunction in the State object.
     h_q_tot_name:
-        Name of the total Hamiltonian of the quantum subsystem in the state object.
+        Name of the total Hamiltonian of the quantum subsystem in the State object.
         (``h_q + h_qc``)
     quantum_energy_name:
-        Name under which to store the quantum energy in the state object.
+        Name under which to store the quantum energy in the State object.
 
     Reads
     -----
@@ -1818,14 +1818,14 @@ def update_quantum_energy_act_surf(
     Optional Keyword Arguments
     --------------------------
     wf_db_name:
-        Name of the wavefunction in the state object.
+        Name of the wavefunction in the State object.
     h_q_tot_name:
-        Name of the total Hamiltonian of the quantum subsystem in the state object.
+        Name of the total Hamiltonian of the quantum subsystem in the State object.
         (``h_q + h_qc``)
     quantum_energy_name:
-        Name under which to store the quantum energy in the state object.
+        Name under which to store the quantum energy in the State object.
     dm_adb_0_name:
-        Name of the initial adiabatic density matrix in the state object.
+        Name of the initial adiabatic density matrix in the State object.
 
     Constants and Settings
     ----------------------
@@ -1896,17 +1896,17 @@ def update_dm_db_fssh(
     Optional Keyword Arguments
     --------------------------
     wf_adb_name:
-        Name of the adiabatic wavefunction in the state object.
+        Name of the adiabatic wavefunction in the State object.
     dm_adb_0_name:
-        Name of the initial adiabatic density matrix in the state object.
+        Name of the initial adiabatic density matrix in the State object.
     act_surf_name:
-        Name of the active surface wavefunction in the state object.
+        Name of the active surface wavefunction in the State object.
     dm_db_name:
-        Name of the diabatic density matrix in the state object.
+        Name of the diabatic density matrix in the State object.
     dm_adb_name:
-        Name of the adiabatic density matrix in the state object.
+        Name of the adiabatic density matrix in the State object.
     eigvecs_name:
-        Name of the eigenvectors in the state object.
+        Name of the eigenvectors in the State object.
 
     Constants and Settings
     ----------------------
@@ -1996,18 +1996,18 @@ def update_adb_connection(
     Optional Keyword Arguments
     --------------------------
     eigvecs_adb_prev_name:
-        Name of the adiabatic eigenvectors from the previous time step in the state object.
+        Name of the adiabatic eigenvectors from the previous time step in the State object.
     h_q_tot_adb_name:
         Name of the total Hamiltonian of the quantum subsystem in the adiabatic basis
-        in the state object.
+        in the State object.
     adb_connection_name:
-        Name under which to store the adiabatic connection in the state object.
+        Name under which to store the adiabatic connection in the State object.
     z_name:
-        Name of classical coordinates in the state object.
+        Name of classical coordinates in the State object.
     classical_force_name:
-        Name of the classical force in the state object.
+        Name of the classical force in the State object.
     quantum_classical_force_name:
-        Name of the quantum-classical force in the state object.
+        Name of the quantum-classical force in the State object.
 
     Ingredients
     -----------
@@ -2084,11 +2084,11 @@ def update_wf_adb_rk4(
     Optional Keyword Arguments
     --------------------------
     wf_adb_name:
-        Name of the diabatic wavefunction in the state object.
+        Name of the diabatic wavefunction in the State object.
     h_q_tot_name:
-        Name of the quantum Hamiltonian in the state object.
+        Name of the quantum Hamiltonian in the State object.
     adb_connection_name:
-        Name of the adiabatic connection in the state object.
+        Name of the adiabatic connection in the State object.
 
     Reads
     -----
@@ -2144,15 +2144,15 @@ def update_wf_adb_eig(
     Optional Keyword Arguments
     --------------------------
     h_q_tot_name:
-        Name of the quantum Hamiltonian in the state object.
+        Name of the quantum Hamiltonian in the State object.
     adb_connection_name:
-        Name of the adiabatic connection in the state object.
+        Name of the adiabatic connection in the State object.
     h_q_tot_prev_name:
-        Name of the quantum Hamiltonian from the previous time step in the state object.
+        Name of the quantum Hamiltonian from the previous time step in the State object.
     adb_connection_prev_name:
-        Name of the adiabatic connection from the previous time step in the state object.
+        Name of the adiabatic connection from the previous time step in the State object.
     wf_adb_name:
-        Name of the adiabatic wavefunction in the state object.
+        Name of the adiabatic wavefunction in the State object.
 
     Constants and Settings
     ----------------------
@@ -2224,11 +2224,11 @@ def update_q_velocity_verlet(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of classical coordinates in the state object.
+        Name of classical coordinates in the State object.
     classical_force_name:
-        Name of the classical force in the state object.
+        Name of the classical force in the State object.
     quantum_classical_force_name:
-        Name of the quantum-classical force in the state object.
+        Name of the quantum-classical force in the State object.
 
     Reads
     -----
@@ -2284,13 +2284,13 @@ def update_p_velocity_verlet(
     Optional Keyword Arguments
     --------------------------
     z_name:
-        Name of classical coordinates in the state object.
+        Name of classical coordinates in the State object.
     classical_force_name:
-        Name of the classical force in the state object.
+        Name of the classical force in the State object.
     quantum_classical_force_name:
-        Name of the quantum-classical force in the state object.
+        Name of the quantum-classical force in the State object.
     quantum_classical_force_prev_name:
-        Name of the quantum-classical force from the previous time step in the state object.
+        Name of the quantum-classical force from the previous time step in the State object.
 
     Reads
     -----

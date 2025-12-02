@@ -1,6 +1,6 @@
 """
 This module contains tasks that are used to collect data from the state or
-parameters objects into the output dictionary of the state object.
+parameters objects into the output dictionary of the State object.
 """
 
 from qclab import Simulation
@@ -14,13 +14,13 @@ def collect_t(
     t_output_name: str = "t",
 ):
     """
-    Collects the time from the state object and stores it in the output
+    Collects the time from the State object and stores it in the output
     dictionary.
 
     Optional Keyword Arguments
     --------------------------
     t_name:
-        Name of the time in the state object.
+        Name of the time in the State object.
     t_output_name:
         Name of the time in the output dictionary.
 
@@ -50,13 +50,13 @@ def collect_dm_db(
     dm_db_output_name: str = "dm_db",
 ):
     """
-    Collects the diabatic density matrix from the state object and stores it
+    Collects the diabatic density matrix from the State object and stores it
     in the output dictionary.
 
     Optional Keyword Arguments
     --------------------------
     dm_db_name:
-        Name of the diabatic density matrix in the state object.
+        Name of the diabatic density matrix in the State object.
     dm_db_output_name:
         Name of the diabatic density matrix in the output dictionary.
 
@@ -87,13 +87,13 @@ def collect_classical_energy(
     classical_energy_output_name: str = "classical_energy",
 ):
     """
-    Collects the classical energy from the state object and stores it in the
+    Collects the classical energy from the State object and stores it in the
     output dictionary.
 
     Optional Keyword Arguments
     --------------------------
     classical_energy_name:
-        Name of the classical energy in the state object.
+        Name of the classical energy in the State object.
     classical_energy_output_name:
         Name of the classical energy in the output dictionary.
 
@@ -124,13 +124,13 @@ def collect_quantum_energy(
     quantum_energy_output_name: str = "quantum_energy",
 ):
     """
-    Collects the quantum energy from the state object and stores it in the
+    Collects the quantum energy from the State object and stores it in the
     output dictionary.
 
     Optional Keyword Arguments
     --------------------------
     quantum_energy_name:
-        Name of the quantum energy in the state object.
+        Name of the quantum energy in the State object.
     quantum_energy_output_name:
         Name of the quantum energy in the output dictionary.
 

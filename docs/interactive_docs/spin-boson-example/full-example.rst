@@ -49,7 +49,7 @@ This is what the final code looks like:
         h_qc[1, 0] = np.conj(h_qc[0, 1])
         return h_qc
 
-    # Initialize the simulation object.
+    # Initialize the Simulation object.
     sim = Simulation()
     # Equip it with a spin-boson model object.
     sim.model = SpinBoson()
