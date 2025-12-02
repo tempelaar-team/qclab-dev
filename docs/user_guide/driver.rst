@@ -11,14 +11,14 @@ QC Lab comes equipped with three dynamics drivers. These are functions that take
 - ``multiprocessing_driver``: a parallel driver that uses Python's built-in ``multiprocessing`` module to run the simulation on multiple CPU cores,
 - ``mpi_driver``: a parallel driver that uses the ``mpi4py`` package to run the simulation on multiple CPU cores, possibly across multiple nodes.
 
-Each driver is responsible for managing the execution of the simulation, including dividing the total number of trajectories into batches (if necessary), distributing the batches across available CPU cores, and collecting the results into a single output data object. 
+Each driver is responsible for managing the execution of the simulation, including dividing the total number of trajectories into batches (if necessary), distributing the batches across available CPU cores, and collecting the results into a single output Data object. 
 
 All drivers in QC Lab accept the following input arguments (parallel drivers accept an additional argument, see below):
 
 - ``sim``: an instance of the ``qclab.Simulation`` class containing the model, algorithm, and settings for the simulation,
 - ``seeds``: an optional array of integers specifying the random seeds for each trajectory in
     the simulation. If not provided, the seeds will be generated automatically.
-- ``data``: an input data object into which the results of the simulation will be added. If not provided, a new data object will be created.
+- ``data``: an input Data object into which the results of the simulation will be added. If not provided, a new Data object will be created.
 
 Generically, a driver is called as:
 

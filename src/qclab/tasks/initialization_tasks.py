@@ -343,7 +343,7 @@ def initialize_z(
 ):
     """
     Initializes the classical coordinate by using the init_classical function from the
-    model object.
+    Model object.
 
     Optional Keyword Arguments
     --------------------------

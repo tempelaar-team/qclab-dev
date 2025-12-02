@@ -4,9 +4,9 @@
 Models
 ==========================
 
-Models in QC Lab define the physics of the quantum-classical system under study. A model object is an instance of the ``qclab.Model`` class and is equipped with a set of constants and ingredients that specify the properties of the system in a manner that is agnostic to the quantum-classical algorithm being used.
+Models in QC Lab define the physics of the quantum-classical system under study. A Model object is an instance of the ``qclab.Model`` class and is equipped with a set of constants and ingredients that specify the properties of the system in a manner that is agnostic to the quantum-classical algorithm being used.
 
-At a minimum, the model object defines the Hamiltonian of the system:
+At a minimum, the Model object defines the Hamiltonian of the system:
 
 .. math::
 
@@ -16,7 +16,7 @@ where :math:`\hat{H}_\mathrm{q}` is the quantum Hamiltonian, :math:`\hat{H}_{\ma
 :ref:`Ingredients <ingredient>`.
 
 
-The model object also contains a mandatory set of constants that define properties of the system:
+The Model object also contains a mandatory set of constants that define properties of the system:
 
 - ``num_quantum_states``: the number of quantum states in the system,
 - ``num_classical_coordinates``: the number of classical coordinates in the system,
@@ -158,7 +158,7 @@ To initialize the model's constants manually one can run
 
     model.initialize_constants()
 
-which will execute all the ingredients in the list that begin with an underscore. After doing so, all the internal constants will be available in the model's constants object ``model.constants``. By default, this is done whenever a model object is initialized and whenever a constant is changed.
+which will execute all the ingredients in the list that begin with an underscore. After doing so, all the internal constants will be available in the model's constants object ``model.constants``. By default, this is done whenever a Model object is initialized and whenever a constant is changed.
 
 
 Importantly, a model's ingredients list is executed from back to front. This means that one can add or overwrite an existing ingredient by appending a new tuple to the ingredients list. For example, if we wanted to change the quantum-classical coupling from diagonal to off-diagonal coupling, we could define a new ingredient and append it to the ingredients list:

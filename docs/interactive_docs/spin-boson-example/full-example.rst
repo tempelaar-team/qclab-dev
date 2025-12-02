@@ -51,7 +51,7 @@ This is what the final code looks like:
 
     # Initialize the Simulation object.
     sim = Simulation()
-    # Equip it with a spin-boson model object.
+    # Equip it with a spin-boson Model object.
     sim.model = SpinBoson()
     # Change the reorganization energy.
     sim.model.constants.l_reorg = 0.05

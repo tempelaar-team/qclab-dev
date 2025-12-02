@@ -4,14 +4,14 @@
 Simulations
 ===========================
 
-Simulations in QC Lab are carried out by instances of the ``qclab.Simulation`` class. These simulation objects contain the model and algorithm objects that define the system to be simulated and the method of simulation, respectively. The Simulation object also contains an instance of the ``qclab.Constants`` class (``sim.settings``) which defines the settings of the simulation, such as the time step, total simulation time, and number of trajectories to be simulated. The Simulation object also contains a dictionary (``sim.initial_state``) in which the initial state of the system is defined (these are typically algorithm specific).
+Simulations in QC Lab are carried out by instances of the ``qclab.Simulation`` class. These Simulation objects contain the model and Algorithm objects that define the system to be simulated and the method of simulation, respectively. The Simulation object also contains an instance of the ``qclab.Constants`` class (``sim.settings``) which defines the settings of the simulation, such as the time step, total simulation time, and number of trajectories to be simulated. The Simulation object also contains a dictionary (``sim.initial_state``) in which the initial state of the system is defined (these are typically algorithm specific).
 
 Simulation Objects
 ---------------------------
 
 A Simulation object, generically denoted ``sim``, is an instance of the ``qclab.Simulation`` class. It contains the following attributes:
 
-- ``sim.model``: The model object that defines the system to be simulated.
+- ``sim.model``: The Model object that defines the system to be simulated.
 - ``sim.algorithm``: The Algorithm object that defines the method of simulation.
 - ``sim.settings``: An instance of the ``qclab.Constants`` class that defines the settings of the simulation.
 - ``sim.initial_state``: A dictionary that defines the initial state of the system.
@@ -78,4 +78,4 @@ Once a Simulation object has been created and populated with a model, algorithm,
 
     data = serial_driver(sim)
 
-The resulting data object is a dictionary containing the outputs of the simulation, which are defined by the collect tasks of the algorithm (see :ref:`Algorithms <algorithm>`). For more information on the data objects see :ref:`Data Objects <data>`.
+The resulting Data object is a dictionary containing the outputs of the simulation, which are defined by the collect tasks of the algorithm (see :ref:`Algorithms <algorithm>`). For more information on the Data objects see :ref:`Data Objects <data>`.

@@ -5,9 +5,9 @@ QC Lab Architecture
 ====================
 
 We prefer to think of running a quantum-classical simulation as like preparing a delicious meal. 
-In that analogy, the Simulation object is equipped with a model object that provides "ingredients", 
+In that analogy, the Simulation object is equipped with a Model object that provides "ingredients", 
 an Algorithm object that provides the "recipe", and a dynamics driver that executes the recipe step by step.
-The data object is the output dish that results from the simulation.
+The Data object is the output dish that results from the simulation.
 
 A key feature of this architecture is that different models and algorithms can be swapped in and out with nearly no 
 modification to the rest of the simulation. This enables users to easily experiment with different

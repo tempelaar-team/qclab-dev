@@ -20,13 +20,13 @@ First, we will need to import the necessary modules:
     from qclab.dynamics import serial_driver
 
 
-Next, we will set up the Simulation object and equip it with the model and algorithm objects:
+Next, we will set up the Simulation object and equip it with the Model and Algorithm objects:
 
 .. code-block:: python
 
     # Initialize the Simulation object.
     sim = Simulation()
-    # Equip it with a spin-boson model object.
+    # Equip it with a spin-boson Model object.
     sim.model = SpinBoson()
     # Attach the mean-field algorithm.
     sim.algorithm = MeanField()
@@ -66,7 +66,8 @@ The output of this code is:
 
 .. note::
     This simulation ran in serial mode. For a speed-up on high-performance architecture, consider adopting the parallel driver by
-    running the simulation as ``data = parallel_driver_multiprocessing(sim)`` instead.
+    running the simulation as ``data = parallel_driver_multiprocessing(sim)`` instead. More information on parallelization can be 
+    found :ref:`here <driver>`
 
 
 I want to increase the reorganization energy.

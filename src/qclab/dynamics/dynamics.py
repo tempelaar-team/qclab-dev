@@ -18,11 +18,11 @@ def run_dynamics(sim, state, parameters, data):
     parameters: dict
         The Parameters object containing any additional parameters.
     data: Data
-        The data object for collecting output data.
+        The Data object for collecting output data.
 
     .. rubric:: Returns
     data: Data
-        The updated data object containing collected output data.
+        The updated Data object containing collected output data.
     """
     # Define an update iterator using tqdm if progress_bar is True.
     t_update_iterator = sim.settings.t_update_n

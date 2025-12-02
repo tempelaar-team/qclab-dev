@@ -1,5 +1,5 @@
 """
-This module contains tests of the data object methods.
+This module contains tests of the Data object methods.
 """
 
 import pytest

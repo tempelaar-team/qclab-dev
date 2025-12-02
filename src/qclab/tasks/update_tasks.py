@@ -301,7 +301,7 @@ def update_dh_qc_dzc(
                 sim, state, parameters, z_name=z_name, dh_qc_dzc_name=dh_qc_dzc_name
             )
     # If dh_qc_dzc has already been calculated and does not need to be updated,
-    # return the existing parameters and state objects.
+    # return the existing parameters and State objects.
     return state, parameters
 
 
