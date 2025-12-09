@@ -934,6 +934,7 @@ def update_hop_prob_fssh(
     )
     # Sets hopping probabilities to 0 at the active surface.
     hop_prob[np.arange(num_branches * num_trajs), act_surf_ind] = 0.0
+    hop_prob[np.where(hop_prob < 0)] *= 0
     state[hop_prob_name] = hop_prob
     return state, parameters
 
@@ -2258,10 +2259,10 @@ def update_q_velocity_verlet(
     q = functions.z_to_q(z, m[np.newaxis], h[np.newaxis])
     p = functions.z_to_p(z, m[np.newaxis], h[np.newaxis])
     f = classical_force + quantum_classical_force
-    f_dp, _ = functions.dzdzc_to_dqdp(None, f, m[np.newaxis], h[np.newaxis])
+    f_dp, f_dq = functions.dzdzc_to_dqdp(None, f, m[np.newaxis], h[np.newaxis])
     q_dt = (
         q
-        + (p / m[np.newaxis]) * dt_update
+        + f_dq * dt_update
         - 0.5 * (f_dp / m[np.newaxis]) * dt_update**2
     )
     z_dt = functions.qp_to_z(q_dt, p, m[np.newaxis], h[np.newaxis])

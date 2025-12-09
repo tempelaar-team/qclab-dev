@@ -61,6 +61,8 @@ class QChemASE(Model):
             self.constants.num_classical_coordinates
         )
         if not "energy_offset" in self.constants.__dict__:
+            # The print statements in this function are just
+            # for debugging and will be removed.
             print("Calculating energy offset")
             mol.calc = QCLabQChemCalculator(
                 **{
@@ -131,15 +133,7 @@ class QChemASE(Model):
         # convert back to Cartesian coordinates.
         q = np.einsum("tm, cm ->tc", q_mwnm, normal_modes) + old_constants.init_position
         p = np.einsum("tm, cm ->tc", p_mwnm, normal_modes)
-        print("MWNM coordinates:")
-        print(q_mwnm)
-        print(p_mwnm)
-        print("Initialized classical coordinates.")
-        print(q - old_constants.init_position)
-        print(p)
         self.constants = old_constants
-        print("Harmonic frequencies (Hartrees):")
-        print(self.constants.harmonic_frequency)
         z = qp_to_z(
             q,
             p,
@@ -169,7 +163,7 @@ class QChemASE(Model):
             len(diag_h_qc) == num_quantum_states
         ), "Number of quantum states mismatch." + str(diag_h_qc)
         if not (np.all(np.diff(diag_h_qc) > 0)):
-            print("Excited states are lower in energy!")
+            print("Error: excited states are lower in energy than the ground state.")
         return np.diag(diag_h_qc)
 
     @make_ingredient_sparse

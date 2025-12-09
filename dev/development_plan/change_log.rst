@@ -16,6 +16,10 @@ Version 1.0.1
 - Added AbInitioMeanField algorithm that uses Velocity Verlet integration for the classical degrees of freedom,
   suitable for ab initio calculations or any other problem where the quantum-classical Hamiltonian only depends on the position (real part of z) coordinate.
 - In initialization_tasks.copy_in_state and initialization_tasks.copy_to_parameters, numpy.copy was replaced with copy.copy.
+- TODO: Negative hopping probabilities are taken to zero when calculating cumulative distribution. 
+    --> TODO: All examples have been rerun. 
+
+# Mention in documentation that it might be easiest to disable numba if they get a numba error while debugging.
 
 Bug Fixes
 ---------
