@@ -364,6 +364,8 @@ def update_quantum_classical_force(
         Wavefunction coefficients in the diabatic basis.
     state[dh_qc_dzc_name]: tuple
         Gradient of the quantum-classical Hamiltonian in sparse format.
+    state[h_qc_tot_name]: ndarray of shape (B, N, N), dtype=complex128
+        Total quantum Hamiltonian.
 
     Writes
     ------

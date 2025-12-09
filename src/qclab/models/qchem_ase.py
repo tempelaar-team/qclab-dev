@@ -154,11 +154,32 @@ class QChemASE(Model):
     def h_qc(self, parameters, **kwargs):
         # z = kwargs["z"]
         num_quantum_states = self.constants.num_quantum_states
+        if not ("energy" in self.results.keys()):
+            z = kwargs["z"]
+            num_classical_coordinates = self.constants.num_classical_coordinates
+            num_quantum_states = self.constants.num_quantum_states
+            m = self.constants.classical_coordinate_mass
+            h = self.constants.classical_coordinate_weight
+            mol = self.constants.ase_atoms_object
+            qchem_args = self.constants.qchem_args
+            qchem_tddft_args = self.constants.qchem_tddft_args
+            q = z_to_q(
+                z,
+                m,
+                h,
+            )
+            mol.set_positions(
+                q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR
+            )
+            mol.calc = QCLabQChemCalculator(**{**qchem_args, **qchem_tddft_args})
+            mol.calc.write_input(mol, properties=["energy"])
+            mol.calc.execute()
+            mol.calc.read_results()
+            self.results = mol.calc.results
         diag_h_qc = (
             self.results["energy"][:num_quantum_states] * EV_TO_HA
             - self.constants.energy_offset
         )
-        print(diag_h_qc)
         assert (
             len(diag_h_qc) == num_quantum_states
         ), "Number of quantum states mismatch." + str(diag_h_qc)
@@ -181,11 +202,7 @@ class QChemASE(Model):
             (num_classical_coordinates, num_quantum_states, num_quantum_states),
             dtype=complex,
         )
-        q = z_to_q(
-            z,
-            self.constants.classical_coordinate_mass,
-            self.constants.classical_coordinate_weight,
-        )
+        q = z_to_q(z, m, h)
         mol.set_positions(
             q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR
         )
