@@ -3,6 +3,16 @@
 Change Log
 =================
 
+QC Lab Version 1.0.1
+--------------------
+- Updated numerical constants to use CODATA 2022 values.
+  * Fixed bug in value of qclab.numerical_constants.INVCM_TO_300K
+- Changed cumulative hopping probabilities in FSSH to zero out negative values.
+- Added check for singular hopping probabilities in debugging mode.
+- Updated example notebooks.
+- Updated reference data.
+
+
 
 Version 1.0.1
 -----------------

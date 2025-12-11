@@ -934,9 +934,11 @@ def update_hop_prob_fssh(
         * wf_adb
         / wf_adb[np.arange(num_trajs * num_branches), act_surf_ind][:, np.newaxis]
     )
-    # Sets hopping probabilities to 0 at the active surface.
     hop_prob[np.arange(num_branches * num_trajs), act_surf_ind] = 0.0
-    hop_prob[np.where(hop_prob < 0)] *= 0
+    # Check for singular values.
+    if sim.settings.debug:
+        if np.any(np.isnan(hop_prob)):
+            logger.warning("Singluar value encountered in hopping probabilities.")
     state[hop_prob_name] = hop_prob
     return state, parameters
 
@@ -995,9 +997,12 @@ def update_hop_inds_fssh(
         num_branches = 1
     num_trajs = sim.settings.batch_size // num_branches
     hop_prob = state[hop_prob_name]
+    # Create a copy of hop_prob and set negative values to 0.
+    hop_prob_positive = np.copy(hop_prob)
+    hop_prob_positive[np.where(hop_prob < 0)] *= 0
     rand = state[hop_prob_rand_vals_name][:, sim.t_ind]
     cumulative_probs = np.cumsum(
-        np.nan_to_num(hop_prob, nan=0, posinf=100e100, neginf=-100e100, copy=False),
+        np.nan_to_num(hop_prob_positive, nan=0, posinf=100e100, neginf=0, copy=False),
         axis=1,
     )
     rand_branch = (rand[:, np.newaxis] * np.ones((num_trajs, num_branches))).flatten()

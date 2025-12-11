@@ -20,6 +20,16 @@ from qclab.algorithms import MeanField, FewestSwitchesSurfaceHopping
 from qclab.dynamics import serial_driver, parallel_driver_multiprocessing
 from qclab.numerical_constants import INVCM_TO_300K
 
+from qclab.utils import DISABLE_H5PY
+
+if DISABLE_H5PY:
+    foldername = "data_noh5/"
+    suffix = ".npz"
+else:
+    foldername = "data/"
+    suffix = ".h5"
+
+
 
 model_sim_settings = {
     "SpinBoson": {
@@ -146,7 +156,7 @@ model_settings = {
 }
 
 def gen_test_data():
-    reference_folder = os.path.join(os.path.dirname(__file__), "data_noh5/")
+    reference_folder = os.path.join(os.path.dirname(__file__), foldername)
     for model_class in [
         SpinBoson,
         HolsteinLattice,
@@ -171,12 +181,12 @@ def gen_test_data():
             sim.initial_state["wf_db"][0] = 1j
             data = serial_driver(sim)
             data.save(
-                os.path.join(reference_folder, f"{model_name}_{algorithm_name}")
+                os.path.join(reference_folder, f"{model_name}_{algorithm_name}"+suffix)
             )
     return
 
 def gen_test_data_deterministic():
-    reference_folder = os.path.join(os.path.dirname(__file__), "data_noh5/")
+    reference_folder = os.path.join(os.path.dirname(__file__), foldername)
     for model_class in [
         SpinBoson,
         HolsteinLattice,
@@ -203,7 +213,7 @@ def gen_test_data_deterministic():
             sim.initial_state["wf_db"][0] = 1j
             data = serial_driver(sim)
             data.save(
-                os.path.join(reference_folder, f"{model_name}_{algorithm_name}_deterministic")
+                os.path.join(reference_folder, f"{model_name}_{algorithm_name}_deterministic"+suffix)
             )
     return
 
@@ -212,4 +222,3 @@ def gen_test_data_deterministic():
 if __name__ == "__main__":
     gen_test_data_deterministic()
     gen_test_data()
-    #check_test_data()
