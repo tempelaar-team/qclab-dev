@@ -272,10 +272,14 @@ class AbInitioFewestSwitchesSurfaceHopping(Algorithm):
 
     initialization_recipe = [
         tasks.initialize_variable_objects,
+        partial(tasks.copy_to_parameters, state_name="seed", parameters_name="seed"),
         tasks.initialize_norm_factor,
         tasks.initialize_branch_seeds,
         tasks.initialize_z,
         tasks.update_h_q_tot,
+        tasks.update_classical_force,
+        partial(tasks.update_quantum_classical_force),
+
         partial(
             tasks.diagonalize_matrix,
             matrix_name="h_q_tot",
