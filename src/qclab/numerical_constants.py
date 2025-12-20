@@ -9,20 +9,14 @@ SMALL = 1e-10
 # The misalignment is allowed to be 1e-3 of the magnitude of the coupling.
 GAUGE_FIX_THRESHOLD = 1e-3
 
+# Finite difference step size.
+FINITE_DIFFERENCE_DELTA = 1e-6
+
 # Conversion factor from electronvolts to wavenumbers.
 EV_TO_INVCM = 8065.610420
 
 # Conversion factor from Hartrees to electronvolts.
 HA_TO_EV = 27.21138625
-
-# Conversion factor from wavenumbers to kBT at 300 K.
-# INVCM_TO_300K = 1 / 208.521
-
-# Conversion factor from electronvolts to kBT at 300 K.
-EV_TO_300K = 0.025852
-
-# Conversion factor from Hartrees to kBT at 300 K.
-HA_TO_300K = EV_TO_300K / HA_TO_EV
 
 # Conversion factor from eV to Hartrees.
 EV_TO_HA = 1 / HA_TO_EV
@@ -40,8 +34,6 @@ AMU_TO_EMASS = 1822.89
 AU_TIME_TO_FS = 0.02419
 
 
-# Finite difference step size.
-FINITE_DIFFERENCE_DELTA = 1e-6
 
 
 """
