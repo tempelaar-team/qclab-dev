@@ -305,6 +305,30 @@ def update_dh_qc_dzc(
     return state, parameters
 
 
+def update_derivative_coupling_dzc(
+        sim: Simulation,
+        state: dict,
+        parameters: dict,
+        z_name: str = "z",
+        derivative_coupling_dzc_name: str = "derivative_coupling_dzc",
+):
+    """
+    Docstring for update_derivative_coupling_dzc
+    
+    :param sim: Description
+    :type sim: Simulation
+    :param state: Description
+    :type state: dict
+    :param parameters: Description
+    :type parameters: dict
+    :param z_name: Description
+    :type z_name: str
+    :param derivative_coupling_dzc_name: Description
+    :type derivative_coupling_dzc_name: str
+    """
+    return
+
+
 def update_quantum_classical_force(
     sim: Simulation,
     state: dict,
@@ -1989,6 +2013,8 @@ def update_adb_connection(
     z_name: str = "z",
     classical_force_name: str = "classical_force",
     quantum_classical_force_name: str = "quantum_classical_force",
+    update_derivative_coupling: bool = True,
+    derivative_coupling_dzc_name: str = "derivative_coupling_dzc",
 ):
     """
     Updates the Adiabatic Connection matrix.
@@ -2016,6 +2042,7 @@ def update_adb_connection(
         Name of the classical force in the State object.
     quantum_classical_force_name:
         Name of the quantum-classical force in the State object.
+    
 
     Ingredients
     -----------
@@ -2053,13 +2080,24 @@ def update_adb_connection(
         dz_dt = -1j * (
             state[classical_force_name] + state[quantum_classical_force_name]
         )
-        derivative_coupling_dzc, _ = sim.model.get("derivative_coupling_dzc")
+        if update_derivative_coupling:
+            derivative_coupling_dzc_func, _ = sim.model.get("derivative_coupling_dzc")
+            derivative_coupling_dzc = derivative_coupling_dzc_func(
+                sim.model, parameters, z=z
+            )
+            state[derivative_coupling_dzc_name] = derivative_coupling_dzc
+        else:
+            if derivative_coupling_dzc_name in state:
+                derivative_coupling_dzc = state[derivative_coupling_dzc_name]
+            else:
+                raise AttributeError("The state object needs " + derivative_coupling_dzc_name)
         B = np.sum(
-            np.conj(dz_dt)[:, :, np.newaxis, np.newaxis]
-            * derivative_coupling_dzc(sim.model, parameters, z=z),
+            np.conj(dz_dt)[:, :, np.newaxis, np.newaxis] * derivative_coupling_dzc,
             axis=1,
         )
         state[adb_connection_name] = B - np.conj(B).transpose((0, 2, 1))
+        print("adiabatic connection")
+        print(np.abs(state[adb_connection_name]))
         # m = sim.model.constants.classical_coordinate_mass
         # h = sim.model.constants.classical_coordinate_weight
         # p = functions.z_to_p(z, m[np.newaxis], h[np.newaxis])
@@ -2267,11 +2305,7 @@ def update_q_velocity_verlet(
     p = functions.z_to_p(z, m[np.newaxis], h[np.newaxis])
     f = classical_force + quantum_classical_force
     f_dp, f_dq = functions.dzdzc_to_dqdp(None, f, m[np.newaxis], h[np.newaxis])
-    q_dt = (
-        q
-        + f_dq * dt_update
-        - 0.5 * (f_dp / m[np.newaxis]) * dt_update**2
-    )
+    q_dt = q + f_dq * dt_update - 0.5 * (f_dp / m[np.newaxis]) * dt_update**2
     z_dt = functions.qp_to_z(q_dt, p, m[np.newaxis], h[np.newaxis])
     state[z_name] = z_dt
     return state, parameters
@@ -2283,6 +2317,7 @@ def update_p_velocity_verlet(
     parameters: dict,
     z_name: str = "z",
     classical_force_name: str = "classical_force",
+    classical_force_prev_name: str = "classical_force_prev",
     quantum_classical_force_name: str = "quantum_classical_force",
     quantum_classical_force_prev_name: str = "quantum_classical_force_prev",
 ):
@@ -2306,6 +2341,8 @@ def update_p_velocity_verlet(
         Updated classical coordinates.
     state[classical_force_name]: ndarray of shape (B, C), dtype=complex128
         Force arising from the classical Hamiltonian.
+    state[classical_force_prev_name]: ndarray of shape (B, C), dtype=complex128
+        Force arising from the classical Hamiltonian at the previous timestep.
     state[quantum_classical_force_name]: ndarray of shape (B, C), dtype=complex128
         Force arising from the quantum-classical Hamiltonian.
     state[quantum_classical_force_prev_name]: ndarray of shape (B, C), dtype=complex128
@@ -2324,13 +2361,14 @@ def update_p_velocity_verlet(
     dt_update = sim.settings.dt_update
     z = state[z_name]
     classical_force = state[classical_force_name]
+    classical_force_prev = state[classical_force_prev_name]
     quantum_classical_force = state[quantum_classical_force_name]
     quantum_classical_force_prev = state[quantum_classical_force_prev_name]
     m = sim.model.constants.classical_coordinate_mass
     h = sim.model.constants.classical_coordinate_weight
     p = functions.z_to_p(z, m[np.newaxis], h[np.newaxis])
     f = classical_force + quantum_classical_force
-    f_dt = classical_force + quantum_classical_force_prev
+    f_dt = classical_force_prev + quantum_classical_force_prev
     f_dq, _ = functions.dzdzc_to_dqdp(None, f, m[np.newaxis], h[np.newaxis])
     f_dq_dt, _ = functions.dzdzc_to_dqdp(None, f_dt, m[np.newaxis], h[np.newaxis])
     p_dt = p - 0.5 * (f_dq + f_dq_dt) * dt_update
@@ -2395,3 +2433,11 @@ def update_wf_adb_coeffs(
     )
     state[wf_adb_dt_name] = np.einsum("tij,tj->ti", prop, wf_adb, optimize="greedy")
     return state, parameters
+
+
+def update_z_velocity_verlet(
+        sim: Simulation,
+        state: dict,
+        parameters: dict,
+        
+):

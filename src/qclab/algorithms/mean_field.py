@@ -170,30 +170,42 @@ class AbInitioMeanField(Algorithm):
         partial(tasks.copy_to_parameters, state_name="seed", parameters_name="seed"),
         tasks.initialize_norm_factor,
         tasks.initialize_z,
-        tasks.update_h_q_tot,
-        tasks.update_classical_force,
-        partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb"),
-        tasks.update_adb_connection,
+        tasks.update_h_q_tot, # t=n
+        tasks.update_classical_force, # t=n
+        partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb"), # t=n
+        tasks.update_adb_connection, # t=n
     ]
 
     update_recipe = [
+        # adb_connection_prev(n), adb_connection(n)
         partial(
             tasks.copy_in_state,
             copy_name="adb_connection_prev",
             orig_name="adb_connection",
         ),
+        # h_prev(n), h(n)
         partial(tasks.copy_in_state, copy_name="h_q_tot_prev", orig_name="h_q_tot"),
+        # qf_prev(n), qf(n)
         partial(
             tasks.copy_in_state,
             copy_name="quantum_classical_force_prev",
             orig_name="quantum_classical_force",
         ),
+        partial(
+            tasks.copy_in_state,
+            copy_name="classical_force_prev",
+            orig_name="classical_force",
+        ),
+        # q(n+1) = q(n) + dt*qf_p(n) + 0.5*qf_q(n)*dt**2
         tasks.update_q_velocity_verlet,
-        tasks.update_wf_adb_coeffs,
-        partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb_dt"),
+        # c(q(n+1), p(n))
+        #tasks.update_wf_adb_coeffs,
+        # qf_q(n+1), qf_p(n+1)
+        partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb"),
+        # p(n+1) = p(n) + 0.5*(qf_q(n) + qf_q(n+1))*dt
         tasks.update_p_velocity_verlet,
         partial(tasks.update_classical_force, z_name="z"),
-        tasks.update_adb_connection,
+        partial(tasks.update_adb_connection, update_derivative_coupling=False),
         tasks.update_h_q_tot,
         tasks.update_wf_adb_eig,
     ]

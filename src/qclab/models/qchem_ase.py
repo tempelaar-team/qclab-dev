@@ -154,7 +154,7 @@ class QChemASE(Model):
     def h_qc(self, parameters, **kwargs):
         # z = kwargs["z"]
         num_quantum_states = self.constants.num_quantum_states
-        if not ("energy" in self.results.keys()):
+        if not ("energy" in self.results.keys()) or True:
             z = kwargs["z"]
             num_classical_coordinates = self.constants.num_classical_coordinates
             num_quantum_states = self.constants.num_quantum_states
@@ -173,6 +173,7 @@ class QChemASE(Model):
             )
             mol.calc = QCLabQChemCalculator(**{**qchem_args, **qchem_tddft_args})
             mol.calc.write_input(mol, properties=["energy"])
+            print("Calculating energies")
             mol.calc.execute()
             mol.calc.read_results()
             self.results = mol.calc.results
@@ -183,8 +184,12 @@ class QChemASE(Model):
         assert (
             len(diag_h_qc) == num_quantum_states
         ), "Number of quantum states mismatch." + str(diag_h_qc)
-        if not (np.all(np.diff(diag_h_qc) > 0)):
+        if np.any(np.diff(diag_h_qc) < 0):
             print("Error: excited states are lower in energy than the ground state.")
+            print(diag_h_qc)
+        if np.any(np.diff(diag_h_qc) == 0):
+            print("Error: degenerate states.")
+            print(diag_h_qc)
         return np.diag(diag_h_qc)
 
     @make_ingredient_sparse
@@ -206,6 +211,7 @@ class QChemASE(Model):
         mol.set_positions(
             q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR
         )
+        print("Calculating gradients")
         for state_ind in range(num_quantum_states):
             if state_ind == 0:
                 # For state_ind == 0 do a ground state calculation.
@@ -270,6 +276,7 @@ class QChemASE(Model):
             mol, properties=["derivative_coupling"], num_states=num_quantum_states
         )
         mol.calc.execute()
+        print("Calculating derivative couplings")
         mol.calc.read_results()
         derivative_coupling_dq = mol.calc.results["derivative_coupling"]
         for key, val in derivative_coupling_dq.items():
@@ -277,6 +284,7 @@ class QChemASE(Model):
                 dqdp_to_dzc(val.flatten(), None, m, h) / ANGSTROM_TO_BOHR
             )  # convert from 1/A to 1/Bohr
             out[:, key[1], key[0]] = -np.conj(out[:, key[0], key[1]])
+        print(np.sum(np.abs(out),axis=0))
         return out
 
     ingredients = [
