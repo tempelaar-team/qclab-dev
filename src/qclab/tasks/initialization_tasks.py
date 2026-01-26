@@ -411,6 +411,34 @@ def copy_in_state(
     return state, parameters
 
 
+def copy_in_parameters(
+    sim: Simulation, state: dict, parameters: dict, orig_name: str, copy_name: str
+):
+    """
+    Creates a copy of a variable in the Parameters object with a new name.
+
+
+    Optional Keyword Arguments
+    --------------------------
+    orig_name:
+        Name of the original in the Parameters object.
+    copy_name:
+        Name of the copy in the Parameters object.
+
+    Reads
+    -----
+    parameters[orig_name]:
+        Object to be copied.
+
+    Writes
+    ------
+    parameters[copy_name]:
+        Copy of object.
+    """
+    parameters[copy_name] = copy.copy(parameters[orig_name])
+    return state, parameters
+
+
 def copy_to_parameters(
     sim: Simulation,
     state: dict,
