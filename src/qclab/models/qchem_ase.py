@@ -5,8 +5,7 @@ This module contains the Q-Chem ASE Model class.
 import numpy as np
 import os
 from copy import deepcopy
-from ase.calculators.calculator import FileIOCalculator, SCFError
-import ase.units
+from ase.calculators.calculator import FileIOCalculator
 from qclab.functions import (
     vectorize_ingredient,
     make_ingredient_sparse,
@@ -18,7 +17,6 @@ from qclab.functions import (
 from qclab.model import Model, Constants
 from qclab import ingredients
 from qclab.numerical_constants import (
-    EV_TO_HA,
     INVCM_TO_HA,
     ANGSTROM_TO_BOHR,
     AMU_TO_EMASS,
@@ -68,6 +66,7 @@ class QChemASE(Model):
             print("Calculating energy offset")
             calc = self.calculator(
                 atoms=mol,
+                folder_scratch="qclab_job_" + str(self.constants.seed),
                 **{
                     **self.constants.qchem_args,
                     **self.constants.qchem_tddft_args,
@@ -83,7 +82,9 @@ class QChemASE(Model):
         if not "harmonic_frequency" in self.constants.__dict__:
             print("Calculating harmonic frequencies and normal modes")
             calc = self.calculator(
-                atoms=mol, **{**self.constants.qchem_args, "seed": None}
+                atoms=mol,
+                folder_scratch="qclab_job_" + str(self.constants.seed),
+                **{**self.constants.qchem_args, "seed": None},
             )
             calc.label += "_freq_" + str(self.constants.seed)
             calc.write_input(properties=["frequency"])
@@ -183,7 +184,11 @@ class QChemASE(Model):
             mol.set_positions(
                 q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR
             )
-            calc = self.calculator(atoms=mol, **{**qchem_args, **qchem_tddft_args})
+            calc = self.calculator(
+                atoms=mol,
+                folder_scratch="qclab_job_" + str(self.constants.seed),
+                **{**qchem_args, **qchem_tddft_args},
+            )
             calc.label += "_energy"
             calc.label += "_" + str(self.constants.seed)
             calc.write_input(properties=["energy"])
@@ -246,6 +251,7 @@ class QChemASE(Model):
 
             calc = QCLabQChemCalculator(
                 atoms=mol,
+                folder_scratch="qclab_job_" + str(self.constants.seed),
                 **{
                     **qchem_args,
                     **qchem_tddft_args,
@@ -311,6 +317,7 @@ class QChemASE(Model):
                 return out
             calc = self.calculator(
                 atoms=mol,
+                folder_scratch="qclab_job_" + str(self.constants.seed),
                 **{
                     **qchem_args,
                     **qchem_tddft_args,
@@ -364,12 +371,22 @@ class QChemASE(Model):
                 mol.set_positions(
                     q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR
                 )
-                calc = self.calculator(atoms=mol, **{**qchem_args, **qchem_tddft_args})
+                calc = self.calculator(
+                    atoms=mol,
+                    folder_scratch="qclab_job_" + str(self.constants.seed),
+                    **{**qchem_args, **qchem_tddft_args},
+                )
                 calc.label += "_energy"
                 calc.label += "_" + str(self.constants.seed)
-                calc.write_input(properties=["energy"], excited_amplitudes=property_args["excited_amplitudes"])
+                calc.write_input(
+                    properties=["energy"],
+                    excited_amplitudes=property_args["excited_amplitudes"],
+                )
                 calc.execute()
-                calc.read_results(properties=["energy"], excited_amplitudes=property_args["excited_amplitudes"])
+                calc.read_results(
+                    properties=["energy"],
+                    excited_amplitudes=property_args["excited_amplitudes"],
+                )
                 for key in calc.results.keys():
                     properties[key] = calc.results[key]
                 # properties["energy"] = calc.results["energy"]
@@ -386,6 +403,7 @@ class QChemASE(Model):
                 )
                 calc = QCLabQChemCalculator(
                     atoms=mol,
+                    folder_scratch="qclab_job_" + str(self.constants.seed),
                     **{
                         **qchem_args,
                         **qchem_tddft_args,
@@ -414,6 +432,7 @@ class QChemASE(Model):
                 )
                 calc = self.calculator(
                     atoms=mol,
+                    folder_scratch="qclab_job_" + str(self.constants.seed),
                     **{
                         **qchem_args,
                         **qchem_tddft_args,
@@ -442,6 +461,7 @@ class QChemASE(Model):
                 )
                 calc = self.calculator(
                     atoms=mol,
+                    folder_scratch="qclab_job_" + str(self.constants.seed),
                     **{
                         **qchem_args,
                         **qchem_tddft_args,
@@ -462,106 +482,29 @@ class QChemASE(Model):
                 )
                 calc.execute()
                 # calc.num_excited_states = self.constants.num_quantum_states - 1
-                print(np.sum(np.abs(property_args["current_amplitudes"]["x"])**2, axis=(1,2)))
-                print(np.sum(np.abs(property_args["current_amplitudes"]["x"])**2, axis=(1,2)))
-                calc.read_results(properties=["wf_overlaps"],
+                print(
+                    np.sum(
+                        np.abs(property_args["current_amplitudes"]["x"]) ** 2,
+                        axis=(1, 2),
+                    )
+                )
+                print(
+                    np.sum(
+                        np.abs(property_args["current_amplitudes"]["x"]) ** 2,
+                        axis=(1, 2),
+                    )
+                )
+                calc.read_results(
+                    properties=["wf_overlaps"],
                     current_amplitudes=property_args["current_amplitudes"],
-                    previous_amplitudes=property_args["previous_amplitudes"],)
+                    previous_amplitudes=property_args["previous_amplitudes"],
+                )
                 # properties["wf_overlaps"] = calc.results["wf_overlaps"]
                 for key in calc.results.keys():
                     properties[key] = calc.results[key]
                 print("overlaps")
                 print(calc.results["wf_overlaps"])
         return properties
-
-        return properties
-        # print(kwargs["property_dict"])
-        # return {}
-        property_list = kwargs.get("property_name_list", [])
-        z = kwargs["z"]
-        num_classical_coordinates = self.constants.num_classical_coordinates
-        num_quantum_states = self.constants.num_quantum_states
-        m = self.constants.classical_coordinate_mass
-        h = self.constants.classical_coordinate_weight
-        mol = self.constants.ase_atoms_object
-        qchem_args = self.constants.qchem_args
-        qchem_tddft_args = self.constants.qchem_tddft_args
-        q = z_to_q(z, m, h)
-        mol.set_positions(
-            q.reshape((num_classical_coordinates // 3, 3)) / ANGSTROM_TO_BOHR
-        )
-        properties = {}
-        for property in property_list:
-            if property == "energy":
-                calc = self.calculator(atoms=mol, **{**qchem_args, **qchem_tddft_args})
-                calc.label += "_energy"
-                calc.write_input(properties=["energy"])
-                calc.execute()
-                calc.read_results(properties=["energy"])
-                properties["energy"] = calc.results["energy"]
-            if property == "gradient":
-                properties["gradient"] = []
-                calc = QCLabQChemCalculator(
-                    atoms=mol,
-                    **{
-                        **qchem_args,
-                        **qchem_tddft_args,
-                    },
-                )
-
-                calc.label += "_" + "g"
-                mol.calc = calc
-                mol.calc.write_input(properties=["gradient"])
-                mol.calc.execute()
-                mol.calc.read_results(properties=["gradient"])
-                properties["gradient"] = calc.results["gradient"]
-            if property == "derivative_coupling":
-                calc = self.calculator(
-                    atoms=mol,
-                    **{
-                        **qchem_args,
-                        **qchem_tddft_args,
-                        "CALC_NAC": "True",
-                        "CIS_DER_NUMSTATE": str(num_quantum_states),
-                        "seed": None,
-                    },
-                )
-                calc.label += "_" + str(self.constants.seed)
-                calc.write_input(
-                    properties=["derivative_coupling"],
-                    state_inds_derivative_couplings=[
-                        i for i in range(self.constants.num_quantum_states)
-                    ],
-                )
-                calc.execute()
-                calc.read_results(properties=["derivative_coupling"])
-                properties["derivative_coupling"] = calc.results["derivative_coupling"]
-            if property == "wf_overlaps":
-                calc = self.calculator(
-                    atoms=mol,
-                    **{
-                        **qchem_args,
-                        **qchem_tddft_args,
-                    },
-                )
-                mol_previous = deepcopy(mol)
-                z_previous = kwargs["z_previous"]
-                q_previous = z_to_q(z_previous, m, h)
-                mol_previous.set_positions(
-                    q_previous.reshape((num_classical_coordinates // 3, 3))
-                    / ANGSTROM_TO_BOHR
-                )
-                calc.write_input(
-                    properties=["wf_overlaps"], atoms_previous=mol_previous
-                )
-                calc.execute()
-                calc.read_results(properties=["wf_overlaps"])
-                properties["wf_overlaps"] = calc.results["wf_overlaps"]
-                print("overlaps")
-                print(calc.results["wf_overlaps"])
-        return properties
-
-    # _ab_initio_properties_calculator = self.calc
 
     ingredients = [
         ("ab_initio_properties_calculator", ab_initio_properties_calculator),
@@ -577,24 +520,6 @@ class QChemASE(Model):
     ]
 
 
-import re
-import numpy as np
-import ase.units
-from ase.calculators.calculator import FileIOCalculator, CalculationFailed
-
-
-class SCFError(CalculationFailed):
-    pass
-
-
-import re
-import numpy as np
-import ase.units
-from ase.calculators.calculator import FileIOCalculator, CalculationFailed
-
-
-class SCFError(CalculationFailed):
-    pass
 
 
 class QCLabQChemCalculator(FileIOCalculator):
@@ -605,10 +530,10 @@ class QCLabQChemCalculator(FileIOCalculator):
     https://wiki.fysik.dtu.dk/ase/ase/calculators/qchem
     """
 
-    #name = "QChem"
-    #implemented_properties = ["energy", "gradient", "derivative_coupling", "frequency"]
+    # name = "QChem"
+    # implemented_properties = ["energy", "gradient", "derivative_coupling", "frequency"]
     _legacy_default_command = "qchem PREFIX.inp PREFIX.out"
-    #default_parameters = {"jobtype": None}
+    # default_parameters = {"jobtype": None}
 
     def __init__(
         self,
@@ -619,11 +544,11 @@ class QCLabQChemCalculator(FileIOCalculator):
         np=1,
         **kwargs,
     ):
-        ignore_bad_restart_file=FileIOCalculator._deprecated
-        restart=None
+        ignore_bad_restart_file = FileIOCalculator._deprecated
+        restart = None
         ######
         ##Ensuring that all kwargs are lowercase
-        kwargs={str(k).lower(): v for k, v in kwargs.items()}
+        kwargs = {str(k).lower(): v for k, v in kwargs.items()}
         #######
 
         FileIOCalculator.__init__(
@@ -631,11 +556,11 @@ class QCLabQChemCalculator(FileIOCalculator):
         )
         ## Store objects globally
         self.atoms = atoms
-        self.folder_scratch=folder_scratch
+        self.folder_scratch = folder_scratch
         # Build command
         self.command = "qchem "
         if np != 1:
-            self.command += f"-np {np} "    
+            self.command += f"-np {np} "
         if nt != 1:
             self.command += f"-nt {nt} "
         self.command += "PREFIX.inp PREFIX.out"
@@ -644,9 +569,12 @@ class QCLabQChemCalculator(FileIOCalculator):
         ###########
         ### implemented methods
         self.implemented_properties = [
-            "energy", "gradient", "derivative_coupling", 
-            "frequency", "wf_overlaps"
-            ]
+            "energy",
+            "gradient",
+            "derivative_coupling",
+            "frequency",
+            "wf_overlaps",
+        ]
 
     def read(self, label):
         raise NotImplementedError
@@ -716,48 +644,53 @@ class QCLabQChemCalculator(FileIOCalculator):
                     }
                 )
         return job_specs
+
     ########
     ##This function checks if the requested properties are implemented
     def _check_requested_properties(self, job_resquested):
         for job in job_resquested:
             if job not in self.implemented_properties:
-                raise ValueError(
-                    f"Requested property '{job}' is not implemented."
-                )
-    ########    
+                raise ValueError(f"Requested property '{job}' is not implemented.")
+
+    ########
     def _write_job(
-                self, fileobj, job_spec,
-                state_inds_gradient=None,
-                state_inds_derivative_couplings=None,   
-                atoms_previous=None, excited_amplitudes=False):
+        self,
+        fileobj,
+        job_spec,
+        state_inds_gradient=None,
+        state_inds_derivative_couplings=None,
+        atoms_previous=None,
+        excited_amplitudes=False,
+    ):
         """
         Write  Q-Chem jobs (single job or multiple jobs that share same geometry).
         """
         for i, job in enumerate(job_spec):
             if "gradient" in job["name"]:
-                #This determines the gradient job belongs multiple jobs or single one
-                if len(job_spec)==1:
-                    flag=0
+                # This determines the gradient job belongs multiple jobs or single one
+                if len(job_spec) == 1:
+                    flag = 0
                 else:
-                    if i==0:
-                        flag=0
+                    if i == 0:
+                        flag = 0
                     else:
-                        flag=i+1
+                        flag = i + 1
                 self._write_gradient_jobs(fileobj, job, flag, state_inds_gradient)
 
             elif "wf_overlaps" in job["name"]:
-                if len(job_spec)==1:
-                    flag=0
+                if len(job_spec) == 1:
+                    flag = 0
                 else:
-                    if i==0:
-                        flag=0
+                    if i == 0:
+                        flag = 0
                     else:
-                        flag=i+1
-                if atoms_previous==None:
+                        flag = i + 1
+                if atoms_previous == None:
                     raise ValueError(
-                        "previous geometry must be provided" \
-                        "when requesting wf_overlaps")
-                self._write_wf_overlaps_jobs(fileobj, job, atoms_previous,flag)
+                        "previous geometry must be provided"
+                        "when requesting wf_overlaps"
+                    )
+                self._write_wf_overlaps_jobs(fileobj, job, atoms_previous, flag)
             else:
                 #######
                 ## comment
@@ -767,27 +700,32 @@ class QCLabQChemCalculator(FileIOCalculator):
                 self._write_geometry_qchem(fileobj, indx=i)
                 #####
                 ## job definitnion
-                self._write_job_defi_qchem(fileobj, job, excited_amplitudes=excited_amplitudes)
+                self._write_job_defi_qchem(
+                    fileobj, job, excited_amplitudes=excited_amplitudes
+                )
                 #####
-                ###Derivative coupling 
+                ###Derivative coupling
                 if job["write_derivative_coupling"]:
-                    self._write_derivative_coupling_qchem(fileobj, state_inds_derivative_couplings)
+                    self._write_derivative_coupling_qchem(
+                        fileobj, state_inds_derivative_couplings
+                    )
+
     #########
     ####This function handles the writing for gradient jobs requested
-    def _write_gradient_jobs(self, fileobj, job_spec,flag=0,state_inds_gradient=None):
-        if state_inds_gradient==None:
-            n_s=int(self.parameters.get("cis_n_roots",1))+1
-            state_inds_gradient=[i for i in range(n_s)]
-        elif isinstance(state_inds_gradient,int):
-            state_inds_gradient=[i for i in range(state_inds_gradient)]
-        
-        for j,i in enumerate(state_inds_gradient):
-            if i>0:
-                self.parameters["cis_state_deriv"]=str(i)
-            if flag==0:
-                indx=j
+    def _write_gradient_jobs(self, fileobj, job_spec, flag=0, state_inds_gradient=None):
+        if state_inds_gradient == None:
+            n_s = int(self.parameters.get("cis_n_roots", 1)) + 1
+            state_inds_gradient = [i for i in range(n_s)]
+        elif isinstance(state_inds_gradient, int):
+            state_inds_gradient = [i for i in range(state_inds_gradient)]
+
+        for j, i in enumerate(state_inds_gradient):
+            if i > 0:
+                self.parameters["cis_state_deriv"] = str(i)
+            if flag == 0:
+                indx = j
             else:
-                indx=flag
+                indx = flag
             #######
             ## comment
             self._write_comments_qchem(fileobj, f"gradient state {i}", indx)
@@ -797,12 +735,13 @@ class QCLabQChemCalculator(FileIOCalculator):
             #####
             ## job definitnion
             self._write_job_defi_qchem(fileobj, job_spec, flag=i)
+
     #########
     ####This function handles the writing for wavefunction couplings jobs requested
     def _write_wf_overlaps_jobs(self, fileobj, job_spec, atoms_previous, flag=0):
-        indx=flag
+        indx = flag
         ##creating the input for the previous geometry
-        self._write_comments_qchem(fileobj, job_spec["name"]+" previous step", indx)
+        self._write_comments_qchem(fileobj, job_spec["name"] + " previous step", indx)
         ####write geometry
         fileobj.write("$molecule\n")
         if (
@@ -817,25 +756,25 @@ class QCLabQChemCalculator(FileIOCalculator):
         fileobj.write("   %d %d\n" % (charge, mult))
 
         for a in atoms_previous:
-            fileobj.write(
-                "   {}  {:f}  {:f}  {:f}\n".format(a.symbol, a.x, a.y, a.z)
-            )
+            fileobj.write("   {}  {:f}  {:f}  {:f}\n".format(a.symbol, a.x, a.y, a.z))
         fileobj.write("$end\n\n")
         #####
         ## job definitnion
-        keys_for_wf_overlaps=["mo_overlaps_two_geoms"]
+        keys_for_wf_overlaps = ["mo_overlaps_two_geoms"]
         if all(k in self.parameters for k in keys_for_wf_overlaps):
             pass
         else:
             self.parameters["mo_overlaps_two_geoms"] = 1
-        if self.parameters.get("mo_overlaps_two_geoms")!=1:
-            self.parameters["mo_overlaps_two_geoms"] =1
+        if self.parameters.get("mo_overlaps_two_geoms") != 1:
+            self.parameters["mo_overlaps_two_geoms"] = 1
         #####
         self._write_job_defi_qchem(fileobj, job_spec)
 
         #####
         ###creating input for the current geometry
-        self._write_comments_qchem(fileobj, job_spec["name"]+" current step", indx+1)
+        self._write_comments_qchem(
+            fileobj, job_spec["name"] + " current step", indx + 1
+        )
         ####write geometry
         self._write_geometry_qchem(fileobj, indx=0)
         #####job definition
@@ -878,16 +817,21 @@ class QCLabQChemCalculator(FileIOCalculator):
             fileobj.write("$end\n\n")
 
     ####Job definition
-    def _write_job_defi_qchem(self, fileobj, job_spec, flag=1, excited_amplitudes=False):
+    def _write_job_defi_qchem(
+        self, fileobj, job_spec, flag=1, excited_amplitudes=False
+    ):
         fileobj.write("$rem\n")
         fileobj.write(f"   JOBTYPE           {job_spec['jobtype']}\n")
         ##Writing excited amplitudes if requested
-        if job_spec['name']=='energy' and excited_amplitudes:
-            self.parameters["GUI"]="2"
-            self.parameters["IQMOL_FCHK"]="TRUE"
+        if job_spec["name"] == "energy" and excited_amplitudes:
+            self.parameters["GUI"] = "2"
+            self.parameters["IQMOL_FCHK"] = "TRUE"
         ###This is to handle the parameters for gradient job at the GS
-        if flag==0 and job_spec['name']=='gradient' \
-                or job_spec["name"]=='wf_overlaps':
+        if (
+            flag == 0
+            and job_spec["name"] == "gradient"
+            or job_spec["name"] == "wf_overlaps"
+        ):
             for prm, val in self.parameters.items():
                 if prm.lower() in [
                     "charge",
@@ -908,11 +852,7 @@ class QCLabQChemCalculator(FileIOCalculator):
                 fileobj.write("   %-25s   %s\n" % (prm.upper(), v_str))
         else:
             for prm, val in self.parameters.items():
-                if prm.lower() in [
-                    "charge",
-                    "multiplicity",
-                    "jobtype"
-                ]:
+                if prm.lower() in ["charge", "multiplicity", "jobtype"]:
                     continue
                 if val is None:
                     continue
@@ -921,22 +861,23 @@ class QCLabQChemCalculator(FileIOCalculator):
                 else:
                     v_str = str(val)
                 fileobj.write("   %-25s   %s\n" % (prm.upper(), v_str))
- 
 
         # Always ignore symmetry; otherwise, the coordinates will change the previously established origin.
         fileobj.write("   %-25s   %s\n" % ("SYM_IGNORE", "TRUE"))
 
         fileobj.write("$end\n\n")
 
-    def _write_derivative_coupling_qchem(self, fileobj, state_inds_derivative_couplings=None):
+    def _write_derivative_coupling_qchem(
+        self, fileobj, state_inds_derivative_couplings=None
+    ):
         if state_inds_derivative_couplings is None:
-            n_s=int(self.parameters.get("cis_der_numstate",1))
-            state_inds_derivative_couplings=[i for i in range(n_s)]
+            n_s = int(self.parameters.get("cis_der_numstate", 1))
+            state_inds_derivative_couplings = [i for i in range(n_s)]
             print(
-                "state_inds_derivative_couplings has not been provided.\n"\
+                "state_inds_derivative_couplings has not been provided.\n"
                 f"Derivative couplings for states 0 to {n_s-1} will be computed."
             )
-            
+
         fileobj.write("$derivative_coupling\n")
         fileobj.write(f"{state_inds_derivative_couplings[0]} is the reference state\n")
         fileobj.write(" ".join(str(s) for s in state_inds_derivative_couplings) + "\n")
@@ -945,11 +886,13 @@ class QCLabQChemCalculator(FileIOCalculator):
     ############################################################################################
 
     def read_results(
-                    self, properties=None,
-                    state_inds_gradient=None,
-                    excited_amplitudes=False,
-                    previous_amplitudes=None,
-                    current_amplitudes=None):
+        self,
+        properties=None,
+        state_inds_gradient=None,
+        excited_amplitudes=False,
+        previous_amplitudes=None,
+        current_amplitudes=None,
+    ):
         ###This makes easy to ask for energy results
         if properties is None:
             properties = ["energy"]
@@ -961,31 +904,39 @@ class QCLabQChemCalculator(FileIOCalculator):
             file_content = fileobj.read()
         fileobj.close()
         #####check for qchem normal termination
-        self._check_qchem_normal_termination(file_content, properties, state_inds_gradient)
+        self._check_qchem_normal_termination(
+            file_content, properties, state_inds_gradient
+        )
         ######
         ###pulling data from the output file
-        self._organize_data_qchem_file(file_content, properties, 
-                                       state_inds_gradient,num_atoms,
-                                       excited_amplitudes=excited_amplitudes,
-                                       previous_amplitudes=previous_amplitudes,
-                                       current_amplitudes=current_amplitudes)
+        self._organize_data_qchem_file(
+            file_content,
+            properties,
+            state_inds_gradient,
+            num_atoms,
+            excited_amplitudes=excited_amplitudes,
+            previous_amplitudes=previous_amplitudes,
+            current_amplitudes=current_amplitudes,
+        )
 
     ############
     ###check for qchem normal termination
-    def _check_qchem_normal_termination(self, file_content,properties,state_inds_gradient):
+    def _check_qchem_normal_termination(
+        self, file_content, properties, state_inds_gradient
+    ):
         ###checking qchem normal termination
         normal_termination = "for using Q-Chem"
         if "gradient" in properties:
             if state_inds_gradient is None:
-                n_s=int(self.parameters.get("cis_n_roots",1))+len(properties)
-            elif isinstance(state_inds_gradient,int):
-                n_s=state_inds_gradient+len(properties)-1
+                n_s = int(self.parameters.get("cis_n_roots", 1)) + len(properties)
+            elif isinstance(state_inds_gradient, int):
+                n_s = state_inds_gradient + len(properties) - 1
             else:
-                n_s=len(state_inds_gradient)+len(properties)-1
+                n_s = len(state_inds_gradient) + len(properties) - 1
             if file_content.count(normal_termination) < n_s:
                 raise ValueError("Q-Chem did not terminate normally.")
         elif "wf_overlaps" in properties:
-            n_s=len(properties)+1
+            n_s = len(properties) + 1
             if file_content.count(normal_termination) < n_s:
                 raise ValueError("Q-Chem did not terminate normally.")
         else:
@@ -995,58 +946,84 @@ class QCLabQChemCalculator(FileIOCalculator):
     ############
     ###organizing the data form qchem output file to extract the needed properties
     def _organize_data_qchem_file(
-                                self, file_content, properties,
-                                state_inds_gradient, num_atoms,
-                                excited_amplitudes=False,
-                                previous_amplitudes=None,
-                                current_amplitudes=None):
+        self,
+        file_content,
+        properties,
+        state_inds_gradient,
+        num_atoms,
+        excited_amplitudes=False,
+        previous_amplitudes=None,
+        current_amplitudes=None,
+    ):
         normal_termination = "for using Q-Chem"
         for job in properties:
             if "gradient" in job:
-                job_comment=f"QC Lab generated input file (gradient state"
-                temp=file_content.split(job_comment)
+                job_comment = f"QC Lab generated input file (gradient state"
+                temp = file_content.split(job_comment)
                 if state_inds_gradient is None:
-                    n=int(self.parameters.get("cis_n_roots",1))+1
-                elif isinstance(state_inds_gradient,int):
-                    n=state_inds_gradient
+                    n = int(self.parameters.get("cis_n_roots", 1)) + 1
+                elif isinstance(state_inds_gradient, int):
+                    n = state_inds_gradient
                 else:
-                    n=len(state_inds_gradient)
-                gradient_files=temp[1:n]
+                    n = len(state_inds_gradient)
+                gradient_files = temp[1:n]
                 gradient_files.append(temp[n].split(normal_termination)[0])
-                self._pull_data(job, gradient_files, num_atoms,
-                                state_inds_gradient=state_inds_gradient)
+                self._pull_data(
+                    job,
+                    gradient_files,
+                    num_atoms,
+                    state_inds_gradient=state_inds_gradient,
+                )
             elif "wf_overlaps" in job:
-                job_comment=f"QC Lab generated input file (wf_overlaps"
-                temp=file_content.split(job_comment)
-                coupling_files=temp[2].split(normal_termination)[0] 
-                self._pull_data(job, coupling_files.splitlines(), num_atoms,
-                                previous_amplitudes=previous_amplitudes,
-                                current_amplitudes=current_amplitudes)
+                job_comment = f"QC Lab generated input file (wf_overlaps"
+                temp = file_content.split(job_comment)
+                coupling_files = temp[2].split(normal_termination)[0]
+                self._pull_data(
+                    job,
+                    coupling_files.splitlines(),
+                    num_atoms,
+                    previous_amplitudes=previous_amplitudes,
+                    current_amplitudes=current_amplitudes,
+                )
             else:
-                job_comment=f"QC Lab generated input file ({job}"
-                temp=file_content.split(job_comment)
-                job_file=temp[1].split(normal_termination)[0]
-                self._pull_data(job, job_file.splitlines(), num_atoms,
-                                excited_amplitudes=excited_amplitudes)
+                job_comment = f"QC Lab generated input file ({job}"
+                temp = file_content.split(job_comment)
+                job_file = temp[1].split(normal_termination)[0]
+                self._pull_data(
+                    job,
+                    job_file.splitlines(),
+                    num_atoms,
+                    excited_amplitudes=excited_amplitudes,
+                )
 
     ####pulling the data that is needed
     def _pull_data(
-                self, property, input_file,num_atoms,
-                state_inds_gradient=None,
-                  excited_amplitudes=False,
-                  previous_amplitudes=None,
-                  current_amplitudes=None):
+        self,
+        property,
+        input_file,
+        num_atoms,
+        state_inds_gradient=None,
+        excited_amplitudes=False,
+        previous_amplitudes=None,
+        current_amplitudes=None,
+    ):
         if "energy" in property:
-            self._pull_exst_energy_qchem(input_file, excited_amplitudes=excited_amplitudes)
+            self._pull_exst_energy_qchem(
+                input_file, excited_amplitudes=excited_amplitudes
+            )
         elif "gradient" in property:
-            self._pull_gradient_results_qchem(input_file, num_atoms, state_inds_gradient)
+            self._pull_gradient_results_qchem(
+                input_file, num_atoms, state_inds_gradient
+            )
         elif "frequency" in property:
             self._pull_vibration_results_qchem(input_file, num_atoms)
         elif "derivative_coupling" in property:
             self._pull_derivative_coupling_results_qchem(input_file, num_atoms)
         elif "wf_overlaps" in property:
-            self._pull_overlaps_qchem(previous_amplitudes=previous_amplitudes,
-                                     current_amplitudes=current_amplitudes)
+            self._pull_overlaps_qchem(
+                previous_amplitudes=previous_amplitudes,
+                current_amplitudes=current_amplitudes,
+            )
         else:
             raise ValueError("This type of calculation has not been implemented yet")
 
@@ -1083,7 +1060,7 @@ class QCLabQChemCalculator(FileIOCalculator):
 
     #####Gathering results from excited state energy calculations
     ####the input_file is a list of lines that contains the qchem ouputfile
-    def _pull_exst_energy_qchem(self, input_file,excited_amplitudes=False):
+    def _pull_exst_energy_qchem(self, input_file, excited_amplitudes=False):
         ####determining the number of states
         if self.parameters.get("cis_n_roots") is None:
             nt_states = 1
@@ -1092,42 +1069,55 @@ class QCLabQChemCalculator(FileIOCalculator):
 
         energy = np.zeros(nt_states)
         i = 0
-        for j,line in enumerate(input_file):
+        for j, line in enumerate(input_file):
             ##Energy GS
             if "SCF time:" in line:
-                energy[i] = float(input_file[j+2].split()[-1]) 
+                energy[i] = float(input_file[j + 2].split()[-1])
                 i += 1
             ##Energy Excited State
             elif "Total energy for state" in line:
-                energy[i] = float(line.split()[-2]) 
+                energy[i] = float(line.split()[-2])
                 i += 1
         self.results["energy"] = energy
         ###extracting excited state amplitudes if requested
         if excited_amplitudes:
             self.results["excited_state_amplitudes"] = {}
-            X_alpha, Y_alpha,num_basis_functions,num_alpha_electrons, \
-            num_excited_states=self._pull_excited_state_amplitudes_qchem()
-            self.results["excited_state_amplitudes"]["x"]=X_alpha
-            self.results["excited_state_amplitudes"]["y"]=Y_alpha
-            self.results["excited_state_amplitudes"]["num_basis_functions"]=num_basis_functions
-            self.results["excited_state_amplitudes"]["num_alpha_electrons"]=num_alpha_electrons
-            self.results["excited_state_amplitudes"]["num_excited_states"]=num_excited_states
+            (
+                X_alpha,
+                Y_alpha,
+                num_basis_functions,
+                num_alpha_electrons,
+                num_excited_states,
+            ) = self._pull_excited_state_amplitudes_qchem()
+            self.results["excited_state_amplitudes"]["x"] = X_alpha
+            self.results["excited_state_amplitudes"]["y"] = Y_alpha
+            self.results["excited_state_amplitudes"][
+                "num_basis_functions"
+            ] = num_basis_functions
+            self.results["excited_state_amplitudes"][
+                "num_alpha_electrons"
+            ] = num_alpha_electrons
+            self.results["excited_state_amplitudes"][
+                "num_excited_states"
+            ] = num_excited_states
 
     #####Gathering results from force/gradfient calculations
     ####the input_file is a list of lines that contains the qchem ouputfile
-    def _pull_gradient_results_qchem(self, input_file, num_atoms, state_inds_gradient=None):
- 
+    def _pull_gradient_results_qchem(
+        self, input_file, num_atoms, state_inds_gradient=None
+    ):
+
         if state_inds_gradient is None:
-            n_s=int(self.parameters.get("cis_n_roots",1))+1
-            state_inds_gradient=[i for i in range(n_s)]
-        elif isinstance(state_inds_gradient,int):
-            state_inds_gradient=[i for i in range(state_inds_gradient)]
+            n_s = int(self.parameters.get("cis_n_roots", 1)) + 1
+            state_inds_gradient = [i for i in range(n_s)]
+        elif isinstance(state_inds_gradient, int):
+            state_inds_gradient = [i for i in range(state_inds_gradient)]
 
         gradient = np.zeros((num_atoms, 3, len(state_inds_gradient)))
         flag_words_grad = ["Gradient of the state energy", "Gradient of SCF Energy"]
         flag_words_out_grad = ["Gradient time", "Max gradient component"]
         for state_indx in range(len(state_inds_gradient)):
-            output_data= input_file[state_indx].splitlines()
+            output_data = input_file[state_indx].splitlines()
             for indx, line in enumerate(output_data):
                 if any(word in line for word in flag_words_grad):
                     ii = indx + 1
@@ -1146,7 +1136,7 @@ class QCLabQChemCalculator(FileIOCalculator):
                         ii += 4
                         line2 = output_data[ii]
                     break
-        self.results["gradient"] = gradient 
+        self.results["gradient"] = gradient
 
     #####Gathering results from Derivative Coupling calculations
 
@@ -1169,7 +1159,9 @@ class QCLabQChemCalculator(FileIOCalculator):
 
         # gathering the data
         DC = np.zeros((num_atoms, 3))  ## Derivative coupling matrix
-        derivative_coupling = {}  ### dictionary where will be store Derivative coupling matrix
+        derivative_coupling = (
+            {}
+        )  ### dictionary where will be store Derivative coupling matrix
         for i, sl in enumerate(l_states):
             temp = input_file[sl].split()
             i_st = int(temp[-3])  ## stetes involved
@@ -1182,162 +1174,201 @@ class QCLabQChemCalculator(FileIOCalculator):
 
             derivative_coupling[(i_st, j_st)] = DC.copy()
         self.results["derivative_coupling"] = derivative_coupling
+
     #####Gathering results from Wavefunction overlaps calculations
-    def _pull_overlaps_qchem(self,previous_amplitudes=None,current_amplitudes=None):
+    def _pull_overlaps_qchem(self, previous_amplitudes=None, current_amplitudes=None):
         if previous_amplitudes is None:
             raise ValueError(
-                "previous excited state amplitudes must be provided"\
-                     "to compute wavefunction overlaps."
+                "previous excited state amplitudes must be provided"
+                "to compute wavefunction overlaps."
             )
-        if current_amplitudes is None:  
+        if current_amplitudes is None:
             raise ValueError(
-                "current excited state amplitudes must be provided"\
-                     "to compute wavefunction overlaps."
+                "current excited state amplitudes must be provided"
+                "to compute wavefunction overlaps."
             )
         #####creating global variables needed for computing overlaps
-        self.num_basis_functions=current_amplitudes["num_basis_functions"]
-        self.num_alpha_electrons=current_amplitudes["num_alpha_electrons"]
-        self.num_excited_states=current_amplitudes["num_excited_states"]
+        self.num_basis_functions = current_amplitudes["num_basis_functions"]
+        self.num_alpha_electrons = current_amplitudes["num_alpha_electrons"]
+        self.num_excited_states = current_amplitudes["num_excited_states"]
         ###MO overlaps
         MO_overlaps = self._pull_mo_overlaps_qchem()
         ####computing overlaps matrices
         ###### TDDFT
-        self._get_overlaps_TDDFT( previous_amplitudes['x'], previous_amplitudes['y'],
-                                  current_amplitudes['x'], current_amplitudes['y'],
-                                  MO_overlaps)
+        self._get_overlaps_TDDFT(
+            previous_amplitudes["x"],
+            previous_amplitudes["y"],
+            current_amplitudes["x"],
+            current_amplitudes["y"],
+            MO_overlaps,
+        )
 
-################
-#####overlaps with TDDFT
+    ################
+    #####overlaps with TDDFT
     def _get_overlaps_TDDFT(self, x_prev, y_prev, x_curr, y_curr, MO_overlaps):
         ######
         ##overlaps matrices
-        S_oo=MO_overlaps[0:self.num_alpha_electrons,0:self.num_alpha_electrons] 
-        S_ov=MO_overlaps[0:self.num_alpha_electrons,self.num_alpha_electrons:]  
-        S_vo=MO_overlaps[self.num_alpha_electrons:,0:self.num_alpha_electrons]  
-        S_vv=MO_overlaps[self.num_alpha_electrons:,self.num_alpha_electrons:]
+        S_oo = MO_overlaps[0 : self.num_alpha_electrons, 0 : self.num_alpha_electrons]
+        S_ov = MO_overlaps[0 : self.num_alpha_electrons, self.num_alpha_electrons :]
+        S_vo = MO_overlaps[self.num_alpha_electrons :, 0 : self.num_alpha_electrons]
+        S_vv = MO_overlaps[self.num_alpha_electrons :, self.num_alpha_electrons :]
         ###computing <GS^(1)|GS^(2)>
-        GS_overlap=np.linalg.det(S_oo)
+        GS_overlap = np.linalg.det(S_oo)
         ###computing <GS^(1)|ES_i^(2)>
-        overlaps_gs_ex_x=self._compute_overlap_gs_ex(x_curr, S_oo, S_ov)
-        overlaps_gs_ex_y=self._compute_overlap_gs_ex(y_curr, S_oo, S_ov)
-        overlaps_gs_ex=overlaps_gs_ex_x - overlaps_gs_ex_y
+        overlaps_gs_ex_x = self._compute_overlap_gs_ex(x_curr, S_oo, S_ov)
+        overlaps_gs_ex_y = self._compute_overlap_gs_ex(y_curr, S_oo, S_ov)
+        overlaps_gs_ex = overlaps_gs_ex_x - overlaps_gs_ex_y
         ###computing <ES_i^(1)|GS^(2)>
-        overlaps_ex_gs_x=self._compute_overlap_ex_gs(x_prev, S_oo, S_vo)
-        overlaps_ex_gs_y=self._compute_overlap_ex_gs(y_prev, S_oo, S_vo)
-        overlaps_ex_gs=overlaps_ex_gs_x - overlaps_ex_gs_y
+        overlaps_ex_gs_x = self._compute_overlap_ex_gs(x_prev, S_oo, S_vo)
+        overlaps_ex_gs_y = self._compute_overlap_ex_gs(y_prev, S_oo, S_vo)
+        overlaps_ex_gs = overlaps_ex_gs_x - overlaps_ex_gs_y
         ###computing <ES_i^(1)|ES_j^(2)>
-        overlaps_ex_ex_x_x=self._compute_overlap_ex_ex(x_prev, x_curr, S_oo, S_ov, S_vo, S_vv)
-        overlaps_ex_ex_x_y=self._compute_overlap_ex_ex(x_prev, y_curr, S_oo, S_ov, S_vo, S_vv)
-        overlaps_ex_ex_y_x=self._compute_overlap_ex_ex(y_prev, x_curr, S_oo, S_ov, S_vo, S_vv)
-        overlaps_ex_ex_y_y=self._compute_overlap_ex_ex(y_prev, y_curr, S_oo, S_ov, S_vo, S_vv)
-        overlaps_ex_ex=overlaps_ex_ex_x_x - overlaps_ex_ex_x_y - overlaps_ex_ex_y_x + overlaps_ex_ex_y_y
-        ###storing results  
-        ###storing results  
-        self.results["wf_overlaps"] = np.zeros((self.num_excited_states+1,self.num_excited_states+1))
-        self.results["wf_overlaps"][0,0]=GS_overlap
-        self.results["wf_overlaps"][0,1:]=2.0*overlaps_gs_ex
-        self.results["wf_overlaps"][1:,0]=2.0*overlaps_ex_gs
-        self.results["wf_overlaps"][1:,1:]=2.0*overlaps_ex_ex
+        overlaps_ex_ex_x_x = self._compute_overlap_ex_ex(
+            x_prev, x_curr, S_oo, S_ov, S_vo, S_vv
+        )
+        overlaps_ex_ex_x_y = self._compute_overlap_ex_ex(
+            x_prev, y_curr, S_oo, S_ov, S_vo, S_vv
+        )
+        overlaps_ex_ex_y_x = self._compute_overlap_ex_ex(
+            y_prev, x_curr, S_oo, S_ov, S_vo, S_vv
+        )
+        overlaps_ex_ex_y_y = self._compute_overlap_ex_ex(
+            y_prev, y_curr, S_oo, S_ov, S_vo, S_vv
+        )
+        overlaps_ex_ex = (
+            overlaps_ex_ex_x_x
+            - overlaps_ex_ex_x_y
+            - overlaps_ex_ex_y_x
+            + overlaps_ex_ex_y_y
+        )
+        ###storing results
+        ###storing results
+        self.results["wf_overlaps"] = np.zeros(
+            (self.num_excited_states + 1, self.num_excited_states + 1)
+        )
+        self.results["wf_overlaps"][0, 0] = GS_overlap
+        self.results["wf_overlaps"][0, 1:] = 2.0 * overlaps_gs_ex
+        self.results["wf_overlaps"][1:, 0] = 2.0 * overlaps_ex_gs
+        self.results["wf_overlaps"][1:, 1:] = 2.0 * overlaps_ex_ex
 
-
-####computing overlaps
-    def _compute_overlap_gs_ex(self,x, S_oo, S_ov):
-        A = S_oo                     
-        Sov = S_ov                     
+    ####computing overlaps
+    def _compute_overlap_gs_ex(self, x, S_oo, S_ov):
+        A = S_oo
+        Sov = S_ov
         sign, logdet = np.linalg.slogdet(A)
         detA = sign * np.exp(logdet)
-        Ww = np.linalg.solve(A, Sov)   
-        Xx = np.asarray(x)            
-        overlaps_gs_ex = detA * np.einsum('eia,ia->e', Xx, Ww)
+        Ww = np.linalg.solve(A, Sov)
+        Xx = np.asarray(x)
+        overlaps_gs_ex = detA * np.einsum("eia,ia->e", Xx, Ww)
         return overlaps_gs_ex
-    def _compute_overlap_ex_gs(self,x, S_oo, S_vo):
-        A = S_oo                      
-        Svo = S_vo                    
+
+    def _compute_overlap_ex_gs(self, x, S_oo, S_vo):
+        A = S_oo
+        Svo = S_vo
         sign, logdet = np.linalg.slogdet(A)
         detA = sign * np.exp(logdet)
         Vv = np.linalg.solve(A.T, Svo.T).T
-        Xx = np.asarray(x) 
-        overlaps_ex_gs = detA * np.einsum('eia,ai->e', Xx, Vv)
+        Xx = np.asarray(x)
+        overlaps_ex_gs = detA * np.einsum("eia,ai->e", Xx, Vv)
         return overlaps_ex_gs
-    
+
     def _compute_overlap_ex_ex(self, x, x2, S_oo, S_ov, S_vo, S_vv):
         A = S_oo
         nocc = A.shape[0]
-        nb = S_vo.shape[0]      
-        na = S_ov.shape[1]     
-        X  = np.asarray(x)          
-        X2 = np.asarray(x2)         
+        nb = S_vo.shape[0]
+        na = S_ov.shape[1]
+        X = np.asarray(x)
+        X2 = np.asarray(x2)
         sign, logdet = np.linalg.slogdet(A)
         detA = sign * np.exp(logdet)
 
         invA = np.linalg.solve(A, np.eye(nocc))
-        G    = invA @ S_ov                     
+        G = invA @ S_ov
 
         overlap = np.zeros((X.shape[0], X2.shape[0]))
 
         for j in range(nocc):
-            Aj = A[j, :]                        
-            colj = invA[:, j]                   
+            Aj = A[j, :]
+            colj = invA[:, j]
 
-            Delta = S_vo - Aj[None, :]          
+            Delta = S_vo - Aj[None, :]
 
-            Delta_dot_colj = Delta @ colj       
-            Delta_dot_G    = Delta @ G         
+            Delta_dot_colj = Delta @ colj
+            Delta_dot_G = Delta @ G
 
             for i in range(nocc):
-                q = invA[i, j]                  
-                Gi = G[i, :]                    
-                Aji = A[j, i]                   
+                q = invA[i, j]
+                Gi = G[i, :]
+                Aji = A[j, i]
 
-                Delta_i = Delta[:, i]           
-                alpha = S_vv - S_vo[:, i][:, None] - S_ov[j, :][None, :] + Aji  
+                Delta_i = Delta[:, i]
+                alpha = S_vv - S_vo[:, i][:, None] - S_ov[j, :][None, :] + Aji
                 B21 = (Delta_dot_G - Delta_i[:, None]) + alpha * (Gi[None, :] - 1.0)
                 B22 = 1.0 + Delta_dot_colj[:, None] + alpha * q
-                detM = detA * (Gi[None, :] * B22 - q * B21)   
-                conjx = np.conj(X[:, j, :])      
-                x2ia  = X2[:, i, :]              
-                overlap += np.einsum('eb,fa,ba->ef', conjx, x2ia, detM, optimize=True)
+                detM = detA * (Gi[None, :] * B22 - q * B21)
+                conjx = np.conj(X[:, j, :])
+                x2ia = X2[:, i, :]
+                overlap += np.einsum("eb,fa,ba->ef", conjx, x2ia, detM, optimize=True)
 
         return overlap
-####This function extracts MO overlaps from qchem output file
+
+    ####This function extracts MO overlaps from qchem output file
     def _pull_mo_overlaps_qchem(self):
-        qcscratch = os.environ["QCSCRATCH"] ##Qchem scratch folder
-        file_mo_overlap = qcscratch + "/" + self.folder_scratch + "/" + "MO-overlaps/MO-overlap-TwoGeoms.txt"
-        with open(file_mo_overlap,'r') as file:
-            data=file.readlines()
-        overlaps_init=[]
+        qcscratch = os.environ["QCSCRATCH"]  ##Qchem scratch folder
+        file_mo_overlap = (
+            qcscratch
+            + "/"
+            + self.folder_scratch
+            + "/"
+            + "MO-overlaps/MO-overlap-TwoGeoms.txt"
+        )
+        with open(file_mo_overlap, "r") as file:
+            data = file.readlines()
+        overlaps_init = []
         for line in data:
-            temp_values=np.array(line.split(),dtype=float)
-            if len(temp_values)==8:
+            temp_values = np.array(line.split(), dtype=float)
+            if len(temp_values) == 8:
                 overlaps_init.append(temp_values[:-1])
-            elif len(temp_values)==0:
+            elif len(temp_values) == 0:
                 continue
             else:
                 overlaps_init.append(temp_values)
 
-        length=len(np.concatenate(overlaps_init))
-        if length!=(self.num_basis_functions*self.num_basis_functions):
+        length = len(np.concatenate(overlaps_init))
+        if length != (self.num_basis_functions * self.num_basis_functions):
             raise ValueError("The number of overlap integrals read is not correct")
 
-        MO_overlaps =np.zeros((self.num_basis_functions,self.num_basis_functions))
-        num_blocks=int(len(overlaps_init)/self.num_basis_functions)
+        MO_overlaps = np.zeros((self.num_basis_functions, self.num_basis_functions))
+        num_blocks = int(len(overlaps_init) / self.num_basis_functions)
         for i in range(self.num_basis_functions):
-            temp_values=np.concatenate([overlaps_init[self.num_basis_functions*j+i] for j in range(num_blocks)])
-            MO_overlaps[i,:]=temp_values
-        
-        MO_overlaps=MO_overlaps.T
+            temp_values = np.concatenate(
+                [
+                    overlaps_init[self.num_basis_functions * j + i]
+                    for j in range(num_blocks)
+                ]
+            )
+            MO_overlaps[i, :] = temp_values
+
+        MO_overlaps = MO_overlaps.T
         return MO_overlaps
 
-####extracting excited state amplitudes 
+    ####extracting excited state amplitudes
     def _pull_excited_state_amplitudes_qchem(self):
         file_fchk = self.label + ".fchk"
-        with open(file_fchk, 'r') as f:
+        with open(file_fchk, "r") as f:
             data = f.readlines()
-        keywords_to_find = ["Number of alpha electrons", "Number of beta electrons","Number of basis functions",
-                            "Number of Excited States","Alpha X Amplitudes","Alpha Y Amplitudes","Alpha Amplitudes"]
-        keyword_to_stop=["Beta X Amplitudes","Beta Y Amplitudes","Beta Amplitudes"]
+        keywords_to_find = [
+            "Number of alpha electrons",
+            "Number of beta electrons",
+            "Number of basis functions",
+            "Number of Excited States",
+            "Alpha X Amplitudes",
+            "Alpha Y Amplitudes",
+            "Alpha Amplitudes",
+        ]
+        keyword_to_stop = ["Beta X Amplitudes", "Beta Y Amplitudes", "Beta Amplitudes"]
 
-        for i,line in enumerate(data):
+        for i, line in enumerate(data):
             if keywords_to_find[0] in line:
                 num_alpha_electrons = int(line.split()[-1])
             if keywords_to_find[1] in line:
@@ -1349,52 +1380,80 @@ class QCLabQChemCalculator(FileIOCalculator):
                 index_restart = i
 
         if num_alpha_electrons != num_beta_electrons:
-            raise ValueError( 
-            "The software only supports closed-shell calculations."
-            )
-        dimension_amplitudes = num_excited_states*(num_basis_functions - num_alpha_electrons)*num_alpha_electrons
+            raise ValueError("The software only supports closed-shell calculations.")
+        dimension_amplitudes = (
+            num_excited_states
+            * (num_basis_functions - num_alpha_electrons)
+            * num_alpha_electrons
+        )
         X_alpha = []
-        Y_alpha = [] 
-        for i,line in enumerate(data[index_restart:]):
+        Y_alpha = []
+        for i, line in enumerate(data[index_restart:]):
             if keywords_to_find[4] in line:
-                j=i+1+index_restart
+                j = i + 1 + index_restart
                 while keyword_to_stop[0] not in data[j]:
-                    temp_values =np.array(data[j].split(), dtype=float)
+                    temp_values = np.array(data[j].split(), dtype=float)
                     X_alpha.append(temp_values)
-                    j=j+1
+                    j = j + 1
             if keywords_to_find[5] in line:
-                j=i+1+index_restart
+                j = i + 1 + index_restart
                 while keyword_to_stop[1] not in data[j]:
-                    temp_values =np.array(data[j].split(), dtype=float)
+                    temp_values = np.array(data[j].split(), dtype=float)
                     Y_alpha.append(temp_values)
-                    j=j+1
+                    j = j + 1
             if keywords_to_find[6] in line:
-                j=i+1+index_restart
+                j = i + 1 + index_restart
                 while keyword_to_stop[2] not in data[j]:
-                    temp_values =np.array(data[j].split(), dtype=float)
+                    temp_values = np.array(data[j].split(), dtype=float)
                     X_alpha.append(temp_values)
                     Y_alpha.append(np.zeros_like(temp_values))
-                    j=j+1
+                    j = j + 1
         X_alpha = np.concatenate(X_alpha)
-        X_alpha =np.reshape(X_alpha, (num_excited_states, num_alpha_electrons,(num_basis_functions - num_alpha_electrons)))
+        X_alpha = np.reshape(
+            X_alpha,
+            (
+                num_excited_states,
+                num_alpha_electrons,
+                (num_basis_functions - num_alpha_electrons),
+            ),
+        )
         Y_alpha = np.concatenate(Y_alpha)
-        Y_alpha =np.reshape(Y_alpha, (num_excited_states, num_alpha_electrons,(num_basis_functions - num_alpha_electrons)))
-        return X_alpha, Y_alpha,num_basis_functions,num_alpha_electrons,num_excited_states
+        Y_alpha = np.reshape(
+            Y_alpha,
+            (
+                num_excited_states,
+                num_alpha_electrons,
+                (num_basis_functions - num_alpha_electrons),
+            ),
+        )
+        return (
+            X_alpha,
+            Y_alpha,
+            num_basis_functions,
+            num_alpha_electrons,
+            num_excited_states,
+        )
 
-##############################
+    ##############################
 
     def write_input(
-                    self, properties=None, system_changes=None,
-                    state_inds_gradient=None,
-                    state_inds_derivative_couplings=None,
-                    atoms_previous=None, excited_amplitudes=False):
+        self,
+        properties=None,
+        system_changes=None,
+        state_inds_gradient=None,
+        state_inds_derivative_couplings=None,
+        atoms_previous=None,
+        excited_amplitudes=False,
+    ):
         FileIOCalculator.write_input(self, self.atoms, properties, system_changes)
         filename = self.label + ".inp"
         job_specs = self._build_job_specs(properties)
         with open(filename, "w") as fileobj:
             self._write_job(
-                fileobj, job_specs,
+                fileobj,
+                job_specs,
                 state_inds_gradient=state_inds_gradient,
                 state_inds_derivative_couplings=state_inds_derivative_couplings,
-                atoms_previous=atoms_previous, excited_amplitudes=excited_amplitudes
+                atoms_previous=atoms_previous,
+                excited_amplitudes=excited_amplitudes,
             )

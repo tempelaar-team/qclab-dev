@@ -13,6 +13,14 @@ QC Lab Version 1.0.1
 - Updated reference data.
 
 
+1.0.2
+- Fix the k-index convention in classical coordinates. 
+  k_inds should be the same ordering for both classical and quantum coordinates. 
+
+  
+
+
+
 
 Version 1.0.1
 -----------------

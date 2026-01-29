@@ -2555,6 +2555,12 @@ def update_ab_initio_properties(
         "wf_overlaps": {"z": "z", "z_previous": "z_previous"},
     },
 ):
+    """
+    Docstring for update_ab_initio_properties
+     EXPLAIN WHAT AIP MEANS
+    
+    """
+
 
     parameters["ab_initio_properties"] = np.array(
         [{} for _ in range(sim.settings.batch_size)]
