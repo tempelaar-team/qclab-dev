@@ -407,7 +407,8 @@ def copy_in_state(
     state[copy_name]:
         Copy of object.
     """
-    state[copy_name] = copy.copy(state[orig_name])
+    if orig_name in state.keys():
+        state[copy_name] = copy.copy(state[orig_name])
     return state, parameters
 
 
