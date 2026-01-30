@@ -279,12 +279,10 @@ class AbInitioFewestSwitchesSurfaceHopping(Algorithm):
             eigvals_name="eigvals",
             eigvecs_name="eigvecs",
         ),
-        # tasks.update_derivative_coupling_dzc_gauge,
         partial(
             tasks.update_wf_adb_hop_prob,
             calculate_hopping_probabilities=True,
         ),
-        # tasks.update_hop_prob_fssh,
         tasks.update_hop_inds_fssh,
         partial(
             tasks.update_hop_vals_fssh,
@@ -293,11 +291,8 @@ class AbInitioFewestSwitchesSurfaceHopping(Algorithm):
         tasks.update_z_hop,
         tasks.update_act_surf_hop,
         tasks.update_act_surf_wf,
-        tasks.update_quantum_energy_act_surf,
         partial(tasks.update_quantum_classical_force, wf_db_name="act_surf_wf"),
-        # Should recalculate classical forces here
         tasks.update_p_velocity_verlet,
-        tasks.update_classical_energy_fssh,
         tasks.update_classical_force,
     ]
 
