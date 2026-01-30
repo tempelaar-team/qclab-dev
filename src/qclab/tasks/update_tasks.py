@@ -2514,16 +2514,16 @@ def update_derivative_coupling_dzc_gauge(
     wf_overlaps_name: str = "aip_wf_overlaps",
     derivative_coupling_dzc_name: str = "derivative_coupling_dzc",
 ):
-
-    wf_overlaps = np.einsum("tii->ti", state[wf_overlaps_name])
-    signs = np.sign(wf_overlaps)
-    state[derivative_coupling_dzc_name] = np.einsum(
-        "ti,tcij,tj->tcij",
-        signs,
-        state[derivative_coupling_dzc_name],
-        signs,
-        optimize="greedy",
-    )
+    if wf_overlaps_name in state.keys():
+        wf_overlaps = np.einsum("tii->ti", state[wf_overlaps_name])
+        signs = np.sign(wf_overlaps)
+        state[derivative_coupling_dzc_name] = np.einsum(
+            "ti,tcij,tj->tcij",
+            signs,
+            state[derivative_coupling_dzc_name],
+            signs,
+            optimize="greedy",
+        )
     return state, parameters
 
 
@@ -2533,14 +2533,14 @@ def update_wf_overlaps_gauge(
     parameters: dict,
     wf_overlaps_name: str = "aip_wf_overlaps",
 ):
-
-    wf_overlaps = np.einsum("tii->ti", state[wf_overlaps_name])
-    signs = np.sign(wf_overlaps)
-    state[wf_overlaps_name] = np.einsum(
-        "tij,tj->tij", state[wf_overlaps_name], signs, optimize="greedy"
-    )
-    print("gauge fixed overlaps")
-    print(state[wf_overlaps_name][0])
+    if wf_overlaps_name in state.keys():
+        wf_overlaps = np.einsum("tii->ti", state[wf_overlaps_name])
+        signs = np.sign(wf_overlaps)
+        state[wf_overlaps_name] = np.einsum(
+            "tij,tj->tij", state[wf_overlaps_name], signs, optimize="greedy"
+        )
+        print("gauge fixed overlaps")
+        print(state[wf_overlaps_name][0])
     return state, parameters
 
 
@@ -2565,6 +2565,7 @@ def update_ab_initio_properties(
     parameters["ab_initio_properties"] = np.array(
         [{} for _ in range(sim.settings.batch_size)]
     )
+    state["ab_initio_properties"] = {}
     ab_initio_properties_calculator, has_ab_intio_property_calculator = sim.model.get(
         "ab_initio_properties_calculator"
     )

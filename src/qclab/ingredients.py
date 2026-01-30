@@ -3,7 +3,9 @@ This module contains ingredients for use in Model classes.
 """
 
 import numpy as np
+import copy
 from qclab import functions
+from qclab import numerical_constants
 
 
 def h_c_harmonic(model, parameters, **kwargs):
@@ -628,3 +630,164 @@ def gauge_field_force_zero(model, parameters, **kwargs):
     z = kwargs["z"]
     state_ind = kwargs["state_ind"]
     return np.zeros_like(z)
+
+from qclab.interfaces import QCLabQChemInterface
+
+@functions.vectorize_ingredient
+def ab_initio_properties_calculator_qchem(model, parameters, **kwargs):
+    property_dict = kwargs["property_dict"]
+    traj_ind = kwargs["traj_ind"]
+    properties = {}
+    num_classical_coordinates = model.constants.num_classical_coordinates
+    num_quantum_states = model.constants.num_quantum_states
+    m = model.constants.classical_coordinate_mass
+    h = model.constants.classical_coordinate_weight
+    mol = model.constants.ase_atoms_object
+    qchem_args = model.constants.qchem_args
+    qchem_tddft_args = model.constants.qchem_tddft_args
+    for property in property_dict.keys():
+        property_args = copy.deepcopy(property_dict[property])
+        for arg_key in property_args.keys():
+            if type(property_args[arg_key]) is np.ndarray:
+                property_args[arg_key] = property_args[arg_key][traj_ind]
+        if property == "energy":
+            print("apc energy")
+            z = property_args["z"]
+            q = functions.z_to_q(z, m, h)
+            mol.set_positions(
+                q.reshape((num_classical_coordinates // 3, 3)) / numerical_constants.ANGSTROM_TO_BOHR
+            )
+            calc = model.calculator(
+                atoms=mol,
+                folder_scratch="qclab_job_" + str(model.constants.seed),
+                **{**qchem_args, **qchem_tddft_args},
+            )
+            calc.label += "_energy"
+            calc.label += "_" + str(model.constants.seed)
+            calc.write_input(
+                properties=["energy"],
+                excited_amplitudes=property_args["excited_amplitudes"],
+            )
+            calc.execute()
+            calc.read_results(
+                properties=["energy"],
+                excited_amplitudes=property_args["excited_amplitudes"],
+            )
+            for key in calc.results.keys():
+                properties[key] = calc.results[key]
+            # properties["energy"] = calc.results["energy"]
+        if property == "gradient":
+            print("apc gradient")
+            properties["gradient"] = []
+            state_inds_gradient = property_args["state_inds_gradient"]
+            if isinstance(state_inds_gradient, (int, np.integer)):
+                state_inds_gradient = [state_inds_gradient]
+            z = property_args["z"]
+            q = functions.z_to_q(z, m, h)
+            mol.set_positions(
+                q.reshape((num_classical_coordinates // 3, 3)) / numerical_constants.ANGSTROM_TO_BOHR
+            )
+            calc = QCLabQChemInterface(
+                atoms=mol,
+                folder_scratch="qclab_job_" + str(model.constants.seed),
+                **{
+                    **qchem_args,
+                    **qchem_tddft_args,
+                },
+            )
+            calc.label += "_" + "g"
+            calc.label += "_" + str(model.constants.seed)
+            mol.calc = calc
+            mol.calc.write_input(
+                properties=["gradient"], state_inds_gradient=state_inds_gradient
+            )
+            mol.calc.execute()
+            mol.calc.read_results(properties=["gradient"])
+            for key in calc.results.keys():
+                properties[key] = calc.results[key]
+            # properties["gradient"] = calc.results["gradient"]
+        if property == "derivative_coupling":
+            print("apc derivative_coupling")
+            state_inds_derivative_couplings = property_args[
+                "state_inds_derivative_couplings"
+            ]
+            z = property_args["z"]
+            q = functions.z_to_q(z, m, h)
+            mol.set_positions(
+                q.reshape((num_classical_coordinates // 3, 3)) / numerical_constants.ANGSTROM_TO_BOHR
+            )
+            calc = model.calculator(
+                atoms=mol,
+                folder_scratch="qclab_job_" + str(model.constants.seed),
+                **{
+                    **qchem_args,
+                    **qchem_tddft_args,
+                    "CALC_NAC": "True",
+                    "CIS_DER_NUMSTATE": str(num_quantum_states),
+                    "seed": None,
+                },
+            )
+            calc.label += "_" + "derivative_coupling"
+            calc.label += "_" + str(model.constants.seed)
+            calc.write_input(
+                properties=["derivative_coupling"],
+                state_inds_derivative_couplings=state_inds_derivative_couplings,
+            )
+            calc.execute()
+            calc.read_results(properties=["derivative_coupling"])
+            # properties["derivative_coupling"] = calc.results["derivative_coupling"]
+            for key in calc.results.keys():
+                properties[key] = calc.results[key]
+        if property == "wf_overlaps":
+            print("apc wf_overlaps")
+            z = property_args["z"]
+            q = functions.z_to_q(z, m, h)
+            mol.set_positions(
+                q.reshape((num_classical_coordinates // 3, 3)) / numerical_constants.ANGSTROM_TO_BOHR
+            )
+            calc = model.calculator(
+                atoms=mol,
+                folder_scratch="qclab_job_" + str(model.constants.seed),
+                **{
+                    **qchem_args,
+                    **qchem_tddft_args,
+                },
+            )
+            calc.label += "_" + "wf"
+            calc.label += "_" + str(model.constants.seed)
+            mol_previous = copy.deepcopy(mol)
+            z_previous = property_args["z_previous"]
+            q_previous = functions.z_to_q(z_previous, m, h)
+            mol_previous.set_positions(
+                q_previous.reshape((num_classical_coordinates // 3, 3))
+                / numerical_constants.ANGSTROM_TO_BOHR
+            )
+            calc.write_input(
+                properties=["wf_overlaps"],
+                atoms_previous=mol_previous,
+            )
+            calc.execute()
+            # calc.num_excited_states = model.constants.num_quantum_states - 1
+            print(
+                np.sum(
+                    np.abs(property_args["current_amplitudes"]["x"]) ** 2,
+                    axis=(1, 2),
+                )
+            )
+            print(
+                np.sum(
+                    np.abs(property_args["current_amplitudes"]["x"]) ** 2,
+                    axis=(1, 2),
+                )
+            )
+            calc.read_results(
+                properties=["wf_overlaps"],
+                current_amplitudes=property_args["current_amplitudes"],
+                previous_amplitudes=property_args["previous_amplitudes"],
+            )
+            # properties["wf_overlaps"] = calc.results["wf_overlaps"]
+            for key in calc.results.keys():
+                properties[key] = calc.results[key]
+            print("overlaps")
+            print(calc.results["wf_overlaps"])
+    return properties
