@@ -1069,13 +1069,29 @@ class QCLabQChemCalculator(FileIOCalculator):
 
         energy = np.zeros(nt_states)
         i = 0
+        gs_found = False
         for j, line in enumerate(input_file):
             ##Energy GS
             if "SCF time:" in line:
+                print(line)
                 energy[i] = float(input_file[j + 2].split()[-1])
                 i += 1
+                gs_found = True
+            elif "Timing for Total SCF" in line and not(gs_found):
+                try:
+                    energy[i] = float(input_file[j+2].split()[-1])
+                    i += 1
+                    gs_found = True
+                except:
+                    pass
+            elif "Total energy in the final basis set" in line and not(gs_found):
+                energy[i] = float(line.split()[-1])
+                i += 1
+                gs_found = True
+
             ##Energy Excited State
             elif "Total energy for state" in line:
+                print(line)
                 energy[i] = float(line.split()[-2])
                 i += 1
         self.results["energy"] = energy
