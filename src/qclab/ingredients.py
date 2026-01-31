@@ -643,27 +643,29 @@ def ab_initio_properties_calculator_qchem(model, parameters, **kwargs):
     m = model.constants.classical_coordinate_mass
     h = model.constants.classical_coordinate_weight
     mol = model.constants.ase_atoms_object
-    qchem_args = model.constants.qchem_args
-    qchem_tddft_args = model.constants.qchem_tddft_args
+    qchem_dft_args = model.constants.calculator_args["qchem_dft_args"]
+    qchem_tddft_args = model.constants.calculator_args["qchem_tddft_args"]
+    file_label = str(parameters["seed"][traj_ind])
     for property in property_dict.keys():
         property_args = copy.deepcopy(property_dict[property])
         for arg_key in property_args.keys():
             if type(property_args[arg_key]) is np.ndarray:
                 property_args[arg_key] = property_args[arg_key][traj_ind]
-        if property == "energy":
-            print("apc energy")
+        if not(property_args["z"] is None):
+            # Update nuclear configuration if z is provided.
             z = property_args["z"]
             q = functions.z_to_q(z, m, h)
             mol.set_positions(
                 q.reshape((num_classical_coordinates // 3, 3)) / numerical_constants.ANGSTROM_TO_BOHR
             )
-            calc = model.calculator(
+        if property == "energy":
+            calc = QCLabQChemInterface(
                 atoms=mol,
-                folder_scratch="qclab_job_" + str(model.constants.seed),
-                **{**qchem_args, **qchem_tddft_args},
+                folder_scratch="qclab_job_" + file_label,
+                **{**qchem_dft_args, **qchem_tddft_args},
             )
             calc.label += "_energy"
-            calc.label += "_" + str(model.constants.seed)
+            calc.label += "_" + file_label
             calc.write_input(
                 properties=["energy"],
                 excited_amplitudes=property_args["excited_amplitudes"],
@@ -675,52 +677,48 @@ def ab_initio_properties_calculator_qchem(model, parameters, **kwargs):
             )
             for key in calc.results.keys():
                 properties[key] = calc.results[key]
-            # properties["energy"] = calc.results["energy"]
         if property == "gradient":
-            print("apc gradient")
             properties["gradient"] = []
             state_inds_gradient = property_args["state_inds_gradient"]
             if isinstance(state_inds_gradient, (int, np.integer)):
                 state_inds_gradient = [state_inds_gradient]
-            z = property_args["z"]
-            q = functions.z_to_q(z, m, h)
-            mol.set_positions(
-                q.reshape((num_classical_coordinates // 3, 3)) / numerical_constants.ANGSTROM_TO_BOHR
-            )
             calc = QCLabQChemInterface(
                 atoms=mol,
-                folder_scratch="qclab_job_" + str(model.constants.seed),
+                folder_scratch="qclab_job_" + file_label,
                 **{
-                    **qchem_args,
+                    **qchem_dft_args,
                     **qchem_tddft_args,
                 },
             )
             calc.label += "_" + "g"
-            calc.label += "_" + str(model.constants.seed)
+            calc.label += "_" + file_label
             mol.calc = calc
             mol.calc.write_input(
                 properties=["gradient"], state_inds_gradient=state_inds_gradient
             )
             mol.calc.execute()
-            mol.calc.read_results(properties=["gradient"])
+            mol.calc.read_results(properties=["gradient"], state_inds_gradient=state_inds_gradient)
+            gradient = np.zeros((num_classical_coordinates//3,3,num_quantum_states))
+            if state_inds_gradient is None:
+                state_inds_gradient = np.arange(num_quantum_states,dtype=int)
+            ind = 0
+            for state_ind in state_inds_gradient:
+                gradient[:,:,state_ind] = calc.results["gradient"][:,:,ind]
+                ind += 1
             for key in calc.results.keys():
-                properties[key] = calc.results[key]
-            # properties["gradient"] = calc.results["gradient"]
+                if key == "gradient":
+                    properties[key] = gradient
+                else:
+                    properties[key] = calc.results[key]
         if property == "derivative_coupling":
-            print("apc derivative_coupling")
-            state_inds_derivative_couplings = property_args[
-                "state_inds_derivative_couplings"
+            state_inds_derivative_coupling = property_args[
+                "state_inds_derivative_coupling"
             ]
-            z = property_args["z"]
-            q = functions.z_to_q(z, m, h)
-            mol.set_positions(
-                q.reshape((num_classical_coordinates // 3, 3)) / numerical_constants.ANGSTROM_TO_BOHR
-            )
-            calc = model.calculator(
+            calc = QCLabQChemInterface(
                 atoms=mol,
-                folder_scratch="qclab_job_" + str(model.constants.seed),
+                folder_scratch="qclab_job_" + file_label,
                 **{
-                    **qchem_args,
+                    **qchem_dft_args,
                     **qchem_tddft_args,
                     "CALC_NAC": "True",
                     "CIS_DER_NUMSTATE": str(num_quantum_states),
@@ -728,33 +726,26 @@ def ab_initio_properties_calculator_qchem(model, parameters, **kwargs):
                 },
             )
             calc.label += "_" + "derivative_coupling"
-            calc.label += "_" + str(model.constants.seed)
+            calc.label += "_" + file_label
             calc.write_input(
                 properties=["derivative_coupling"],
-                state_inds_derivative_couplings=state_inds_derivative_couplings,
+                state_inds_derivative_coupling=state_inds_derivative_coupling,
             )
             calc.execute()
             calc.read_results(properties=["derivative_coupling"])
-            # properties["derivative_coupling"] = calc.results["derivative_coupling"]
             for key in calc.results.keys():
                 properties[key] = calc.results[key]
         if property == "wf_overlaps":
-            print("apc wf_overlaps")
-            z = property_args["z"]
-            q = functions.z_to_q(z, m, h)
-            mol.set_positions(
-                q.reshape((num_classical_coordinates // 3, 3)) / numerical_constants.ANGSTROM_TO_BOHR
-            )
-            calc = model.calculator(
+            calc = QCLabQChemInterface(
                 atoms=mol,
-                folder_scratch="qclab_job_" + str(model.constants.seed),
+                folder_scratch="qclab_job_" + file_label,
                 **{
-                    **qchem_args,
+                    **qchem_dft_args,
                     **qchem_tddft_args,
                 },
             )
             calc.label += "_" + "wf"
-            calc.label += "_" + str(model.constants.seed)
+            calc.label += "_" + file_label
             mol_previous = copy.deepcopy(mol)
             z_previous = property_args["z_previous"]
             q_previous = functions.z_to_q(z_previous, m, h)
@@ -767,27 +758,11 @@ def ab_initio_properties_calculator_qchem(model, parameters, **kwargs):
                 atoms_previous=mol_previous,
             )
             calc.execute()
-            # calc.num_excited_states = model.constants.num_quantum_states - 1
-            print(
-                np.sum(
-                    np.abs(property_args["current_amplitudes"]["x"]) ** 2,
-                    axis=(1, 2),
-                )
-            )
-            print(
-                np.sum(
-                    np.abs(property_args["current_amplitudes"]["x"]) ** 2,
-                    axis=(1, 2),
-                )
-            )
             calc.read_results(
                 properties=["wf_overlaps"],
                 current_amplitudes=property_args["current_amplitudes"],
                 previous_amplitudes=property_args["previous_amplitudes"],
             )
-            # properties["wf_overlaps"] = calc.results["wf_overlaps"]
             for key in calc.results.keys():
                 properties[key] = calc.results[key]
-            print("overlaps")
-            print(calc.results["wf_overlaps"])
     return properties

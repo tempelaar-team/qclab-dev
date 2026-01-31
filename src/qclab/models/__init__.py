@@ -11,4 +11,4 @@ from qclab.models.fmo_complex import FMOComplex
 from qclab.models.tully_problem_one import TullyProblemOne
 from qclab.models.tully_problem_two import TullyProblemTwo
 from qclab.models.tully_problem_three import TullyProblemThree
-from qclab.models.qchem_ase import QChemASE
+from qclab.models.ase import ASE

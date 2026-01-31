@@ -130,7 +130,7 @@ class FewestSwitchesSurfaceHopping(Algorithm):
     ]
 
 
-class AbInitioFewestSwitchesSurfaceHopping(Algorithm):
+class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
     """
     Fewest switches surface hopping algorithm class.
     """
@@ -159,7 +159,7 @@ class AbInitioFewestSwitchesSurfaceHopping(Algorithm):
                 "gradient": {"z": "z", "state_inds_gradient": None},
                 "derivative_coupling": {
                     "z": "z",
-                    "state_inds_derivative_couplings": None,
+                    "state_inds_derivative_coupling": None,
                 },
                 # "wf_overlaps": {"z": "z", "z_previous": "z_previous"},
             },
@@ -255,10 +255,9 @@ class AbInitioFewestSwitchesSurfaceHopping(Algorithm):
             tasks.update_ab_initio_properties,
             property_dict={
                 "energy": {"z": "z", "excited_amplitudes": True},
-                "gradient": {"z": "z", "state_inds_gradient": None},
                 "derivative_coupling": {
                     "z": "z",
-                    "state_inds_derivative_couplings": None,
+                    "state_inds_derivative_coupling": None,
                 },
                 "wf_overlaps": {
                     "z": "z",
@@ -291,6 +290,12 @@ class AbInitioFewestSwitchesSurfaceHopping(Algorithm):
         tasks.update_z_hop,
         tasks.update_act_surf_hop,
         tasks.update_act_surf_wf,
+        partial(
+            tasks.update_ab_initio_properties,
+            property_dict={
+                "gradient": {"z": "z", "state_inds_gradient": "act_surf_ind"},
+            },
+        ),
         partial(tasks.update_quantum_classical_force, wf_db_name="act_surf_wf"),
         tasks.update_p_velocity_verlet,
         tasks.update_classical_force,

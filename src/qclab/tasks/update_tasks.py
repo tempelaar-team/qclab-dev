@@ -1018,8 +1018,6 @@ def update_hop_prob_fssh(
         if np.any(np.isnan(hop_prob)):
             logger.warning("Singluar value encountered in hopping probabilities.")
     state[hop_prob_name] = hop_prob
-
-    print("normal hop_prob", hop_prob)
     return state, parameters
 
 
@@ -2163,22 +2161,11 @@ def update_adb_connection(
             axis=1,
         )
         state[adb_connection_name] = B - np.conj(B).transpose((0, 2, 1))
-        print("adiabatic connection")
-        print(state[adb_connection_name])
         if "aip_wf_overlaps" in state.keys():
             A = state["aip_wf_overlaps"]
             state["wf_overlaps_adb_connection"] = (1 / (2 * sim.settings.dt_update)) * (
                 A - np.transpose(A, axes=(0, 2, 1))
             )
-            if "wf_overlaps_adb_connection_previous" in state.keys():
-                print("adb_connection wf overlaps at t")
-                print(
-                    (1 / 2)
-                    * (
-                        state["wf_overlaps_adb_connection"][0]
-                        + state["wf_overlaps_adb_connection_previous"][0]
-                    )
-                )
     return state, parameters
 
 
@@ -2372,7 +2359,6 @@ def update_wf_adb_hop_prob(
             optimize="greedy",
         )
     if calculate_hopping_probabilities:
-        # print("interp hop_prob", hop_prob)
         state[hop_prob_name] = hop_prob_numerator / act_surf_population
     state[wf_adb_name] = wf_adb
     return state, parameters
@@ -2539,8 +2525,6 @@ def update_wf_overlaps_gauge(
         state[wf_overlaps_name] = np.einsum(
             "tij,tj->tij", state[wf_overlaps_name], signs, optimize="greedy"
         )
-        print("gauge fixed overlaps")
-        print(state[wf_overlaps_name][0])
     return state, parameters
 
 
@@ -2551,16 +2535,15 @@ def update_ab_initio_properties(
     property_dict: dict = {
         "energy": {"z": "z"},
         "gradient": {"z": "z", "state_inds_gradient": None},
-        "derivative_coupling": {"z": "z", "state_inds_derivative_couplings": None},
+        "derivative_coupling": {"z": "z", "state_inds_derivative_coupling": None},
         "wf_overlaps": {"z": "z", "z_previous": "z_previous"},
     },
 ):
     """
     Docstring for update_ab_initio_properties
      EXPLAIN WHAT AIP MEANS
-    
-    """
 
+    """
 
     parameters["ab_initio_properties"] = np.array(
         [{} for _ in range(sim.settings.batch_size)]
@@ -2581,14 +2564,12 @@ def update_ab_initio_properties(
                 else:
                     args_dict[args_key] = state[args_dict[args_key]]
             new_property_dict[property_key] = args_dict
-        print("running ab initio property calculator")
         parameters["ab_initio_properties"] = ab_initio_properties_calculator(
             sim.model,
             parameters,
             batch_size=sim.settings.batch_size,
             property_dict=new_property_dict,
         )
-        print("finished running ab initio property calculator")
         new_results_dict = {}
         ab_initio_properties = parameters["ab_initio_properties"]
         for key in ab_initio_properties[0].keys():
