@@ -634,7 +634,7 @@ def gauge_field_force_zero(model, parameters, **kwargs):
 from qclab.interfaces import QCLabQChemInterface
 
 @functions.vectorize_ingredient
-def ab_initio_properties_calculator_qchem(model, parameters, **kwargs):
+def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
     property_dict = kwargs["property_dict"]
     traj_ind = kwargs["traj_ind"]
     properties = {}
@@ -646,6 +646,8 @@ def ab_initio_properties_calculator_qchem(model, parameters, **kwargs):
     qchem_dft_args = model.constants.calculator_args["qchem_dft_args"]
     qchem_tddft_args = model.constants.calculator_args["qchem_tddft_args"]
     file_label = str(parameters["seed"][traj_ind])
+
+    
     for property in property_dict.keys():
         property_args = copy.deepcopy(property_dict[property])
         for arg_key in property_args.keys():

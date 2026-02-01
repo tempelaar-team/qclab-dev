@@ -153,7 +153,7 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         tasks.initialize_branch_seeds,
         tasks.initialize_z,
         partial(
-            tasks.update_ab_initio_properties,
+            tasks.update_ab_initio_property,
             property_dict={
                 "energy": {"z": "z", "excited_amplitudes": True},
                 "gradient": {"z": "z", "state_inds_gradient": None},
@@ -191,8 +191,8 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
     update_recipe = [
         partial(
             tasks.copy_in_state,
-            copy_name="ab_initio_properties_previous",
-            orig_name="ab_initio_properties",
+            copy_name="ab_initio_property_previous",
+            orig_name="ab_initio_property",
         ),
         partial(
             tasks.copy_in_state,
@@ -252,7 +252,7 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         ),
         tasks.update_q_velocity_verlet,
         partial(
-            tasks.update_ab_initio_properties,
+            tasks.update_ab_initio_property,
             property_dict={
                 "energy": {"z": "z", "excited_amplitudes": True},
                 "derivative_coupling": {
@@ -291,7 +291,7 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         tasks.update_act_surf_hop,
         tasks.update_act_surf_wf,
         partial(
-            tasks.update_ab_initio_properties,
+            tasks.update_ab_initio_property,
             property_dict={
                 "gradient": {"z": "z", "state_inds_gradient": "act_surf_ind"},
             },

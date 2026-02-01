@@ -2528,7 +2528,7 @@ def update_wf_overlaps_gauge(
     return state, parameters
 
 
-def update_ab_initio_properties(
+def update_ab_initio_property(
     sim: Simulation,
     state: dict,
     parameters: dict,
@@ -2540,17 +2540,17 @@ def update_ab_initio_properties(
     },
 ):
     """
-    Docstring for update_ab_initio_properties
+    Docstring for update_ab_initio_property
      EXPLAIN WHAT AIP MEANS
 
     """
 
-    parameters["ab_initio_properties"] = np.array(
+    parameters["ab_initio_property"] = np.array(
         [{} for _ in range(sim.settings.batch_size)]
     )
-    state["ab_initio_properties"] = {}
-    ab_initio_properties_calculator, has_ab_intio_property_calculator = sim.model.get(
-        "ab_initio_properties_calculator"
+    state["ab_initio_property"] = {}
+    ab_initio_property_calculator, has_ab_intio_property_calculator = sim.model.get(
+        "ab_initio_property_calculator"
     )
     if has_ab_intio_property_calculator:
         new_property_dict = copy.deepcopy(property_dict)
@@ -2564,19 +2564,19 @@ def update_ab_initio_properties(
                 else:
                     args_dict[args_key] = state[args_dict[args_key]]
             new_property_dict[property_key] = args_dict
-        parameters["ab_initio_properties"] = ab_initio_properties_calculator(
+        parameters["ab_initio_property"] = ab_initio_property_calculator(
             sim.model,
             parameters,
             batch_size=sim.settings.batch_size,
             property_dict=new_property_dict,
         )
         new_results_dict = {}
-        ab_initio_properties = parameters["ab_initio_properties"]
-        for key in ab_initio_properties[0].keys():
+        ab_initio_property = parameters["ab_initio_property"]
+        for key in ab_initio_property[0].keys():
             new_results_dict[key] = np.array(
-                [ab_initio_properties[n][key] for n in range(len(ab_initio_properties))]
+                [ab_initio_property[n][key] for n in range(len(ab_initio_property))]
             )
-        state["ab_initio_properties"] = new_results_dict
+        state["ab_initio_property"] = new_results_dict
         for key in new_results_dict.keys():
             state["aip_" + key] = new_results_dict[key]
     return state, parameters

@@ -110,9 +110,9 @@ class ASE(Model):
         z = kwargs["z"]
         num_quantum_states = self.constants.num_quantum_states
         traj_ind = kwargs["traj_ind"]
-        has_ab_initio_properties = "ab_initio_properties" in parameters.keys()
-        if has_ab_initio_properties:
-            properties = parameters["ab_initio_properties"][traj_ind]
+        has_ab_initio_property = "ab_initio_property" in parameters.keys()
+        if has_ab_initio_property:
+            properties = parameters["ab_initio_property"][traj_ind]
             if "energy" in properties.keys():
                 diag_h_qc = (
                     properties["energy"][:num_quantum_states]
@@ -121,15 +121,16 @@ class ASE(Model):
                 needs_energy = False
             else:
                 needs_energy = True
-        if not (has_ab_initio_properties) or needs_energy:
+        if not (has_ab_initio_property) or needs_energy:
+            print("recalculating energy")
             property_dict = {
                 "energy": {"z": z[np.newaxis], "excited_amplitudes": True},
             }
-            ab_initio_properties_calculator, has_ab_intio_property_calculator = (
-                self.get("ab_initio_properties_calculator")
+            ab_initio_property_calculator, has_ab_intio_property_calculator = (
+                self.get("ab_initio_property_calculator")
             )
             if has_ab_intio_property_calculator:
-                properties = ab_initio_properties_calculator(
+                properties = ab_initio_property_calculator(
                     self,
                     parameters,
                     batch_size=1,
@@ -140,7 +141,7 @@ class ASE(Model):
                     - self.constants.energy_offset
                 )
             else:
-                raise NameError("ab_initio_properties_calculator must be provided")
+                raise NameError("ab_initio_property_calculator must be provided")
         return np.diag(diag_h_qc)
 
     @make_ingredient_sparse
@@ -156,9 +157,9 @@ class ASE(Model):
         )
         z = kwargs["z"]
         traj_ind = kwargs["traj_ind"]
-        has_ab_initio_properties = "ab_initio_properties" in parameters.keys()
-        if has_ab_initio_properties:
-            properties = parameters["ab_initio_properties"][traj_ind]
+        has_ab_initio_property = "ab_initio_property" in parameters.keys()
+        if has_ab_initio_property:
+            properties = parameters["ab_initio_property"][traj_ind]
             if "gradient" in properties.keys():
                 for state_ind in range(num_quantum_states):
                     # Convert to derivative w.r.t. zc.
@@ -171,15 +172,16 @@ class ASE(Model):
                 needs_gradient = False
             else:
                 needs_gradient = True
-        if not (has_ab_initio_properties) or needs_gradient:
+        if not (has_ab_initio_property) or needs_gradient:
+            print('Recalculating gradient')
             property_dict = {
                 "gradient": {"z": z[np.newaxis], "state_inds_gradient": None},
             }
-            ab_initio_properties_calculator, has_ab_intio_property_calculator = (
-                self.get("ab_initio_properties_calculator")
+            ab_initio_property_calculator, has_ab_intio_property_calculator = (
+                self.get("ab_initio_property_calculator")
             )
             if has_ab_intio_property_calculator:
-                properties = ab_initio_properties_calculator(
+                properties = ab_initio_property_calculator(
                     self,
                     parameters,
                     batch_size=1,
@@ -194,7 +196,7 @@ class ASE(Model):
                         h,
                     )
             else:
-                raise NameError("ab_initio_properties_calculator must be provided")
+                raise NameError("ab_initio_property_calculator must be provided")
         return out
 
     @vectorize_ingredient
@@ -209,9 +211,9 @@ class ASE(Model):
             dtype=complex,
         )
         traj_ind = kwargs["traj_ind"]
-        has_ab_initio_properties = "ab_initio_properties" in parameters.keys()
-        if has_ab_initio_properties:
-            properties = parameters["ab_initio_properties"][traj_ind]
+        has_ab_initio_property = "ab_initio_property" in parameters.keys()
+        if has_ab_initio_property:
+            properties = parameters["ab_initio_property"][traj_ind]
             if "derivative_coupling" in properties.keys():
                 derivative_coupling_dq = properties["derivative_coupling"]
                 for key, val in derivative_coupling_dq.items():
@@ -222,18 +224,19 @@ class ASE(Model):
                 needs_derivative_coupling = False
             else:
                 needs_derivative_coupling = True
-        if not (has_ab_initio_properties) or needs_derivative_coupling:
+        if not (has_ab_initio_property) or needs_derivative_coupling:
+            print("recalculating derivative coupling")
             property_dict = {
                 "derivative_coupling": {
                     "z": z[np.newaxis],
                     "state_inds_derivative_coupling": None,
                 },
             }
-            ab_initio_properties_calculator, has_ab_intio_property_calculator = (
-                self.get("ab_initio_properties_calculator")
+            ab_initio_property_calculator, has_ab_intio_property_calculator = (
+                self.get("ab_initio_property_calculator")
             )
             if has_ab_intio_property_calculator:
-                properties = ab_initio_properties_calculator(
+                properties = ab_initio_property_calculator(
                     self,
                     parameters,
                     batch_size=1,
@@ -246,13 +249,13 @@ class ASE(Model):
                     )  # convert from 1/A to 1/Bohr
                     out[:, key[1], key[0]] = -np.conj(out[:, key[0], key[1]])
             else:
-                raise NameError("ab_initio_properties_calculator must be provided")
+                raise NameError("ab_initio_property_calculator must be provided")
         return out
 
     ingredients = [
         (
-            "ab_initio_properties_calculator",
-            ingredients.ab_initio_properties_calculator_qchem,
+            "ab_initio_property_calculator",
+            ingredients.ab_initio_property_calculator_qchem,
         ),
         ("h_q", h_q),
         ("h_qc", h_qc),

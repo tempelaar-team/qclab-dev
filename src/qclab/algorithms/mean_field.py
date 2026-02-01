@@ -136,7 +136,7 @@ class AbInitioMeanField(Algorithm):
             orig_name="z",
         ),
         tasks.update_q_velocity_verlet,
-        tasks.update_ab_initio_properties,
+        tasks.update_ab_initio_property,
         tasks.update_derivative_coupling_dzc,
         tasks.update_adb_connection,
         partial(
