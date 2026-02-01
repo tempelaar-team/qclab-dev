@@ -2314,6 +2314,8 @@ def update_wf_adb_hop_prob(
     h_q_tot_previous = state[h_q_tot_previous_name]
     adb_connection_previous = state[adb_connection_previous_name]
     dt_update = sim.settings.dt_update
+    num_branches = 1
+    num_trajs = sim.settings.batch_size // num_branches
     if calculate_hopping_probabilities:
         hop_prob_numerator = np.zeros(
             (sim.settings.batch_size, sim.model.constants.num_quantum_states)
@@ -2321,14 +2323,15 @@ def update_wf_adb_hop_prob(
         act_surf_ind = state["act_surf_ind"]
         if sim.algorithm.settings.fssh_deterministic:
             num_branches = sim.model.constants.num_quantum_states
-        else:
-            num_branches = 1
+
         num_trajs = sim.settings.batch_size // num_branches
+        act_surf_population = (
+            np.abs(
+                wf_adb[np.arange(num_trajs * num_branches), act_surf_ind][:, np.newaxis]
+            )
+            ** 2
+        )
     num_quantum_states = sim.model.constants.num_quantum_states
-    act_surf_population = (
-        np.abs(wf_adb[np.arange(num_trajs * num_branches), act_surf_ind][:, np.newaxis])
-        ** 2
-    )
     for substep_ind in range(num_substeps):
         h_q_tot_interp = (substep_ind / num_substeps) * (
             h_q_tot - h_q_tot_previous
@@ -2533,7 +2536,7 @@ def update_ab_initio_property(
     state: dict,
     parameters: dict,
     property_dict: dict = {
-        "energy": {"z": "z"},
+        "energy": {"z": "z", "excited_amplitudes": True},
         "gradient": {"z": "z", "state_inds_gradient": None},
         "derivative_coupling": {"z": "z", "state_inds_derivative_coupling": None},
         "wf_overlaps": {"z": "z", "z_previous": "z_previous"},

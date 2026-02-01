@@ -74,7 +74,7 @@ class MeanField(Algorithm):
     ]
 
 
-class AbInitioMeanField(Algorithm):
+class MeanFieldAbInitio(Algorithm):
     """
     Adiabatic Mean-field dynamics algorithm class.
 
@@ -96,14 +96,46 @@ class AbInitioMeanField(Algorithm):
         partial(tasks.copy_to_parameters, state_name="seed", parameters_name="seed"),
         tasks.initialize_norm_factor,
         tasks.initialize_z,
+        partial(
+            tasks.update_ab_initio_property,
+            property_dict={
+                "energy": {"z": "z", "excited_amplitudes": True},
+                "gradient": {"z": "z", "state_inds_gradient": None},
+                "derivative_coupling": {
+                    "z": "z",
+                    "state_inds_derivative_coupling": None,
+                },
+                # "wf_overlaps": {"z": "z", "z_previous": "z_previous"},
+            },
+        ),
         tasks.update_h_q_tot,
         tasks.update_classical_force,
         tasks.update_derivative_coupling_dzc,
         partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb"),
         tasks.update_adb_connection,
+        partial(
+            tasks.copy_in_state,
+            copy_name="wf_overlaps_adb_connection",
+            orig_name="adb_connection",
+        ),
     ]
 
     update_recipe = [
+        partial(
+            tasks.copy_in_state,
+            copy_name="ab_initio_property_previous",
+            orig_name="ab_initio_property",
+        ),
+        partial(
+            tasks.copy_in_state,
+            copy_name="aip_excited_state_amplitudes_previous",
+            orig_name="aip_excited_state_amplitudes",
+        ),
+        partial(
+            tasks.copy_in_state,
+            copy_name="wf_overlaps_adb_connection_previous",
+            orig_name="wf_overlaps_adb_connection",
+        ),
         partial(
             tasks.copy_in_state,
             copy_name="derivative_coupling_dzc_previous",
@@ -136,20 +168,35 @@ class AbInitioMeanField(Algorithm):
             orig_name="z",
         ),
         tasks.update_q_velocity_verlet,
-        tasks.update_ab_initio_property,
+        partial(
+            tasks.update_ab_initio_property,
+            property_dict={
+                "energy": {"z": "z", "excited_amplitudes": True},
+                "gradient": {"z": "z", "state_inds_gradient": None},
+                "derivative_coupling": {
+                    "z": "z",
+                    "state_inds_derivative_coupling": None,
+                },
+                "wf_overlaps": {
+                    "z": "z",
+                    "z_previous": "z_previous",
+                    "previous_amplitudes": "aip_excited_state_amplitudes_previous",
+                    "current_amplitudes": "aip_excited_state_amplitudes",
+                },
+            },
+        ),
         tasks.update_derivative_coupling_dzc,
+        tasks.update_derivative_coupling_dzc_gauge,
+        tasks.update_wf_overlaps_gauge,
         tasks.update_adb_connection,
         partial(
             tasks.update_wf_adb_hop_prob,
             calculate_hopping_probabilities=False,
         ),
-        tasks.update_dh_qc_dzc,
         tasks.update_h_q_tot,
         partial(
             tasks.update_quantum_classical_force,
             wf_db_name="wf_adb",
-            dh_qc_dzc_name="dh_qc_dzc",
-            update_dh_qc_dzc_flag=False,
         ),
         # Should recalculate classical forces here
         tasks.update_p_velocity_verlet,
