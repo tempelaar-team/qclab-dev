@@ -326,6 +326,8 @@ class QCLabQChemInterface(FileIOCalculator):
         if state_inds_derivative_coupling is None:
             n_s = int(self.parameters.get("cis_der_numstate", 1))
             state_inds_derivative_coupling = [i for i in range(n_s)]
+        elif isinstance(state_inds_derivative_coupling, (int, np.integer)):
+            state_inds_derivative_coupling = [i for i in range(state_inds_derivative_coupling+1)]
 
         file_obj.write("$derivative_coupling\n")
         file_obj.write(f"{state_inds_derivative_coupling[0]} is the reference state\n")
