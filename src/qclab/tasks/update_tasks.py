@@ -2233,7 +2233,9 @@ def update_wf_adb_hop_prob(
 
     Optionally integrates the hopping probability over the time interval.
 
-    Hopping probability formula:
+    Hopping probability formula is taken from:
+    Hammes‐Schiffer, S.; Tully, J. C. Proton Transfer in Solution: Molecular Dynamics with Quantum Transitions.
+     J. Chem. Phys. 1994, 101 (6), 4657–4667. https://doi.org/10.1063/1.467455.
 
     g_{k->j} = ( \int_{t}^{t+\Delta} b_{jk}(t') dt' ) / (c^{*}_{k}(t)c_{k}(t))
 
@@ -2241,9 +2243,9 @@ def update_wf_adb_hop_prob(
 
     A_{jk}(t) = \dot{q}(t) \cdot d_{jk}(t)
 
-    Note that this is consisten with Eq. 19-21 of SHS 1994 for real and complex d_{jk}.
+    Note that this is consisten with Eq. 19-21 for real and complex d_{jk}.
 
-    Eq. 30 of SHS 1994 is equivalent for real d_{jk}:
+    Eq. 30 is equivalent for real d_{jk}:
 
     b_{jk}(t) = -2\Re(c_{j}(t)c_{k}^{*}(t) A_{jk}(t))
 
