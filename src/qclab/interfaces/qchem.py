@@ -3,11 +3,6 @@ from copy import deepcopy
 import numpy as np
 from ase.calculators.calculator import FileIOCalculator
 
-import os
-from copy import deepcopy
-import numpy as np
-from ase.calculators.calculator import FileIOCalculator
-
 
 class QCLabQChemInterface(FileIOCalculator):
     """
@@ -165,15 +160,35 @@ class QCLabQChemInterface(FileIOCalculator):
                 else:
                     excited_amplitudes_flag = False
                 self._write_job_defi_qchem(
-                    file_obj, job, excited_amplitudes=excited_amplitudes_flag
+                    file_obj,
+                    job,
+                    excited_amplitudes=excited_amplitudes_flag,
+                    state_inds_derivative_coupling=kwargs["derivative_coupling"].get(
+                        "state_inds_derivative_coupling", None
+                    ),
                 )
                 if job["write_derivative_coupling"]:
+                    self.parameters["calc_nac"] = True
+                    if (
+                        kwargs["derivative_coupling"].get(
+                            "state_inds_derivative_coupling", None
+                        )
+                        is None
+                    ):
+                        self.parameters["cis_der_numstate"] = (
+                            self.parameters["cis_n_roots"] + 1
+                        )
+                    # elif isinstance(kwargs["derivative_coupling"].get("state_inds_derivative_coupling"), (int, np.integer)):
+                    #     self.parameters["cis_der_numstate"] =
+
                     self._write_derivative_coupling_qchem(
                         file_obj,
                         kwargs["derivative_coupling"].get(
                             "state_inds_derivative_coupling", None
                         ),
                     )
+                    del self.parameters["calc_nac"]
+                    del self.parameters["cis_der_numstate"]
 
     def _write_gradient_jobs(
         self, file_obj, job_spec, flag=0, state_inds_gradient=None
@@ -197,6 +212,7 @@ class QCLabQChemInterface(FileIOCalculator):
             self._write_comments_qchem(file_obj, f"gradient state {i}", ind)
             self._write_geometry_qchem(file_obj, ind)
             self._write_job_defi_qchem(file_obj, job_spec, flag=i)
+        del self.parameters["cis_state_deriv"]
 
     def _write_wf_overlaps_jobs(self, file_obj, job_spec, atoms_previous, flag=0):
         """
@@ -238,6 +254,7 @@ class QCLabQChemInterface(FileIOCalculator):
         self._write_geometry_qchem(file_obj, ind=0)
         self.parameters["mo_overlaps_two_geoms"] = 2
         self._write_job_defi_qchem(file_obj, job_spec)
+        del self.parameters["mo_overlaps_two_geoms"]
 
     def _write_comments_qchem(self, file_obj, job, ind=0):
         """
@@ -273,7 +290,12 @@ class QCLabQChemInterface(FileIOCalculator):
             file_obj.write("$end\n\n")
 
     def _write_job_defi_qchem(
-        self, file_obj, job_spec, flag=1, excited_amplitudes=False
+        self,
+        file_obj,
+        job_spec,
+        flag=1,
+        excited_amplitudes=False,
+        state_inds_derivative_coupling=None,
     ):
         file_obj.write("$rem\n")
         file_obj.write(f"   JOBTYPE           {job_spec['jobtype']}\n")
@@ -305,7 +327,24 @@ class QCLabQChemInterface(FileIOCalculator):
                 else:
                     v_str = str(value)
                 file_obj.write("   %-25s   %s\n" % (parameter.upper(), v_str))
+        elif job_spec["name"] == "derivative_coupling":
+            self.parameters["calc_nac"] = True
+            if state_inds_derivative_coupling is None:
+                self.parameters["cis_der_numstate"] = self.parameters["cis_n_roots"] + 1
+            for parameter, value in self.parameters.items():
+                if parameter.lower() in ["charge", "multiplicity", "jobtype"]:
+                    continue
+                if value is None:
+                    continue
+                if isinstance(value, str):
+                    v_str = value.upper()
+                else:
+                    v_str = str(value)
+                file_obj.write("   %-25s   %s\n" % (parameter.upper(), v_str))
+            del self.parameters["calc_nac"]
+            del self.parameters["cis_der_numstate"]
         else:
+
             for parameter, value in self.parameters.items():
                 if parameter.lower() in ["charge", "multiplicity", "jobtype"]:
                     continue
@@ -327,8 +366,9 @@ class QCLabQChemInterface(FileIOCalculator):
             n_s = int(self.parameters.get("cis_der_numstate", 1))
             state_inds_derivative_coupling = [i for i in range(n_s)]
         elif isinstance(state_inds_derivative_coupling, (int, np.integer)):
-            state_inds_derivative_coupling = [i for i in range(state_inds_derivative_coupling+1)]
-
+            state_inds_derivative_coupling = [
+                i for i in range(state_inds_derivative_coupling + 1)
+            ]
         file_obj.write("$derivative_coupling\n")
         file_obj.write(f"{state_inds_derivative_coupling[0]} is the reference state\n")
         file_obj.write(" ".join(str(s) for s in state_inds_derivative_coupling) + "\n")

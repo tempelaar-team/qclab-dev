@@ -189,14 +189,14 @@ class MeanFieldAbInitio(Algorithm):
         tasks.update_derivative_coupling_dzc_gauge,
         tasks.update_wf_overlaps_gauge,
         tasks.update_adb_connection,
-        partial(
-            tasks.update_wf_adb_hop_prob,
-            calculate_hopping_probabilities=False,
-        ),
         tasks.update_h_q_tot,
         partial(
             tasks.update_quantum_classical_force,
             wf_db_name="wf_adb",
+        ),
+        partial(
+            tasks.update_wf_adb_hop_prob,
+            update_hopping_probabilities=False,
         ),
         # Should recalculate classical forces here
         tasks.update_p_velocity_verlet,

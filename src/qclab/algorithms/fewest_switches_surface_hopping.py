@@ -280,7 +280,7 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         ),
         partial(
             tasks.update_wf_adb_hop_prob,
-            calculate_hopping_probabilities=True,
+            update_hopping_probabilities=True,
         ),
         tasks.update_hop_inds_fssh,
         partial(

@@ -6,7 +6,9 @@ import numpy as np
 import copy
 from qclab import functions
 from qclab import numerical_constants
-from qclab.interfaces import QCLabQChemInterface
+from qclab.utils import DISABLE_ASE
+if not(DISABLE_ASE):    
+    from qclab.interfaces import QCLabQChemInterface
 
 
 def h_c_harmonic(model, parameters, **kwargs):

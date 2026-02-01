@@ -1,7 +1,6 @@
 """
 This module contains the ASE Model class.
 """
-
 import numpy as np
 from qclab.functions import (
     vectorize_ingredient,

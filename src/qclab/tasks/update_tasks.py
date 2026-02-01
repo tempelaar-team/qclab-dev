@@ -2074,10 +2074,11 @@ def update_adb_connection(
     eigvecs_adb_previous_name: str = "eigvecs_adb_previous",
     h_q_tot_adb_name: str = "h_q_tot_adb",
     adb_connection_name: str = "adb_connection",
-    z_name: str = "z",
     classical_force_name: str = "classical_force",
     quantum_classical_force_name: str = "quantum_classical_force",
     derivative_coupling_dzc_name: str = "derivative_coupling_dzc",
+    use_wf_overlaps: bool = False,
+    wf_overlaps_name: str = "aip_wf_overlaps",
 ):
     """
     Updates the Adiabatic Connection matrix.
@@ -2111,8 +2112,7 @@ def update_adb_connection(
     derivative_coupling_dzc_name:
         Name of the derivative coupling tensor in the State object.
 
-
-
+        
     Ingredients
     -----------
     adb_connection:
@@ -2136,14 +2136,10 @@ def update_adb_connection(
     * N = sim.model.constants.num_quantum_states
     * C = sim.model.constants.num_classical_coordinates
     """
-    z = state[z_name]
-    adb_conn, has_adb_conn = sim.model.get("adb_connection")
-    if has_adb_conn:
-        state[adb_connection_name] = adb_conn(
-            sim.model,
-            parameters,
-            state,
-            z=z,
+    if wf_overlaps_name in state.keys() and use_wf_overlaps:
+        A = state[wf_overlaps_name]
+        state[adb_connection_name] = (1 / (2 * sim.settings.dt_update)) * (
+            A - np.transpose(A, axes=(0, 2, 1))
         )
     else:
         dz_dt = -1j * (
@@ -2161,11 +2157,6 @@ def update_adb_connection(
             axis=1,
         )
         state[adb_connection_name] = B - np.conj(B).transpose((0, 2, 1))
-        if "aip_wf_overlaps" in state.keys():
-            A = state["aip_wf_overlaps"]
-            state["wf_overlaps_adb_connection"] = (1 / (2 * sim.settings.dt_update)) * (
-                A - np.transpose(A, axes=(0, 2, 1))
-            )
     return state, parameters
 
 
@@ -2234,11 +2225,13 @@ def update_wf_adb_hop_prob(
     h_q_tot_previous_name: str = "h_q_tot_previous",
     adb_connection_previous_name: str = "adb_connection_previous",
     wf_adb_name: str = "wf_adb",
-    calculate_hopping_probabilities: bool = False,
+    update_hopping_probabilities: bool = False,
     hop_prob_name: str = "hop_prob",
 ):
     """
     Updates the adiabatic wavefunction by diagonalizing the Hamiltonian.
+
+    Optionally integrates the hopping probability over the time interval.
 
     Hopping probability formula:
 
@@ -2254,8 +2247,6 @@ def update_wf_adb_hop_prob(
 
     b_{jk}(t) = -2\Re(c_{j}(t)c_{k}^{*}(t) A_{jk}(t))
 
-    .. rubric:: Required Constants
-
     Optional Keyword Arguments
     --------------------------
     h_q_tot_name:
@@ -2268,6 +2259,8 @@ def update_wf_adb_hop_prob(
         Name of the adiabatic connection from the previous time step in the State object.
     wf_adb_name:
         Name of the adiabatic wavefunction in the State object.
+    update_hopping_probabilities:
+        Boolean indicating if to update the hopping probabilities.
     hop_prob_name:
         Name of the hopping probabilities in the State object.
 
@@ -2293,11 +2286,6 @@ def update_wf_adb_hop_prob(
     ------
     state[wf_adb_name]: ndarray of shape (B, N), dtype=complex128
         Wavefunction coefficients in the adiabatic basis.
-    state[wf_adb_substep_name]: ndarray of shape (B, N, S), dtype=complex128
-        Wavefunction coefficients in the adiabatic basis at each substep of the
-        integration.
-    state[adb_connection_substep_name]: ndarray of shape (B, N, N, S), dtype=complex128
-        Adiabatic connection at each substep of the integration.
     state[hop_prob_name]: ndarray of shape (B, N), dtype=float64
         Hopping probabilities.
 
@@ -2305,7 +2293,6 @@ def update_wf_adb_hop_prob(
     -----
     * B = sim.settings.batch_size
     * N = sim.model.constants.num_quantum_states
-    * S = sim.algorithm.settings.update_wf_adb_eig_num_substeps
     """
     num_substeps = sim.algorithm.settings.get("update_wf_adb_eig_num_substeps", 1)
     wf_adb = state[wf_adb_name]
@@ -2316,7 +2303,7 @@ def update_wf_adb_hop_prob(
     dt_update = sim.settings.dt_update
     num_branches = 1
     num_trajs = sim.settings.batch_size // num_branches
-    if calculate_hopping_probabilities:
+    if update_hopping_probabilities:
         hop_prob_numerator = np.zeros(
             (sim.settings.batch_size, sim.model.constants.num_quantum_states)
         )
@@ -2341,7 +2328,7 @@ def update_wf_adb_hop_prob(
         ) + adb_connection_previous
         h_q_tot_adb_interp = h_q_tot_interp - 1j * adb_connection_interp
         eigvals, eigvecs = np.linalg.eigh(h_q_tot_adb_interp)
-        if calculate_hopping_probabilities:
+        if update_hopping_probabilities:
             hop_prob_numerator += -2 * np.real(
                 np.conj(wf_adb)
                 * wf_adb[np.arange(num_trajs * num_branches), act_surf_ind][
@@ -2361,7 +2348,7 @@ def update_wf_adb_hop_prob(
             wf_adb,
             optimize="greedy",
         )
-    if calculate_hopping_probabilities:
+    if update_hopping_probabilities:
         state[hop_prob_name] = hop_prob_numerator / act_surf_population
     state[wf_adb_name] = wf_adb
     return state, parameters
@@ -2503,6 +2490,35 @@ def update_derivative_coupling_dzc_gauge(
     wf_overlaps_name: str = "aip_wf_overlaps",
     derivative_coupling_dzc_name: str = "derivative_coupling_dzc",
 ):
+    """
+    Updates the gauge of the derivative coupling tensor using the wavefunction overlaps. 
+    Assumes real-valued wavefunction overlaps.
+
+    Optional Keyword Arguments
+    --------------------------
+    wf_overlaps_name:
+        Name of the wavefunction overlaps in the State object.
+    derivative_coupling_dzc_name:
+        Name of the derivative coupling tensor in the State object. 
+
+    Reads
+    -----
+    state[wf_overlaps_name]: ndarray of shape (B, N), dtype=float64
+        Wavefunction overlaps.
+    state[derivative_coupling_dzc_name]: ndarray of shape (B, C, N, N), dtype=float64
+        Derivative coupling tensor.
+
+    Writes
+    ------
+    state[derivative_coupling_dzc_name]: ndarray of shape (B, C, N, N), dtype=float64
+        Derivative coupling tensor in the updated gauge.
+
+    Notes
+    -----
+    * B = sim.settings.batch_size
+    * N = sim.model.constants.num_quantum_states
+    * C = sim.model.constants.num_classical_coordinates
+    """
     if wf_overlaps_name in state.keys():
         wf_overlaps = np.einsum("tii->ti", state[wf_overlaps_name])
         signs = np.sign(wf_overlaps)
@@ -2522,6 +2538,29 @@ def update_wf_overlaps_gauge(
     parameters: dict,
     wf_overlaps_name: str = "aip_wf_overlaps",
 ):
+    """
+    Updates the gauge of the overlap matrix. Assumes real-valued overlaps.
+
+    Optional Keyword Arguments
+    --------------------------
+    wf_overlaps_name:
+        The name of the wavefunction overlaps in the State object.
+
+    Reads
+    -----
+    state[wf_overlaps_name]: ndarray of shape (B, N), dtype=float64
+        Wavefunction overlaps.
+
+    Writes
+    ------
+    state[wf_overlaps_name]: ndarray of shape (B, N), dtype=float64
+        Wavefunction overlaps in the updated gauge.
+
+    Notes
+    -----
+    * B = sim.settings.batch_size
+    * N = sim.model.constants.num_quantum_states
+    """
     if wf_overlaps_name in state.keys():
         wf_overlaps = np.einsum("tii->ti", state[wf_overlaps_name])
         signs = np.sign(wf_overlaps)
@@ -2535,6 +2574,7 @@ def update_ab_initio_property(
     sim: Simulation,
     state: dict,
     parameters: dict,
+    ab_initio_property_name: str = "ab_initio_property",
     property_dict: dict = {
         "energy": {"z": "z", "excited_amplitudes": True},
         "gradient": {"z": "z", "state_inds_gradient": None},
@@ -2543,15 +2583,47 @@ def update_ab_initio_property(
     },
 ):
     """
-    Docstring for update_ab_initio_property
-     EXPLAIN WHAT AIP MEANS
+    Calculates ab initio properties using the ab initio property calculator ingredient.
 
+    Stores the properties as a list of dictionaries in the Parameters object, a dictionary
+    in the State object containing vectorized properties, and as new variables in the State object
+    with the same name in property_dict appended with "aip_" where aip stands for "ab initio property".
+
+    Optional Keyword Arguments
+    --------------------------
+    ab_initio_property_name:
+        The name underwhich to store the ab initio properties in the State and Parameters objects.
+    property_dict:
+        A dictionary of properties to be calculated. The keys of the dictionary point to dictionaries of arguments.
+        The argument dictionaries point to objects in the State object, to Booleans, or to None.
+
+    Ingredients
+    -----------
+    ab_initio_property_calculator:
+        Ab initio property calculator.
+
+    Reads
+    -----
+
+    Writes
+    ------
+    parameters[ab_initio_property_name]: List
+        A List of dictionaries containing the ab initio properties calculated for each
+        trajectory.
+    state[ab_initio_property_name]: Dict
+        A dictionary containing the ab initio properties calculated restructured into a
+        ndarray where the first index corresponds to the trajectory index.
+    state["aip_" + property]: ndarray of shape (B, shape(property)), dtype=type(property)
+        A new variable in the State object giving the result of the calculation of property.
+
+    Notes
+    -----
+    * B = sim.settings.batch_size
     """
-
-    parameters["ab_initio_property"] = np.array(
+    parameters[ab_initio_property_name] = np.array(
         [{} for _ in range(sim.settings.batch_size)]
     )
-    state["ab_initio_property"] = {}
+    state[ab_initio_property_name] = {}
     ab_initio_property_calculator, has_ab_intio_property_calculator = sim.model.get(
         "ab_initio_property_calculator"
     )
@@ -2567,19 +2639,19 @@ def update_ab_initio_property(
                 else:
                     args_dict[args_key] = state[args_dict[args_key]]
             new_property_dict[property_key] = args_dict
-        parameters["ab_initio_property"] = ab_initio_property_calculator(
+        parameters[ab_initio_property_name] = ab_initio_property_calculator(
             sim.model,
             parameters,
             batch_size=sim.settings.batch_size,
             property_dict=new_property_dict,
         )
         new_results_dict = {}
-        ab_initio_property = parameters["ab_initio_property"]
+        ab_initio_property = parameters[ab_initio_property_name]
         for key in ab_initio_property[0].keys():
             new_results_dict[key] = np.array(
                 [ab_initio_property[n][key] for n in range(len(ab_initio_property))]
             )
-        state["ab_initio_property"] = new_results_dict
+        state[ab_initio_property_name] = new_results_dict
         for key in new_results_dict.keys():
             state["aip_" + key] = new_results_dict[key]
     return state, parameters
