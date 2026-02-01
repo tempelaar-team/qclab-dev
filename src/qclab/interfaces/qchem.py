@@ -200,7 +200,7 @@ class QCLabQChemInterface(FileIOCalculator):
             n_s = int(self.parameters.get("cis_n_roots", 1)) + 1
             state_inds_gradient = [i for i in range(n_s)]
         elif isinstance(state_inds_gradient, (int, np.integer)):
-            state_inds_gradient = [i for i in range(state_inds_gradient)]
+            state_inds_gradient = [state_inds_gradient]
 
         for j, i in enumerate(state_inds_gradient):
             if i > 0:
@@ -408,7 +408,7 @@ class QCLabQChemInterface(FileIOCalculator):
                     properties
                 )
             elif isinstance(state_inds_gradient, (int, np.integer)):
-                num_QChem_jobs = state_inds_gradient + len(properties) - 1
+                num_QChem_jobs = 1 + len(properties) - 1
             else:
                 num_QChem_jobs = len(state_inds_gradient) + len(properties) - 1
             if file_content.count(normal_termination) < num_QChem_jobs:
@@ -436,7 +436,7 @@ class QCLabQChemInterface(FileIOCalculator):
                 if state_inds_gradient is None:
                     num_QChem_jobs = int(self.parameters.get("cis_n_roots", 1)) + 1
                 elif isinstance(state_inds_gradient, (int, np.integer)):
-                    num_QChem_jobs = state_inds_gradient
+                    num_QChem_jobs = 1
                 else:
                     num_QChem_jobs = len(state_inds_gradient)
                 gradient_files = temporal_data[1:num_QChem_jobs]
@@ -581,7 +581,7 @@ class QCLabQChemInterface(FileIOCalculator):
             num_gradient = int(self.parameters.get("cis_n_roots", 1)) + 1
             state_inds_gradient = [i for i in range(num_gradient)]
         elif isinstance(state_inds_gradient, (int, np.integer)):
-            state_inds_gradient = [i for i in range(state_inds_gradient)]
+            state_inds_gradient = [state_inds_gradient]
 
         gradient = np.zeros((num_atoms, 3, len(state_inds_gradient)))
         flag_words_grad = ["Gradient of the state energy", "Gradient of SCF Energy"]
