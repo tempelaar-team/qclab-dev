@@ -2112,7 +2112,7 @@ def update_adb_connection(
     derivative_coupling_dzc_name:
         Name of the derivative coupling tensor in the State object.
 
-        
+
     Ingredients
     -----------
     adb_connection:
@@ -2491,7 +2491,7 @@ def update_derivative_coupling_dzc_gauge(
     derivative_coupling_dzc_name: str = "derivative_coupling_dzc",
 ):
     """
-    Updates the gauge of the derivative coupling tensor using the wavefunction overlaps. 
+    Updates the gauge of the derivative coupling tensor using the wavefunction overlaps.
     Assumes real-valued wavefunction overlaps.
 
     Optional Keyword Arguments
@@ -2499,7 +2499,7 @@ def update_derivative_coupling_dzc_gauge(
     wf_overlaps_name:
         Name of the wavefunction overlaps in the State object.
     derivative_coupling_dzc_name:
-        Name of the derivative coupling tensor in the State object. 
+        Name of the derivative coupling tensor in the State object.
 
     Reads
     -----

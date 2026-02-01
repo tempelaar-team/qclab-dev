@@ -34,8 +34,6 @@ AMU_TO_EMASS = 1822.89
 AU_TIME_TO_FS = 0.02419
 
 
-
-
 """
 This module contains numerical constants.
 

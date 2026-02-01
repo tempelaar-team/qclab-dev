@@ -1,5 +1,8 @@
+"""
+This module contains the Q-Chem interface for ab initio calculations.
+"""
+
 import os
-from copy import deepcopy
 import numpy as np
 from ase.calculators.calculator import FileIOCalculator
 

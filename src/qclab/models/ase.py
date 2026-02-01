@@ -1,6 +1,7 @@
 """
 This module contains the Atomic Simulation Environment (ASE) Model class.
 """
+
 import numpy as np
 from qclab.functions import (
     vectorize_ingredient,
@@ -13,7 +14,6 @@ from qclab.functions import (
 from qclab.model import Model, Constants
 from qclab import ingredients
 from qclab.numerical_constants import (
-    INVCM_TO_HA,
     ANGSTROM_TO_BOHR,
     AMU_TO_EMASS,
 )
@@ -22,7 +22,7 @@ import copy
 
 class ASE(Model):
     """
-    Model class that uses the Atomic Simulation Environment (ASE) 
+    Model class that uses the Atomic Simulation Environment (ASE)
     to perform ab initio quantum chemistry calculations.
 
     It is compatible with the ab initio algorithms implemented in QC Lab.
@@ -72,7 +72,9 @@ class ASE(Model):
         self.constants.harmonic_frequency = constants_original.harmonic_frequency
         self.constants.classical_coordinate_weight = self.constants.harmonic_frequency
         self.constants.kBT = constants_original.kBT
-        z_normal_mode = ingredients.init_classical_wigner_harmonic(self, parameters, **kwargs)
+        z_normal_mode = ingredients.init_classical_wigner_harmonic(
+            self, parameters, **kwargs
+        )
         # Convert back to phase-space normal coordinates.
         q_normal_mode = z_to_q(
             z_normal_mode,
@@ -85,7 +87,10 @@ class ASE(Model):
             self.constants.classical_coordinate_weight[np.newaxis],
         )
         # Convert back to Cartesian coordinates.
-        q = np.einsum("tm, cm ->tc", q_normal_mode, normal_modes) + constants_original.init_position
+        q = (
+            np.einsum("tm, cm ->tc", q_normal_mode, normal_modes)
+            + constants_original.init_position
+        )
         p = np.einsum("tm, cm ->tc", p_normal_mode, normal_modes)
         self.constants = constants_original
         z = qp_to_z(

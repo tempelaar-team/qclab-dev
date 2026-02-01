@@ -7,7 +7,8 @@ import copy
 from qclab import functions
 from qclab import numerical_constants
 from qclab.utils import DISABLE_ASE
-if not(DISABLE_ASE):    
+
+if not (DISABLE_ASE):
     from qclab.interfaces import QCLabQChemInterface
 
 
@@ -675,7 +676,7 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
         new_property_dict[property] = property_args
     calc = QCLabQChemInterface(
         atoms=mol,
-        label = "qchem_job_" + file_label,
+        label="qchem_job_" + file_label,
         folder_scratch="qclab_job_" + file_label,
         **{**qchem_dft_args, **qchem_tddft_args},
     )
