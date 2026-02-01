@@ -122,7 +122,6 @@ class ASE(Model):
             else:
                 needs_energy = True
         if not (has_ab_initio_property) or needs_energy:
-            print("recalculating energy")
             property_dict = {
                 "energy": {"z": z[np.newaxis], "excited_amplitudes": True},
             }
@@ -173,7 +172,6 @@ class ASE(Model):
             else:
                 needs_gradient = True
         if not (has_ab_initio_property) or needs_gradient:
-            print('Recalculating gradient')
             property_dict = {
                 "gradient": {"z": z[np.newaxis], "state_inds_gradient": None},
             }
@@ -225,7 +223,6 @@ class ASE(Model):
             else:
                 needs_derivative_coupling = True
         if not (has_ab_initio_property) or needs_derivative_coupling:
-            print("recalculating derivative coupling")
             property_dict = {
                 "derivative_coupling": {
                     "z": z[np.newaxis],
