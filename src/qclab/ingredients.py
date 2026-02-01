@@ -631,7 +631,9 @@ def gauge_field_force_zero(model, parameters, **kwargs):
     state_ind = kwargs["state_ind"]
     return np.zeros_like(z)
 
+
 from qclab.interfaces import QCLabQChemInterface
+
 
 @functions.vectorize_ingredient
 def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
@@ -647,18 +649,70 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
     qchem_tddft_args = model.constants.calculator_args["qchem_tddft_args"]
     file_label = str(parameters["seed"][traj_ind])
 
-    
+    new_property_dict = copy.deepcopy(property_dict)
     for property in property_dict.keys():
         property_args = copy.deepcopy(property_dict[property])
         for arg_key in property_args.keys():
             if type(property_args[arg_key]) is np.ndarray:
                 property_args[arg_key] = property_args[arg_key][traj_ind]
-        if not(property_args["z"] is None):
+        if not (property_args["z"] is None):
             # Update nuclear configuration if z is provided.
             z = property_args["z"]
             q = functions.z_to_q(z, m, h)
             mol.set_positions(
-                q.reshape((num_classical_coordinates // 3, 3)) / numerical_constants.ANGSTROM_TO_BOHR
+                q.reshape((num_classical_coordinates // 3, 3))
+                / numerical_constants.ANGSTROM_TO_BOHR
+            )
+        if property == "wf_overlaps":
+            z_previous = property_args["z_previous"]
+            q_previous = functions.z_to_q(z_previous, m, h)
+            mol_previous.set_positions(
+                q_previous.reshape((num_classical_coordinates // 3, 3))
+                / numerical_constants.ANGSTROM_TO_BOHR
+            )
+            property_args["atoms_previous"] = mol_previous
+        new_property_dict[property] = property_args
+    calc = QCLabQChemInterface(
+        atoms=mol,
+        folder_scratch="qclab_job_" + file_label,
+        **{**qchem_dft_args, **qchem_tddft_args},
+    )
+    print("submitting all calcas")
+    calc.write_input(**new_property_dict)
+    calc.execute()
+    calc.read_results(**new_property_dict)
+    print("it worked")
+
+    for property in new_property_dict.keys():
+        if property == "gradient":
+            state_inds_gradient = property_args.get("state_inds_gradient", None)
+            if isinstance(state_inds_gradient, (int, np.integer)):
+                state_inds_gradient = [state_inds_gradient]
+            if state_inds_gradient is None:
+                state_inds_gradient = np.arange(num_quantum_states, dtype=int)
+            gradient = np.zeros((num_classical_coordinates // 3, 3, num_quantum_states))
+            if state_inds_gradient is None:
+                state_inds_gradient = np.arange(num_quantum_states, dtype=int)
+            ind = 0
+            for state_ind in state_inds_gradient:
+                gradient[:, :, state_ind] = calc.results["gradient"][:, :, ind]
+                ind += 1
+            properties["gradient"] = gradient
+        else:
+            properties[property] = calc.results[property]
+    return properties
+    for property in property_dict.keys():
+        property_args = copy.deepcopy(property_dict[property])
+        for arg_key in property_args.keys():
+            if type(property_args[arg_key]) is np.ndarray:
+                property_args[arg_key] = property_args[arg_key][traj_ind]
+        if not (property_args["z"] is None):
+            # Update nuclear configuration if z is provided.
+            z = property_args["z"]
+            q = functions.z_to_q(z, m, h)
+            mol.set_positions(
+                q.reshape((num_classical_coordinates // 3, 3))
+                / numerical_constants.ANGSTROM_TO_BOHR
             )
         if property == "energy":
             calc = QCLabQChemInterface(
@@ -668,15 +722,9 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
             )
             calc.label += "_energy"
             calc.label += "_" + file_label
-            calc.write_input(
-                properties=["energy"],
-                excited_amplitudes=property_args["excited_amplitudes"],
-            )
+            calc.write_input(**{"energy": property_args})
             calc.execute()
-            calc.read_results(
-                properties=["energy"],
-                excited_amplitudes=property_args["excited_amplitudes"],
-            )
+            calc.read_results(**{"energy": property_args})
             for key in calc.results.keys():
                 properties[key] = calc.results[key]
         if property == "gradient":
@@ -684,6 +732,8 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
             state_inds_gradient = property_args["state_inds_gradient"]
             if isinstance(state_inds_gradient, (int, np.integer)):
                 state_inds_gradient = [state_inds_gradient]
+            if state_inds_gradient is None:
+                state_inds_gradient = np.arange(num_quantum_states, dtype=int)
             calc = QCLabQChemInterface(
                 atoms=mol,
                 folder_scratch="qclab_job_" + file_label,
@@ -695,17 +745,13 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
             calc.label += "_" + "g"
             calc.label += "_" + file_label
             mol.calc = calc
-            mol.calc.write_input(
-                properties=["gradient"], state_inds_gradient=state_inds_gradient
-            )
+            mol.calc.write_input(**{"gradient": property_args})
             mol.calc.execute()
-            mol.calc.read_results(properties=["gradient"], state_inds_gradient=state_inds_gradient)
-            gradient = np.zeros((num_classical_coordinates//3,3,num_quantum_states))
-            if state_inds_gradient is None:
-                state_inds_gradient = np.arange(num_quantum_states,dtype=int)
+            mol.calc.read_results(**{"gradient": property_args})
+            gradient = np.zeros((num_classical_coordinates // 3, 3, num_quantum_states))
             ind = 0
             for state_ind in state_inds_gradient:
-                gradient[:,:,state_ind] = calc.results["gradient"][:,:,ind]
+                gradient[:, :, state_ind] = calc.results["gradient"][:, :, ind]
                 ind += 1
             for key in calc.results.keys():
                 if key == "gradient":
@@ -729,12 +775,9 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
             )
             calc.label += "_" + "derivative_coupling"
             calc.label += "_" + file_label
-            calc.write_input(
-                properties=["derivative_coupling"],
-                state_inds_derivative_coupling=state_inds_derivative_coupling,
-            )
+            calc.write_input(**{"derivative_coupling": property_args})
             calc.execute()
-            calc.read_results(properties=["derivative_coupling"])
+            calc.read_results(**{"derivative_coupling": property_args})
             for key in calc.results.keys():
                 properties[key] = calc.results[key]
         if property == "wf_overlaps":
@@ -755,16 +798,10 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
                 q_previous.reshape((num_classical_coordinates // 3, 3))
                 / numerical_constants.ANGSTROM_TO_BOHR
             )
-            calc.write_input(
-                properties=["wf_overlaps"],
-                atoms_previous=mol_previous,
-            )
+            property_args["atoms_previous"] = mol_previous
+            calc.write_input(**{"derivative_coupling": property_args})
             calc.execute()
-            calc.read_results(
-                properties=["wf_overlaps"],
-                current_amplitudes=property_args["current_amplitudes"],
-                previous_amplitudes=property_args["previous_amplitudes"],
-            )
+            calc.read_results(**{"derivative_coupling": property_args})
             for key in calc.results.keys():
                 properties[key] = calc.results[key]
     return properties
