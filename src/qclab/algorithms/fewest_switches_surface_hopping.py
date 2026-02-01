@@ -132,7 +132,8 @@ class FewestSwitchesSurfaceHopping(Algorithm):
 
 class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
     """
-    Fewest switches surface hopping algorithm class.
+    Fewest switches surface hopping algorithm class implemented in the adiabatic basis
+    and compatible with ab initio calculations.
     """
 
     def __init__(self, settings=None):
@@ -140,7 +141,6 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
             settings = {}
         self.default_settings = {
             "fssh_deterministic": False,
-            "gauge_fixing": "sign_overlap",
             "use_gauge_field_force": False,
             "update_wf_adb_eig_num_substeps": 10,
         }
@@ -196,8 +196,8 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         ),
         partial(
             tasks.copy_in_state,
-            copy_name="aip_excited_state_amplitudes_previous",
-            orig_name="aip_excited_state_amplitudes",
+            copy_name="aip_excited_amplitudes_previous",
+            orig_name="aip_excited_amplitudes",
         ),
         partial(
             tasks.copy_in_state,
@@ -262,8 +262,8 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
                 "wf_overlaps": {
                     "z": "z",
                     "z_previous": "z_previous",
-                    "previous_amplitudes": "aip_excited_state_amplitudes_previous",
-                    "current_amplitudes": "aip_excited_state_amplitudes",
+                    "amplitudes_previous": "aip_excited_amplitudes_previous",
+                    "amplitudes_current": "aip_excited_amplitudes",
                 },
             },
         ),

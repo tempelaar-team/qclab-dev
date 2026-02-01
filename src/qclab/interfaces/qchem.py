@@ -457,11 +457,11 @@ class QCLabQChemInterface(FileIOCalculator):
                     job,
                     coupling_files.splitlines(),
                     num_atoms,
-                    previous_amplitudes=kwargs["wf_overlaps"].get(
-                        "previous_amplitudes", None
+                    amplitudes_previous=kwargs["wf_overlaps"].get(
+                        "amplitudes_previous", None
                     ),
-                    current_amplitudes=kwargs["wf_overlaps"].get(
-                        "current_amplitudes", None
+                    amplitudes_current=kwargs["wf_overlaps"].get(
+                        "amplitudes_current", None
                     ),
                 )
             else:
@@ -496,8 +496,8 @@ class QCLabQChemInterface(FileIOCalculator):
             self._pull_derivative_coupling(file_obj, num_atoms)
         elif "wf_overlaps" in property:
             self._pull_overlaps(
-                previous_amplitudes=kwargs.get("previous_amplitudes", None),
-                current_amplitudes=kwargs.get("current_amplitudes", None),
+                amplitudes_previous=kwargs.get("amplitudes_previous", None),
+                amplitudes_current=kwargs.get("amplitudes_current", None),
             )
         else:
             raise ValueError("This type of calculation has not been implemented yet")
@@ -556,23 +556,23 @@ class QCLabQChemInterface(FileIOCalculator):
         self.results["energy"] = energy
         # Extract excited state amplitudes if requested.
         if excited_amplitudes:
-            self.results["excited_state_amplitudes"] = {}
+            self.results["excited_amplitudes"] = {}
             (
                 X_alpha,
                 Y_alpha,
                 num_basis_functions,
                 num_alpha_electrons,
                 num_excited_states,
-            ) = self._pull_excited_state_amplitudes_qchem()
-            self.results["excited_state_amplitudes"]["x"] = X_alpha
-            self.results["excited_state_amplitudes"]["y"] = Y_alpha
-            self.results["excited_state_amplitudes"][
+            ) = self._pull_excited_amplitudes_qchem()
+            self.results["excited_amplitudes"]["x"] = X_alpha
+            self.results["excited_amplitudes"]["y"] = Y_alpha
+            self.results["excited_amplitudes"][
                 "num_basis_functions"
             ] = num_basis_functions
-            self.results["excited_state_amplitudes"][
+            self.results["excited_amplitudes"][
                 "num_alpha_electrons"
             ] = num_alpha_electrons
-            self.results["excited_state_amplitudes"][
+            self.results["excited_amplitudes"][
                 "num_excited_states"
             ] = num_excited_states
 
@@ -643,29 +643,29 @@ class QCLabQChemInterface(FileIOCalculator):
             )
         self.results["derivative_coupling"] = derivative_coupling_dictionary
 
-    def _pull_overlaps(self, previous_amplitudes=None, current_amplitudes=None):
-        if previous_amplitudes is None:
+    def _pull_overlaps(self, amplitudes_previous=None, amplitudes_current=None):
+        if amplitudes_previous is None:
             raise ValueError(
                 "previous excited state amplitudes must be provided"
                 "to compute wavefunction overlaps."
             )
-        if current_amplitudes is None:
+        if amplitudes_current is None:
             raise ValueError(
                 "current excited state amplitudes must be provided"
                 "to compute wavefunction overlaps."
             )
         # Create global variables needed for computing overlaps.
-        self.num_basis_functions = current_amplitudes["num_basis_functions"]
-        self.num_alpha_electrons = current_amplitudes["num_alpha_electrons"]
-        self.num_excited_states = current_amplitudes["num_excited_states"]
+        self.num_basis_functions = amplitudes_current["num_basis_functions"]
+        self.num_alpha_electrons = amplitudes_current["num_alpha_electrons"]
+        self.num_excited_states = amplitudes_current["num_excited_states"]
         # Extract molecular orbitals overlaps between two geometries.
         MO_overlaps = self._pull_mo_overlaps_qchem()
         # Compute overlaps matrices.
         self._get_overlaps_TDDFT(
-            previous_amplitudes["x"],
-            previous_amplitudes["y"],
-            current_amplitudes["x"],
-            current_amplitudes["y"],
+            amplitudes_previous["x"],
+            amplitudes_previous["y"],
+            amplitudes_current["x"],
+            amplitudes_current["y"],
             MO_overlaps,
         )
 
@@ -799,7 +799,7 @@ class QCLabQChemInterface(FileIOCalculator):
         MO_overlaps = MO_overlaps.T
         return MO_overlaps
 
-    def _pull_excited_state_amplitudes_qchem(self):
+    def _pull_excited_amplitudes_qchem(self):
         file_fchk = self.label + ".fchk"
         with open(file_fchk, "r") as f:
             data = f.readlines()

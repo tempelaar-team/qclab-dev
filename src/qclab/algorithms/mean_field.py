@@ -76,11 +76,8 @@ class MeanField(Algorithm):
 
 class MeanFieldAbInitio(Algorithm):
     """
-    Adiabatic Mean-field dynamics algorithm class.
-
-    Uses velocity verlet integration for the classical degrees of freedom.
-
-    Uses a substep propagation for the quantum wavefunction within each ``dt_update`` timestep.
+    Mean-field dynamics algorithm class implemented in the adiabatic basis
+    and compatible with ab initio calculations.
     """
 
     def __init__(self, settings=None):
@@ -128,8 +125,8 @@ class MeanFieldAbInitio(Algorithm):
         ),
         partial(
             tasks.copy_in_state,
-            copy_name="aip_excited_state_amplitudes_previous",
-            orig_name="aip_excited_state_amplitudes",
+            copy_name="aip_excited_amplitudes_previous",
+            orig_name="aip_excited_amplitudes",
         ),
         partial(
             tasks.copy_in_state,
@@ -180,8 +177,8 @@ class MeanFieldAbInitio(Algorithm):
                 "wf_overlaps": {
                     "z": "z",
                     "z_previous": "z_previous",
-                    "previous_amplitudes": "aip_excited_state_amplitudes_previous",
-                    "current_amplitudes": "aip_excited_state_amplitudes",
+                    "amplitudes_previous": "aip_excited_amplitudes_previous",
+                    "amplitudes_current": "aip_excited_amplitudes",
                 },
             },
         ),

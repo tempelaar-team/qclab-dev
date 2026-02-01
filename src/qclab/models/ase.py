@@ -1,5 +1,5 @@
 """
-This module contains the ASE Model class.
+This module contains the Atomic Simulation Environment (ASE) Model class.
 """
 import numpy as np
 from qclab.functions import (
@@ -22,10 +22,10 @@ import copy
 
 class ASE(Model):
     """
-    Model class that uses the Q-Chem interface of the Atomic Simulation
-    Environment (ASE) to perform ab initio quantum chemistry calculations.
+    Model class that uses the Atomic Simulation Environment (ASE) 
+    to perform ab initio quantum chemistry calculations.
 
-    It is compatible with the adiabatic algorithms implemented in QC Lab.
+    It is compatible with the ab initio algorithms implemented in QC Lab.
     """
 
     def __init__(self, constants=None):
@@ -61,33 +61,33 @@ class ASE(Model):
     def init_classical(self, parameters, **kwargs):
         # temporarily set the masses to 1 for mass-weighted normal mode sampling.
         normal_modes = self.constants.normal_mode
-        old_constants = copy.deepcopy(self.constants)
+        constants_original = copy.deepcopy(self.constants)
         self.constants = Constants()
         self.constants.num_classical_coordinates = len(
-            old_constants.harmonic_frequency
+            constants_original.harmonic_frequency
         )  # set to number of normal modes
         self.constants.classical_coordinate_mass = np.ones(
             self.constants.num_classical_coordinates
         )
-        self.constants.harmonic_frequency = old_constants.harmonic_frequency
+        self.constants.harmonic_frequency = constants_original.harmonic_frequency
         self.constants.classical_coordinate_weight = self.constants.harmonic_frequency
-        self.constants.kBT = old_constants.kBT
-        z_mwnm = ingredients.init_classical_wigner_harmonic(self, parameters, **kwargs)
-        # convert back to mass-weighted normal coordinates
-        q_mwnm = z_to_q(
-            z_mwnm,
+        self.constants.kBT = constants_original.kBT
+        z_normal_mode = ingredients.init_classical_wigner_harmonic(self, parameters, **kwargs)
+        # Convert back to phase-space normal coordinates.
+        q_normal_mode = z_to_q(
+            z_normal_mode,
             self.constants.classical_coordinate_mass[np.newaxis],
             self.constants.classical_coordinate_weight[np.newaxis],
         )
-        p_mwnm = z_to_p(
-            z_mwnm,
+        p_normal_mode = z_to_p(
+            z_normal_mode,
             self.constants.classical_coordinate_mass[np.newaxis],
             self.constants.classical_coordinate_weight[np.newaxis],
         )
-        # convert back to Cartesian coordinates.
-        q = np.einsum("tm, cm ->tc", q_mwnm, normal_modes) + old_constants.init_position
-        p = np.einsum("tm, cm ->tc", p_mwnm, normal_modes)
-        self.constants = old_constants
+        # Convert back to Cartesian coordinates.
+        q = np.einsum("tm, cm ->tc", q_normal_mode, normal_modes) + constants_original.init_position
+        p = np.einsum("tm, cm ->tc", p_normal_mode, normal_modes)
+        self.constants = constants_original
         z = qp_to_z(
             q,
             p,
@@ -216,7 +216,7 @@ class ASE(Model):
                 for key, val in derivative_coupling_dq.items():
                     out[:, key[0], key[1]] = (
                         dqdp_to_dzc(val.flatten(), None, m, h) / ANGSTROM_TO_BOHR
-                    )  # convert from 1/A to 1/Bohr
+                    )  # Convert from 1/Angstrom to 1/Bohr.
                     out[:, key[1], key[0]] = -np.conj(out[:, key[0], key[1]])
                 needs_derivative_coupling = False
             else:
@@ -242,7 +242,7 @@ class ASE(Model):
                 for key, val in derivative_coupling_dq.items():
                     out[:, key[0], key[1]] = (
                         dqdp_to_dzc(val.flatten(), None, m, h) / ANGSTROM_TO_BOHR
-                    )  # convert from 1/A to 1/Bohr
+                    )  # Convert from 1/Angstrom to 1/Bohr.
                     out[:, key[1], key[0]] = -np.conj(out[:, key[0], key[1]])
             else:
                 raise NameError("ab_initio_property_calculator must be provided")

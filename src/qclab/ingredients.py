@@ -311,7 +311,7 @@ def hop_harmonic(model, parameters, **kwargs):
     a_const = 0.25 * (((w**2) / h) - h)
     b_const = 0.25 * (((w**2) / h) + h)
     # Here, akj_z, bkj_z, ckj_z are the coefficients of the quadratic equation
-    # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0
+    # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0.
     akj_z = np.sum(
         2.0 * resc_dir_zc * resc_dir_z * b_const
         - a_const * (resc_dir_z**2 + resc_dir_zc**2)
@@ -377,7 +377,7 @@ def hop_free(model, parameters, **kwargs):
     eigval_diff = kwargs["eigval_diff"]
     h = model.constants.classical_coordinate_weight
     # Here, akj_z, bkj_z, ckj_z are the coefficients of the quadratic equation
-    # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0
+    # akj_z * gamma^2 - bkj_z * gamma + ckj_z = 0.
     f = 1j * 2.0 * resc_dir_z.real
     g = -2.0j * z.imag
     akj_z = np.sum(0.25 * h * f * f)
