@@ -38,7 +38,7 @@ class ASE(Model):
             "num_quantum_states": None,
             "normal_mode": None,
             "harmonic_frequency": None,
-            "energy_offset":0,
+            "energy_offset": 0,
             "kBT": 0.00095,
         }
         self.update_dh_qc_dzc = True
@@ -125,8 +125,8 @@ class ASE(Model):
             property_dict = {
                 "energy": {"z": z[np.newaxis], "excited_amplitudes": True},
             }
-            ab_initio_property_calculator, has_ab_intio_property_calculator = (
-                self.get("ab_initio_property_calculator")
+            ab_initio_property_calculator, has_ab_intio_property_calculator = self.get(
+                "ab_initio_property_calculator"
             )
             if has_ab_intio_property_calculator:
                 properties = ab_initio_property_calculator(
@@ -175,8 +175,8 @@ class ASE(Model):
             property_dict = {
                 "gradient": {"z": z[np.newaxis], "state_inds_gradient": None},
             }
-            ab_initio_property_calculator, has_ab_intio_property_calculator = (
-                self.get("ab_initio_property_calculator")
+            ab_initio_property_calculator, has_ab_intio_property_calculator = self.get(
+                "ab_initio_property_calculator"
             )
             if has_ab_intio_property_calculator:
                 properties = ab_initio_property_calculator(
@@ -229,8 +229,8 @@ class ASE(Model):
                     "state_inds_derivative_coupling": None,
                 },
             }
-            ab_initio_property_calculator, has_ab_intio_property_calculator = (
-                self.get("ab_initio_property_calculator")
+            ab_initio_property_calculator, has_ab_intio_property_calculator = self.get(
+                "ab_initio_property_calculator"
             )
             if has_ab_intio_property_calculator:
                 properties = ab_initio_property_calculator(
