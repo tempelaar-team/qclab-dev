@@ -2083,7 +2083,6 @@ def update_adb_connection(
     """
     Updates the Adiabatic Connection matrix.
 
-
     This matrix describes the coupling between different adiabatic states.
 
     A = U^{\\dagger}\\partial_{t}U = B - B^{\\dagger}
@@ -2111,7 +2110,6 @@ def update_adb_connection(
         Name of the quantum-classical force in the State object.
     derivative_coupling_dzc_name:
         Name of the derivative coupling tensor in the State object.
-
 
     Ingredients
     -----------
@@ -2233,7 +2231,7 @@ def update_wf_adb_hop_prob(
 
     Optionally integrates the hopping probability over the time interval.
 
-    Hopping probability formula is taken from:
+    The following formulae and equation numbers are in reference to:
     Hammes‐Schiffer, S.; Tully, J. C. Proton Transfer in Solution: Molecular Dynamics with Quantum Transitions.
      J. Chem. Phys. 1994, 101 (6), 4657–4667. https://doi.org/10.1063/1.467455.
 

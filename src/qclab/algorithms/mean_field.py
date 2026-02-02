@@ -102,7 +102,6 @@ class MeanFieldAbInitio(Algorithm):
                     "z": "z",
                     "state_inds_derivative_coupling": None,
                 },
-                # "wf_overlaps": {"z": "z", "z_previous": "z_previous"},
             },
         ),
         tasks.update_h_q_tot,
@@ -195,7 +194,6 @@ class MeanFieldAbInitio(Algorithm):
             tasks.update_wf_adb_hop_prob,
             update_hopping_probabilities=False,
         ),
-        # Should recalculate classical forces here
         tasks.update_p_velocity_verlet,
         tasks.update_classical_force,
     ]

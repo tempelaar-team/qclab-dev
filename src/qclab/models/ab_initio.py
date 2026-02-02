@@ -12,11 +12,7 @@ from qclab.functions import (
     dqdp_to_dzc,
 )
 from qclab.model import Model, Constants
-from qclab import ingredients
-from qclab.numerical_constants import (
-    ANGSTROM_TO_BOHR,
-    AMU_TO_EMASS,
-)
+from qclab import ingredients, numerical_constants
 import copy
 
 
@@ -46,8 +42,6 @@ class AbInitio(Model):
         super().__init__(self.default_constants, constants)
 
     def _init_model(self, parameters, **kwargs):
-        # mol = self.constants.ase_atoms_object
-        #atom_masses = mol.get_masses() * AMU_TO_EMASS
         num_atoms = len(self.constants.atom_names)
         self.constants.num_classical_coordinates = num_atoms * 3
         self.constants.classical_coordinate_mass = (
@@ -60,13 +54,13 @@ class AbInitio(Model):
         self.constants.finite_difference_delta = 1e-2
 
     def init_classical(self, parameters, **kwargs):
-        # temporarily set the masses to 1 for mass-weighted normal mode sampling.
+        # Temporarily set the masses to 1 for mass-weighted normal mode sampling.
         normal_modes = self.constants.normal_mode
         constants_original = copy.deepcopy(self.constants)
         self.constants = Constants()
         self.constants.num_classical_coordinates = len(
             constants_original.harmonic_frequency
-        )  # set to number of normal modes
+        )  # Set to number of normal modes.
         self.constants.classical_coordinate_mass = np.ones(
             self.constants.num_classical_coordinates
         )
@@ -145,7 +139,7 @@ class AbInitio(Model):
                     - self.constants.energy_offset
                 )
             else:
-                raise NameError("ab_initio_property_calculator must be provided")
+                raise NameError("The ab_initio_property_calculator ingredient must be provided.")
         return np.diag(diag_h_qc)
 
     @make_ingredient_sparse
@@ -199,7 +193,7 @@ class AbInitio(Model):
                         h,
                     )
             else:
-                raise NameError("ab_initio_property_calculator must be provided")
+                raise NameError("The ab_initio_property_calculator ingredient must be provided.")
         return out
 
     @vectorize_ingredient
@@ -221,7 +215,7 @@ class AbInitio(Model):
                 derivative_coupling_dq = properties["derivative_coupling"]
                 for key, val in derivative_coupling_dq.items():
                     out[:, key[0], key[1]] = (
-                        dqdp_to_dzc(val.flatten(), None, m, h) / ANGSTROM_TO_BOHR
+                        dqdp_to_dzc(val.flatten(), None, m, h) / numerical_constants.ANGSTROM_TO_BOHR
                     )  # Convert from 1/Angstrom to 1/Bohr.
                     out[:, key[1], key[0]] = -np.conj(out[:, key[0], key[1]])
                 needs_derivative_coupling = False
@@ -247,11 +241,11 @@ class AbInitio(Model):
                 derivative_coupling_dq = properties["derivative_coupling"]
                 for key, val in derivative_coupling_dq.items():
                     out[:, key[0], key[1]] = (
-                        dqdp_to_dzc(val.flatten(), None, m, h) / ANGSTROM_TO_BOHR
+                        dqdp_to_dzc(val.flatten(), None, m, h) / numerical_constants.ANGSTROM_TO_BOHR
                     )  # Convert from 1/Angstrom to 1/Bohr.
                     out[:, key[1], key[0]] = -np.conj(out[:, key[0], key[1]])
             else:
-                raise NameError("ab_initio_property_calculator must be provided")
+                raise NameError("The ab_initio_property_calculator ingredient must be provided.")
         return out
 
     ingredients = [

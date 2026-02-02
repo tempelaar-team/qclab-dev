@@ -179,7 +179,7 @@ class QCLabQChemInterface(FileIOCalculator):
                     excited_amplitudes_flag = kwargs["energy"]["excited_amplitudes"]
                 else:
                     excited_amplitudes_flag = False
-                self._write_job_defi_qchem(
+                self._write_job_definition_qchem(
                     file_obj,
                     job,
                     excited_amplitudes=excited_amplitudes_flag,
@@ -216,7 +216,7 @@ class QCLabQChemInterface(FileIOCalculator):
                 ind = flag
             self._write_comments_qchem(file_obj, f"gradient state {i}", ind)
             self._write_geometry_qchem(file_obj, ind)
-            self._write_job_defi_qchem(file_obj, job_spec, flag=i)
+            self._write_job_definition_qchem(file_obj, job_spec, flag=i)
 
     def _write_wf_overlaps_jobs(self, file_obj, job_spec, atoms_previous, flag=0):
         """
@@ -249,7 +249,7 @@ class QCLabQChemInterface(FileIOCalculator):
             self.parameters["mo_overlaps_two_geoms"] = 1
         if self.parameters.get("mo_overlaps_two_geoms") != 1:
             self.parameters["mo_overlaps_two_geoms"] = 1
-        self._write_job_defi_qchem(file_obj, job_spec)
+        self._write_job_definition_qchem(file_obj, job_spec)
 
         # Creating input for the current geometry.
         self._write_comments_qchem(
@@ -257,7 +257,7 @@ class QCLabQChemInterface(FileIOCalculator):
         )
         self._write_geometry_qchem(file_obj, ind=0)
         self.parameters["mo_overlaps_two_geoms"] = 2
-        self._write_job_defi_qchem(file_obj, job_spec)
+        self._write_job_definition_qchem(file_obj, job_spec)
 
     def _write_comments_qchem(self, file_obj, job, ind=0):
         """
@@ -292,7 +292,7 @@ class QCLabQChemInterface(FileIOCalculator):
             file_obj.write("read\n")
             file_obj.write("$end\n\n")
 
-    def _write_job_defi_qchem(
+    def _write_job_definition_qchem(
         self,
         file_obj,
         job_spec,
@@ -659,7 +659,7 @@ class QCLabQChemInterface(FileIOCalculator):
         self.results["gradient"] = gradient
 
     def _pull_derivative_coupling(self, file_obj, num_atoms, etf=True):
-        l_states = []  # Line that identifies the states involved in derivative coupling
+        l_states = []  # Line that identifies the states involved in derivative coupling.
         l_etf = (
             []
         )  # Line that identifies the location of derivative coupling's values with ETF corrections.
