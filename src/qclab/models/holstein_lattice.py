@@ -155,6 +155,7 @@ class HolsteinLatticeReciprocalSpace(Model):
         batch_size = len(z)
         g = self.constants.get("g")
         w = self.constants.get("w")
+        h = self.constants.classical_coordinate_weight
         out = np.zeros(
             (
                 batch_size,
@@ -167,7 +168,7 @@ class HolsteinLatticeReciprocalSpace(Model):
         for k_ind in self.constants.k_inds:
             pos = np.where(self.constants.k_diff_inds.transpose() == k_ind)
             out[:, k_ind, pos[0], pos[1]] = (
-                g * w / np.sqrt(self.constants.num_quantum_states)
+                g * w * np.sqrt(w / h) / np.sqrt(self.constants.num_quantum_states)
             )
         shape = (
             batch_size,
