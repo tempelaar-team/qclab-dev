@@ -15,7 +15,6 @@ from qclab.model import Model, Constants
 from qclab import ingredients
 from qclab.numerical_constants import (
     ANGSTROM_TO_BOHR,
-    AMU_TO_EMASS,
 )
 import copy
 
