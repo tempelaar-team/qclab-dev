@@ -2085,13 +2085,17 @@ def update_adb_connection(
 
     This matrix describes the coupling between different adiabatic states.
 
-    A = U^{\\dagger}\\partial_{t}U = B - B^{\\dagger}
+    .. math::
+    
+        A = U^{\\dagger}\\partial_{t}U = B - B^{\\dagger}
 
     where
 
-    B = \\dot{z}^{*}\\cdot U^{\\dagger}\\partial_{z^{*}} U
+    .. math::
 
-    and U is a matrix of adiabatic states (column vectors).
+        B = \\dot{z}^{*}\\cdot U^{\\dagger}\\partial_{z^{*}} U
+
+    and :math:`U` is a matrix of adiabatic states (column vectors).
 
     Optional Keyword Arguments
     --------------------------
@@ -2235,17 +2239,21 @@ def update_wf_adb_hop_prob(
     Hammes‐Schiffer, S.; Tully, J. C. Proton Transfer in Solution: Molecular Dynamics with Quantum Transitions.
      J. Chem. Phys. 1994, 101 (6), 4657–4667. https://doi.org/10.1063/1.467455.
 
-    g_{k->j} = ( \int_{t}^{t+\Delta} b_{jk}(t') dt' ) / (c^{*}_{k}(t)c_{k}(t))
+    .. math::
 
-    b_{jk}(t) = -2\Re(c_{j}^{*}(t)c_{k}(t) A_{jk}(t))
+        \begin{align*}
+        g_{k->j} = ( \\int_{t}^{t+\\Delta} b_{jk}(t') dt' ) / (c^{*}_{k}(t)c_{k}(t))\\
+        b_{jk}(t) = -2\\Re(c_{j}^{*}(t)c_{k}(t) A_{jk}(t))\\
+        A_{jk}(t) = \\dot{q}(t) \\cdot d_{jk}(t)
+        \end{align*}
 
-    A_{jk}(t) = \dot{q}(t) \cdot d_{jk}(t)
+    Note that this is consisten with Eq. 19-21 for real and complex :math:`d_{jk}`.
 
-    Note that this is consisten with Eq. 19-21 for real and complex d_{jk}.
+    Eq. 30 is equivalent for real :math:`d_{jk}`:
+    
+    .. math::
 
-    Eq. 30 is equivalent for real d_{jk}:
-
-    b_{jk}(t) = -2\Re(c_{j}(t)c_{k}^{*}(t) A_{jk}(t))
+        b_{jk}(t) = -2\\Re(c_{j}(t)c_{k}^{*}(t) A_{jk}(t))`
 
     Optional Keyword Arguments
     --------------------------
