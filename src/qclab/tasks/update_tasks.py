@@ -2241,11 +2241,11 @@ def update_wf_adb_hop_prob(
 
     .. math::
 
-        \begin{align*}
-        g_{k->j} = ( \\int_{t}^{t+\\Delta} b_{jk}(t') dt' ) / (c^{*}_{k}(t)c_{k}(t))\\
-        b_{jk}(t) = -2\\Re(c_{j}^{*}(t)c_{k}(t) A_{jk}(t))\\
+        \\begin{align*}
+        g_{k\\rightarrow j} = \\frac{\\int_{t}^{t+\\Delta} b_{jk}(t') dt'}{c^{*}_{k}(t)c_{k}(t)}\\\\
+        b_{jk}(t) = -2\\Re(c_{j}^{*}(t)c_{k}(t) A_{jk}(t))\\\\
         A_{jk}(t) = \\dot{q}(t) \\cdot d_{jk}(t)
-        \end{align*}
+        \\end{align*}
 
     Note that this is consisten with Eq. 19-21 for real and complex :math:`d_{jk}`.
 
