@@ -20,10 +20,9 @@ from qclab.numerical_constants import (
 import copy
 
 
-class ASE(Model):
+class AbInitio(Model):
     """
-    Model class that uses the Atomic Simulation Environment (ASE)
-    to perform ab initio quantum chemistry calculations.
+    Model class for ab initio calculations.
 
     It is compatible with the ab initio algorithms implemented in QC Lab.
     """
@@ -32,30 +31,32 @@ class ASE(Model):
         if constants is None:
             constants = {}
         self.default_constants = {
-            "ase_atoms_object": None,
+            "atom_positions": None, # In units of Bohr.
+            "atom_masses":None, # In units of electron mass.
+            "atom_names":None,
             "calculator_args": {},
             "num_quantum_states": None,
-            "normal_mode": None,
-            "harmonic_frequency": None,
-            "energy_offset": 0,
-            "kBT": 0.00095,
+            "normal_mode": None, # Unitless and normalilzed.
+            "harmonic_frequency": None, # In units of Hartrees.
+            "energy_offset": 0, # In units of Hartrees.
+            "kBT": 0.00095, # In units of Hartrees.
         }
         self.update_dh_qc_dzc = True
         self.update_h_q = False
         super().__init__(self.default_constants, constants)
 
     def _init_model(self, parameters, **kwargs):
-        mol = self.constants.ase_atoms_object
-        atom_masses = mol.get_masses() * AMU_TO_EMASS
-        num_atoms = len(atom_masses)
+        # mol = self.constants.ase_atoms_object
+        #atom_masses = mol.get_masses() * AMU_TO_EMASS
+        num_atoms = len(self.constants.atom_names)
         self.constants.num_classical_coordinates = num_atoms * 3
         self.constants.classical_coordinate_mass = (
-            atom_masses[np.newaxis] * np.ones((3, num_atoms))
+            self.constants.atom_masses[np.newaxis] * np.ones((3, num_atoms))
         ).flatten()
         self.constants.classical_coordinate_weight = np.ones(
             self.constants.num_classical_coordinates
         )
-        self.constants.init_position = mol.get_positions().flatten() * ANGSTROM_TO_BOHR
+        self.constants.init_position = self.constants.atom_positions.flatten()
         self.constants.finite_difference_delta = 1e-2
 
     def init_classical(self, parameters, **kwargs):

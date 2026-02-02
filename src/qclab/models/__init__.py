@@ -13,4 +13,4 @@ from qclab.models.tully_problem_two import TullyProblemTwo
 from qclab.models.tully_problem_three import TullyProblemThree
 from qclab.utils import DISABLE_ASE
 if not(DISABLE_ASE):
-    from qclab.models.ase import ASE
+    from qclab.models.ab_initio import AbInitio

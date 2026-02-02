@@ -645,7 +645,9 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
     num_quantum_states = model.constants.num_quantum_states
     m = model.constants.classical_coordinate_mass
     h = model.constants.classical_coordinate_weight
-    mol = model.constants.ase_atoms_object
+    atom_names = model.constants.atom_names
+    atom_masses = model.constants.atom_masses
+    atom_positions = model.constants.atom_positions
     qchem_dft_args = model.constants.calculator_args["qchem_dft_args"]
     qchem_tddft_args = model.constants.calculator_args["qchem_tddft_args"]
     file_label = str(parameters["seed"][traj_ind])
@@ -660,22 +662,19 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
             # Update nuclear configuration if z is provided.
             z = property_args["z"]
             q = functions.z_to_q(z, m, h)
-            mol.set_positions(
-                q.reshape((num_classical_coordinates // 3, 3))
-                / numerical_constants.ANGSTROM_TO_BOHR
-            )
+            atom_positions = q.reshape((num_classical_coordinates // 3, 3))
         if property == "wf_overlaps":
             z_previous = property_args["z_previous"]
             q_previous = functions.z_to_q(z_previous, m, h)
-            mol_previous = copy.deepcopy(mol)
-            mol_previous.set_positions(
-                q_previous.reshape((num_classical_coordinates // 3, 3))
-                / numerical_constants.ANGSTROM_TO_BOHR
+            atom_positions_previous = q_previous.reshape(
+                (num_classical_coordinates // 3, 3)
             )
-            property_args["atoms_previous"] = mol_previous
+            property_args["atom_positions_previous"] = atom_positions_previous
         new_property_dict[property] = property_args
     calc = QCLabQChemInterface(
-        atoms=mol,
+        atom_positions=atom_positions,
+        atom_masses=atom_masses,
+        atom_names=atom_names,
         label="qchem_job_" + file_label,
         folder_scratch="qclab_job_" + file_label,
         **{**qchem_dft_args, **qchem_tddft_args},
