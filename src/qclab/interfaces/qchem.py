@@ -21,6 +21,7 @@ class QCLabQChemInterface(FileIOCalculator):
 
     def __init__(
         self,
+        method,
         atom_positions,  # In units of Bohr.
         atom_masses,  # In units of electron mass.
         atom_names,
