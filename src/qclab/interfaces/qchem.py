@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 class QCLabQChemInterface():
     """
     Q-Chem ASE interface for QC Lab calculations.
+
+    Based on the ASE Q-Chem calculator:
+    https://wiki.fysik.dtu.dk/ase/ase/calculators/qchem
     """
 
     def __init__(
@@ -34,8 +37,7 @@ class QCLabQChemInterface():
             kwargs["method"] = "B3LYP"
             self.method_ex = "tddft"
         if kwargs.get("exchange", None) is None and kwargs.get("method", None) is not None:
-            kwargs["exchange"] = "B3LYP"
-            self.method_ex = "tddft"
+            kwargs["exchange"] = kwargs["method"]
         if kwargs.get("basis", None) is None:
             kwargs["basis"] = "6-31G*"
         # Ensuring that all kwargs are lowercase.
@@ -141,10 +143,7 @@ class QCLabQChemInterface():
     def read(self, label):           
         raise NotImplementedError
     
-    def execute(self):  
-        """
-        Execute Q-Chem calculation.
-        """     
+    def execute(self):       
         subprocess.run(
             self.command,
             shell=True,
@@ -158,8 +157,6 @@ class QCLabQChemInterface():
             name  : label (e.g. 'gradient', 'derivative_coupling', 'frequency', 'energy')
             jobtype : Q-Chem JOBTYPE ('FORCE', 'FREQ', 'SP')
             write_derivative_coupling : bool, whether to emit $derivative_coupling
-            qchem_parameters : dict, with the parameters to be written in the $rem section
-            of the Q-Chem input file for this job.
         """
 
         if properties is None:
@@ -190,6 +187,12 @@ class QCLabQChemInterface():
         Add parameters from kwargs to job_spec.
         """
         if kwargs[job_spec["name"]].get("qchem_parameters", None) is not None:
+            kwargs[job_spec["name"]]["qchem_parameters"] = {
+                str(k).lower(): v for k, v in kwargs[job_spec["name"]]["qchem_parameters"].items()
+                                    }
+            job_spec["qchem_parameters"] = {
+                str(k).lower(): v for k, v in job_spec["qchem_parameters"].items()
+                                       }
             for key, value in kwargs[job_spec["name"]]["qchem_parameters"].items():
                 if key in job_spec["qchem_parameters"]:
                     job_spec["qchem_parameters"][key] = value
@@ -925,4 +928,4 @@ class QCLabQChemInterface():
         filename = self.label + ".inp"
         job_specs = self._build_job_specs(properties)
         with open(filename, "w") as file_obj:
-            self._write_job(file_obj, job_specs, **kwargs)      
+            self._write_job(file_obj, job_specs, **kwargs)       
