@@ -83,6 +83,8 @@ class QCLabQChemInterface:
             "wf_overlaps",
         ]
         # Job specs
+        # AAK -- we need to modify this so the defaults are robust, no "None" should enter into 
+        # the qchem input file.
         self.job_templates = {
             "energy": {
                 "name": "energy",
