@@ -27,8 +27,8 @@ class QCLabQChemInterface:
         method_ex="tddft",
         label="qchem",
         folder_scratch="qclab_job",
-        nthreads=1,
-        nprocs=1,
+        num_threads=1,
+        num_procs=1,
         **kwargs,
     ):
 
@@ -65,10 +65,10 @@ class QCLabQChemInterface:
         self.results = {}
         # Build command.
         self.command = "qchem"
-        if nprocs != 1:
-            self.command += f" -np {nprocs}"
-        if nthreads != 1:
-            self.command += f" -nt {nthreads}"
+        if num_procs != 1:
+            self.command += f" -np {num_procs}"
+        if num_threads != 1:
+            self.command += f" -nt {num_threads}"
         self.command += f" {label}.inp {label}.out"
         self.command += "\t" + folder_scratch
         self.command += " > /dev/null 2>&1"
@@ -153,8 +153,6 @@ class QCLabQChemInterface:
             },
         }
 
-    def read(self, label):
-        raise NotImplementedError
 
     def execute(self):
         subprocess.run(self.command, shell=True, cwd=os.getcwd())
