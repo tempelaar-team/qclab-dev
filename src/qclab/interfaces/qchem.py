@@ -153,7 +153,6 @@ class QCLabQChemInterface:
             },
         }
 
-
     def execute(self):
         subprocess.run(self.command, shell=True, cwd=os.getcwd())
 
@@ -803,12 +802,8 @@ class QCLabQChemInterface:
 
     def _pull_mo_overlaps(self):
         qcscratch = os.environ["QCSCRATCH"]  # Q-Chem scratch folder.
-        file_mo_overlap = (
-            qcscratch
-            + "/"
-            + self.folder_scratch
-            + "/"
-            + "MO-overlaps/MO-overlap-TwoGeoms.txt"
+        file_mo_overlap = os.path.join(
+            qcscratch, self.folder_scratch, "MO-overlaps", "MO-overlap-TwoGeoms.txt"
         )
         with open(file_mo_overlap, "r") as file:
             data = file.readlines()
