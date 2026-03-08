@@ -648,8 +648,9 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
     atom_names = model.constants.atom_names
     atom_masses = model.constants.atom_masses
     atom_positions = model.constants.atom_positions
-    qchem_dft_args = model.constants.calculator_args["qchem_dft_args"]
-    qchem_tddft_args = model.constants.calculator_args["qchem_tddft_args"]
+    method_es = model.constants.calculator_args["method_es"]
+    qchem_gs_args = model.constants.calculator_args["qchem_gs_args"]
+    qchem_es_args = model.constants.calculator_args["qchem_es_args"]
     file_label = str(parameters["seed"][traj_ind])
 
     new_property_dict = copy.deepcopy(property_dict)
@@ -677,7 +678,7 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
         atom_names=atom_names,
         label="qchem_job_" + file_label,
         folder_scratch="qclab_job_" + file_label,
-        **{**qchem_dft_args, **qchem_tddft_args},
+        **{"method_es": method_es, **qchem_gs_args, **qchem_es_args},
     )
     calc.write_input(**new_property_dict)
     calc.execute()

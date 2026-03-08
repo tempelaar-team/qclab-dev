@@ -24,18 +24,18 @@ class QCLabQChemInterface:
         atom_positions,  # In units of Bohr.
         atom_masses,  # In units of electron mass.
         atom_names,
-        method_ex="tddft",
         label="qchem",
         folder_scratch="qclab_job",
         num_threads=1,
         num_procs=1,
         **kwargs,
     ):
+        self.method_es = kwargs["method_es"]
 
         # Set default parameters.
         if kwargs.get("method", None) is None:
             kwargs["method"] = "B3LYP"
-            self.method_ex = "tddft"
+            self.method_es = "tddft"
         if (
             kwargs.get("exchange", None) is None
             and kwargs.get("method", None) is not None
@@ -62,7 +62,6 @@ class QCLabQChemInterface:
         self.num_excited_states = None
         self.atoms = atoms
         self.folder_scratch = folder_scratch
-        self.method_ex = method_ex
         self.label = label
         self.kwargs = kwargs
         self.results = {}
@@ -738,7 +737,7 @@ class QCLabQChemInterface:
         # Extract molecular orbitals overlaps between two geometries.
         mo_overlaps = self._pull_mo_overlaps()
         # Compute overlaps matrices.
-        if self.method_ex.lower() == "tddft":
+        if self.method_es.lower() == "tddft":
             self._get_overlaps_tddft(
                 amplitudes_previous["x"],
                 amplitudes_previous["y"],
@@ -746,7 +745,7 @@ class QCLabQChemInterface:
                 amplitudes_current["y"],
                 mo_overlaps,
             )
-        elif self.method_ex.lower() == "cis":
+        elif self.method_es.lower() == "cis":
             self._get_overlaps_cis(
                 amplitudes_previous["x"],
                 amplitudes_current["x"],
@@ -754,7 +753,7 @@ class QCLabQChemInterface:
             )
         else:
             raise ValueError(
-                f"Method {self.method_ex} not recognized. Supported methods are 'tddft' and 'cis'."
+                f"Method {self.method_es} not recognized. Supported methods are 'tddft' and 'cis'."
             )
 
     def _get_overlaps_cis(self, alpha_prev, alpha_curr, mo_overlaps):
