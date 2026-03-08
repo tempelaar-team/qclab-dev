@@ -4,9 +4,9 @@ This module contains the Q-Chem interface for ab initio calculations.
 
 import os
 import subprocess
+import logging
 import numpy as np
 from qclab import numerical_constants
-import logging
 
 logger = logging.getLogger(__name__)
 
