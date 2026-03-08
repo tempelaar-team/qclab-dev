@@ -410,11 +410,11 @@ class QCLabQChemInterface():
         
     def _split_file_by_job(self, file_content, properties, **kwargs):
         num_jobs=self._get_number_of_jobs(properties)
-        spliting_flag = "Running Job"
+        splitting_flag = "Running Job"
         if num_jobs == 1:
             return [file_content]
         else:
-            return file_content.split(spliting_flag)[1:num_jobs+1] 
+            return file_content.split(splitting_flag)[1:num_jobs+1] 
 
     def _organize_data_file(self, file_content, properties, num_atoms, **kwargs):
         """
@@ -750,21 +750,21 @@ class QCLabQChemInterface():
         self, geometry_1_amplitudes, geometry_2_amplitudes, s_oo, s_ov, s_vo, s_vv
     ):
         a_matrix = s_oo
-        num_occpied_orbitals = a_matrix.shape[0]
+        num_occupied_orbitals = a_matrix.shape[0]
         x = np.asarray(geometry_1_amplitudes)
         x2 = np.asarray(geometry_2_amplitudes)
         sign, log_determinant = np.linalg.slogdet(a_matrix)
-        determinat_a_matrix = sign * np.exp(log_determinant)
-        inverse_a_matrix = np.linalg.solve(a_matrix, np.eye(num_occpied_orbitals))
+        determinant_a_matrix = sign * np.exp(log_determinant)
+        inverse_a_matrix = np.linalg.solve(a_matrix, np.eye(num_occupied_orbitals))
         g_matrix = inverse_a_matrix @ s_ov
         overlap = np.zeros((x.shape[0], x2.shape[0]))
-        for j in range(num_occpied_orbitals):
+        for j in range(num_occupied_orbitals):
             aj = a_matrix[j, :]
             column_j = inverse_a_matrix[:, j]
             delta = s_vo - aj[None, :]
             delta_dot_column_j = delta @ column_j
             delta_dot_g = delta @ g_matrix
-            for i in range(num_occpied_orbitals):
+            for i in range(num_occupied_orbitals):
                 q = inverse_a_matrix[i, j]
                 gi = g_matrix[i, :]
                 aji = a_matrix[j, i]
@@ -772,7 +772,7 @@ class QCLabQChemInterface():
                 alpha = s_vv - s_vo[:, i][:, None] - s_ov[j, :][None, :] + aji
                 b21 = (delta_dot_g - delta_i[:, None]) + alpha * (gi[None, :] - 1.0)
                 b22 = 1.0 + delta_dot_column_j[:, None] + alpha * q
-                determinant_m = determinat_a_matrix * (gi[None, :] * b22 - q * b21)
+                determinant_m = determinant_a_matrix * (gi[None, :] * b22 - q * b21)
                 conjx = np.conj(x[:, j, :])
                 x2ia = x2[:, i, :]
                 overlap += np.einsum(
