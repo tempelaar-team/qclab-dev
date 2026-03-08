@@ -27,8 +27,8 @@ class QCLabQChemInterface():
         method_ex="tddft",
         label="qchem",
         folder_scratch="qclab_job",
-        nt=1,
-        np=1,
+        nthreads=1,
+        nprocs=1,
         **kwargs,
     ):
 
@@ -61,10 +61,10 @@ class QCLabQChemInterface():
         self.results = {}
         # Build command.
         self.command = "qchem"
-        if np != 1:
-            self.command += f" -np {np}"
-        if nt != 1:
-            self.command += f" -nt {nt}"
+        if nprocs != 1:
+            self.command += f" -np {nprocs}"
+        if nthreads != 1:
+            self.command += f" -nt {nthreads}"
         self.command += f" {label}.inp {label}.out"
         self.command += "\t" + folder_scratch
         self.command += " > /dev/null 2>&1"
