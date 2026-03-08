@@ -1072,11 +1072,6 @@ class QCLabQChemInterface:
     def write_input(self, **kwargs):
         """
         Write the Q-Chem input file for the requested properties.
-
-        .. rubric:: Args
-        **kwargs:
-            Keyword arguments keyed by property name (e.g. 'energy', 'gradient').
-            Each value is a dict of options specific to that property.
         """
         properties = kwargs.keys()
         filename = self.label + ".inp"
