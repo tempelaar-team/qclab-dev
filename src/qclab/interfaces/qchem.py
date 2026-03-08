@@ -181,7 +181,7 @@ class QCLabQChemInterface:
             if job not in self.implemented_properties:
                 raise ValueError(f"Requested property '{job}' is not implemented.")
 
-    def _compute_flag(self, num_jobs, indx):
+    def _compute_job_read_flag(self, num_jobs, indx):
         """
         gradient/wf_overlaps: flag=0 for single-job input or first job,
         otherwise offset by +1
@@ -213,7 +213,7 @@ class QCLabQChemInterface:
         """
         num_jobs = len(job_spec)
         for i, job in enumerate(job_spec):
-            flag = self._compute_flag(num_jobs, i)
+            flag = self._compute_job_read_flag(num_jobs, i)
             job = self._add_parameters_to_job_spec(job, **kwargs)
             if "gradient" in job["name"]:
                 self._write_gradient_jobs(
@@ -245,7 +245,7 @@ class QCLabQChemInterface:
                 if job["name"] == "energy" and kwargs["energy"]["excited_amplitudes"]:
                     job["qchem_parameters"]["GUI"] = "2"
                     job["qchem_parameters"]["IQMOL_FCHK"] = "TRUE"
-                self._write_job_defi(
+                self._write_rem_section(
                     file_obj,
                     job,
                 )
@@ -292,7 +292,7 @@ class QCLabQChemInterface:
                 ind = flag
             self._write_comments(file_obj, f"gradient state {i}", ind)
             self._write_molecule_section(file_obj, ind)
-            self._write_job_defi(file_obj, job_spec)
+            self._write_rem_section(file_obj, job_spec)
 
     def _write_wf_overlaps_jobs(self, file_obj, job_spec, atoms_previous, flag=0):
         """
@@ -315,13 +315,13 @@ class QCLabQChemInterface:
             job_spec["qchem_parameters"]["mo_overlaps_two_geoms"] = 1
         if job_spec["qchem_parameters"].get("mo_overlaps_two_geoms") != 1:
             job_spec["qchem_parameters"]["mo_overlaps_two_geoms"] = 1
-        self._write_job_defi(file_obj, job_spec)
+        self._write_rem_section(file_obj, job_spec)
 
         # Creating input for the current geometry.
         self._write_comments(file_obj, job_spec["name"] + " current step", ind + 1)
         self._write_molecule_section(file_obj, ind=0)
         job_spec["qchem_parameters"]["mo_overlaps_two_geoms"] = 2
-        self._write_job_defi(file_obj, job_spec)
+        self._write_rem_section(file_obj, job_spec)
 
     def _write_comments(self, file_obj, job, ind=0):
         """
@@ -364,7 +364,7 @@ class QCLabQChemInterface:
             file_obj.write("   read\n")
         file_obj.write("$end\n\n")
 
-    def _write_job_defi(
+    def _write_rem_section(
         self,
         file_obj,
         job_spec,
@@ -439,7 +439,7 @@ class QCLabQChemInterface:
             if "gradient" in job:
                 gradient_files = split_files[i : i + len(self.state_inds_gradient)]
                 i += len(self.state_inds_gradient)
-                self._pull_data(
+                self._extract_property(
                     job,
                     gradient_files,
                     num_atoms,
@@ -447,7 +447,7 @@ class QCLabQChemInterface:
             elif "wf_overlaps" in job:
                 overlaps_files = split_files[i : i + 1]
                 i += 2
-                self._pull_data(
+                self._extract_property(
                     job,
                     overlaps_files,
                     num_atoms,
@@ -466,14 +466,14 @@ class QCLabQChemInterface:
                     if "energy" in job
                     else False
                 )
-                self._pull_data(
+                self._extract_property(
                     job,
                     job_file.splitlines(),
                     num_atoms,
                     excited_amplitudes=excited_amplitudes,
                 )
 
-    def _pull_data(self, property, file_obj, num_atoms, **kwargs):
+    def _extract_property(self, property, file_obj, num_atoms, **kwargs):
         if "energy" in property:
             self._pull_energy(
                 file_obj, excited_amplitudes=kwargs.get("excited_amplitudes", False)
