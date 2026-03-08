@@ -57,6 +57,9 @@ class QCLabQChemInterface:
         self.atom_names = atom_names
         self.atom_masses = atom_masses
         self.atom_positions = atom_positions
+        self.num_basis_functions = None
+        self.num_alpha_electrons = None
+        self.num_excited_states = None
         self.atoms = atoms
         self.folder_scratch = folder_scratch
         self.method_ex = method_ex
@@ -893,13 +896,11 @@ class QCLabQChemInterface:
                     x_alpha.append(temp_values)
                     y_alpha.append(np.zeros_like(temp_values))
                     j = j + 1
-        """"
-         Check that the number of basis functions used for Q-Chem corresponds 
-         to the number of basis functions determined from the basis set information.
 
-         Q-Chem sometimes can automatically project out near-linear dependencies, 
-         which reduces the number of MOs below the number of basis functions.
-        """
+        # Check that the number of basis functions used for Q-Chem corresponds
+        # to the number of basis functions determined from the basis set information.
+        # Q-Chem sometimes can automatically project out near-linear dependencies,
+        # which reduces the number of MOs below the number of basis functions.
 
         num_basis_functions_check = (
             int((dimension_amplitudes / num_excited_states) / num_alpha_electrons)
