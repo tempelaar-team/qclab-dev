@@ -8,7 +8,6 @@ import numpy as np
 from qclab import numerical_constants
 import logging
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
