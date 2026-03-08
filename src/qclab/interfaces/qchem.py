@@ -130,6 +130,37 @@ class QCLabQChemInterface:
                 "name": "derivative_coupling",
                 "write_derivative_coupling": True,
                 "qchem_parameters": {
+                    "tddft":{
+                        "jobtype": "SP",
+                        "basis": self.kwargs.get("basis"),
+                        "method": self.kwargs.get("method"),
+                        "exchange": self.kwargs.get("exchange"),
+                        "cis_n_roots": self.kwargs.get("cis_n_roots"),
+                        "cis_singlets": self.kwargs.get("cis_singlets"),
+                        "cis_triplets": self.kwargs.get("cis_triplets"),
+                        "calc_nac": "TRUE",
+                        "cis_der_numstate": int(self.kwargs.get("cis_n_roots")) + 1,
+                        "scf_algorithm": "GDM",
+                        "sym_ignore": "TRUE",
+                    },
+                    "cis":{
+                        "jobtype": "SP",
+                        "basis": self.kwargs.get("basis"),
+                        "method": self.kwargs.get("method"),
+                        "exchange": self.kwargs.get("exchange"),
+                        "cis_n_roots": self.kwargs.get("cis_n_roots"),
+                        "cis_singlets": self.kwargs.get("cis_singlets"),
+                        "cis_triplets": self.kwargs.get("cis_triplets"),
+                        "calc_nac": "TRUE",
+                        "cis_der_numstate": int(self.kwargs.get("cis_n_roots")) + 1,
+                        "scf_algorithm": "GDM",
+                        "sym_ignore": "TRUE",
+                    },
+
+
+                },
+
+                "qchem_parameters": {
                     "jobtype": "SP",
                     "basis": self.kwargs.get("basis"),
                     "method": self.kwargs.get("method"),
@@ -1004,7 +1035,7 @@ class QCLabQChemInterface:
                 "the number of basis functions determined from the basis set information."
             )
             logger.info(
-                "Warning: The number of basis functions used for Q-Chem does not correspond to "
+                "Q-Chem sometimes can automatically project out near-linear dependencies",
                 "which reduces the number of MOs below the number of basis functions."
             )
             raise ValueError(
