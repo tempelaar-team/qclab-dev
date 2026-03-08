@@ -157,6 +157,9 @@ class QCLabQChemInterface:
         }
 
     def execute(self):
+        """
+        Execute the Q-Chem calculation using the command built during initialization.
+        """
         subprocess.run(self.command, shell=True, cwd=os.getcwd())
 
     def _build_job_specs(self, properties):
@@ -261,6 +264,11 @@ class QCLabQChemInterface:
                     )
 
     def _get_state_inds_gradient(self, state_inds_gradient):
+        """
+        Return a list of state indices for gradient calculations.
+
+        If no indices are provided, defaults to all states (ground + excited).
+        """
         if state_inds_gradient is None:
             num_states = int(self.kwargs.get("cis_n_roots")) + 1
             return [i for i in range(num_states)]
@@ -336,6 +344,9 @@ class QCLabQChemInterface:
         file_obj.write("$end\n\n")
 
     def _get_charge_and_multiplicity(self):
+        """
+        Return the molecular charge and spin multiplicity from kwargs.
+        """
         charge = self.kwargs.get("charge", None)
         multiplicity = self.kwargs.get("multiplicity", None)
         if multiplicity is None or charge is None:
@@ -346,6 +357,9 @@ class QCLabQChemInterface:
         return charge, multiplicity
 
     def _write_geometry(self, file_obj, geometry):
+        """
+        Write atomic coordinates to the Q-Chem input file.
+        """
         for i in range(len(self.atom_names)):
             file_obj.write(
                 "   {}  {:f}  {:f}  {:f}\n".format(
@@ -357,6 +371,12 @@ class QCLabQChemInterface:
             )
 
     def _write_molecule_section(self, file_obj, ind=0):
+        """
+        Write the $molecule section to the Q-Chem input file.
+
+        For the first job (ind=0), writes charge, multiplicity, and geometry.
+        For subsequent jobs, writes 'read' to reuse the previous geometry.
+        """
         file_obj.write("$molecule\n")
         if ind == 0:
             charge, multiplicity = self._get_charge_and_multiplicity()
@@ -366,11 +386,10 @@ class QCLabQChemInterface:
             file_obj.write("   read\n")
         file_obj.write("$end\n\n")
 
-    def _write_rem_section(
-        self,
-        file_obj,
-        job_spec,
-    ):
+    def _write_rem_section(self, file_obj, job_spec):
+        """
+        Write the $rem section to the Q-Chem input file from the job spec parameters.
+        """
         file_obj.write("$rem\n")
         for parameter, v_str in job_spec["qchem_parameters"].items():
             if isinstance(v_str, str):
@@ -381,6 +400,9 @@ class QCLabQChemInterface:
     def _write_derivative_coupling(
         self, file_obj, job, state_inds_derivative_coupling=None
     ):
+        """
+        Write the $derivative_coupling section to the Q-Chem input file.
+        """
         if state_inds_derivative_coupling is None:
             n_s = int(job["qchem_parameters"].get("cis_der_numstate"))
             state_inds_derivative_coupling = [i for i in range(n_s)]
@@ -394,6 +416,16 @@ class QCLabQChemInterface:
         file_obj.write("$end\n\n")
 
     def read_results(self, **kwargs):
+        """
+        Read and parse the Q-Chem output file for the requested properties.
+
+        Results are stored in ``self.results``.
+
+        .. rubric:: Args
+        **kwargs:
+            Keyword arguments keyed by property name (e.g. 'energy', 'gradient').
+            Each value is a dict of options specific to that property.
+        """
         properties = kwargs.keys()
         if properties is None:
             properties = ["energy"]
@@ -407,6 +439,12 @@ class QCLabQChemInterface:
         self._organize_data_file(file_content, properties, num_atoms, **kwargs)
 
     def _get_number_of_jobs(self, properties):
+        """
+        Return the total number of Q-Chem jobs for the requested properties.
+
+        Gradient and wavefunction overlap calculations may require
+        multiple jobs beyond one per property.
+        """
         num_jobs = len(properties)
         if "gradient" in properties:
             num_jobs += len(self.state_inds_gradient) - 1
@@ -424,6 +462,9 @@ class QCLabQChemInterface:
             raise ValueError("Q-Chem did not terminate normally.")
 
     def _split_file_by_job(self, file_content, properties, **kwargs):
+        """
+        Split the Q-Chem output file content into sections for each job.
+        """
         num_jobs = self._get_number_of_jobs(properties)
         splitting_flag = "Running Job"
         if num_jobs == 1:
@@ -476,6 +517,9 @@ class QCLabQChemInterface:
                 )
 
     def _extract_property(self, property, file_obj, num_atoms, **kwargs):
+        """
+        Dispatch to the appropriate parser for the given property name.
+        """
         if "energy" in property:
             self._pull_energy(
                 file_obj, excited_amplitudes=kwargs.get("excited_amplitudes", False)
@@ -495,6 +539,11 @@ class QCLabQChemInterface:
             raise ValueError("This type of calculation has not been implemented yet.")
 
     def _pull_vibration(self, file_obj, num_atoms):
+        """
+        Parse vibrational frequencies and normal modes from Q-Chem output.
+
+        Stores 'frequency' and 'normal_mode' in ``self.results``.
+        """
         ind_modes = []
         for i, line in enumerate(file_obj):
             if "Mode:" in line:
@@ -518,6 +567,12 @@ class QCLabQChemInterface:
         self.results["normal_mode"] = modes
 
     def _pull_energy(self, file_obj, excited_amplitudes=False):
+        """
+        Parse ground and excited state energies from Q-Chem output.
+
+        Optionally extracts excited state amplitudes from the FCHK file.
+        Stores 'energy' (and 'excited_amplitudes' if requested) in ``self.results``.
+        """
         # Get the number of states to be extracted from the output file.
         if self.kwargs.get("cis_n_roots") is None:
             nt_states = 1
@@ -575,6 +630,11 @@ class QCLabQChemInterface:
             ] = num_excited_states
 
     def _pull_gradient(self, file_obj, num_atoms):
+        """
+        Parse energy gradients for each state from Q-Chem output.
+
+        Stores 'gradient' in ``self.results``.
+        """
         gradient = np.zeros((num_atoms, 3, len(self.state_inds_gradient)))
         flag_words_grad = [
             "Gradient of the state energy (including CIS Excitation Energy)",
@@ -613,6 +673,12 @@ class QCLabQChemInterface:
         self.results["gradient"] = gradient
 
     def _pull_derivative_coupling(self, file_obj, num_atoms, etf=True):
+        """
+        Parse derivative couplings between electronic states from Q-Chem output.
+
+        Stores 'derivative_coupling' in ``self.results`` as a dictionary
+        keyed by state-pair tuples.
+        """
         l_states = []  # Line that identifies the states involved in derivative coupling
         l_etf = (
             []
@@ -648,6 +714,13 @@ class QCLabQChemInterface:
         self.results["derivative_coupling"] = derivative_coupling_dictionary
 
     def _pull_overlaps(self, amplitudes_previous=None, amplitudes_current=None):
+        """
+        Compute wavefunction overlaps between two geometries.
+
+        Uses molecular orbital overlaps and excited state amplitudes
+        to construct the full overlap matrix. Supports TDDFT and CIS methods.
+        Stores 'wf_overlaps' in ``self.results``.
+        """
         if amplitudes_previous is None:
             raise ValueError(
                 "Previous excited state amplitudes must be provided \n"
@@ -685,6 +758,9 @@ class QCLabQChemInterface:
             )
 
     def _get_overlaps_cis(self, alpha_prev, alpha_curr, mo_overlaps):
+        """
+        Compute wavefunction overlaps using the CIS formalism.
+        """
         s_oo = mo_overlaps[0 : self.num_alpha_electrons, 0 : self.num_alpha_electrons]
         s_ov = mo_overlaps[0 : self.num_alpha_electrons, self.num_alpha_electrons :]
         s_vo = mo_overlaps[self.num_alpha_electrons :, 0 : self.num_alpha_electrons]
@@ -709,6 +785,9 @@ class QCLabQChemInterface:
         self.results["wf_overlaps"][1:, 1:] = 2.0 * overlaps_ex_ex
 
     def _get_overlaps_tddft(self, x_prev, y_prev, x_curr, y_curr, mo_overlaps):
+        """
+        Compute wavefunction overlaps using the TDDFT formalism.
+        """
         s_oo = mo_overlaps[0 : self.num_alpha_electrons, 0 : self.num_alpha_electrons]
         s_ov = mo_overlaps[0 : self.num_alpha_electrons, self.num_alpha_electrons :]
         s_vo = mo_overlaps[self.num_alpha_electrons :, 0 : self.num_alpha_electrons]
@@ -752,6 +831,9 @@ class QCLabQChemInterface:
         self.results["wf_overlaps"][1:, 1:] = 2.0 * overlaps_ex_ex
 
     def _compute_overlap_gs_ex(self, excited_amplitudes, s_oo, s_ov):
+        """
+        Compute overlap between ground state at geometry 1 and excited states at geometry 2.
+        """
         a_matrix = s_oo
         sign, log_determinant = np.linalg.slogdet(a_matrix)
         determinant_a_matrix = sign * np.exp(log_determinant)
@@ -761,6 +843,9 @@ class QCLabQChemInterface:
         return overlaps_gs_ex
 
     def _compute_overlap_ex_gs(self, excited_amplitudes, s_oo, s_vo):
+        """
+        Compute overlap between excited states at geometry 1 and ground state at geometry 2.
+        """
         a_matrix = s_oo
         sign, log_determinant = np.linalg.slogdet(a_matrix)
         determinant_a_matrix = sign * np.exp(log_determinant)
@@ -772,6 +857,9 @@ class QCLabQChemInterface:
     def _compute_overlap_ex_ex(
         self, geometry_1_amplitudes, geometry_2_amplitudes, s_oo, s_ov, s_vo, s_vv
     ):
+        """
+        Compute overlap between excited states at geometry 1 and excited states at geometry 2.
+        """
         a_matrix = s_oo
         num_occupied_orbitals = a_matrix.shape[0]
         x = np.asarray(geometry_1_amplitudes)
@@ -804,6 +892,9 @@ class QCLabQChemInterface:
         return overlap
 
     def _pull_mo_overlaps(self):
+        """
+        Read and parse the molecular orbital overlap matrix from Q-Chem scratch files.
+        """
         qcscratch = os.environ["QCSCRATCH"]  # Q-Chem scratch folder.
         file_mo_overlap = os.path.join(
             qcscratch, self.folder_scratch, "MO-overlaps", "MO-overlap-TwoGeoms.txt"
@@ -947,6 +1038,14 @@ class QCLabQChemInterface:
         )
 
     def write_input(self, **kwargs):
+        """
+        Write the Q-Chem input file for the requested properties.
+
+        .. rubric:: Args
+        **kwargs:
+            Keyword arguments keyed by property name (e.g. 'energy', 'gradient').
+            Each value is a dict of options specific to that property.
+        """
         properties = kwargs.keys()
         filename = self.label + ".inp"
         job_specs = self._build_job_specs(properties)
