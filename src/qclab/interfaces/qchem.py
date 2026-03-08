@@ -13,10 +13,7 @@ logger = logging.getLogger(__name__)
 
 class QCLabQChemInterface:
     """
-    Q-Chem ASE interface for QC Lab calculations.
-
-    Based on the ASE Q-Chem calculator:
-    https://wiki.fysik.dtu.dk/ase/ase/calculators/qchem
+    Q-Chem interface for QC Lab calculations.
     """
 
     def __init__(
@@ -33,18 +30,14 @@ class QCLabQChemInterface:
         self.method_es = kwargs["method_es"]
 
         # Set default parameters.
-        if kwargs.get("method", None) is None:
-            kwargs["method"] = "B3LYP"
+        if (kwargs.get("exchange", None) is None):
+            kwargs["exchange"] ="B3LYP"
             self.method_es = "tddft"
-        if (
-            kwargs.get("exchange", None) is None
-            and kwargs.get("method", None) is not None
-        ):
-            kwargs["exchange"] = kwargs["method"]
         if kwargs.get("basis", None) is None:
             kwargs["basis"] = "6-31G*"
         # Ensuring that all kwargs are lowercase.
         kwargs = {str(k).lower(): v for k, v in kwargs.items()}
+        self.method_es = self.method_es.lower() 
         # Create atoms dict.
         atoms = {}
         for i, atom_name in enumerate(atom_names):
@@ -57,23 +50,13 @@ class QCLabQChemInterface:
         self.atom_names = atom_names
         self.atom_masses = atom_masses
         self.atom_positions = atom_positions
-        self.num_basis_functions = None
-        self.num_alpha_electrons = None
-        self.num_excited_states = None
         self.atoms = atoms
         self.folder_scratch = folder_scratch
         self.label = label
         self.kwargs = kwargs
+        self.num_threads = num_threads
+        self.num_procs = num_procs
         self.results = {}
-        # Build command.
-        self.command = "qchem"
-        if num_procs != 1:
-            self.command += f" -np {num_procs}"
-        if num_threads != 1:
-            self.command += f" -nt {num_threads}"
-        self.command += f" {label}.inp {label}.out"
-        self.command += "\t" + folder_scratch
-        self.command += " > /dev/null 2>&1"
         # Properties implemented.
         self.implemented_properties = [
             "energy",
@@ -83,7 +66,6 @@ class QCLabQChemInterface:
             "wf_overlaps",
         ]
         # Job specs
-        # AAK -- we need to modify this so the defaults are robust, no "None" should enter into 
         # the qchem input file.
         self.job_templates = {
             "energy": {
@@ -91,39 +73,68 @@ class QCLabQChemInterface:
                 "write_derivative_coupling": False,
                 "excited_amplitudes": False,
                 "qchem_parameters": {
-                    "jobtype": "SP",
-                    "cis_n_roots": self.kwargs.get("cis_n_roots"),
-                    "cis_singlets": self.kwargs.get("cis_singlets"),
-                    "cis_triplets": self.kwargs.get("cis_triplets"),
-                    "basis": self.kwargs.get("basis"),
-                    "method": self.kwargs.get("method"),
-                    "exchange": self.kwargs.get("exchange"),
-                    "scf_algorithm": "GDM",
-                    "sym_ignore": "TRUE",
+                    "cis":{
+                        "jobtype": "SP",
+                        "cis_n_roots": self.kwargs.get("cis_n_roots"),
+                        "cis_singlets": self.kwargs.get("cis_singlets"),
+                        "cis_triplets": self.kwargs.get("cis_triplets"),
+                        "basis": self.kwargs.get("basis"),
+                        "method": self.kwargs.get("method"),
+                        "exchange": self.kwargs.get("exchange"),
+                        "sym_ignore": "TRUE",
+                    },
+                    "tddft":{
+                        "jobtype": "SP",
+                        "cis_n_roots": self.kwargs.get("cis_n_roots"),
+                        "cis_singlets": self.kwargs.get("cis_singlets"),
+                        "cis_triplets": self.kwargs.get("cis_triplets"),
+                        "basis": self.kwargs.get("basis"),
+                        "method": self.kwargs.get("method"),
+                        "exchange": self.kwargs.get("exchange"),
+                        "sym_ignore": "TRUE",
+                    },
+
                 },
             },
             "gradient": {
                 "name": "gradient",
                 "write_derivative_coupling": False,
                 "qchem_parameters": {
-                    "jobtype": "FORCE",
-                    "basis": self.kwargs.get("basis"),
-                    "method": self.kwargs.get("method"),
-                    "exchange": self.kwargs.get("exchange"),
-                    "scf_algorithm": "GDM",
-                    "sym_ignore": "TRUE",
+                    "cis":{
+                        "jobtype": "FORCE",
+                        "basis": self.kwargs.get("basis"),
+                        "method": self.kwargs.get("method"),
+                        "exchange": self.kwargs.get("exchange"),
+                        "sym_ignore": "TRUE",
+                    },
+                    "tddft":{
+                        "jobtype": "FORCE",
+                        "basis": self.kwargs.get("basis"),
+                        "method": self.kwargs.get("method"),
+                        "exchange": self.kwargs.get("exchange"),
+                        "sym_ignore": "TRUE",
+                    },
+
                 },
             },
             "frequency": {
                 "name": "frequency",
                 "write_derivative_coupling": False,
                 "qchem_parameters": {
-                    "jobtype": "FREQ",
-                    "basis": self.kwargs.get("basis"),
-                    "method": self.kwargs.get("method"),
-                    "exchange": self.kwargs.get("exchange"),
-                    "scf_algorithm": "GDM",
-                    "sym_ignore": "TRUE",
+                    "cis":{
+                        "jobtype": "FREQ",
+                        "basis": self.kwargs.get("basis"),
+                        "method": self.kwargs.get("method"),
+                        "exchange": self.kwargs.get("exchange"),
+                        "sym_ignore": "TRUE",
+                    },
+                    "tddft":{
+                        "jobtype": "FREQ",
+                        "basis": self.kwargs.get("basis"),
+                        "method": self.kwargs.get("method"),
+                        "exchange": self.kwargs.get("exchange"),
+                        "sym_ignore": "TRUE",
+                    },
                 },
             },
             "derivative_coupling": {
@@ -140,7 +151,6 @@ class QCLabQChemInterface:
                         "cis_triplets": self.kwargs.get("cis_triplets"),
                         "calc_nac": "TRUE",
                         "cis_der_numstate": int(self.kwargs.get("cis_n_roots")) + 1,
-                        "scf_algorithm": "GDM",
                         "sym_ignore": "TRUE",
                     },
                     "cis":{
@@ -153,37 +163,29 @@ class QCLabQChemInterface:
                         "cis_triplets": self.kwargs.get("cis_triplets"),
                         "calc_nac": "TRUE",
                         "cis_der_numstate": int(self.kwargs.get("cis_n_roots")) + 1,
-                        "scf_algorithm": "GDM",
                         "sym_ignore": "TRUE",
                     },
-
-
-                },
-
-                "qchem_parameters": {
-                    "jobtype": "SP",
-                    "basis": self.kwargs.get("basis"),
-                    "method": self.kwargs.get("method"),
-                    "exchange": self.kwargs.get("exchange"),
-                    "cis_n_roots": self.kwargs.get("cis_n_roots"),
-                    "cis_singlets": self.kwargs.get("cis_singlets"),
-                    "cis_triplets": self.kwargs.get("cis_triplets"),
-                    "calc_nac": "TRUE",
-                    "cis_der_numstate": int(self.kwargs.get("cis_n_roots")) + 1,
-                    "scf_algorithm": "GDM",
-                    "sym_ignore": "TRUE",
                 },
             },
             "wf_overlaps": {
                 "name": "wf_overlaps",
                 "write_derivative_coupling": False,
                 "qchem_parameters": {
-                    "jobtype": "SP",
-                    "basis": self.kwargs.get("basis"),
-                    "method": self.kwargs.get("method"),
-                    "exchange": self.kwargs.get("exchange"),
-                    "scf_algorithm": "GDM",
-                    "sym_ignore": "TRUE",
+                    "cis":{
+                        "jobtype": "SP",
+                        "basis": self.kwargs.get("basis"),
+                        "method": self.kwargs.get("method"),
+                        "exchange": self.kwargs.get("exchange"),
+                        "sym_ignore": "TRUE",
+                    },
+                    "tddft":{
+                        "jobtype": "SP",
+                        "basis": self.kwargs.get("basis"),
+                        "method": self.kwargs.get("method"),
+                        "exchange": self.kwargs.get("exchange"),
+                        "sym_ignore": "TRUE",
+                    },
+
                 },
             },
         }
@@ -192,7 +194,16 @@ class QCLabQChemInterface:
         """
         Execute the Q-Chem calculation using the command built during initialization.
         """
-        subprocess.run(self.command, shell=True, cwd=os.getcwd())
+        # Build command.
+        command = "qchem"
+        if self.num_procs != 1:
+            command += f" -np {self.num_procs}"
+        if self.num_threads != 1:
+            command += f" -nt {self.num_threads}"
+        command += f" {self.label}.inp {self.label}.out"
+        command += " " + self.folder_scratch
+        command += " > /dev/null 2>&1"
+        subprocess.run(command, shell=True, cwd=os.getcwd())
 
     def _build_job_specs(self, properties):
         """
@@ -225,23 +236,23 @@ class QCLabQChemInterface:
         """
         return 0 if (num_jobs == 1 or indx == 0) else (indx + 1)
 
-    def _add_parameters_to_job_spec(self, job_spec, **kwargs):
+    def _add_parameters_to_job_spec(self, job_spec):
         """
         Add parameters from kwargs to job_spec.
         """
-        if kwargs[job_spec["name"]].get("qchem_parameters", None) is not None:
-            kwargs[job_spec["name"]]["qchem_parameters"] = {
+        if self.kwargs.get(job_spec["name"], None) is not None:
+            self.kwargs[job_spec["name"]] = {
                 str(k).lower(): v
-                for k, v in kwargs[job_spec["name"]]["qchem_parameters"].items()
+                for k, v in self.kwargs[job_spec["name"]].items()
             }
-            job_spec["qchem_parameters"] = {
-                str(k).lower(): v for k, v in job_spec["qchem_parameters"].items()
+            job_spec["qchem_parameters"][self.method_es] = {
+                str(k).lower(): v for k, v in job_spec["qchem_parameters"][self.method_es].items()
             }
-            for key, value in kwargs[job_spec["name"]]["qchem_parameters"].items():
-                if key in job_spec["qchem_parameters"]:
-                    job_spec["qchem_parameters"][key] = value
-                elif key not in job_spec["qchem_parameters"]:
-                    job_spec["qchem_parameters"][key] = value
+            for key, value in self.kwargs[job_spec["name"]].items():
+                if key in job_spec["qchem_parameters"][self.method_es]:
+                    job_spec["qchem_parameters"][self.method_es][key] = value
+                elif key not in job_spec["qchem_parameters"][self.method_es]:
+                    job_spec["qchem_parameters"][self.method_es][key] = value
         return job_spec
 
     def _write_job(self, file_obj, job_spec, **kwargs):
@@ -251,7 +262,7 @@ class QCLabQChemInterface:
         num_jobs = len(job_spec)
         for i, job in enumerate(job_spec):
             flag = self._compute_job_read_flag(num_jobs, i)
-            job = self._add_parameters_to_job_spec(job, **kwargs)
+            job = self._add_parameters_to_job_spec(job)
             if "gradient" in job["name"]:
                 self._write_gradient_jobs(
                     file_obj,
@@ -280,8 +291,8 @@ class QCLabQChemInterface:
                 self._write_comments(file_obj, job["name"], ind=i)
                 self._write_molecule_section(file_obj, ind=i)
                 if job["name"] == "energy" and kwargs["energy"]["excited_amplitudes"]:
-                    job["qchem_parameters"]["GUI"] = "2"
-                    job["qchem_parameters"]["IQMOL_FCHK"] = "TRUE"
+                    job["qchem_parameters"][self.method_es]["GUI"] = "2"
+                    job["qchem_parameters"][self.method_es]["IQMOL_FCHK"] = "TRUE"
                 self._write_rem_section(
                     file_obj,
                     job,
@@ -318,14 +329,14 @@ class QCLabQChemInterface:
         self.state_inds_gradient = self._get_state_inds_gradient(state_inds_gradient)
         for j, i in enumerate(self.state_inds_gradient):
             if i > 0:
-                job_spec["qchem_parameters"]["cis_state_deriv"] = str(i)
-                job_spec["qchem_parameters"]["cis_n_roots"] = self.kwargs.get(
+                job_spec["qchem_parameters"][self.method_es]["cis_state_deriv"] = str(i)
+                job_spec["qchem_parameters"][self.method_es]["cis_n_roots"] = self.kwargs.get(
                     "cis_n_roots"
                 )
-                job_spec["qchem_parameters"]["cis_singlets"] = self.kwargs.get(
+                job_spec["qchem_parameters"][self.method_es]["cis_singlets"] = self.kwargs.get(
                     "cis_singlets"
                 )
-                job_spec["qchem_parameters"]["cis_triplets"] = self.kwargs.get(
+                job_spec["qchem_parameters"][self.method_es]["cis_triplets"] = self.kwargs.get(
                     "cis_triplets"
                 )
             if flag == 0:
@@ -351,18 +362,18 @@ class QCLabQChemInterface:
         file_obj.write("$end\n\n")
         # Job definition.
         keys_for_wf_overlaps = ["mo_overlaps_two_geoms"]
-        if all(key in job_spec["qchem_parameters"] for key in keys_for_wf_overlaps):
+        if all(key in job_spec["qchem_parameters"][self.method_es] for key in keys_for_wf_overlaps):
             pass
         else:
-            job_spec["qchem_parameters"]["mo_overlaps_two_geoms"] = 1
-        if job_spec["qchem_parameters"].get("mo_overlaps_two_geoms") != 1:
-            job_spec["qchem_parameters"]["mo_overlaps_two_geoms"] = 1
+            job_spec["qchem_parameters"][self.method_es]["mo_overlaps_two_geoms"] = 1
+        if job_spec["qchem_parameters"][self.method_es].get("mo_overlaps_two_geoms") != 1:
+            job_spec["qchem_parameters"][self.method_es]["mo_overlaps_two_geoms"] = 1
         self._write_rem_section(file_obj, job_spec)
 
         # Creating input for the current geometry.
         self._write_comments(file_obj, job_spec["name"] + " current step", ind + 1)
         self._write_molecule_section(file_obj, ind=0)
-        job_spec["qchem_parameters"]["mo_overlaps_two_geoms"] = 2
+        job_spec["qchem_parameters"][self.method_es]["mo_overlaps_two_geoms"] = 2
         self._write_rem_section(file_obj, job_spec)
 
     def _write_comments(self, file_obj, job, ind=0):
@@ -423,9 +434,11 @@ class QCLabQChemInterface:
         Write the $rem section to the Q-Chem input file from the job spec parameters.
         """
         file_obj.write("$rem\n")
-        for parameter, v_str in job_spec["qchem_parameters"].items():
+        for parameter, v_str in job_spec["qchem_parameters"][self.method_es].items():
             if isinstance(v_str, str):
                 v_str = v_str.upper()
+            if v_str == "NONE" or v_str is None:
+                continue
             file_obj.write("   %-25s   %s\n" % (parameter.upper(), v_str))
         file_obj.write("$end\n\n")
 
@@ -436,7 +449,7 @@ class QCLabQChemInterface:
         Write the $derivative_coupling section to the Q-Chem input file.
         """
         if state_inds_derivative_coupling is None:
-            n_s = int(job["qchem_parameters"].get("cis_der_numstate"))
+            n_s = int(job["qchem_parameters"][self.method_es].get("cis_der_numstate"))
             state_inds_derivative_coupling = [i for i in range(n_s)]
         elif isinstance(state_inds_derivative_coupling, (int, np.integer)):
             state_inds_derivative_coupling = [
