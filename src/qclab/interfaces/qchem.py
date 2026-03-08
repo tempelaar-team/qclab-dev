@@ -763,7 +763,7 @@ class QCLabQChemInterface:
                 "Current excited state amplitudes must be provided \n"
                 "to compute wavefunction overlaps."
             )
-        # Create global variables needed for computing overlaps.
+        # Create instance attributes needed for computing overlaps.
         self.num_basis_functions = amplitudes_current["num_basis_functions"]
         self.num_alpha_electrons = amplitudes_current["num_alpha_electrons"]
         self.num_excited_states = amplitudes_current["num_excited_states"]
