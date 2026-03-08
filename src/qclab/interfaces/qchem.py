@@ -53,7 +53,7 @@ class QCLabQChemInterface:
                 "position": atom_positions[i] / numerical_constants.ANGSTROM_TO_BOHR,
                 "mass": atom_masses[i] / numerical_constants.AMU_TO_EMASS,
             }
-        # Store objects globally.
+        # Store instance attributes.
         self.atom_names = atom_names
         self.atom_masses = atom_masses
         self.atom_positions = atom_positions
@@ -94,7 +94,7 @@ class QCLabQChemInterface:
                     "basis": self.kwargs.get("basis"),
                     "method": self.kwargs.get("method"),
                     "exchange": self.kwargs.get("exchange"),
-                    "SCF_Algorithm": "GDM",
+                    "scf_algorithm": "GDM",
                     "sym_ignore": "TRUE",
                 },
             },
@@ -106,7 +106,7 @@ class QCLabQChemInterface:
                     "basis": self.kwargs.get("basis"),
                     "method": self.kwargs.get("method"),
                     "exchange": self.kwargs.get("exchange"),
-                    "SCF_Algorithm": "GDM",
+                    "scf_algorithm": "GDM",
                     "sym_ignore": "TRUE",
                 },
             },
@@ -118,7 +118,7 @@ class QCLabQChemInterface:
                     "basis": self.kwargs.get("basis"),
                     "method": self.kwargs.get("method"),
                     "exchange": self.kwargs.get("exchange"),
-                    "SCF_Algorithm": "GDM",
+                    "scf_algorithm": "GDM",
                     "sym_ignore": "TRUE",
                 },
             },
@@ -135,7 +135,7 @@ class QCLabQChemInterface:
                     "cis_triplets": self.kwargs.get("cis_triplets"),
                     "calc_nac": "TRUE",
                     "cis_der_numstate": int(self.kwargs.get("cis_n_roots")) + 1,
-                    "SCF_Algorithm": "GDM",
+                    "scf_algorithm": "GDM",
                     "sym_ignore": "TRUE",
                 },
             },
@@ -147,7 +147,7 @@ class QCLabQChemInterface:
                     "basis": self.kwargs.get("basis"),
                     "method": self.kwargs.get("method"),
                     "exchange": self.kwargs.get("exchange"),
-                    "SCF_Algorithm": "GDM",
+                    "scf_algorithm": "GDM",
                     "sym_ignore": "TRUE",
                 },
             },
