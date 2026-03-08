@@ -514,7 +514,7 @@ class QCLabQChemInterface:
             if "gradient" in job:
                 gradient_files = split_files[i : i + len(self.state_inds_gradient)]
                 i += len(self.state_inds_gradient)
-                self._extract_property(
+                self._pull_property(
                     job,
                     gradient_files,
                     num_atoms,
@@ -522,7 +522,7 @@ class QCLabQChemInterface:
             elif "wf_overlaps" in job:
                 overlaps_files = split_files[i : i + 1]
                 i += 2
-                self._extract_property(
+                self._pull_property(
                     job,
                     overlaps_files,
                     num_atoms,
@@ -541,14 +541,14 @@ class QCLabQChemInterface:
                     if "energy" in job
                     else False
                 )
-                self._extract_property(
+                self._pull_property(
                     job,
                     job_file.splitlines(),
                     num_atoms,
                     excited_amplitudes=excited_amplitudes,
                 )
 
-    def _extract_property(self, property, file_obj, num_atoms, **kwargs):
+    def _pull_property(self, property, file_obj, num_atoms, **kwargs):
         """
         Dispatch to the appropriate parser for the given property name.
         """
@@ -801,11 +801,11 @@ class QCLabQChemInterface:
         sing, log_determinant = np.linalg.slogdet(s_oo)
         gs_overlap = sing * np.exp(log_determinant)
         # Compute <GS^(1)|ES_i^(2)>.
-        overlaps_gs_ex = self._compute_overlap_gs_ex(alpha_curr, s_oo, s_ov)
+        overlaps_gs_ex = self._compute_overlaps_gs_ex(alpha_curr, s_oo, s_ov)
         # Compute <ES_i^(1)|GS^(2)>.
-        overlaps_ex_gs = self._compute_overlap_ex_gs(alpha_prev, s_oo, s_vo)
+        overlaps_ex_gs = self._compute_overlaps_ex_gs(alpha_prev, s_oo, s_vo)
         # Compute <ES_i^(1)|ES_j^(2)>.
-        overlaps_ex_ex = self._compute_overlap_ex_ex(
+        overlaps_ex_ex = self._compute_overlaps_ex_ex(
             alpha_prev, alpha_curr, s_oo, s_ov, s_vo, s_vv
         )
         self.results["wf_overlaps"] = np.zeros(
@@ -828,24 +828,24 @@ class QCLabQChemInterface:
         sing, log_determinant = np.linalg.slogdet(s_oo)
         gs_overlap = sing * np.exp(log_determinant)
         # Compute <GS^(1)|ES_i^(2)>.
-        overlaps_gs_ex_x = self._compute_overlap_gs_ex(x_curr, s_oo, s_ov)
-        overlaps_gs_ex_y = self._compute_overlap_gs_ex(y_curr, s_oo, s_ov)
+        overlaps_gs_ex_x = self._compute_overlaps_gs_ex(x_curr, s_oo, s_ov)
+        overlaps_gs_ex_y = self._compute_overlaps_gs_ex(y_curr, s_oo, s_ov)
         overlaps_gs_ex = overlaps_gs_ex_x - overlaps_gs_ex_y
         # Compute <ES_i^(1)|GS^(2)>.
-        overlaps_ex_gs_x = self._compute_overlap_ex_gs(x_prev, s_oo, s_vo)
-        overlaps_ex_gs_y = self._compute_overlap_ex_gs(y_prev, s_oo, s_vo)
+        overlaps_ex_gs_x = self._compute_overlaps_ex_gs(x_prev, s_oo, s_vo)
+        overlaps_ex_gs_y = self._compute_overlaps_ex_gs(y_prev, s_oo, s_vo)
         overlaps_ex_gs = overlaps_ex_gs_x - overlaps_ex_gs_y
         # Compute <ES_i^(1)|ES_j^(2)>.
-        overlaps_ex_ex_x_x = self._compute_overlap_ex_ex(
+        overlaps_ex_ex_x_x = self._compute_overlaps_ex_ex(
             x_prev, x_curr, s_oo, s_ov, s_vo, s_vv
         )
-        overlaps_ex_ex_x_y = self._compute_overlap_ex_ex(
+        overlaps_ex_ex_x_y = self._compute_overlaps_ex_ex(
             x_prev, y_curr, s_oo, s_ov, s_vo, s_vv
         )
-        overlaps_ex_ex_y_x = self._compute_overlap_ex_ex(
+        overlaps_ex_ex_y_x = self._compute_overlaps_ex_ex(
             y_prev, x_curr, s_oo, s_ov, s_vo, s_vv
         )
-        overlaps_ex_ex_y_y = self._compute_overlap_ex_ex(
+        overlaps_ex_ex_y_y = self._compute_overlaps_ex_ex(
             y_prev, y_curr, s_oo, s_ov, s_vo, s_vv
         )
         overlaps_ex_ex = (
@@ -862,7 +862,7 @@ class QCLabQChemInterface:
         self.results["wf_overlaps"][1:, 0] = 2.0 * overlaps_ex_gs
         self.results["wf_overlaps"][1:, 1:] = 2.0 * overlaps_ex_ex
 
-    def _compute_overlap_gs_ex(self, excited_amplitudes, s_oo, s_ov):
+    def _compute_overlaps_gs_ex(self, excited_amplitudes, s_oo, s_ov):
         """
         Compute overlap between ground state at geometry 1 and excited states at geometry 2.
         """
@@ -874,7 +874,7 @@ class QCLabQChemInterface:
         overlaps_gs_ex = determinant_a_matrix * np.einsum("eia,ia->e", x, w_matrix)
         return overlaps_gs_ex
 
-    def _compute_overlap_ex_gs(self, excited_amplitudes, s_oo, s_vo):
+    def _compute_overlaps_ex_gs(self, excited_amplitudes, s_oo, s_vo):
         """
         Compute overlap between excited states at geometry 1 and ground state at geometry 2.
         """
@@ -886,7 +886,7 @@ class QCLabQChemInterface:
         overlaps_ex_gs = determinant_a_matrix * np.einsum("eia,ai->e", x, w_matrix)
         return overlaps_ex_gs
 
-    def _compute_overlap_ex_ex(
+    def _compute_overlaps_ex_ex(
         self, geometry_1_amplitudes, geometry_2_amplitudes, s_oo, s_ov, s_vo, s_vv
     ):
         """
