@@ -638,6 +638,10 @@ def gauge_field_force_zero(model, parameters, **kwargs):
 
 @functions.vectorize_ingredient
 def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
+    """
+    Ab initio property calculator for Q-Chem.
+    
+    """
     property_dict = kwargs["property_dict"]
     traj_ind = kwargs["traj_ind"]
     properties = {}
