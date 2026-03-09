@@ -12,7 +12,7 @@ Algorithms define the transient quantities of an algorithm in the State object, 
 
 Algorithms in QC Lab can are tailored to Model objects defined in adiabatic or diabatic bases (see :ref:`Models <model>`) in order to optimize their
 performance. Such tailoring breaks the compatibility between an algorithm implemented assuming a diabatic basis and those models implemented without 
-such a basis. As an example, the `AbInitioFewestSwitchesSurfaceHopping` and `AbInitioMeanField` algorithms can only be used with models defined 
+such a basis (and vice versa). As an example, the `AbInitioFewestSwitchesSurfaceHopping` and `AbInitioMeanField` algorithms can only be used with models defined 
 in an adiabatic basis. 
 
 .. _algorithm_objects:
@@ -131,6 +131,7 @@ As an example of a complete algorithm we include the source code for the mean-fi
    .. literalinclude:: ../../src/qclab/algorithms/mean_field.py
       :language: python
       :linenos:
+      :lines: 1-76
 
 .. _fssh_source:
 Surface Hopping Example
@@ -160,7 +161,11 @@ As an additional example of a complete algorithm we include the source code for 
    .. literalinclude:: ../../src/qclab/algorithms/fewest_switches_surface_hopping.py
       :language: python
       :linenos:
+      :lines: 1-131
 
+.. _ab_initio_fssh_source:
+Ab Initio Surface Hopping Example
+---------------------------------
 As an example of an algorithm customized to Model objects defined in an adiabatic basis, we include the source code for the ab initio 
 fewest-switches surface hopping algorithm implemented in the module ``qclab.algorithms.FewestSwitchesSurfaceHopping`` here. 
 
@@ -186,3 +191,4 @@ fewest-switches surface hopping algorithm implemented in the module ``qclab.algo
    .. literalinclude:: ../../src/qclab/algorithms/fewest_switches_surface_hopping.py
       :language: python
       :linenos:
+      :lines: 132-500

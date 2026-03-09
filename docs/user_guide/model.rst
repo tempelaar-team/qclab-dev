@@ -32,10 +32,9 @@ where :math:`\hat{H}_\mathrm{q}` is the quantum Hamiltonian, :math:`\hat{H}_{\ma
 Adiabatic Basis
 ---------------
 
-Within an adiabatic basis the Hamiltonian likewise consists of three terms, however th
-
-where now all quantum terms depend on the classical coordinate and as such have been absorbed into :math:`\hat{H}_{\mathrm{q-c}}(q)`.
-In order to be fully defined, one must also supply the derivative coupling tensor,
+Within an adiabatic basis the Hamiltonian likewise consists of the same three terms of the quantum-classical Hamiltonian (where now the coordinate dependent adiabatic
+potential energies are included in :math:`\hat{H}_{\mathrm{q-c}(q)`) and a derivative coupling tensor that describes the rotation of the adiabatic basis with respect 
+to the classical coordinate. This tensor is given by
 
 .. math::
 

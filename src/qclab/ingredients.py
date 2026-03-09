@@ -20,7 +20,7 @@ def h_c_harmonic(model, parameters, **kwargs):
 
     .. rubric:: Keyword Args
     z : ndarray
-        Complex classical coordinate.
+        complex classical coordinates.
 
     .. rubric:: Model Constants
     harmonic_frequency : ndarray
@@ -49,7 +49,7 @@ def h_c_free(model, parameters, **kwargs):
 
     .. rubric:: Keyword Args
     z : ndarray
-        Complex classical coordinate.
+        complex classical coordinates.
 
     .. rubric:: Model Constants
     None
@@ -70,12 +70,12 @@ def h_c_free(model, parameters, **kwargs):
 def dh_c_dzc_harmonic(model, parameters, **kwargs):
     """
     Derivative of the harmonic oscillator classical Hamiltonian function with respect to
-    the conjugate z coordinate. This is an ingredient that calls the low-level
+    the conjugate :math:`z`coordinate. This is an ingredient that calls the low-level
     function ``dh_c_dzc_harmonic_jit``.
 
     .. rubric:: Keyword Args
     z : ndarray
-        Complex classical coordinate.
+        complex classical coordinates.
 
     .. rubric:: Model Constants
     harmonic_frequency : ndarray
@@ -96,11 +96,11 @@ def dh_c_dzc_harmonic(model, parameters, **kwargs):
 def dh_c_dzc_free(model, parameters, **kwargs):
     """
     Derivative of the free particle classical Hamiltonian function with respect to the
-    conjugate z coordinate.
+    conjugate :math:`z`coordinate.
 
     .. rubric:: Keyword Args
     z : ndarray
-        Complex classical coordinate.
+        complex classical coordinates.
 
     .. rubric:: Model Constants
     None
@@ -120,7 +120,7 @@ def h_q_two_level(model, parameters, **kwargs):
     """
     Quantum Hamiltonian for a two-level system.
 
-    :math:`H_{nm} = \\delta_{nm}\\mathrm{two\\_level\\_nn}+(1-\\delta_{nm})(\\mathrm{two\\_level\\_nm\\_re} + i \\mathrm{two\\_level\\_nm\\_im})`
+    :math:`H_{nm} = \\delta_{nm}\\mathrm{two\\_level\\_nn}+(1-\\delta_{nm})(\\mathrm{two\\_level\\_nm\\_re} + i\, \\mathrm{two\\_level\\_nm\\_im})`
 
     .. rubric:: Keyword Args
     batch_size : int
@@ -203,7 +203,7 @@ def h_qc_diagonal_linear(model, parameters, **kwargs):
 
     .. rubric:: Keyword Args
     z : ndarray
-        Complex classical coordinate.
+        complex classical coordinates.
 
     .. rubric:: Model Constants
     diagonal_linear_coupling : ndarray
@@ -228,7 +228,7 @@ def dh_qc_dzc_diagonal_linear(model, parameters, **kwargs):
 
     .. rubric:: Keyword Args
     z : ndarray
-        Complex classical coordinate.
+        complex classical coordinates.
 
     .. rubric:: Model Constants
     diagonal_linear_coupling : ndarray
@@ -274,7 +274,7 @@ def hop_harmonic(model, parameters, **kwargs):
     following a hop between quantum states.
 
     If enough energy is available, the function returns the shift in the classical
-    coordinates such that the new classical coordinate is ``z + shift`` and a Boolean
+    coordinates such that the new classical coordinates are ``z + shift`` and a Boolean
     equaling ``True`` if the hop has occurred. If not enough energy is available,
     the shift becomes zero and the Boolean is ``False``.
 
@@ -287,9 +287,9 @@ def hop_harmonic(model, parameters, **kwargs):
 
     .. rubric:: Keyword Args
     z : ndarray
-        Current classical coordinate.
+        Current classical coordinates.
     resc_dir_z : ndarray
-        Rescaling direction of ``z``.
+        Rescaling directions of :math:`z`.
     eigval_diff : float
         Energy difference between final and initial states.
 
@@ -299,7 +299,7 @@ def hop_harmonic(model, parameters, **kwargs):
 
     .. rubric:: Returns
     shift : ndarray
-        Shift in the classical coordinate.
+        Shift in the classical coordinates.
     hop : bool
         Whether the hop has occurred.
     """
@@ -345,7 +345,7 @@ def hop_free(model, parameters, **kwargs):
     following a hop between quantum states.
 
     If enough energy is available, the function returns the shift in the classical
-    coordinates such that the new classical coordinate is ``z + shift`` and a Boolean
+    coordinates such that the new classical coordinates are ``z + shift`` and a Boolean
     equaling ``True`` if the hop has occurred. If not enough energy is available,
     the shift becomes zero and the Boolean is ``False``.
 
@@ -358,9 +358,9 @@ def hop_free(model, parameters, **kwargs):
 
     .. rubric:: Keyword Args
     z : ndarray
-        Current classical coordinate.
+        Current classical coordinates.
     resc_dir_z : ndarray
-        Rescaling direction.
+        Rescaling directions of :math:`z`.
     eigval_diff : float
         Energy difference between final and initial states.
 
@@ -369,7 +369,7 @@ def hop_free(model, parameters, **kwargs):
 
     .. rubric:: Returns
     shift : ndarray
-        Shift in the classical coordinate.
+        Shift in the classical coordinates.
     hop : bool
         Whether the hop has occurred.
     """
@@ -420,7 +420,7 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
 
     .. rubric:: Returns
     z : ndarray
-        Complex classical coordinate.
+        complex classical coordinates.
     """
     seed = kwargs["seed"]
     kBT = model.constants.kBT
@@ -442,7 +442,7 @@ def init_classical_boltzmann_harmonic(model, parameters, **kwargs):
         p = np.random.normal(
             loc=0, scale=std_p, size=model.constants.num_classical_coordinates
         )
-        # Calculate the complex-valued classical coordinate.
+        # Calculate the complex-valued classical coordinates.
         out[s] = functions.qp_to_z(q, p, m, h)
     return out
 
@@ -464,7 +464,7 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
 
     .. rubric:: Returns
     z : ndarray
-        Complex classical coordinate.
+        complex classical coordinates.
     """
     seed = kwargs["seed"]
     w = model.constants.harmonic_frequency
@@ -490,7 +490,7 @@ def init_classical_wigner_harmonic(model, parameters, **kwargs):
         p = np.random.normal(
             loc=0, scale=std_p, size=model.constants.num_classical_coordinates
         )
-        # Calculate the complex-valued classical coordinate.
+        # Calculate the complex-valued classical coordinates.
         out[s] = functions.qp_to_z(q, p, m, h)
     return out
 
@@ -511,7 +511,7 @@ def init_classical_definite_position_momentum(model, parameters, **kwargs):
 
     .. rubric:: Returns
     z : ndarray
-        Complex classical coordinate.
+        complex classical coordinates.
     """
     seed = kwargs["seed"]
     q = model.constants.init_position
@@ -549,7 +549,7 @@ def init_classical_wigner_coherent_state(model, parameters, **kwargs):
 
     .. rubric:: Returns
     z : ndarray
-        Complex classical coordinate.
+        complex classical coordinates.
     """
     seed = kwargs["seed"]
     a = model.constants.coherent_state_displacement
@@ -584,14 +584,14 @@ def rescaling_direction_random(model, parameters, **kwargs):
     Random rescaling direction function.
 
     This function returns a random array for the rescaling direction.
-    It is only included for documentation purposes.
+    It is only included for use in code tests.
 
     Note that this is not a vectorized ingredient, as it is only called on
     the per-trajectory level.
 
     .. rubric:: Keyword Args
     z_traj : ndarray
-        Current classical coordinate in the trajectory being rescaled.
+        Current classical coordinates in the trajectory being rescaled.
     init_state_ind : int
         Index of the initial quantum state.
     final_state_ind : int
@@ -615,11 +615,11 @@ def gauge_field_force_zero(model, parameters, **kwargs):
     Gauge field force function.
 
     This function returns a zero array for the gauge field force.
-    It is only included for documentation purposes.
+    It is only included for use in code tests.
 
     .. rubric:: Keyword Args
     z : ndarray
-        Current classical coordinate.
+        Current classical coordinates.
     state_ind : int
         Index of the state for which the gauge field force is calculated.
 

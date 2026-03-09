@@ -17,10 +17,10 @@ To this end, we write the following function:
         """
         # Get the indices of trajectories that were frustrated
         # (i.e., did not successfully hop but were eligible to hop).
-        frustrated_indices = state.hop_ind[~state.hop_successful]
-        # Reverse the velocities for these indices, in the complex classical coordinate 
+        frustrated_indices = state["hop_ind"][~state["hop_successful"]]
+        # Reverse the velocities for these indices, in the complex classical coordinate
         # formalism, this means conjugating the z coordinate.
-        state.z[frustrated_indices] = state.z[frustrated_indices].conj()
+        state["z"][frustrated_indices] = state["z"][frustrated_indices].conj()
         return state, parameters
 
 
