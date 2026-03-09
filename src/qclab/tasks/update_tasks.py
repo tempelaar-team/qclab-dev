@@ -316,7 +316,11 @@ def update_derivative_coupling_dzc(
     """
     Updates the derivative coupling matrix.
 
-    d^{i}_{\\alpha,\\beta} = \\langle\\alpha(z)\\vert\\partial_{z_{i}^{*}}\\vert\\beta(z)\\rangle
+    .. math::
+
+        d^{i}_{\\alpha,\\beta} = \\langle\\alpha(z)\\vert\\partial_{z_{i}^{*}}\\vert\\beta(z)\\rangle
+
+    Raises
 
     Optional Keyword Arguments
     --------------------------
@@ -1025,16 +1029,21 @@ def update_hop_inds_fssh(
     sim: Simulation,
     state: dict,
     parameters: dict,
+    act_surf_ind_name: str = "act_surf_ind",
     hop_prob_name: str = "hop_prob",
     hop_prob_rand_vals_name: str = "hop_prob_rand_vals",
     hop_ind_name: str = "hop_ind",
     hop_dest_name: str = "hop_dest",
+    hop_bool_name: str = "hop_bool",
+    hop_pairs_name: str = "hop_pairs",
 ):
     """
     Updates indices of trajectories that hop according to their probabilities (but may later be frustrated) and their destination state indices.
 
     Optional Keyword Arguments
     --------------------------
+    act_surf_ind_name:
+        Name of the active surface in the State object.
     hop_prob_name:
         Name of the hopping probabilities in the State object.
     hop_prob_rand_vals_name:
@@ -1043,6 +1052,9 @@ def update_hop_inds_fssh(
         Name under which to store the indices of the hopping trajectories in the State object.
     hop_dest_name:
         Name under which to store the destination indices of the hopping trajectories in the State object.
+    hop_pairs_name:
+        Name under which to store the pairs of initial and final indices of hopping trajectories in the
+        State object.
 
     Constants and Settings
     ----------------------
@@ -1051,6 +1063,8 @@ def update_hop_inds_fssh(
 
     Reads
     -----
+    state[act_surf_ind_name]: ndarray of shape (B,) dtype=int
+        Active surface indices.
     state[hop_prob_name]: ndarray of shape (B, N), dtype=float64
         Hopping probabilities between the active surface and all other surfaces.
     state[hop_prob_rand_vals_name]: ndarray of shape (B//b, t), dtype=float64
@@ -1058,13 +1072,18 @@ def update_hop_inds_fssh(
 
     Writes
     ------
-    state[hop_ind_name]: ndarray of shape (B,), dtype=int
+    state[hop_ind_name]: ndarray of shape (H,), dtype=int
         Indices of trajectories that hop.
-    state[hop_dest_name]: ndarray of shape (B,), dtype=int
+    state[hop_dest_name]: ndarray of shape (H,), dtype=int
         Destination surface for each hop.
+    state[hop_bool_name]: ndarray of shape (B,), dtype=bool
+        Boolean indicating if the trajectory hops.
+    state[hop_paris_name]: ndarray of shape (B, 2), dtype=int
+        Indices of initial/final states of hops. Zero for trajectories that don't hop.
 
     Notes
     -----
+    * H = The number of trajectories that hop.
     * B = sim.settings.batch_size
     * b = sim.model.constants.num_quantum_states if fssh_deterministic == True, b = 1 otherwise.
     * t = The number of update timesteps.
@@ -1084,14 +1103,20 @@ def update_hop_inds_fssh(
         axis=1,
     )
     rand_branch = (rand[:, np.newaxis] * np.ones((num_trajs, num_branches))).flatten()
-    hop_ind = np.where(
+    hop_bool = (
         np.sum((cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1) > 0
-    )[0]
+    )
+    hop_ind = np.where(hop_bool == True)[0]
     hop_dest = np.argmax(
         (cumulative_probs > rand_branch[:, np.newaxis]).astype(int), axis=1
     )[hop_ind]
     state[hop_ind_name] = hop_ind
     state[hop_dest_name] = hop_dest
+    state[hop_bool_name] = hop_bool
+    hop_pairs = np.zeros((sim.settings.batch_size, 2), dtype=int)
+    hop_pairs[hop_ind, 0] = state[act_surf_ind_name][hop_ind]
+    hop_pairs[hop_ind, 1] = hop_dest
+    state[hop_pairs_name] = hop_pairs
     return state, parameters
 
 
@@ -2087,13 +2112,13 @@ def update_adb_connection(
     This matrix describes the coupling between different adiabatic states.
 
     .. math::
-    
+
         A = U^{\\dagger}\\partial_{t}U = B - B^{\\dagger}
 
     where
 
     .. math::
-    
+
         B = \\dot{z}^{*}\\cdot U^{\\dagger}\\partial_{z^{*}} U
 
     and :math:`U` is a matrix of adiabatic states (column vectors).
@@ -2242,15 +2267,15 @@ def update_wf_adb_hop_prob(
      J. Chem. Phys. 1994, 101 (6), 4657–4667. https://doi.org/10.1063/1.467455.
 
     .. math::
-    
+
         g_{k->j} = ( \int_{t}^{t+\Delta} b_{jk}(t') dt' ) / (c^{*}_{k}(t)c_{k}(t))
 
     .. math::
-    
+
         b_{jk}(t) = -2\Re(c_{j}^{*}(t)c_{k}(t) A_{jk}(t))
 
     .. math::
-    
+
         A_{jk}(t) = \dot{q}(t) \cdot d_{jk}(t)
 
     Note that this is consisten with Eq. 19-21 for real and complex :math:`d_{jk}`.
