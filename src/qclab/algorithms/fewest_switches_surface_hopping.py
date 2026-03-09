@@ -307,7 +307,7 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         tasks.update_quantum_energy_act_surf,
         tasks.update_classical_energy_fssh,
         tasks.collect_t,
-        tasks.collect_dm_db,
+        partial(tasks.collect_dm_db, dm_db_name="dm_adb", dm_db_output_name="dm_adb"),
         tasks.collect_quantum_energy,
         tasks.collect_classical_energy,
     ]
