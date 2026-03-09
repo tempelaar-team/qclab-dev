@@ -182,7 +182,7 @@ class QCLabQChemInterface:
 
     def execute(self):
         """
-        Execute the Q-Chem calculation using the command built during initialization.
+        Create and execute the command for the Q-Chem calculation.
         """
         # Build command.
         command = "qchem"
@@ -197,10 +197,12 @@ class QCLabQChemInterface:
 
     def _build_job_specs(self, properties):
         """
+        Build the job specifications for the requested properties.
+        
         Each job spec is a dict with:
         name  : label (e.g. 'gradient', 'derivative_coupling', 'frequency', 'energy')
-        jobtype : Q-Chem JOBTYPE ('FORCE', 'FREQ', 'SP')
         write_derivative_coupling : bool, whether to emit $derivative_coupling
+        qchem_parameters : dict of dicts, keyed by method_es, of Q-Chem parameters to be written in $rem section.
         """
 
         if properties is None:
@@ -221,6 +223,7 @@ class QCLabQChemInterface:
 
     def _compute_job_read_flag(self, num_jobs, indx):
         """
+        Compute the flag for the $molecule section of each job in the input file.
         gradient/wf_overlaps: flag=0 for single-job input or first job,
         otherwise offset by +1
         """
@@ -248,6 +251,9 @@ class QCLabQChemInterface:
     def _write_job(self, file_obj, job_spec, **kwargs):
         """
         Write  Q-Chem jobs (single job or multiple jobs that share same geometry).
+
+        The number of jobs is determined by the number of properties requested and
+        the writing is handled by the corresponding method for each property.
         """
         num_jobs = len(job_spec)
         for i, job in enumerate(job_spec):
@@ -378,7 +384,8 @@ class QCLabQChemInterface:
 
     def _get_charge_and_multiplicity(self):
         """
-        Return the molecular charge and spin multiplicity from kwargs.
+        Return the molecular charge and spin multiplicity from kwargs
+        if provided, otherwise raise an error.
         """
         charge = self.kwargs.get("charge", None)
         multiplicity = self.kwargs.get("multiplicity", None)
@@ -489,7 +496,10 @@ class QCLabQChemInterface:
 
     def _check_normal_termination(self, file_content, properties):
         """
-        Check Q-Chem normal termination.
+        Check Q-Chem normal termination for the number of jobs
+        corresponding to the requested properties, if the number of jobs
+        is not equal to the  number of normal termination flags in 
+        the output file, raise an error.
         """
         normal_termination = "for using Q-Chem"
         num_jobs = self._get_number_of_jobs(properties)
@@ -553,7 +563,10 @@ class QCLabQChemInterface:
 
     def _pull_property(self, property, file_obj, num_atoms, **kwargs):
         """
-        Dispatch to the appropriate parser for the given property name.
+        Pull the requested property from the Q-Chem output file section.
+
+        Determines which parsing method to call based on the property type and
+        stores the results in ``self.results``.      
         """
         if "energy" in property:
             self._pull_energy(
@@ -666,7 +679,7 @@ class QCLabQChemInterface:
 
     def _pull_gradient(self, file_obj, num_atoms):
         """
-        Parse energy gradients for each state from Q-Chem output.
+        Parse gradients for each state from Q-Chem output.
 
         Stores 'gradient' in ``self.results``.
         """
@@ -750,12 +763,12 @@ class QCLabQChemInterface:
 
     def _pull_overlaps(self, amplitudes_previous=None, amplitudes_current=None):
         """
-        Compute wavefunction overlaps between two geometries.
+        Parse wavefunction overlaps between two geometries from Q-Chem output.
 
-        Uses molecular orbital overlaps and excited state amplitudes
-        to construct the full overlap matrix. Supports TDDFT and CIS methods.
-        Stores 'wf_overlaps' in ``self.results``.
-        """
+        Determine which method to use for computing overlaps based on the method 
+        used for excited state calculations (TDDFT or CIS) and call the corresponding method.
+        The overlaps are stored in ``self.results["wf_overlaps"]`` as a matrix.
+       """
         if amplitudes_previous is None:
             raise ValueError(
                 "Previous excited state amplitudes must be provided \n"
@@ -795,6 +808,8 @@ class QCLabQChemInterface:
     def _get_overlaps_cis(self, alpha_prev, alpha_curr, mo_overlaps):
         """
         Compute wavefunction overlaps using the CIS formalism.
+
+        The results are stored in ``self.results["wf_overlaps"]`` as a matrix. 
         """
         s_oo = mo_overlaps[0 : self.num_alpha_electrons, 0 : self.num_alpha_electrons]
         s_ov = mo_overlaps[0 : self.num_alpha_electrons, self.num_alpha_electrons :]
@@ -822,6 +837,8 @@ class QCLabQChemInterface:
     def _get_overlaps_tddft(self, x_prev, y_prev, x_curr, y_curr, mo_overlaps):
         """
         Compute wavefunction overlaps using the TDDFT formalism.
+
+        The results are stored in ``self.results["wf_overlaps"]`` as a matrix.
         """
         s_oo = mo_overlaps[0 : self.num_alpha_electrons, 0 : self.num_alpha_electrons]
         s_ov = mo_overlaps[0 : self.num_alpha_electrons, self.num_alpha_electrons :]
@@ -928,7 +945,7 @@ class QCLabQChemInterface:
 
     def _pull_mo_overlaps(self):
         """
-        Read and parse the molecular orbital overlap matrix from Q-Chem scratch files.
+        Read the molecular orbital overlaps between two geometries from the Q-Chem scratch folder.
         """
         qcscratch = os.environ["QCSCRATCH"]  # Q-Chem scratch folder.
         file_mo_overlap = os.path.join(
@@ -963,13 +980,16 @@ class QCLabQChemInterface:
 
     def _pull_excited_amplitudes(self):
         """
-        This function reads the FCHK file generated by Q-Chem
-        to extract the excited state amplitudes for TDDFT and CIS calculations.
-        Alpha X and Alpha Y amplitudes are extracted for linear TDDFT calculations,
-        while only Alpha  and Beta amplitudes are extracted for TDA-TDDFT and CIS calculations.
-        Only alpha amplitudes are extracted because the software only supports closed-shell calculations.
+        Read the excited state amplitudes from the FCHK file generated by Q-Chem.
 
-        For CIS, X_alpha is taken as Alpha amplitudes
+        Extracts the information of the excited state amplitudes for TDDFT or CIS calculations.
+        It only supports closed-shell calculations. 
+        The information that is extracted includes the x and y amplitudes for TDDFT or
+        alpha amplitudes for CIS, as well as the number of basis functions,
+        the number of alpha electrons, and the number of excited states.
+         
+        The results are returned as a tuple of
+        (x_alpha, y_alpha, num_basis_functions, num_alpha_electrons, num_excited_states).
         """
         file_fchk = self.label + ".fchk"
         with open(file_fchk, "r") as f:
