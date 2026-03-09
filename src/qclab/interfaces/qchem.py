@@ -138,7 +138,7 @@ class QCLabQChemInterface:
                     "tddft":{
                         "jobtype": "SP",
                         "basis": self.kwargs.get("basis"),
-                        "method": self.kwargs.get("method"),
+                        "method": self.kwargs.get("exchange"),
                         "cis_n_roots": self.kwargs.get("cis_n_roots"),
                         "cis_singlets": self.kwargs.get("cis_singlets"),
                         "cis_triplets": self.kwargs.get("cis_triplets"),
@@ -149,7 +149,7 @@ class QCLabQChemInterface:
                     "cis":{
                         "jobtype": "SP",
                         "basis": self.kwargs.get("basis"),
-                        "method": self.kwargs.get("method"),
+                        "method": self.kwargs.get("exchange"),
                         "cis_n_roots": self.kwargs.get("cis_n_roots"),
                         "cis_singlets": self.kwargs.get("cis_singlets"),
                         "cis_triplets": self.kwargs.get("cis_triplets"),
