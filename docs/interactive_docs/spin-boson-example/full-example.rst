@@ -79,13 +79,6 @@ This is what the final code looks like:
     plt.xlabel('Time [arb. units]')
     plt.ylabel('Excited state population')
     plt.ylim([0.4,1.01])
-    plt.legend(frameon=False)
     plt.savefig("full_code_output.png")
     plt.show()
 
-
-
-.. image:: full_code_output.png
-    :alt: Population dynamics.
-    :align: center
-    :width: 50%

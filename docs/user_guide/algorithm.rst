@@ -4,8 +4,16 @@
 Algorithms
 ==========================
 
-Algorithms in QC Lab define the sequence of operations that evolve the system defined by the Model object (see :ref:`Models <model>`) in time. They are composed of three recipes which define initialization steps, update steps, and collect steps that together define the desired algorithm. Each recipe is a list of "tasks" (see :ref:`Tasks <task>`) which are executed in the order specified by the recipe list. Algorithms define the transient quantities of an algorithm in the State object, which is an instance of a dictionary.
+Algorithms in QC Lab define the sequence of operations that evolve the system defined by the Model object (see :ref:`Models <model>`) in time.
+They are composed of three recipes which define initialization steps, update steps, and collect steps that together define the desired algorithm.
+Each recipe is a list of "tasks" (see :ref:`Tasks <task>`) which are executed in the order specified by the recipe list. 
+Algorithms define the transient quantities of an algorithm in the State object, which is an instance of a dictionary.
 
+
+Algorithms in QC Lab can are tailored to Model objects defined in adiabatic or diabatic bases (see :ref:`Models <model>`) in order to optimize their
+performance. Such tailoring breaks the compatibility between an algorithm implemented assuming a diabatic basis and those models implemented without 
+such a basis. As an example, the `AbInitioFewestSwitchesSurfaceHopping` and `AbInitioMeanField` algorithms can only be used with models defined 
+in an adiabatic basis. 
 
 .. _algorithm_objects:
 Algorithm Objects
@@ -142,6 +150,32 @@ As an additional example of a complete algorithm we include the source code for 
      - The classical energy of the system.
    * - ``dm_db``
      - The diabatic density matrix of the quantum subsystem.
+   * - ``t``
+     - The time points of the simulation.
+
+
+.. dropdown:: View full source
+   :icon: code
+
+   .. literalinclude:: ../../src/qclab/algorithms/fewest_switches_surface_hopping.py
+      :language: python
+      :linenos:
+
+As an example of an algorithm customized to Model objects defined in an adiabatic basis, we include the source code for the ab initio 
+fewest-switches surface hopping algorithm implemented in the module ``qclab.algorithms.FewestSwitchesSurfaceHopping`` here. 
+
+.. list-table:: Ab initio FSSH Collected Observables
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Key
+     - Description
+   * - ``quantum_energy``
+     - The quantum energy of the system.
+   * - ``classical_energy``
+     - The classical energy of the system.
+   * - ``dm_adb``
+     - The adiabatic density matrix of the quantum subsystem.
    * - ``t``
      - The time points of the simulation.
 

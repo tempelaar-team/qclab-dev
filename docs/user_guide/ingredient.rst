@@ -12,6 +12,8 @@ Ingredients are functions that encode the physics of a model. QC Lab is designed
 
 where :math:`\hat{H}_\mathrm{q}` is the quantum Hamiltonian, :math:`\hat{H}_{\mathrm{q-c}}(q)` is the quantum-classical coupling Hamiltonian, and :math:`H_{\mathrm{c}}(q,p)` is the classical Hamiltonian. 
 
+As discussed in the :ref:`Model <model>` section, models defined in an adiabatic basis also provide the derivative coupling :math:`D_{nij}(q)=\langle i(q)\vert\partial_{n}\vert j(q)\rangle`
+
 A generic ingredient has the form:
 
 .. code-block:: python
@@ -47,6 +49,7 @@ The minimal set of ingredients required to run a simulation are:
 - A quantum Hamiltonian ingredient, named ``h_q``.
 - A classical Hamiltonian ingredient, named ``h_c``.
 - A quantum-classical coupling Hamiltonian ingredient, named ``h_qc``.
+- A derivative coupling tensor ingredient (only required for models defined in an adiabatic basis), named ``derivative_coupling_dzc``.
 
 Additional ingredients that make the simulation more efficient or accurate are:
 
@@ -54,6 +57,7 @@ Additional ingredients that make the simulation more efficient or accurate are:
 - A gradient of the classical Hamiltonian with respect to the conjugate classical coordinates, named ``dh_c_dzc``.
 - A gradient of the quantum-classical coupling Hamiltonian with respect to the conjugate classical coordinates, named ``dh_qc_dzc``.
 - A hopping function for surface hopping algorithms, named ``hop``.
+- An ab initio property calculator that calculates physical properties with an interface to an electronic structure theory code, named ``ab_initio_property_calculator``.
 
 Vectorization
 --------------------------
