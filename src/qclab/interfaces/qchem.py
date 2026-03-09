@@ -291,6 +291,7 @@ class QCLabQChemInterface:
                     job["qchem_parameters"][self.method_es]["IQMOL_FCHK"] = "TRUE"
                 if job["name"] == "derivative_coupling":
                     self._get_state_inds_derivative_coupling(
+                        job,
                         kwargs["derivative_coupling"].get("state_inds_derivative_coupling", None)
                         )
                     if len(self.state_inds_derivative_coupling) != int(job["qchem_parameters"][self.method_es].get("cis_der_numstate")):
@@ -442,7 +443,9 @@ class QCLabQChemInterface:
             file_obj.write("   %-25s   %s\n" % (parameter.upper(), v_str))
         file_obj.write("$end\n\n")
 
-    def _get_state_inds_derivative_coupling(self,state_inds_derivative_coupling=None):
+    def _get_state_inds_derivative_coupling(self, job, 
+                                        state_inds_derivative_coupling=None
+                                        ):
         """
         Return a list/tuple of state indices for derivative coupling calculations.
         
