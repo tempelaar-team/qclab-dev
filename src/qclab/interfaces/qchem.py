@@ -443,6 +443,12 @@ class QCLabQChemInterface:
         file_obj.write("$end\n\n")
 
     def _get_state_inds_derivative_coupling(self,state_inds_derivative_coupling=None):
+        """
+        Return a list/tuple of state indices for derivative coupling calculations.
+        
+        If no indices are provided, defaults to all states (ground + excited) as specified
+        by cis_der_numstate (cis_n_roots+1) in the input file. 
+        """
         if state_inds_derivative_coupling is None:
             n_s = int(job["qchem_parameters"][self.method_es].get("cis_der_numstate"))
             state_inds_derivative_coupling = [i for i in range(n_s)]
