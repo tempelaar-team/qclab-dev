@@ -640,7 +640,7 @@ def gauge_field_force_zero(model, parameters, **kwargs):
 def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
     """
     Ab initio property calculator for Q-Chem.
-    
+
     """
     property_dict = kwargs["property_dict"]
     traj_ind = kwargs["traj_ind"]
@@ -675,7 +675,11 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
                 (num_classical_coordinates // 3, 3)
             )
             property_args["atom_positions_previous"] = atom_positions_previous
-        new_property_dict[property] = property_args
+        calc_property = True
+        if "calc_property" in property_args:
+            calc_property = property_args["calc_property"]
+        if calc_property:
+            new_property_dict[property] = property_args
     calc = QCLabQChemInterface(
         atom_positions=atom_positions,
         atom_masses=atom_masses,
