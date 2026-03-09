@@ -665,10 +665,13 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
                 property_args[arg_key] = property_args[arg_key][traj_ind]
         if not (property_args["z"] is None):
             # Update nuclear configuration if z is provided.
+            # Assumes all z are the same.
             z = property_args["z"]
             q = functions.z_to_q(z, m, h)
             atom_positions = q.reshape((num_classical_coordinates // 3, 3))
         if property == "wf_overlaps":
+            # Update previous nuclear configuration if z_previous is provided.
+            # Assumes all z_previous are the same.
             z_previous = property_args["z_previous"]
             q_previous = functions.z_to_q(z_previous, m, h)
             atom_positions_previous = q_previous.reshape(
@@ -678,8 +681,10 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
         calc_property = True
         if "calc_property" in property_args:
             calc_property = property_args["calc_property"]
-        if calc_property:
-            new_property_dict[property] = property_args
+        new_property_dict[property] = property_args
+        if not(calc_property):
+            # Delete the entry if we are to skip that property.
+            del new_property_dict[property]
     calc = QCLabQChemInterface(
         atom_positions=atom_positions,
         atom_masses=atom_masses,
