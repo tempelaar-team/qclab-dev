@@ -289,6 +289,12 @@ class QCLabQChemInterface:
                 if job["name"] == "energy" and kwargs["energy"]["excited_amplitudes"]:
                     job["qchem_parameters"][self.method_es]["GUI"] = "2"
                     job["qchem_parameters"][self.method_es]["IQMOL_FCHK"] = "TRUE"
+                if job["name"] == "derivative_coupling":
+                    self._get_state_inds_derivative_coupling(
+                        kwargs["derivative_coupling"].get("state_inds_derivative_coupling", None)
+                        )
+                    if len(self.state_inds_derivative_coupling) != int(job["qchem_parameters"][self.method_es].get("cis_der_numstate")):
+                        job["qchem_parameters"][self.method_es]["cis_der_numstate"] = len(self.state_inds_derivative_coupling)
                 self._write_rem_section(
                     file_obj,
                     job,
@@ -297,9 +303,6 @@ class QCLabQChemInterface:
                     self._write_derivative_coupling(
                         file_obj,
                         job,
-                        kwargs.get("derivative_coupling", {}).get(
-                            "state_inds_derivative_coupling", None
-                        ),
                     )
 
     def _get_state_inds_gradient(self, state_inds_gradient):
@@ -439,22 +442,25 @@ class QCLabQChemInterface:
             file_obj.write("   %-25s   %s\n" % (parameter.upper(), v_str))
         file_obj.write("$end\n\n")
 
-    def _write_derivative_coupling(
-        self, file_obj, job, state_inds_derivative_coupling=None
-    ):
-        """
-        Write the $derivative_coupling section to the Q-Chem input file.
-        """
+    def _get_state_inds_derivative_coupling(self,state_inds_derivative_coupling=None):
         if state_inds_derivative_coupling is None:
             n_s = int(job["qchem_parameters"][self.method_es].get("cis_der_numstate"))
             state_inds_derivative_coupling = [i for i in range(n_s)]
         elif isinstance(state_inds_derivative_coupling, (int, np.integer)):
             state_inds_derivative_coupling = [
                 i for i in range(state_inds_derivative_coupling + 1)
-            ]
+            ] 
+        self.state_inds_derivative_coupling = state_inds_derivative_coupling
+
+    def _write_derivative_coupling(
+        self, file_obj, job
+    ):
+        """
+        Write the $derivative_coupling section to the Q-Chem input file.
+        """
         file_obj.write("$derivative_coupling\n")
-        file_obj.write(f"{state_inds_derivative_coupling[0]} is the reference state\n")
-        file_obj.write(" ".join(str(s) for s in state_inds_derivative_coupling) + "\n")
+        file_obj.write(f"{self.state_inds_derivative_coupling[0]} is the reference state\n")
+        file_obj.write(" ".join(str(s) for s in self.state_inds_derivative_coupling) + "\n")
         file_obj.write("$end\n\n")
 
     def read_results(self, **kwargs):
