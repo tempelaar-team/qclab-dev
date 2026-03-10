@@ -2692,6 +2692,9 @@ def update_ab_initio_property(
     )
     state[ab_initio_property_name] = {}
 
+    print("property dict keys", property_dict.keys())
+    print("print parameters dict keys before", parameters[ab_initio_property_name][0].keys())
+
     ab_initio_property_calculator, has_ab_intio_property_calculator = sim.model.get(
         "ab_initio_property_calculator"
     )
@@ -2723,4 +2726,6 @@ def update_ab_initio_property(
         state[ab_initio_property_name] = new_results_dict
         for key in new_results_dict.keys():
             state["aip_" + key] = new_results_dict[key]
+    
+    print("print parameters dict keys after", parameters[ab_initio_property_name][0].keys())
     return state, parameters
