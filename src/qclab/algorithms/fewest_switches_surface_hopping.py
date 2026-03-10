@@ -270,7 +270,7 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         tasks.update_derivative_coupling_dzc,
         tasks.update_derivative_coupling_dzc_gauge,
         tasks.update_wf_overlaps_gauge,
-        partial(tasks.update_adb_connection, use_wf_overlaps=True),
+        partial(tasks.update_adb_connection, use_wf_overlaps=False),
         tasks.update_h_q_tot,
         partial(
             tasks.diagonalize_matrix,
