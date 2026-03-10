@@ -53,8 +53,8 @@ The minimal set of ingredients required to run a simulation are:
 Additional optional ingredients that make the simulation more efficient or accurate are:
 
 - An initialization function for the classical coordinates, named ``init_classical``.
-- A gradient of the classical Hamiltonian with respect to the conjugate of the complex classical coordinates, named ``dh_c_dzc``.
-- A gradient of the quantum-classical coupling Hamiltonian with respect to the conjugate of the complex classical coordinates, named ``dh_qc_dzc``.
+- A gradient of the classical Hamiltonian with respect to the conjugate of the :ref:`complex classical coordinates <coordinates>`, named ``dh_c_dzc``.
+- A gradient of the quantum-classical coupling Hamiltonian with respect to the conjugate of the :ref:`complex classical coordinates <coordinates>`, named ``dh_qc_dzc``.
 - A hopping function for surface hopping algorithms, named ``hop``.
 - An ab initio property calculator that calculates physical properties with an interface to an electronic structure theory code, named ``ab_initio_property_calculator``.
 
@@ -62,7 +62,7 @@ Additional optional ingredients that make the simulation more efficient or accur
 Vectorization
 --------------------------
 
-By default, QC Lab assumes that ingredients are implemented in a vectorized fashion. This means that, rather than constructing the respective term for an individual trajectory, each ingredient constructs the term for all trajectories in a batch at once. Additionally, any keyword argument associated with an ingredient that is a NumPy array will have an initial trajectory dimension. For example, the quantum-classical Hamiltonian ingredient ``h_qc`` has a keyword argument ``z`` which is the complex classical coordinate. If the batch size is 100, then ``z`` will have shape ``(100, model.constants.num_classical_coordinates)`` where ``model.constants.num_classical_coordinates`` is the number of classical coordinates in the model. The output of the ``h_qc`` ingredient will then have shape ``(100, model.constants.num_quantum_states, model.constants.num_quantum_states)`` where ``model.constants.num_quantum_states`` is the number of quantum states in the model.
+By default, QC Lab assumes that ingredients are implemented in a vectorized fashion. This means that, rather than constructing the respective term for an individual trajectory, each ingredient constructs the term for all trajectories in a batch at once. Additionally, any keyword argument associated with an ingredient that is a NumPy array will have an initial trajectory dimension. For example, the quantum-classical Hamiltonian ingredient ``h_qc`` has a keyword argument ``z`` which is the :ref:`complex classical coordinate <coordinates>`. If the batch size is 100, then ``z`` will have shape ``(100, model.constants.num_classical_coordinates)`` where ``model.constants.num_classical_coordinates`` is the number of classical coordinates in the model. The output of the ``h_qc`` ingredient will then have shape ``(100, model.constants.num_quantum_states, model.constants.num_quantum_states)`` where ``model.constants.num_quantum_states`` is the number of quantum states in the model.
 
 Rather than implementing this vectorization yourself, you can use the ``@vectorize_ingredient`` decorator provided in the ``qclab.functions`` module. This decorator will automatically vectorize an ingredient that is implemented for a single trajectory (i.e., without any batch dimension). For example, the following implementation of the quantum Hamiltonian ingredient for a two-level system is not vectorized:
 

@@ -215,7 +215,6 @@ class AbInitio(Model):
         traj_ind = kwargs["traj_ind"]
         has_ab_initio_property = "ab_initio_property" in parameters.keys()
         if has_ab_initio_property:
-            print("found ab initio property dict in parameters")
             properties = parameters["ab_initio_property"][traj_ind]
             if "derivative_coupling" in properties.keys():
                 derivative_coupling_dq = properties["derivative_coupling"]
@@ -228,9 +227,7 @@ class AbInitio(Model):
                 needs_derivative_coupling = False
             else:
                 needs_derivative_coupling = True
-            print("needs derivative coupling", needs_derivative_coupling)
         if not (has_ab_initio_property) or needs_derivative_coupling:
-            print("calculating derivative coupling")
             property_dict = {
                 "derivative_coupling": {
                     "z": z[np.newaxis],

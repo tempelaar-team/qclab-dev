@@ -2102,7 +2102,7 @@ def update_adb_connection(
     quantum_classical_force_name: str = "quantum_classical_force",
     derivative_coupling_dzc_name: str = "derivative_coupling_dzc",
     wf_overlaps_name: str = "aip_wf_overlaps",
-    update_derivative_coupling:bool = False,
+    update_derivative_coupling: bool = False,
 ):
     """
     Updates the adiabatic connection matrix.
@@ -2175,7 +2175,6 @@ def update_adb_connection(
     """
 
     use_wf_overlaps = sim.algorithm.settings.use_wf_overlaps_for_adb_connection
-    print('use wf overlaps:', use_wf_overlaps)
 
     if wf_overlaps_name in state.keys() and use_wf_overlaps:
         state, parameters = update_wf_overlaps_gauge(
@@ -2695,9 +2694,6 @@ def update_ab_initio_property(
     )
     state[ab_initio_property_name] = {}
 
-    print("property dict keys", property_dict.keys())
-    print("print parameters dict keys before", parameters[ab_initio_property_name][0].keys())
-
     ab_initio_property_calculator, has_ab_intio_property_calculator = sim.model.get(
         "ab_initio_property_calculator"
     )
@@ -2729,6 +2725,5 @@ def update_ab_initio_property(
         state[ab_initio_property_name] = new_results_dict
         for key in new_results_dict.keys():
             state["aip_" + key] = new_results_dict[key]
-    
-    print("print parameters dict keys after", parameters[ab_initio_property_name][0].keys())
+
     return state, parameters

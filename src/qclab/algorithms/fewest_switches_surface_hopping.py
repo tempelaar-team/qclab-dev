@@ -181,39 +181,19 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         tasks.update_act_surf_wf,
         tasks.update_quantum_energy_act_surf,
         tasks.update_classical_energy_fssh,
-        # partial(
-        #     tasks.copy_in_state,
-        #     copy_name="wf_overlaps_adb_connection",
-        #     orig_name="adb_connection",
-        # ),
     ]
 
     update_recipe = [
-        # partial(
-        #     tasks.copy_in_state,
-        #     copy_name="ab_initio_property_previous",
-        #     orig_name="ab_initio_property",
-        # ),
         partial(
             tasks.copy_in_state,
             copy_name="aip_excited_amplitudes_previous",
             orig_name="aip_excited_amplitudes",
         ),
-        # partial(
-        #     tasks.copy_in_state,
-        #     copy_name="wf_overlaps_adb_connection_previous",
-        #     orig_name="wf_overlaps_adb_connection",
-        # ),
         partial(
             tasks.copy_in_state,
             copy_name="eigvecs_previous",
             orig_name="eigvecs",
         ),
-        # partial(
-        #     tasks.copy_in_state,
-        #     copy_name="derivative_coupling_dzc_previous",
-        #     orig_name="derivative_coupling_dzc",
-        # ),
         partial(
             tasks.copy_in_state,
             copy_name="adb_connection_previous",
@@ -230,26 +210,11 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
             copy_name="classical_force_previous",
             orig_name="classical_force",
         ),
-        # partial(
-        #     tasks.copy_in_state,
-        #     copy_name="dh_qc_dzc_previous",
-        #     orig_name="dh_qc_dzc",
-        # ),
         partial(
             tasks.copy_in_state,
             copy_name="z_previous",
             orig_name="z",
         ),
-        # partial(
-        #     tasks.copy_in_state,
-        #     copy_name="classical_energy_previous",
-        #     orig_name="classical_energy",
-        # ),
-        # partial(
-        #     tasks.copy_in_state,
-        #     copy_name="quantum_energy_previous",
-        #     orig_name="quantum_energy",
-        # ),
         tasks.update_q_velocity_verlet,
         partial(
             tasks.update_ab_initio_property,
@@ -262,7 +227,6 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
                     "amplitudes_current": "aip_excited_amplitudes",
                 },
             },
-            
         ),
         # tasks.update_adb_connection,
         partial(tasks.update_adb_connection, update_derivative_coupling=True),
