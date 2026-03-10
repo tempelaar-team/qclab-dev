@@ -180,7 +180,7 @@ class MeanFieldAbInitio(Algorithm):
         partial(tasks.update_quantum_energy_wf, wf_db_name="wf_adb"),
         tasks.update_classical_energy,
         tasks.collect_t,
-        partial(tasks.collect_dm_db, dm_db_name="dm_adb", dm_db_output_name="dm_db"),
+        partial(tasks.collect_dm_db, dm_db_name="dm_db", dm_db_output_name="dm_adb"),
         tasks.collect_classical_energy,
         tasks.collect_quantum_energy,
     ]
