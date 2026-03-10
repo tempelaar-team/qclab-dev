@@ -168,7 +168,7 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         tasks.update_classical_force,
         tasks.update_derivative_coupling_dzc,
         partial(tasks.update_quantum_classical_force, wf_db_name="wf_adb"),
-        tasks.update_adb_connection,
+        partial(tasks.update_adb_connection, update_derivative_coupling=False),
         tasks.initialize_random_values_fssh,
         tasks.initialize_active_surface,
         tasks.initialize_dm_adb_0_fssh,
@@ -264,7 +264,8 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
             },
             
         ),
-        tasks.update_adb_connection,
+        # tasks.update_adb_connection,
+        partial(tasks.update_adb_connection, update_derivative_coupling=True),
         tasks.update_h_q_tot,
         partial(
             tasks.diagonalize_matrix,

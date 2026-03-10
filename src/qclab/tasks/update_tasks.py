@@ -2102,6 +2102,7 @@ def update_adb_connection(
     quantum_classical_force_name: str = "quantum_classical_force",
     derivative_coupling_dzc_name: str = "derivative_coupling_dzc",
     wf_overlaps_name: str = "aip_wf_overlaps",
+    update_derivative_coupling:bool = False,
 ):
     """
     Updates the adiabatic connection matrix.
@@ -2188,9 +2189,11 @@ def update_adb_connection(
         dz_dt = -1j * (
             state[classical_force_name] + state[quantum_classical_force_name]
         )
+        need_derivative_coupling = True
         if derivative_coupling_dzc_name in state:
             derivative_coupling_dzc = state[derivative_coupling_dzc_name]
-        else:
+            need_derivative_coupling = False
+        if update_derivative_coupling or need_derivative_coupling:
             state, parameters = update_derivative_coupling_dzc(
                 sim,
                 state,
