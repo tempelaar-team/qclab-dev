@@ -255,10 +255,10 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
             tasks.update_ab_initio_property,
             property_dict={
                 "energy": {"z": "z", "excited_amplitudes": True},
-                "derivative_coupling": {
-                    "z": "z",
-                    "state_inds_derivative_coupling": None,
-                },
+                # "derivative_coupling": {
+                #     "z": "z",
+                #     "state_inds_derivative_coupling": None,
+                # },
                 "wf_overlaps": {
                     "z": "z",
                     "z_previous": "z_previous",
@@ -270,7 +270,7 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         tasks.update_derivative_coupling_dzc,
         tasks.update_derivative_coupling_dzc_gauge,
         tasks.update_wf_overlaps_gauge,
-        partial(tasks.update_adb_connection, use_wf_overlaps=False),
+        partial(tasks.update_adb_connection, use_wf_overlaps=True),
         tasks.update_h_q_tot,
         partial(
             tasks.diagonalize_matrix,
@@ -287,17 +287,17 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
             hop_bool_name="hop_bool",
             hop_pairs_name="hop_pairs",
         ),
-        # partial(
-        #     tasks.update_ab_initio_property,
-        #     property_dict={
-        #         "derivative_coupling": {
-        #             "calc_property": "hop_bool",
-        #             "z": "z",
-        #             "state_inds_derivative_coupling": "hop_pairs",
-        #         },
-        #     },
-        # ),
-        # tasks.update_derivative_coupling_dzc,
+        partial(
+            tasks.update_ab_initio_property,
+            property_dict={
+                "derivative_coupling": {
+                    "calc_property": "hop_bool",
+                    "z": "z",
+                    "state_inds_derivative_coupling": "hop_pairs",
+                },
+            },
+        ),
+        tasks.update_derivative_coupling_dzc,
         partial(
             tasks.update_hop_vals_fssh,
             derivative_coupling_dzc_name="derivative_coupling_dzc",
