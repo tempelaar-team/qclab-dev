@@ -214,11 +214,11 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         #     copy_name="derivative_coupling_dzc_previous",
         #     orig_name="derivative_coupling_dzc",
         # ),
-        # partial(
-        #     tasks.copy_in_state,
-        #     copy_name="adb_connection_previous",
-        #     orig_name="adb_connection",
-        # ),
+        partial(
+            tasks.copy_in_state,
+            copy_name="adb_connection_previous",
+            orig_name="adb_connection",
+        ),
         partial(tasks.copy_in_state, copy_name="h_q_tot_previous", orig_name="h_q_tot"),
         partial(
             tasks.copy_in_state,
