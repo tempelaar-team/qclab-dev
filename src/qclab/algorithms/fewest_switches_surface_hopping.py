@@ -255,10 +255,10 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
             tasks.update_ab_initio_property,
             property_dict={
                 "energy": {"z": "z", "excited_amplitudes": True},
-                # "derivative_coupling": {
-                #     "z": "z",
-                #     "state_inds_derivative_coupling": None,
-                # },
+                "derivative_coupling": {
+                    "z": "z",
+                    "state_inds_derivative_coupling": None,
+                },
                 "wf_overlaps": {
                     "z": "z",
                     "z_previous": "z_previous",
