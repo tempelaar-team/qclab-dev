@@ -2126,21 +2126,21 @@ def update_adb_connection(
 
     Optional Keyword Arguments
     --------------------------
-    eigvecs_adb_previous_name:
-        Name of the adiabatic eigenvectors from the previous time step in the State object.
-    h_q_tot_adb_name:
-        Name of the total Hamiltonian of the quantum subsystem in the adiabatic basis
-        in the State object.
-    adb_connection_name:
-        Name under which to store the adiabatic connection in the State object.
     z_name:
         Name of classical coordinates in the State object.
+    adb_connection_name:
+        Name under which to store the adiabatic connection in the State object.
     classical_force_name:
         Name of the classical force in the State object.
     quantum_classical_force_name:
         Name of the quantum-classical force in the State object.
     derivative_coupling_dzc_name:
         Name of the derivative coupling tensor in the State object.
+    use_wf_overlaps:
+        Boolean indicating if the wavefunction overlaps should be used to construct
+        the adiabatic connection.
+    wf_overlaps_name:
+        Name of the wavefunction overlaps in the State object.
 
 
     Ingredients
@@ -2154,6 +2154,8 @@ def update_adb_connection(
     -----
     state[z_name]: ndarray of shape (B, C), dtype=complex128
         Complex-valued classical coordinates.
+    state[wf_overlaps_name]: ndarray of shape (B, N, N), dtype=float64
+        Wavefunction overlaps.
 
     Writes
     ------
@@ -2671,13 +2673,6 @@ def update_ab_initio_property(
     -----
     * B = sim.settings.batch_size
     """
-    # if not (ab_initio_property_name in parameters):
-    #     parameters[ab_initio_property_name] = np.array(
-    #         [{} for _ in range(sim.settings.batch_size)]
-    #     )
-    # if not (ab_initio_property_name in state):
-    #     state[ab_initio_property_name] = {}
-
     parameters[ab_initio_property_name] = np.array(
         [{} for _ in range(sim.settings.batch_size)]
     )
@@ -2704,15 +2699,6 @@ def update_ab_initio_property(
             batch_size=sim.settings.batch_size,
             property_dict=new_property_dict,
         )
-        # parameters[ab_initio_property_name] = np.array(
-        #     [
-        #         {
-        #             **parameters[ab_initio_property_name][traj_ind],
-        #             **new_ab_initio_property[traj_ind],
-        #         }
-        #         for traj_ind in range(sim.settings.batch_size)
-        #     ]
-        # )
         parameters[ab_initio_property_name] = new_ab_initio_property
         new_results_dict = {}
         ab_initio_property = parameters[ab_initio_property_name]
