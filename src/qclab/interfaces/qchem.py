@@ -65,7 +65,7 @@ class QCLabQChemInterface:
             "frequency",
             "wf_overlaps",
         ]
-        # Job specs
+        # Job specifications for Q-Chem input file.
         self.job_templates = {
             "energy": {
                 "name": "energy",
@@ -627,7 +627,8 @@ class QCLabQChemInterface:
         freqs = np.array(freqs, dtype=float).flatten()
         modes = np.zeros((len(freqs), num_atoms, 3))
         i_count = 0
-        num_lines = 8  # Number of lines between the Mode: line and the displacement-matrix line in a Q-Chem output file.
+        # Number of lines between the Mode: line and the displacement-matrix line in a Q-Chem output file.
+        num_lines = 8
         for i in ind_modes:
             for j in range(num_atoms):
                 temporal_data = file_obj[i + num_lines + j].split()[1:]

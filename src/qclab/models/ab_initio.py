@@ -30,23 +30,21 @@ class AbInitio(Model):
         if constants is None:
             constants = {}
         self.default_constants = {
-            "atom_positions": None, # In units of Bohr.
-            "atom_masses":None, # In units of electron mass.
-            "atom_names":None,
+            "atom_positions": None,  # In units of Bohr.
+            "atom_masses": None,  # In units of electron mass.
+            "atom_names": None,
             "calculator_args": {},
             "num_quantum_states": None,
-            "normal_mode": None, # Unitless and normalilzed.
-            "harmonic_frequency": None, # In units of Hartrees.
-            "energy_offset": 0, # In units of Hartrees.
-            "kBT": 0.00095, # In units of Hartrees.
+            "normal_mode": None,  # Unitless and normalilzed.
+            "harmonic_frequency": None,  # In units of Hartrees.
+            "energy_offset": 0,  # In units of Hartrees.
+            "kBT": 0.00095,  # In units of Hartrees.
         }
         self.update_dh_qc_dzc = True
         self.update_h_q = False
         super().__init__(self.default_constants, constants)
 
     def _init_model(self, parameters, **kwargs):
-        # mol = self.constants.ase_atoms_object
-        #atom_masses = mol.get_masses() * AMU_TO_EMASS
         num_atoms = len(self.constants.atom_names)
         self.constants.num_classical_coordinates = num_atoms * 3
         self.constants.classical_coordinate_mass = (
@@ -59,13 +57,14 @@ class AbInitio(Model):
         self.constants.finite_difference_delta = 1e-2
 
     def init_classical(self, parameters, **kwargs):
-        # temporarily set the masses to 1 for mass-weighted normal mode sampling.
+        # Temporarily set the masses to 1 for mass-weighted normal mode sampling.
         normal_modes = self.constants.normal_mode
         constants_original = copy.deepcopy(self.constants)
         self.constants = Constants()
+        # Set number of coordinates to number of normal modes.
         self.constants.num_classical_coordinates = len(
             constants_original.harmonic_frequency
-        )  # set to number of normal modes
+        )
         self.constants.classical_coordinate_mass = np.ones(
             self.constants.num_classical_coordinates
         )
@@ -218,7 +217,7 @@ class AbInitio(Model):
             properties = parameters["ab_initio_property"][traj_ind]
             if "derivative_coupling" in properties.keys():
                 derivative_coupling_dq = properties["derivative_coupling"]
-                if not(derivative_coupling_dq is None):
+                if not (derivative_coupling_dq is None):
                     for key, val in derivative_coupling_dq.items():
                         out[:, key[0], key[1]] = (
                             dqdp_to_dzc(val.flatten(), None, m, h) / ANGSTROM_TO_BOHR
