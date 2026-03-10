@@ -26,12 +26,10 @@ however, Models may enforce some choice of weights as part of their initializati
 
 Conversions to and from complex-valued classical coordinates are conveniently implemented in the following functions.
 
-.. automodule:: qclab.ingredients
-   :members:
+.. automodule:: qclab.functions
+   :members: z_to_q, z_to_p, qp_to_z
    :undoc-members:
    :member-order: bysource
-   :imported-members:
-   :exclude-members: __all__, __doc__, __annotations__, QCLabQChemInterface
    :no-value:
 
 
