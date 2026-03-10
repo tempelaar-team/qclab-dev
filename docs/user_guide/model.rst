@@ -12,36 +12,33 @@ The Model object contains a mandatory set of constants that define properties of
 - ``num_quantum_states``: the number of quantum states in the system,
 - ``num_classical_coordinates``: the number of classical coordinates in the system,
 - ``classical_coordinate_mass``: the mass of the classical coordinates,
-- ``classical_coordinate_weight``: the weight of the classical coordinates (:math:`h` in the complex-coordinate formalism).
+- ``classical_coordinate_weight``: the weight of the classical coordinates (:math:`h` in the :ref:`complex-coordinate formalism <coordinates>`).
 
 
-At a minimum, the Model object contains ingredients that define the Hamiltonian of the system. QC Lab accomodates models defined in either a diabatic (i.e. independent of the classical coordinates) or adiabatic basis.
-
-Diabatic Basis
---------------
-
-Within a diabatic basis, the Hamiltonian is given by three terms,
+At a minimum, the Model object contains ingredients that define the Hamiltonian of the system. QC Lab accommodates models defined in either a diabatic 
+(i.e. independent of the classical coordinates) or adiabatic basis. The Hamiltonian is given by three terms,
 
 .. math::
 
     H(q,p) = \hat{H}_{\mathrm{q}} + \hat{H}_{\mathrm{q-c}}(q) + H_{\mathrm{c}}(q,p)
 
 where :math:`\hat{H}_\mathrm{q}` is the quantum Hamiltonian, :math:`\hat{H}_{\mathrm{q-c}}(q)` is the quantum-classical coupling Hamiltonian, and :math:`H_{\mathrm{c}}(q,p)` is the classical Hamiltonian. These ingredients are discussed in detail in 
-:ref:`Ingredients <ingredient>`.
+:ref:`Ingredients <ingredient>`. Within a diabaic basis, no other information is required to specify the model.
 
 Adiabatic Basis
 ---------------
 
 Within an adiabatic basis the Hamiltonian likewise consists of the same three terms of the quantum-classical Hamiltonian (where now the coordinate dependent adiabatic
-potential energies are included in :math:`\hat{H}_{\mathrm{q-c}(q)`) and a derivative coupling tensor that describes the rotation of the adiabatic basis with respect 
+potential energies are included in :math:`\hat{H}_{\mathrm{q-c}}(q)`) and a derivative coupling tensor that describes the rotation of the adiabatic basis with respect 
 to the classical coordinate. This tensor is given by
 
 .. math::
 
-    D_{nij}(q) = \langle i(q)\vert \partial_{n}\vert j(q)\rangle
+    d^{n}_{ij}(q) = \langle i(q)\vert \partial_{n}\vert j(q)\rangle
 
 where :math:`\vert i(q)\rangle` and :math:`\vert j(q)\rangle` are adiabatic states and :math:`\partial_{n}` is the partial derivative with respect to :math:`q_{n}`.
-
+The most obvious scenario where an adiabatic basis is required is for ab initio models where there is no global diabatic basis. Such a model is implemented in 
+the ``qclab.models.AbInitio`` module. 
 
 
 The Model Class

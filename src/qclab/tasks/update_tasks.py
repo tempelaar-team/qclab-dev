@@ -390,7 +390,7 @@ def update_quantum_classical_force(
     If the model has a ``gauge_field_force`` ingredient, this term will be added
     to the quantum-classical force.
 
-    If the model has a ``derivative_coupling_dzc`` ingredient, this conribution will
+    If the model has a ``derivative_coupling_dzc`` ingredient, this contribution will
     be added to the quantum-classical force.
 
     Optional Keyword Arguments
@@ -1151,7 +1151,7 @@ def update_z_shift_fssh(
     Ingredients
     -----------
     hop: optional, default: ``functions.numerical_fssh_hop``
-        Hopping ingredient that determines the energy conservation critereon for a given classical Hamiltonian.
+        Hopping ingredient that determines the energy conservation criterion for a given classical Hamiltonian.
 
     Reads
     -----
@@ -2105,7 +2105,7 @@ def update_adb_connection(
     wf_overlaps_name: str = "aip_wf_overlaps",
 ):
     """
-    Updates the Adiabatic Connection matrix.
+    Updates the adiabatic connection matrix.
 
 
     This matrix describes the coupling between different adiabatic states.
@@ -2277,8 +2277,8 @@ def update_wf_adb_hop_prob(
     Optionally integrates the hopping probability over the time interval.
 
     Hopping probability formula is taken from:
-    Hammes‐Schiffer, S.; Tully, J. C. Proton Transfer in Solution: Molecular Dynamics with Quantum Transitions.
-     J. Chem. Phys. 1994, 101 (6), 4657–4667. https://doi.org/10.1063/1.467455.
+
+    Hammes‐Schiffer, S.; Tully, J. C. Proton Transfer in Solution: Molecular Dynamics with Quantum Transitions. J. Chem. Phys. 1994, 101 (6), 4657–4667. https://doi.org/10.1063/1.467455.
 
     .. math::
 
@@ -2292,9 +2292,9 @@ def update_wf_adb_hop_prob(
 
         A_{jk}(t) = \dot{q}(t) \cdot d_{jk}(t)
 
-    Note that this is consisten with Eq. 19-21 for real and complex :math:`d_{jk}`.
+    Note that this is consistent with Eq. 19-21 for real and complex :math:`d_{jk}`.
 
-    Eq. 30 is equivalent for real :math:`d_{jk}`:
+    Eq. 30 (follwoing) is equivalent to the above expression for :math:`b_{jk}` when :math:`d_{jk}` is real-valued:
 
     .. math::
 
@@ -2416,7 +2416,7 @@ def update_q_velocity_verlet(
     quantum_classical_force_name: str = "quantum_classical_force",
 ):
     """
-    Updates the position component of the classical coordinates using Velocity Verlet.
+    Updates the position component of the classical coordinates using velocity Verlet.
 
     Optional Keyword Arguments
     --------------------------
@@ -2473,7 +2473,7 @@ def update_p_velocity_verlet(
     quantum_classical_force_previous_name: str = "quantum_classical_force_previous",
 ):
     """
-    Updates the momentum component of the classical coordinates using Velocity Verlet.
+    Updates the momentum component of the classical coordinates using velocity Verlet.
 
     Optional Keyword Arguments
     --------------------------
@@ -2645,10 +2645,10 @@ def update_ab_initio_property(
     Optional Keyword Arguments
     --------------------------
     ab_initio_property_name:
-        The name underwhich to store the ab initio properties in the State and Parameters objects.
+        The name under which to store the ab initio properties in the State and Parameters objects.
     property_dict:
-        A dictionary of properties to be calculated. The keys of the dictionary point to dictionaries of arguments.
-        The argument dictionaries point to objects in the State object, to Booleans, or to None.
+        A dictionary of properties and associated argument dictionaries, i.e. {property_name:{arg1:arg1_name,...}}.
+        The argument dictionaries contain names of objects in the State object, Booleans, or None.
 
     Ingredients
     -----------
@@ -2664,7 +2664,7 @@ def update_ab_initio_property(
         A List of dictionaries containing the ab initio properties calculated for each
         trajectory.
     state[ab_initio_property_name]: Dict
-        A dictionary containing the ab initio properties calculated restructured into a
+        A dictionary containing the calculated ab initio properties restructured into a
         ndarray where the first index corresponds to the trajectory index.
     state["aip_" + property]: ndarray of shape (B, shape(property)), dtype=type(property)
         A new variable in the State object giving the result of the calculation of property.

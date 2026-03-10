@@ -13,7 +13,7 @@ A key feature of this architecture is that different models and algorithms can b
 modification to the rest of the simulation. This enables users to easily experiment with different
 quantum-classical simulation algorithms and models, allowing for rapid prototyping and testing of new ideas.
 
-This construction is depicted diagramatically below. Click on any component to learn more about it!
+This construction is depicted diagrammatically below. Click on any component to learn more about it!
 
 
 .. container:: graphviz-center

@@ -94,7 +94,7 @@ The ingredient can then be included in a model as:
 
 .. note::
 
-    The vectorization decoroator promotes compatibility and ease of use but does not offer any performance gain. To realize a performance gain, users
+    The vectorization decorator promotes compatibility and ease of use but does not offer any performance gain. To realize a performance gain, users
     should hard-code vectorization into Ingredients and leverage NumPy vectorization.
 
 
