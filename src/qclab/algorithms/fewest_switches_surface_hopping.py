@@ -282,7 +282,11 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
             tasks.update_wf_adb_hop_prob,
             update_hopping_probabilities=True,
         ),
-        partial(tasks.update_hop_inds_fssh, hop_bool_name="hop_bool", hop_pairs_name="hop_pairs"),
+        partial(
+            tasks.update_hop_inds_fssh,
+            hop_bool_name="hop_bool",
+            hop_pairs_name="hop_pairs",
+        ),
         partial(
             tasks.update_ab_initio_property,
             property_dict={
@@ -293,6 +297,7 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
                 },
             },
         ),
+        tasks.update_derivative_coupling_dzc,
         partial(
             tasks.update_hop_vals_fssh,
             derivative_coupling_dzc_name="derivative_coupling_dzc",
