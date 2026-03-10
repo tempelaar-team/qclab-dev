@@ -658,6 +658,7 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
     file_label = str(parameters["seed"][traj_ind])
 
     new_property_dict = copy.deepcopy(property_dict)
+    properties = {}
     for property in property_dict.keys():
         property_args = copy.deepcopy(property_dict[property])
         for arg_key in property_args.keys():
@@ -685,30 +686,33 @@ def ab_initio_property_calculator_qchem(model, parameters, **kwargs):
         if not(calc_property):
             # Delete the entry if we are to skip that property.
             del new_property_dict[property]
-    calc = QCLabQChemInterface(
-        atom_positions=atom_positions,
-        atom_masses=atom_masses,
-        atom_names=atom_names,
-        label="qchem_job_" + file_label,
-        folder_scratch="qclab_job_" + file_label,
-        **{"method_es": method_es, **qchem_gs_args, **qchem_es_args},
-    )
-    calc.write_input(**new_property_dict)
-    calc.execute()
-    calc.read_results(**new_property_dict)
-    properties = copy.deepcopy(calc.results)
-    if "gradient" in properties.keys():
-        state_inds_gradient = property_args.get("state_inds_gradient", None)
-        if isinstance(state_inds_gradient, (int, np.integer)):
-            state_inds_gradient = [state_inds_gradient]
-        if state_inds_gradient is None:
-            state_inds_gradient = np.arange(num_quantum_states, dtype=int)
-        gradient = np.zeros((num_classical_coordinates // 3, 3, num_quantum_states))
-        if state_inds_gradient is None:
-            state_inds_gradient = np.arange(num_quantum_states, dtype=int)
-        ind = 0
-        for state_ind in state_inds_gradient:
-            gradient[:, :, state_ind] = calc.results["gradient"][:, :, ind]
-            ind += 1
-        properties["gradient"] = gradient
+        properties[property] = None
+    if len(new_property_dict.keys()) > 0:
+        calc = QCLabQChemInterface(
+            atom_positions=atom_positions,
+            atom_masses=atom_masses,
+            atom_names=atom_names,
+            label="qchem_job_" + file_label,
+            folder_scratch="qclab_job_" + file_label,
+            **{"method_es": method_es, **qchem_gs_args, **qchem_es_args},
+        )
+        calc.write_input(**new_property_dict)
+        calc.execute()
+        calc.read_results(**new_property_dict)
+        # Anything not calculated gets overwritten with the result.
+        properties = {**properties, **calc.results}
+        if "gradient" in properties.keys():
+            state_inds_gradient = property_args.get("state_inds_gradient", None)
+            if isinstance(state_inds_gradient, (int, np.integer)):
+                state_inds_gradient = [state_inds_gradient]
+            if state_inds_gradient is None:
+                state_inds_gradient = np.arange(num_quantum_states, dtype=int)
+            gradient = np.zeros((num_classical_coordinates // 3, 3, num_quantum_states))
+            if state_inds_gradient is None:
+                state_inds_gradient = np.arange(num_quantum_states, dtype=int)
+            ind = 0
+            for state_ind in state_inds_gradient:
+                gradient[:, :, state_ind] = calc.results["gradient"][:, :, ind]
+                ind += 1
+            properties["gradient"] = gradient
     return properties
