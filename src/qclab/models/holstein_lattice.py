@@ -155,6 +155,7 @@ class HolsteinLatticeReciprocalSpace(Model):
         batch_size = len(z)
         g = self.constants.get("g")
         w = self.constants.get("w")
+        h = self.constants.classical_coordinate_weight
         out = np.zeros(
             (
                 batch_size,
