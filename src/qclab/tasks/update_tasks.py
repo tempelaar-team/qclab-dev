@@ -2101,7 +2101,6 @@ def update_adb_connection(
     classical_force_name: str = "classical_force",
     quantum_classical_force_name: str = "quantum_classical_force",
     derivative_coupling_dzc_name: str = "derivative_coupling_dzc",
-    use_wf_overlaps: bool = False,
     wf_overlaps_name: str = "aip_wf_overlaps",
 ):
     """
@@ -2175,6 +2174,7 @@ def update_adb_connection(
     """
 
     use_wf_overlaps = sim.algorithm.settings.use_wf_overlaps_for_adb_connection
+    print('use wf overlaps:', use_wf_overlaps)
 
     if wf_overlaps_name in state.keys() and use_wf_overlaps:
         state, parameters = update_wf_overlaps_gauge(

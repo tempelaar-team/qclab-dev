@@ -230,26 +230,26 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
             copy_name="classical_force_previous",
             orig_name="classical_force",
         ),
-        partial(
-            tasks.copy_in_state,
-            copy_name="dh_qc_dzc_previous",
-            orig_name="dh_qc_dzc",
-        ),
+        # partial(
+        #     tasks.copy_in_state,
+        #     copy_name="dh_qc_dzc_previous",
+        #     orig_name="dh_qc_dzc",
+        # ),
         partial(
             tasks.copy_in_state,
             copy_name="z_previous",
             orig_name="z",
         ),
-        partial(
-            tasks.copy_in_state,
-            copy_name="classical_energy_previous",
-            orig_name="classical_energy",
-        ),
-        partial(
-            tasks.copy_in_state,
-            copy_name="quantum_energy_previous",
-            orig_name="quantum_energy",
-        ),
+        # partial(
+        #     tasks.copy_in_state,
+        #     copy_name="classical_energy_previous",
+        #     orig_name="classical_energy",
+        # ),
+        # partial(
+        #     tasks.copy_in_state,
+        #     copy_name="quantum_energy_previous",
+        #     orig_name="quantum_energy",
+        # ),
         tasks.update_q_velocity_verlet,
         partial(
             tasks.update_ab_initio_property,
