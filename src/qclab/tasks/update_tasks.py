@@ -2142,6 +2142,11 @@ def update_adb_connection(
     wf_overlaps_name:
         Name of the wavefunction overlaps in the State object.
 
+    Constants and Settings
+    ----------------------
+    sim.algorithm.settings.use_wf_overlaps_for_adb_connection: bool, default: False
+        If True, uses a finite difference formula to construct the adiabatic connection
+        from wavefunction overlaps. If False, uses the derivative coupling.
 
     Ingredients
     -----------
@@ -2168,7 +2173,13 @@ def update_adb_connection(
     * N = sim.model.constants.num_quantum_states
     * C = sim.model.constants.num_classical_coordinates
     """
+
+    use_wf_overlaps = sim.algorithm.settings.use_wf_overlaps_for_adb_connection
+
     if wf_overlaps_name in state.keys() and use_wf_overlaps:
+        state, parameters = update_wf_overlaps_gauge(
+            sim, state, parameters, wf_overlaps_name=wf_overlaps_name
+        )
         A = state[wf_overlaps_name]
         state[adb_connection_name] = (1 / (2 * sim.settings.dt_update)) * (
             A - np.transpose(A, axes=(0, 2, 1))
@@ -2193,6 +2204,9 @@ def update_adb_connection(
                 parameters,
                 wf_overlaps_name=wf_overlaps_name,
                 derivative_coupling_dzc_name=derivative_coupling_dzc_name,
+            )
+            state, parameters = update_wf_overlaps_gauge(
+                sim, state, parameters, wf_overlaps_name=wf_overlaps_name
             )
             derivative_coupling_dzc = state[derivative_coupling_dzc_name]
         B = np.sum(

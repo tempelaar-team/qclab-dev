@@ -143,6 +143,7 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
             "fssh_deterministic": False,
             "use_gauge_field_force": False,
             "update_wf_adb_eig_num_substeps": 10,
+            "use_wf_overlaps_for_adb_connection": True,
         }
         super().__init__(self.default_settings, settings)
 
@@ -161,7 +162,6 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
                     "z": "z",
                     "state_inds_derivative_coupling": None,
                 },
-                # "wf_overlaps": {"z": "z", "z_previous": "z_previous"},
             },
         ),
         tasks.update_h_q_tot,
@@ -181,44 +181,44 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
         tasks.update_act_surf_wf,
         tasks.update_quantum_energy_act_surf,
         tasks.update_classical_energy_fssh,
-        partial(
-            tasks.copy_in_state,
-            copy_name="wf_overlaps_adb_connection",
-            orig_name="adb_connection",
-        ),
+        # partial(
+        #     tasks.copy_in_state,
+        #     copy_name="wf_overlaps_adb_connection",
+        #     orig_name="adb_connection",
+        # ),
     ]
 
     update_recipe = [
-        partial(
-            tasks.copy_in_state,
-            copy_name="ab_initio_property_previous",
-            orig_name="ab_initio_property",
-        ),
+        # partial(
+        #     tasks.copy_in_state,
+        #     copy_name="ab_initio_property_previous",
+        #     orig_name="ab_initio_property",
+        # ),
         partial(
             tasks.copy_in_state,
             copy_name="aip_excited_amplitudes_previous",
             orig_name="aip_excited_amplitudes",
         ),
-        partial(
-            tasks.copy_in_state,
-            copy_name="wf_overlaps_adb_connection_previous",
-            orig_name="wf_overlaps_adb_connection",
-        ),
+        # partial(
+        #     tasks.copy_in_state,
+        #     copy_name="wf_overlaps_adb_connection_previous",
+        #     orig_name="wf_overlaps_adb_connection",
+        # ),
         partial(
             tasks.copy_in_state,
             copy_name="eigvecs_previous",
             orig_name="eigvecs",
         ),
-        partial(
-            tasks.copy_in_state,
-            copy_name="derivative_coupling_dzc_previous",
-            orig_name="derivative_coupling_dzc",
-        ),
-        partial(
-            tasks.copy_in_state,
-            copy_name="adb_connection_previous",
-            orig_name="adb_connection",
-        ),
+        # partial(
+        #     tasks.copy_in_state,
+        #     copy_name="derivative_coupling_dzc_previous",
+        #     orig_name="derivative_coupling_dzc",
+        # ),
+        # partial(
+        #     tasks.copy_in_state,
+        #     copy_name="adb_connection_previous",
+        #     orig_name="adb_connection",
+        # ),
         partial(tasks.copy_in_state, copy_name="h_q_tot_previous", orig_name="h_q_tot"),
         partial(
             tasks.copy_in_state,
@@ -262,9 +262,9 @@ class FewestSwitchesSurfaceHoppingAbInitio(Algorithm):
                     "amplitudes_current": "aip_excited_amplitudes",
                 },
             },
+            
         ),
-        tasks.update_wf_overlaps_gauge,
-        partial(tasks.update_adb_connection, use_wf_overlaps=True),
+        tasks.update_adb_connection,
         tasks.update_h_q_tot,
         partial(
             tasks.diagonalize_matrix,
