@@ -2659,11 +2659,11 @@ def update_ab_initio_property(
     -----
     * B = sim.settings.batch_size
     """
-    if not(ab_initio_property_name in parameters):
+    if not (ab_initio_property_name in parameters):
         parameters[ab_initio_property_name] = np.array(
             [{} for _ in range(sim.settings.batch_size)]
         )
-    if not(ab_initio_property_name in state):
+    if not (ab_initio_property_name in state):
         state[ab_initio_property_name] = {}
     ab_initio_property_calculator, has_ab_intio_property_calculator = sim.model.get(
         "ab_initio_property_calculator"
@@ -2686,7 +2686,15 @@ def update_ab_initio_property(
             batch_size=sim.settings.batch_size,
             property_dict=new_property_dict,
         )
-        parameters[ab_initio_property_name] = {**parameters[ab_initio_property_name], **new_ab_initio_property}
+        parameters[ab_initio_property_name] = np.array(
+            [
+                {
+                    **parameters[ab_initio_property_name][traj_ind],
+                    **new_ab_initio_property[traj_ind],
+                }
+                for traj_ind in range(sim.settings.batch_size)
+            ]
+        )
         new_results_dict = {}
         ab_initio_property = parameters[ab_initio_property_name]
         for key in ab_initio_property[0].keys():
