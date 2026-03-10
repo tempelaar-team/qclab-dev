@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class QCLabQChemInterface:
     """
-    Q-Chem interface for QC Lab calculations.
+    Q-Chem interface for ab initio calculations.
     """
 
     def __init__(
@@ -66,7 +66,6 @@ class QCLabQChemInterface:
             "wf_overlaps",
         ]
         # Job specs
-        # the qchem input file.
         self.job_templates = {
             "energy": {
                 "name": "energy",
@@ -135,7 +134,7 @@ class QCLabQChemInterface:
                 "name": "derivative_coupling",
                 "write_derivative_coupling": True,
                 "qchem_parameters": {
-                    "tddft":{
+                    "cis":{
                         "jobtype": "SP",
                         "basis": self.kwargs.get("basis"),
                         "method": self.kwargs.get("exchange"),
@@ -146,7 +145,7 @@ class QCLabQChemInterface:
                         "cis_der_numstate": int(self.kwargs.get("cis_n_roots")) + 1,
                         "sym_ignore": "TRUE",
                     },
-                    "cis":{
+                    "tddft":{
                         "jobtype": "SP",
                         "basis": self.kwargs.get("basis"),
                         "method": self.kwargs.get("exchange"),
@@ -713,7 +712,7 @@ class QCLabQChemInterface:
             )
             gradient_matrix = file_obj[state_ind].split(flag_in)[1]
             gradient_matrix = gradient_matrix.split(flag_out)[0]
-            # Ensure that the gradient matrix is clean
+            # Ensure that the gradient matrix is clean.
             for f in flag_words_out_grad:
                 if gradient_matrix.count(f) != 0:
                     gradient_matrix = gradient_matrix.split(f)[0]
@@ -1032,7 +1031,7 @@ class QCLabQChemInterface:
                 index_restart = i
 
         if num_alpha_electrons != num_beta_electrons:
-            raise ValueError("The software only supports closed-shell calculations.")
+            raise ValueError("The interface only supports closed-shell calculations.")
         x_alpha = []
         y_alpha = []
         for i, line in enumerate(data[index_restart:]):
@@ -1060,7 +1059,7 @@ class QCLabQChemInterface:
 
         # Check that the number of basis functions used for Q-Chem corresponds
         # to the number of basis functions determined from the basis set information.
-        # Q-Chem sometimes can automatically project out near-linear dependencies,
+        # Q-Chem sometimes automatically projects out near-linear dependencies,
         # which reduces the number of MOs below the number of basis functions.
 
         num_basis_functions_check = (
@@ -1073,7 +1072,7 @@ class QCLabQChemInterface:
                 "the number of basis functions determined from the basis set information."
             )
             logger.info(
-                "Q-Chem sometimes can automatically project out near-linear dependencies",
+                "Q-Chem sometimes automatically projects out near-linear dependencies",
                 "which reduces the number of MOs below the number of basis functions."
             )
             raise ValueError(
