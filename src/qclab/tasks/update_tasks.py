@@ -2096,8 +2096,7 @@ def update_adb_connection(
     sim: Simulation,
     state: dict,
     parameters: dict,
-    eigvecs_adb_previous_name: str = "eigvecs_adb_previous",
-    h_q_tot_adb_name: str = "h_q_tot_adb",
+    z_name: str = "z",
     adb_connection_name: str = "adb_connection",
     classical_force_name: str = "classical_force",
     quantum_classical_force_name: str = "quantum_classical_force",
@@ -2122,6 +2121,8 @@ def update_adb_connection(
         B = \\dot{z}^{*}\\cdot U^{\\dagger}\\partial_{z^{*}} U
 
     and :math:`U` is a matrix of adiabatic states (column vectors).
+
+    Updates the derivative coupling if needed.
 
     Optional Keyword Arguments
     --------------------------
@@ -2177,10 +2178,21 @@ def update_adb_connection(
         if derivative_coupling_dzc_name in state:
             derivative_coupling_dzc = state[derivative_coupling_dzc_name]
         else:
-            raise AttributeError(
-                "The state object needs the derivative coupling as: "
-                + derivative_coupling_dzc_name
+            state, parameters = update_derivative_coupling_dzc(
+                sim,
+                state,
+                parameters,
+                z_name=z_name,
+                derivative_coupling_dzc_name=derivative_coupling_dzc_name,
             )
+            state, parameters = update_derivative_coupling_dzc_gauge(
+                sim,
+                state,
+                parameters,
+                wf_overlaps_name=wf_overlaps_name,
+                derivative_coupling_dzc_name=derivative_coupling_dzc_name,
+            )
+            derivative_coupling_dzc = state[derivative_coupling_dzc_name]
         B = np.sum(
             np.conj(dz_dt)[:, :, np.newaxis, np.newaxis] * derivative_coupling_dzc,
             axis=1,
@@ -2659,12 +2671,18 @@ def update_ab_initio_property(
     -----
     * B = sim.settings.batch_size
     """
-    if not (ab_initio_property_name in parameters):
-        parameters[ab_initio_property_name] = np.array(
-            [{} for _ in range(sim.settings.batch_size)]
-        )
-    if not (ab_initio_property_name in state):
-        state[ab_initio_property_name] = {}
+    # if not (ab_initio_property_name in parameters):
+    #     parameters[ab_initio_property_name] = np.array(
+    #         [{} for _ in range(sim.settings.batch_size)]
+    #     )
+    # if not (ab_initio_property_name in state):
+    #     state[ab_initio_property_name] = {}
+
+    parameters[ab_initio_property_name] = np.array(
+        [{} for _ in range(sim.settings.batch_size)]
+    )
+    state[ab_initio_property_name] = {}
+
     ab_initio_property_calculator, has_ab_intio_property_calculator = sim.model.get(
         "ab_initio_property_calculator"
     )
@@ -2686,15 +2704,16 @@ def update_ab_initio_property(
             batch_size=sim.settings.batch_size,
             property_dict=new_property_dict,
         )
-        parameters[ab_initio_property_name] = np.array(
-            [
-                {
-                    **parameters[ab_initio_property_name][traj_ind],
-                    **new_ab_initio_property[traj_ind],
-                }
-                for traj_ind in range(sim.settings.batch_size)
-            ]
-        )
+        # parameters[ab_initio_property_name] = np.array(
+        #     [
+        #         {
+        #             **parameters[ab_initio_property_name][traj_ind],
+        #             **new_ab_initio_property[traj_ind],
+        #         }
+        #         for traj_ind in range(sim.settings.batch_size)
+        #     ]
+        # )
+        parameters[ab_initio_property_name] = new_ab_initio_property
         new_results_dict = {}
         ab_initio_property = parameters[ab_initio_property_name]
         for key in ab_initio_property[0].keys():

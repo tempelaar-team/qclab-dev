@@ -218,11 +218,12 @@ class AbInitio(Model):
             properties = parameters["ab_initio_property"][traj_ind]
             if "derivative_coupling" in properties.keys():
                 derivative_coupling_dq = properties["derivative_coupling"]
-                for key, val in derivative_coupling_dq.items():
-                    out[:, key[0], key[1]] = (
-                        dqdp_to_dzc(val.flatten(), None, m, h) / ANGSTROM_TO_BOHR
-                    )  # Convert from 1/Angstrom to 1/Bohr.
-                    out[:, key[1], key[0]] = -np.conj(out[:, key[0], key[1]])
+                if not(derivative_coupling_dq is None):
+                    for key, val in derivative_coupling_dq.items():
+                        out[:, key[0], key[1]] = (
+                            dqdp_to_dzc(val.flatten(), None, m, h) / ANGSTROM_TO_BOHR
+                        )  # Convert from 1/Angstrom to 1/Bohr.
+                        out[:, key[1], key[0]] = -np.conj(out[:, key[0], key[1]])
                 needs_derivative_coupling = False
             else:
                 needs_derivative_coupling = True
