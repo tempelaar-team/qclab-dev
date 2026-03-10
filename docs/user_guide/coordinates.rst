@@ -22,4 +22,16 @@ the Model object.
 Readers with a keen eye may notice that :math:`h_{n}` has the same role of a frequency in relating the relative displacements of position and momentum. 
 For that reason, it is often a convenient choice when working with harmonic oscillators to set :math:`h_{n}` to the harmonic frequency. Algorithms in 
 QC Lab are implemented in a manner that is invariant of the choice of weights. Likewise, ingredients in QC Lab are also invaraint to the choice of weights,
-however Models in QC Lab may enforce some choice of weights as part of their initialization rather than enabling this to be changed by a user. 
+however, Models may enforce some choice of weights as part of their initialization rather than enabling this to be changed by a user. 
+
+Conversions to and from complex-valued classical coordinates are conveniently implemented in the following functions.
+
+.. automodule:: qclab.ingredients
+   :members:
+   :undoc-members:
+   :member-order: bysource
+   :imported-members:
+   :exclude-members: __all__, __doc__, __annotations__, QCLabQChemInterface
+   :no-value:
+
+
