@@ -2403,9 +2403,9 @@ def update_wf_adb_hop_prob(
                 * wf_adb[np.arange(num_trajs * num_branches), act_surf_ind][
                     :, np.newaxis
                 ]
-                * adb_connection_interp[:, :, act_surf_ind].reshape(
-                    (num_trajs * num_branches, num_quantum_states)
-                )
+                * adb_connection_interp[
+                    np.arange(num_trajs * num_branches, dtype=int), :, act_surf_ind
+                ].reshape((num_trajs * num_branches, num_quantum_states))
                 * dt_update
                 / num_substeps
             )
