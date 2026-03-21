@@ -1,0 +1,176 @@
+"""
+This module contains the cavity Model class.
+"""
+
+import numpy as np
+from qclab.model import Model
+from qclab import ingredients
+from qclab import numerical_constants
+
+
+class FPCavity(Model):
+    """
+    Cavity Model class.
+
+    Reference publication:
+    
+    """
+
+    def __init__(self, constants=None):
+        if constants is None:
+            constants = {}
+        self.default_constants = {
+            "kBT": 0.0,
+            "V": 0.0,
+            "E": 0.394,
+            "A": 400,
+            "CavLength": 2.362E5, # AAK -- some unit info would be useful here. Perhaps a different name? (l) we usually use the paper variables here not desciptors.
+            "mu12": 1.034,
+            "r_atom": 0.5,
+            "c0": 137.036,
+            "epsilon0": 1/4/np.pi
+        }
+        super().__init__(self.default_constants, constants)
+        self.update_dh_qc_dzc = False
+        self.update_h_q = False
+        self.diagonal_h_q = True
+
+    def _init_h_q(self, parameters, **kwargs):
+        self.constants.two_level_00 = self.constants.get("E")
+        self.constants.two_level_11 = 0.0
+        self.constants.two_level_01_re = self.constants.get("V")
+        self.constants.two_level_01_im = 0.0
+        return
+
+    # def _init_h_qc(self, parameters, **kwargs):
+    #     A = self.constants.get("A")
+    #     l_reorg = self.constants.get("l_reorg")
+    #     boson_mass = self.constants.get("boson_mass")
+    #     h = self.constants.classical_coordinate_weight
+    #     w = self.constants.harmonic_frequency
+    #     self.constants.offdiagonal_linear_coupling = np.zeros((2, A))
+    #     self.constants.offdiagonal_linear_coupling[0] = (
+    #         w * np.sqrt(2.0 * l_reorg / A) * (1.0 / np.sqrt(2.0 * boson_mass * h))
+    #     )
+    #     self.constants.offdiagonal_linear_coupling[1] = (
+    #         -w * np.sqrt(2.0 * l_reorg / A) * (1.0 / np.sqrt(2.0 * boson_mass * h))
+    #     )
+    #     return
+
+    # AAK -- This is not really doing anything because it does not modify anything in self.
+    # def _init_h_qc(self, parameters, **kwargs):
+    #     """
+    #     A coupling term that couples the boson coordinates to the off-diagonal elements of the quantum Hamiltonian.
+    #     """
+    #     h = self.constants.classical_coordinate_weight
+    #     mu12 = self.constants.get("mu12")
+    #     alpha = self.constants.get("alpha")
+    #     r_atom = self.constants.get("r_atom")
+    #     l = self.constants.get("CavLength")
+    #     epsilon0 = self.constants.get("epsilon0")
+    #     return
+    
+    def h_qc(model, parameters, **kwargs):
+        z = kwargs['z'] # shape (B, A) where B is the batch size and A is the number of classical coordinates
+        batch_size = z.shape[0]
+        h = model.constants.classical_coordinate_weight
+        w = model.constants.harmonic_frequency
+        mu12 = model.constants.get("mu12")
+        A = model.constants.get("A")
+        alpha = np.arange(1,A+1,1)
+        r_atom = model.constants.get("r_atom")
+        l = model.constants.get("CavLength")
+        epsilon0 = model.constants.get("epsilon0")
+        lambda_alpha = np.sqrt(2/(epsilon0*l)) * np.sin(np.pi * alpha * r_atom) #shape (A,)
+        h_qc = np.zeros((batch_size, 2, 2), dtype=complex)
+        # Then we can populate the off-diagonal elements of the Hamiltonian matrix.
+        h_qc[:, 0, 1] = np.sum(mu12 * w[np.newaxis, :] * lambda_alpha[np.newaxis, :] * np.sqrt(1/(2*h[np.newaxis, :])) * (z + np.conj(z)), axis=1)
+        h_qc[:, 1, 0] = np.conj(h_qc[:, 0, 1])
+        return h_qc 
+
+    def _init_h_c(self, parameters, **kwargs):
+        A = self.constants.get("A")
+        c0 = self.constants.get("c0")
+        alpha = np.arange(1,A+1,1)
+        l = self.constants.get("CavLength")
+        self.constants.harmonic_frequency = (np.pi * c0 * alpha)/l
+        return
+
+    def _init_model(self, parameters, **kwargs):
+        A = self.constants.get("A")
+        self.constants.num_classical_coordinates = A
+        self.constants.num_quantum_states = 2
+        self.constants.classical_coordinate_weight = self.constants.harmonic_frequency
+        self.constants.classical_coordinate_mass = np.ones(A)
+        return
+
+    def dh_qc_dzc(model, parameters, **kwargs):
+        """
+        Gradient of the diagonal linear quantum-classical coupling Hamiltonian
+        in sparse format.
+
+        :math:`[\\partial_{z} H_{qc}]_{ijkl} = \\delta_{kl}\\gamma_{kj}`
+
+        .. rubric:: Keyword Args
+        z : ndarray
+            Complex classical coordinate.
+
+        .. rubric:: Model Constants
+        diagonal_linear_coupling : ndarray
+            Coupling constants :math:`\\gamma`.
+
+        .. rubric:: Returns
+        inds : tuple of ndarray
+            Indices of the non-zero elements of the gradient.
+            ``(batch_index, coordinate_index, row_index, column_index)``.
+        mels : ndarray
+            Values of the non-zero elements of the gradient.
+        shape : tuple
+            Shape of the full gradient array.
+            ``(batch_size, num_classical_coordinates, num_states, num_states)``.
+        """
+        z = kwargs["z"]
+        batch_size = len(z)
+        num_states = model.constants.num_quantum_states
+        num_classical_coordinates = model.constants.num_classical_coordinates
+
+        mu12 = model.constants.get("mu12")
+        A = model.constants.get("A")
+        alpha = np.arange(1,A+1,1)
+        r_atom = model.constants.get("r_atom")
+        l = model.constants.get("CavLength")
+        epsilon0 = model.constants.get("epsilon0")
+        h = model.constants.classical_coordinate_weight
+        w = model.constants.harmonic_frequency
+        lambda_alpha = np.sqrt(2/(epsilon0*l)) * np.sin(np.pi * alpha * r_atom) #shape (A,)
+
+        dh_qc_dzc = np.zeros(
+            (num_classical_coordinates, num_states, num_states), dtype=complex
+        )
+
+        dh_qc_dzc[:, 0, 1] = mu12 * lambda_alpha * np.sqrt(w/2)
+        dh_qc_dzc[:, 1, 0] = np.conj(dh_qc_dzc[:, 0, 1])
+
+        dh_qc_dzc = dh_qc_dzc[np.newaxis, :, :, :] + np.zeros(
+            (batch_size, num_classical_coordinates, num_states, num_states),
+            dtype=complex,
+        )
+        inds = np.where(dh_qc_dzc != 0)
+        mels = dh_qc_dzc[inds]
+        shape = np.shape(dh_qc_dzc)
+        return inds, mels, shape
+
+
+    ingredients = [
+        ("h_q", ingredients.h_q_two_level),
+        ("h_qc", h_qc),
+        ("h_c", ingredients.h_c_harmonic),
+        ("dh_qc_dzc", dh_qc_dzc),
+        ("dh_c_dzc", ingredients.dh_c_dzc_harmonic),
+        ("init_classical", ingredients.init_classical_boltzmann_harmonic),
+        ("hop", ingredients.hop_harmonic),
+        ("_init_h_q", _init_h_q),
+        # ("_init_h_qc", _init_h_qc),
+        ("_init_model", _init_model),
+        ("_init_h_c", _init_h_c),
+    ]
