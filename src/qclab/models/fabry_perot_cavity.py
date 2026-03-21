@@ -10,21 +10,21 @@ from qclab import numerical_constants
 
 class FPCavity(Model):
     """
-    Cavity Model class.
+    Fabry-Perot Cavity Model class.
 
     Reference publication:
-    
+    Hsieh, M.-H., Krotz, A., Tempelaar, Roel. J. Phys. Chem. Lett. 2023, 14, 1253–1258. https://doi.org/10.1021/acs.jpclett.2c03724
     """
 
     def __init__(self, constants=None):
         if constants is None:
             constants = {}
-        self.default_constants = {
+        self.default_constants = { # Constants are in atomic units.
             "kBT": 0.0,
             "V": 0.0,
             "E": 0.394,
             "A": 400,
-            "CavLength": 2.362E5, # AAK -- some unit info would be useful here. Perhaps a different name? (l) we usually use the paper variables here not desciptors.
+            "l": 2.362E5,
             "mu12": 1.034,
             "r_atom": 0.5,
             "c0": 137.036,
@@ -41,34 +41,6 @@ class FPCavity(Model):
         self.constants.two_level_01_re = self.constants.get("V")
         self.constants.two_level_01_im = 0.0
         return
-
-    # def _init_h_qc(self, parameters, **kwargs):
-    #     A = self.constants.get("A")
-    #     l_reorg = self.constants.get("l_reorg")
-    #     boson_mass = self.constants.get("boson_mass")
-    #     h = self.constants.classical_coordinate_weight
-    #     w = self.constants.harmonic_frequency
-    #     self.constants.offdiagonal_linear_coupling = np.zeros((2, A))
-    #     self.constants.offdiagonal_linear_coupling[0] = (
-    #         w * np.sqrt(2.0 * l_reorg / A) * (1.0 / np.sqrt(2.0 * boson_mass * h))
-    #     )
-    #     self.constants.offdiagonal_linear_coupling[1] = (
-    #         -w * np.sqrt(2.0 * l_reorg / A) * (1.0 / np.sqrt(2.0 * boson_mass * h))
-    #     )
-    #     return
-
-    # AAK -- This is not really doing anything because it does not modify anything in self.
-    # def _init_h_qc(self, parameters, **kwargs):
-    #     """
-    #     A coupling term that couples the boson coordinates to the off-diagonal elements of the quantum Hamiltonian.
-    #     """
-    #     h = self.constants.classical_coordinate_weight
-    #     mu12 = self.constants.get("mu12")
-    #     alpha = self.constants.get("alpha")
-    #     r_atom = self.constants.get("r_atom")
-    #     l = self.constants.get("CavLength")
-    #     epsilon0 = self.constants.get("epsilon0")
-    #     return
     
     def h_qc(model, parameters, **kwargs):
         z = kwargs['z'] # shape (B, A) where B is the batch size and A is the number of classical coordinates
@@ -79,11 +51,10 @@ class FPCavity(Model):
         A = model.constants.get("A")
         alpha = np.arange(1,A+1,1)
         r_atom = model.constants.get("r_atom")
-        l = model.constants.get("CavLength")
+        l = model.constants.get("l")
         epsilon0 = model.constants.get("epsilon0")
         lambda_alpha = np.sqrt(2/(epsilon0*l)) * np.sin(np.pi * alpha * r_atom) #shape (A,)
         h_qc = np.zeros((batch_size, 2, 2), dtype=complex)
-        # Then we can populate the off-diagonal elements of the Hamiltonian matrix.
         h_qc[:, 0, 1] = np.sum(mu12 * w[np.newaxis, :] * lambda_alpha[np.newaxis, :] * np.sqrt(1/(2*h[np.newaxis, :])) * (z + np.conj(z)), axis=1)
         h_qc[:, 1, 0] = np.conj(h_qc[:, 0, 1])
         return h_qc 
@@ -92,7 +63,7 @@ class FPCavity(Model):
         A = self.constants.get("A")
         c0 = self.constants.get("c0")
         alpha = np.arange(1,A+1,1)
-        l = self.constants.get("CavLength")
+        l = self.constants.get("l")
         self.constants.harmonic_frequency = (np.pi * c0 * alpha)/l
         return
 
@@ -138,7 +109,7 @@ class FPCavity(Model):
         A = model.constants.get("A")
         alpha = np.arange(1,A+1,1)
         r_atom = model.constants.get("r_atom")
-        l = model.constants.get("CavLength")
+        l = model.constants.get("l")
         epsilon0 = model.constants.get("epsilon0")
         h = model.constants.classical_coordinate_weight
         w = model.constants.harmonic_frequency
@@ -170,7 +141,6 @@ class FPCavity(Model):
         ("init_classical", ingredients.init_classical_boltzmann_harmonic),
         ("hop", ingredients.hop_harmonic),
         ("_init_h_q", _init_h_q),
-        # ("_init_h_qc", _init_h_qc),
         ("_init_model", _init_model),
         ("_init_h_c", _init_h_c),
     ]
