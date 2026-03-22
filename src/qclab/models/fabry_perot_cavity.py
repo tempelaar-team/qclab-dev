@@ -21,11 +21,11 @@ class FPCavity(Model):
             constants = {}
         self.default_constants = { # Constants are in atomic units.
             "kBT": 0.0,
-            "V": 0.0,
-            "E": 0.394,
-            "A": 400,
-            "l": 2.362E5,
-            "mu12": 1.034,
+            "epsilon_g": -0.6738,
+            "epsilon_e": -0.2798,
+            "N": 400,
+            "L": 2.362E5,
+            "mu": 1.034,
             "r_atom": 0.5,
             "c0": 137.036,
             "epsilon0": 1/4/np.pi
@@ -36,10 +36,9 @@ class FPCavity(Model):
         self.diagonal_h_q = True
 
     def _init_h_q(self, parameters, **kwargs):
-        self.constants.two_level_00 = self.constants.get("E")
+        energy_level = self.constants.get("epsilon_e") - self.constants.get("epsilon_g")
+        self.constants.two_level_00 = energy_level
         self.constants.two_level_11 = 0.0
-        self.constants.two_level_01_re = self.constants.get("V")
-        self.constants.two_level_01_im = 0.0
         return
     
     def h_qc(model, parameters, **kwargs):
@@ -47,32 +46,32 @@ class FPCavity(Model):
         batch_size = z.shape[0]
         h = model.constants.classical_coordinate_weight
         w = model.constants.harmonic_frequency
-        mu12 = model.constants.get("mu12")
-        A = model.constants.get("A")
-        alpha = np.arange(1,A+1,1)
+        mu = model.constants.get("mu")
+        N = model.constants.get("N")
+        alpha = np.arange(1, N+1, 1)
         r_atom = model.constants.get("r_atom")
-        l = model.constants.get("l")
+        L = model.constants.get("L")
         epsilon0 = model.constants.get("epsilon0")
-        lambda_alpha = np.sqrt(2/(epsilon0*l)) * np.sin(np.pi * alpha * r_atom) #shape (A,)
+        lambda_alpha = np.sqrt(2/(epsilon0 * L)) * np.sin(np.pi * alpha * r_atom) #shape (N,)
         h_qc = np.zeros((batch_size, 2, 2), dtype=complex)
-        h_qc[:, 0, 1] = np.sum(mu12 * w[np.newaxis, :] * lambda_alpha[np.newaxis, :] * np.sqrt(1/(2*h[np.newaxis, :])) * (z + np.conj(z)), axis=1)
+        h_qc[:, 0, 1] = np.sum(mu * w[np.newaxis, :] * lambda_alpha[np.newaxis, :] * np.sqrt(1/(2 * h[np.newaxis, :])) * (z + np.conj(z)), axis=1)
         h_qc[:, 1, 0] = np.conj(h_qc[:, 0, 1])
         return h_qc 
 
     def _init_h_c(self, parameters, **kwargs):
-        A = self.constants.get("A")
+        N = self.constants.get("N")
         c0 = self.constants.get("c0")
-        alpha = np.arange(1,A+1,1)
-        l = self.constants.get("l")
-        self.constants.harmonic_frequency = (np.pi * c0 * alpha)/l
+        alpha = np.arange(1, N+1, 1)
+        L = self.constants.get("L")
+        self.constants.harmonic_frequency = (np.pi * c0 * alpha)/L
         return
 
     def _init_model(self, parameters, **kwargs):
-        A = self.constants.get("A")
-        self.constants.num_classical_coordinates = A
+        N = self.constants.get("N")
+        self.constants.num_classical_coordinates = N
         self.constants.num_quantum_states = 2
         self.constants.classical_coordinate_weight = self.constants.harmonic_frequency
-        self.constants.classical_coordinate_mass = np.ones(A)
+        self.constants.classical_coordinate_mass = np.ones(N)
         return
 
     def dh_qc_dzc(model, parameters, **kwargs):
@@ -105,21 +104,21 @@ class FPCavity(Model):
         num_states = model.constants.num_quantum_states
         num_classical_coordinates = model.constants.num_classical_coordinates
 
-        mu12 = model.constants.get("mu12")
-        A = model.constants.get("A")
-        alpha = np.arange(1,A+1,1)
+        mu = model.constants.get("mu")
+        N = model.constants.get("N")
+        alpha = np.arange(1, N+1, 1)
         r_atom = model.constants.get("r_atom")
-        l = model.constants.get("l")
+        L = model.constants.get("L")
         epsilon0 = model.constants.get("epsilon0")
         h = model.constants.classical_coordinate_weight
         w = model.constants.harmonic_frequency
-        lambda_alpha = np.sqrt(2/(epsilon0*l)) * np.sin(np.pi * alpha * r_atom) #shape (A,)
+        lambda_alpha = np.sqrt(2/(epsilon0 * L)) * np.sin(np.pi * alpha * r_atom) #shape (N,)
 
         dh_qc_dzc = np.zeros(
             (num_classical_coordinates, num_states, num_states), dtype=complex
         )
 
-        dh_qc_dzc[:, 0, 1] = mu12 * lambda_alpha * np.sqrt(w/2)
+        dh_qc_dzc[:, 0, 1] = mu * lambda_alpha * np.sqrt(w/2)
         dh_qc_dzc[:, 1, 0] = np.conj(dh_qc_dzc[:, 0, 1])
 
         dh_qc_dzc = dh_qc_dzc[np.newaxis, :, :, :] + np.zeros(
