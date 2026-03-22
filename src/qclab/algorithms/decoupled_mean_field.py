@@ -5,7 +5,7 @@ This module contains the DCMeanField algorithm class.
 
 from functools import partial
 from qclab.algorithm import Algorithm
-from qclab import tasks
+from qclab import model, tasks
 from qclab import ingredients
 import numpy as np 
 from qclab import Simulation
@@ -90,8 +90,7 @@ def init_classical_wigner_harmonic_new(model, parameters, **kwargs):
     w = model.constants.harmonic_frequency
     m = model.constants.classical_coordinate_mass
     h = model.constants.classical_coordinate_weight
-    if kwargs.get("kBT", None) is None:
-        kBT = model.constants.kBT
+    kBT = model.constants.kBT if kwargs.get("kBT") is None else kwargs["kBT"]
     z = np.zeros(
         (len(seed), model.constants.num_classical_coordinates), dtype=complex
     )
@@ -466,9 +465,9 @@ def update_quantum_classical_force_dcmf(
     return state, parameters
 
 
-class DCMeanField(Algorithm):
+class DecoupledMeanField(Algorithm):
     """
-    DC Mean-field dynamics algorithm class.
+    Decoupled Mean-field dynamics algorithm class.
     """
 
     def __init__(self, settings=None):
