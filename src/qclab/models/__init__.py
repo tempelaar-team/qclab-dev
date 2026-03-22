@@ -14,3 +14,4 @@ from qclab.models.tully_problem_three import TullyProblemThree
 from qclab.utils import DISABLE_ASE
 if not(DISABLE_ASE):
     from qclab.models.ab_initio import AbInitio
+from qclab.models.fabry_perot_cavity import FPCavity
