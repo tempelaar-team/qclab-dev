@@ -7,3 +7,4 @@ from qclab.algorithms.fewest_switches_surface_hopping import (
     FewestSwitchesSurfaceHopping,
     FewestSwitchesSurfaceHoppingAbInitio,
 )
+from qclab.algorithms.decoupled_mean_field import DecoupledMeanField
