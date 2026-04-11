@@ -422,33 +422,36 @@ def update_quantum_classical_force_dcmf(
             out=state[quantum_classical_force_vac_name].reshape(-1),
         ).reshape(np.shape(z_vac))
 
-        #TODO: Not yet fully implemented
         if getattr(sim.algorithm.settings, "use_energy_conserving_force", False):
             m = sim.model.constants.classical_coordinate_mass
             h = sim.model.constants.classical_coordinate_weight
             w = sim.model.constants.harmonic_frequency
             kBT = sim.model.constants.kBT
 
-            drho_dt = (state[pop_adb_h_q_name] - state[pop_adb_h_q_prev_name]) / sim.settings.dt_update
+            rho_now = state[pop_adb_h_q_name]
+            rho_prev = state[pop_adb_h_q_prev_name]
+            shape_ref = np.shape(state[h_qc_vac_name])
+            rho_now_row = rho_now[:, :, None] * np.ones(shape_ref)
+            rho_now_col = rho_now[:, None, :] * np.ones(shape_ref)
+            rho_prev_row = rho_prev[:, :, None] * np.ones(shape_ref)
+            rho_prev_col = rho_prev[:, None, :] * np.ones(shape_ref)
             p = functions.z_to_p(z, m, h)
             p_vac = functions.z_to_p(z_vac, m, h)
 
             if sim.model.diagonal_h_q:
                 h_qc_vac = state[h_qc_vac_name]
-                drho_dt_weighted_row = drho_dt[:, :, None] * np.ones_like(h_qc_vac).real
-                drho_dt_weighted_col = drho_dt[:, None, :] * np.ones_like(h_qc_vac).real
-                denom = drho_dt_weighted_row + drho_dt_weighted_col + numerical_constants.SMALL
-                num = np.where(state[mask_name], drho_dt_weighted_col, drho_dt_weighted_row)
-                drho_dq_hqc = (num / denom) * h_qc_vac
+                gamma_now = np.where(state[mask_name], rho_now_col, rho_now_row)/(rho_now_col + rho_now_row + numerical_constants.SMALL)
+                gamma_prev = np.where(state[mask_name], rho_prev_col, rho_prev_row)/(rho_prev_col + rho_prev_row + numerical_constants.SMALL)
+                dgamma_dt = (gamma_now - gamma_prev) / sim.settings.dt_update
+                drho_dq_hqc = dgamma_dt * h_qc_vac
                 drho_dq_hqc_expectation_value = np.real(np.einsum('bi,bij,bj->b', wf.conj(), drho_dq_hqc, wf, optimize="greedy"))
 
             else:
                 h_qc_vac_adb_h_q = state[h_qc_vac_adb_h_q_name]
-                drho_dt_weighted_row = drho_dt[:, :, None] * np.ones_like(h_qc_vac_adb_h_q).real
-                drho_dt_weighted_col = drho_dt[:, None, :] * np.ones_like(h_qc_vac_adb_h_q).real
-                denom = drho_dt_weighted_row + drho_dt_weighted_col + numerical_constants.SMALL
-                num = np.triu(drho_dt_weighted_col) + np.tril(drho_dt_weighted_row, k=-1)
-                drho_dq_hqc_adb_h_q = (num / denom) * h_qc_vac_adb_h_q
+                gamma_now = (np.triu(rho_now_col) + np.tril(rho_now_row, k=-1))/(rho_now_col + rho_now_row + numerical_constants.SMALL)
+                gamma_prev = (np.triu(rho_prev_col) + np.tril(rho_prev_row, k=-1))/(rho_prev_col + rho_prev_row + numerical_constants.SMALL)
+                dgamma_dt = (gamma_now - gamma_prev) / sim.settings.dt_update
+                drho_dq_hqc_adb_h_q = dgamma_dt * h_qc_vac_adb_h_q
                 drho_dq_hqc_expectation_value = np.real(np.einsum('bi,bij,bj->b', wf.conj(), drho_dq_hqc_adb_h_q, wf, optimize="greedy"))
 
             if kBT > 0:
