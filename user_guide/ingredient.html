@@ -1,0 +1,1091 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Ingredients &#8212; QC Lab  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c1c6b95" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=55c26ed414f5f8a31ebb"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
+
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=b8b12719"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/ingredient';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://tempelaar-team.github.io/qclab-dev/user_guide/ingredient.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tasks" href="task.html" />
+    <link rel="prev" title="User Guide" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo-light.png" class="logo__image only-light" alt="QC Lab  documentation - Home"/>
+    <img src="../_static/logo-dark.png" class="logo__image only-dark pst-js-only" alt="QC Lab  documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../interactive_docs/index.html">
+    Quick Menu
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qclab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../interactive_docs/index.html">
+    Quick Menu
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qclab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="algorithm.html">Algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Ingredients</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="ingredients">
+<span id="ingredient"></span><h1>Ingredients<a class="headerlink" href="#ingredients" title="Link to this heading">#</a></h1>
+<p>Ingredients are functions that encode the physics of a model. QC Lab is designed to be operational with a minimal set of ingredients that describe the Hamiltonian of the system which is assumed to have the form:</p>
+<div class="math notranslate nohighlight">
+\[H(q,p) = \hat{H}_{\mathrm{q}} + \hat{H}_{\mathrm{q-c}}(q) + H_{\mathrm{c}}(q,p)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\hat{H}_\mathrm{q}\)</span> is the quantum Hamiltonian, <span class="math notranslate nohighlight">\(\hat{H}_{\mathrm{q-c}}(q)\)</span> is the quantum-classical coupling Hamiltonian, and <span class="math notranslate nohighlight">\(H_{\mathrm{c}}(q,p)\)</span> is the classical Hamiltonian.
+As discussed in the <a class="reference internal" href="model.html#model"><span class="std std-ref">Model</span></a> section, models defined in an adiabatic basis also provide the derivative coupling tensor <span class="math notranslate nohighlight">\(d^{n}_{ij}(q)=\langle i(q)\vert\partial_{n}\vert j(q)\rangle\)</span>.</p>
+<p>A generic ingredient has the form:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">ingredient_specifier</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c1"># Get any keyword arguments, with default values if not provided.</span>
+    <span class="n">kwarg1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kwarg1&#39;</span><span class="p">,</span> <span class="n">default_value1</span><span class="p">)</span>
+    <span class="c1"># Compute the ingredient using attributes of the model and parameters objects.</span>
+    <span class="n">constants</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span>
+    <span class="c1"># Return the computed ingredient.</span>
+    <span class="k">return</span> <span class="n">ingredient</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">model</span></code> is a Model object which contains all the constants of the model, <code class="docutils literal notranslate"><span class="pre">parameters</span></code> is a dictionary containing time-dependent parameters of the simulation, and <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> are any additional keyword arguments that are specific to that ingredient type.</p>
+<p>Ingredients in QC lab can come in different variations, for example the quantum Hamiltonian ingredient could describe a two-level system, a nearest-neighbor lattice, or a more complicated Hamiltonian. The type and variety of an ingredient is specified in its name which follows the convention <code class="docutils literal notranslate"><span class="pre">&lt;ingredient_type&gt;_&lt;variety&gt;</span></code>. For example, the quantum Hamiltonian ingredient for a two-level system is named <code class="docutils literal notranslate"><span class="pre">h_q_two_level</span></code> where <code class="docutils literal notranslate"><span class="pre">h_q</span></code> indicates that it is a quantum Hamiltonian ingredient and <code class="docutils literal notranslate"><span class="pre">two_level</span></code> indicates that it describes a two-level system. Likewise the classical Hamiltonian ingredient for a harmonic oscillator is named <code class="docutils literal notranslate"><span class="pre">h_c_harmonic</span></code> where <code class="docutils literal notranslate"><span class="pre">h_c</span></code> indicates that it is a classical Hamiltonian ingredient and <code class="docutils literal notranslate"><span class="pre">harmonic</span></code> indicates that it describes a harmonic oscillator.</p>
+<p>Ingredients can be included in a model by appending them to the model’s <code class="docutils literal notranslate"><span class="pre">ingredients</span></code> attribute, which is a list of tuples where each tuple contains the name of the ingredient and the ingredient function itself. Because the ingredients list is read back to front, appending an ingredient is sufficient to overwrite any existing ingredient with the same name. For example, to include a custom quantum Hamiltonian ingredient in a model, one would do:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">h_q_custom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c1"># Custom quantum Hamiltonian implementation.</span>
+    <span class="n">h_q</span> <span class="o">=</span> <span class="o">...</span>
+    <span class="k">return</span> <span class="n">h_q</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">ingredients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;h_q&quot;</span><span class="p">,</span> <span class="n">h_q_custom</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The minimal set of ingredients required to run a simulation are:</p>
+<ul class="simple">
+<li><p>A quantum Hamiltonian ingredient, named <code class="docutils literal notranslate"><span class="pre">h_q</span></code>.</p></li>
+<li><p>A classical Hamiltonian ingredient, named <code class="docutils literal notranslate"><span class="pre">h_c</span></code>.</p></li>
+<li><p>A quantum-classical coupling Hamiltonian ingredient, named <code class="docutils literal notranslate"><span class="pre">h_qc</span></code>.</p></li>
+<li><p>A derivative coupling tensor ingredient (only required for models defined in an adiabatic basis), named <code class="docutils literal notranslate"><span class="pre">derivative_coupling_dzc</span></code>.</p></li>
+</ul>
+<p>Additional optional ingredients that make the simulation more efficient or accurate are:</p>
+<ul class="simple">
+<li><p>An initialization function for the classical coordinates, named <code class="docutils literal notranslate"><span class="pre">init_classical</span></code>.</p></li>
+<li><p>A gradient of the classical Hamiltonian with respect to the conjugate of the <a class="reference internal" href="coordinates.html#coordinates"><span class="std std-ref">complex classical coordinates</span></a>, named <code class="docutils literal notranslate"><span class="pre">dh_c_dzc</span></code>.</p></li>
+<li><p>A gradient of the quantum-classical coupling Hamiltonian with respect to the conjugate of the <a class="reference internal" href="coordinates.html#coordinates"><span class="std std-ref">complex classical coordinates</span></a>, named <code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code>.</p></li>
+<li><p>A hopping function for surface hopping algorithms, named <code class="docutils literal notranslate"><span class="pre">hop</span></code>.</p></li>
+<li><p>An ab initio property calculator that calculates physical properties with an interface to an electronic structure theory code, named <code class="docutils literal notranslate"><span class="pre">ab_initio_property_calculator</span></code>.</p></li>
+</ul>
+<section id="vectorization">
+<h2>Vectorization<a class="headerlink" href="#vectorization" title="Link to this heading">#</a></h2>
+<p>By default, QC Lab assumes that ingredients are implemented in a vectorized fashion. This means that, rather than constructing the respective term for an individual trajectory, each ingredient constructs the term for all trajectories in a batch at once. Additionally, any keyword argument associated with an ingredient that is a NumPy array will have an initial trajectory dimension. For example, the quantum-classical Hamiltonian ingredient <code class="docutils literal notranslate"><span class="pre">h_qc</span></code> has a keyword argument <code class="docutils literal notranslate"><span class="pre">z</span></code> which is the <a class="reference internal" href="coordinates.html#coordinates"><span class="std std-ref">complex classical coordinate</span></a>. If the batch size is 100, then <code class="docutils literal notranslate"><span class="pre">z</span></code> will have shape <code class="docutils literal notranslate"><span class="pre">(100,</span> <span class="pre">model.constants.num_classical_coordinates)</span></code> where <code class="docutils literal notranslate"><span class="pre">model.constants.num_classical_coordinates</span></code> is the number of classical coordinates in the model. The output of the <code class="docutils literal notranslate"><span class="pre">h_qc</span></code> ingredient will then have shape <code class="docutils literal notranslate"><span class="pre">(100,</span> <span class="pre">model.constants.num_quantum_states,</span> <span class="pre">model.constants.num_quantum_states)</span></code> where <code class="docutils literal notranslate"><span class="pre">model.constants.num_quantum_states</span></code> is the number of quantum states in the model.</p>
+<p>Rather than implementing this vectorization yourself, you can use the <code class="docutils literal notranslate"><span class="pre">&#64;vectorize_ingredient</span></code> decorator provided in the <code class="docutils literal notranslate"><span class="pre">qclab.functions</span></code> module. This decorator will automatically vectorize an ingredient that is implemented for a single trajectory (i.e., without any batch dimension). For example, the following implementation of the quantum Hamiltonian ingredient for a two-level system is not vectorized:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qclab.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">vectorize_ingredient</span>
+
+<span class="nd">@vectorize_ingredient</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">h_q_two_level</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Quantum Hamiltonian for a two-level system.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">e_0</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_00</span>
+    <span class="n">e_1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_11</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_01_re</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_01_im</span>
+    <span class="n">h_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">h_q</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">e_0</span>
+    <span class="n">h_q</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">e_1</span>
+    <span class="n">h_q</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="n">h_q</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">h_q</span>
+</pre></div>
+</div>
+<p>The ingredient can then be included in a model as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">ingredients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;h_q&quot;</span><span class="p">,</span> <span class="n">h_q_two_level</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The vectorization decorator promotes compatibility and ease of use but does not offer any performance gain. To realize a performance gain, users
+should hard-code vectorization into Ingredients and leverage NumPy vectorization.</p>
+</div>
+<p>Alternatively, vectorization can be implemented manually. For example, the following implementation of the quantum Hamiltonian ingredient for a two-level system is manually vectorized as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">h_q_two_level</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Quantum Hamiltonian for a two-level system.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]</span>
+    <span class="n">e_0</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_00</span>
+    <span class="n">e_1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_11</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_01_re</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_01_im</span>
+    <span class="n">h_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">h_q</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">e_0</span>
+    <span class="n">h_q</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">e_1</span>
+    <span class="n">h_q</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="n">h_q</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+    <span class="c1"># Here we use np.broadcast_to to add the batch dimension to the output.</span>
+    <span class="c1"># This is only possible because the output does not depend on any trajectory-specific</span>
+    <span class="c1"># information.</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">h_q</span><span class="p">,</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="sparse-quantum-classical-gradients">
+<h2>Sparse Quantum-Classical Gradients<a class="headerlink" href="#sparse-quantum-classical-gradients" title="Link to this heading">#</a></h2>
+<p>If left unspecified, the gradient of the quantum-classical Hamiltonian will be calculated numerically using finite differences. This can be computationally expensive and may introduce inaccuracies. This can be avoided by providing an analytical implementation of the gradient ingredient <code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code>. In QC Lab, we implement this gradient in a sparse manner, meaning that we only compute the non-zero elements of the gradient matrix. This reduces the potentially large gradient tensor with shape <code class="docutils literal notranslate"><span class="pre">(sim.settings.batch_size,</span> <span class="pre">model.constants.num_classical_coordinates,</span> <span class="pre">model.constants.num_quantum_states,</span> <span class="pre">model.constants.num_quantum_states)</span></code> to a list of non-zero elements, <code class="docutils literal notranslate"><span class="pre">mels</span></code>, their indices <code class="docutils literal notranslate"><span class="pre">inds</span></code>, and the shape of the full tensor <code class="docutils literal notranslate"><span class="pre">shape</span></code>.</p>
+<p>In practice, the ordering of the matrix elements can have a dramatic impact on performance due to memory access patterns. Therefore, we recommend using <code class="docutils literal notranslate"><span class="pre">numpy.where</span></code> to determine the indices of the non-zero elements. For example, the following implementation of the gradient of the quantum-classical Hamiltonian for a spin-boson model computes only the non-zero elements of the gradient:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@vectorize_ingredient</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">dh_qc_dzc_spinboson</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">]</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
+    <span class="n">diag_coupling</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">diagonal_linear_coupling</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">A</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">A</span><span class="p">):</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">diag_coupling</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">diag_coupling</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+    <span class="n">inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">out</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">mels</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="n">inds</span><span class="p">]</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="n">A</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">inds</span><span class="p">,</span> <span class="n">mels</span><span class="p">,</span> <span class="n">shape</span>
+</pre></div>
+</div>
+<p>An ingredient that returns dense tensor output can be automatically converted to returning a sparse tensor by invoking the <code class="docutils literal notranslate"><span class="pre">&#64;make_ingredient_sparse</span></code>
+decorator from the <code class="docutils literal notranslate"><span class="pre">qclab.functions</span></code> module.
+This decorator determines the non-zero elements of a dense tensor, their indices, and the shape of the full tensor.
+For example, the following implementation of the gradient of the quantum-classical Hamiltonian for a spin-boson model is dense,
+but made sparse by the decorator:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qclab.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_ingredient_sparse</span>
+
+<span class="nd">@make_ingredient_sparse</span>
+<span class="nd">@vectorize_ingredient</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">dh_qc_dzc_spinboson</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">]</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
+    <span class="n">diag_coupling</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">diagonal_linear_coupling</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">A</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">A</span><span class="p">):</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">diag_coupling</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">diag_coupling</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out</span>
+</pre></div>
+</div>
+<p>Of course, the most efficient implementation is one that is both analytical and sparse without invoking the decorator. This is what is implemented in the ingredient <code class="docutils literal notranslate"><span class="pre">ingredients.dh_qc_dzc_diagonal_linear</span></code> which is included in the Spin-Boson model by default.</p>
+</section>
+<section id="ingredients-in-qc-lab">
+<h2>Ingredients in QC Lab<a class="headerlink" href="#ingredients-in-qc-lab" title="Link to this heading">#</a></h2>
+<p>The built-in ingredients in QC Lab can be found in the <code class="docutils literal notranslate"><span class="pre">qclab.ingredients</span></code> module.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All ingredients assume that the Model object has a minimal set of constants including <code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code>
+(the number of quantum states) and <code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code> (the number of classical coordinates), <code class="docutils literal notranslate"><span class="pre">classical_coordinate_mass</span></code>
+(the mass of the classical coordinates), and <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code> (the weight of the classical coordinates).
+These constants are discussed in <a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>. For brevity we exclude explicit mention of these constants in the ingredient documentation.</p>
+</div>
+<p id="module-qclab.ingredients">This module contains ingredients for use in Model classes.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.h_c_harmonic">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">h_c_harmonic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.h_c_harmonic" title="Link to this definition">#</a></dt>
+<dd><p>Harmonic oscillator classical Hamiltonian function.</p>
+<p><span class="math notranslate nohighlight">\(H_{\mathrm{c}} = \frac{1}{2}\sum_{n} \left( \frac{p_n^2}{m_n} + m_n \omega_n^2 q_n^2 \right)\)</span></p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>complex classical coordinates.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<dl class="simple">
+<dt>harmonic_frequency<span class="classifier">ndarray</span></dt><dd><p>Harmonic frequency of each classical coordinate.</p>
+</dd>
+</dl>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>h_c<span class="classifier">ndarray</span></dt><dd><p>Classical Hamiltonian.
+<code class="docutils literal notranslate"><span class="pre">(batch_size,)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.h_c_free">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">h_c_free</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.h_c_free" title="Link to this definition">#</a></dt>
+<dd><p>Free particle classical Hamiltonian function.</p>
+<p><span class="math notranslate nohighlight">\(H_{\mathrm{c}} = \sum_{n} \left( \frac{p_n^2}{2m_n} \right)\)</span></p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>complex classical coordinates.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<p>None</p>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>h_c<span class="classifier">ndarray</span></dt><dd><p>Classical Hamiltonian.
+<code class="docutils literal notranslate"><span class="pre">(batch_size,)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.dh_c_dzc_harmonic">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">dh_c_dzc_harmonic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.dh_c_dzc_harmonic" title="Link to this definition">#</a></dt>
+<dd><p>Derivative of the harmonic oscillator classical Hamiltonian function with respect to
+the conjugate <span class="math notranslate nohighlight">\(z\)</span> coordinate. This is an ingredient that calls the low-level
+function <code class="docutils literal notranslate"><span class="pre">dh_c_dzc_harmonic_jit</span></code>.</p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>complex classical coordinates.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<dl class="simple">
+<dt>harmonic_frequency<span class="classifier">ndarray</span></dt><dd><p>Harmonic frequency of each classical coordinate.</p>
+</dd>
+</dl>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>dh_c_dzc<span class="classifier">ndarray</span></dt><dd><p>Gradient of the classical Hamiltonian with respect to the conjugate classical
+coordinate.
+<code class="docutils literal notranslate"><span class="pre">(batch_size,</span> <span class="pre">num_classical_coordinates)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.dh_c_dzc_free">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">dh_c_dzc_free</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.dh_c_dzc_free" title="Link to this definition">#</a></dt>
+<dd><p>Derivative of the free particle classical Hamiltonian function with respect to the
+conjugate <span class="math notranslate nohighlight">\(z\)</span> coordinate.</p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>complex classical coordinates.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<p>None</p>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>dh_c_dzc<span class="classifier">ndarray</span></dt><dd><p>Gradient of the classical Hamiltonian with respect to the conjugate classical
+coordinate.
+<code class="docutils literal notranslate"><span class="pre">(batch_size,</span> <span class="pre">num_classical_coordinates)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.h_q_two_level">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">h_q_two_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.h_q_two_level" title="Link to this definition">#</a></dt>
+<dd><p>Quantum Hamiltonian for a two-level system.</p>
+<p><span class="math notranslate nohighlight">\(H_{nm} = \delta_{nm}\mathrm{two\_level\_nn}+(1-\delta_{nm})(\mathrm{two\_level\_nm\_re} + i\, \mathrm{two\_level\_nm\_im})\)</span></p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>batch_size<span class="classifier">int</span></dt><dd><p>Number of trajectories in a batch.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<dl class="simple">
+<dt>two_level_00<span class="classifier">float</span></dt><dd><p>Energy of the first level.</p>
+</dd>
+<dt>two_level_11<span class="classifier">float</span></dt><dd><p>Energy of the second level.</p>
+</dd>
+<dt>two_level_01_re<span class="classifier">float</span></dt><dd><p>Real part of the off-diagonal coupling.</p>
+</dd>
+<dt>two_level_01_im<span class="classifier">float</span></dt><dd><p>Imaginary part of the off-diagonal coupling.</p>
+</dd>
+</dl>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>h_q<span class="classifier">ndarray</span></dt><dd><p>Quantum Hamiltonian.
+<code class="docutils literal notranslate"><span class="pre">(batch_size,</span> <span class="pre">num_states,</span> <span class="pre">num_states)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.h_q_nearest_neighbor">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">h_q_nearest_neighbor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.h_q_nearest_neighbor" title="Link to this definition">#</a></dt>
+<dd><p>Quantum Hamiltonian for a nearest-neighbor lattice.</p>
+<p><span class="math notranslate nohighlight">\(H_{nm} = -t (\delta_{n,m+1} + \delta_{n,m-1})\)</span></p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>batch_size<span class="classifier">int</span></dt><dd><p>Number of trajectories in a batch.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<dl class="simple">
+<dt>nearest_neighbor_hopping_energy<span class="classifier">float</span></dt><dd><p>Hopping energy between sites <span class="math notranslate nohighlight">\(t\)</span>.</p>
+</dd>
+<dt>nearest_neighbor_periodic<span class="classifier">bool</span></dt><dd><p>Whether to apply periodic boundary conditions.</p>
+</dd>
+</dl>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>h_q<span class="classifier">ndarray</span></dt><dd><p>Quantum Hamiltonian.
+<code class="docutils literal notranslate"><span class="pre">(batch_size,</span> <span class="pre">num_states,</span> <span class="pre">num_states)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.h_qc_diagonal_linear">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">h_qc_diagonal_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.h_qc_diagonal_linear" title="Link to this definition">#</a></dt>
+<dd><p>Diagonal linear quantum-classical Hamiltonian.</p>
+<p><span class="math notranslate nohighlight">\(H_{nm} = \delta_{nm}\sum_{j} \gamma_{nj} (z_{j} + z_{j}^*)\)</span></p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>complex classical coordinates.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<dl class="simple">
+<dt>diagonal_linear_coupling<span class="classifier">ndarray</span></dt><dd><p>Coupling constants <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+</dd>
+</dl>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>h_qc<span class="classifier">ndarray</span></dt><dd><p>Quantum-classical coupling Hamiltonian.
+<code class="docutils literal notranslate"><span class="pre">(batch_size,</span> <span class="pre">num_states,</span> <span class="pre">num_states)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.dh_qc_dzc_diagonal_linear">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">dh_qc_dzc_diagonal_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.dh_qc_dzc_diagonal_linear" title="Link to this definition">#</a></dt>
+<dd><p>Gradient of the diagonal linear quantum-classical coupling Hamiltonian
+in sparse format.</p>
+<p><span class="math notranslate nohighlight">\([\partial_{z} H_{qc}]_{ijkl} = \delta_{kl}\gamma_{kj}\)</span></p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>complex classical coordinates.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<dl class="simple">
+<dt>diagonal_linear_coupling<span class="classifier">ndarray</span></dt><dd><p>Coupling constants <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+</dd>
+</dl>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>inds<span class="classifier">tuple of ndarray</span></dt><dd><p>Indices of the non-zero elements of the gradient.
+<code class="docutils literal notranslate"><span class="pre">(batch_index,</span> <span class="pre">coordinate_index,</span> <span class="pre">row_index,</span> <span class="pre">column_index)</span></code>.</p>
+</dd>
+<dt>mels<span class="classifier">ndarray</span></dt><dd><p>Values of the non-zero elements of the gradient.</p>
+</dd>
+<dt>shape<span class="classifier">tuple</span></dt><dd><p>Shape of the full gradient array.
+<code class="docutils literal notranslate"><span class="pre">(batch_size,</span> <span class="pre">num_classical_coordinates,</span> <span class="pre">num_states,</span> <span class="pre">num_states)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.hop_harmonic">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">hop_harmonic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.hop_harmonic" title="Link to this definition">#</a></dt>
+<dd><p>FSSH hop function for taking the classical coordinates to represent harmonic
+oscillators.</p>
+<p>Determines the shift in the classical coordinates required to conserve energy
+following a hop between quantum states.</p>
+<p>If enough energy is available, the function returns the shift in the classical
+coordinates such that the new classical coordinates are <code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">+</span> <span class="pre">shift</span></code> and a Boolean
+equaling <code class="docutils literal notranslate"><span class="pre">True</span></code> if the hop has occurred. If not enough energy is available,
+the shift becomes zero and the Boolean is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p>Solves the equation:</p>
+<div class="math notranslate nohighlight">
+\[H_{\mathrm{c}}(z) + \epsilon_{\mathrm{initial}} = H_{\mathrm{c}}(z + \mathrm{shift}) +
+\epsilon_{\mathrm{final}}\]</div>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>Current classical coordinates.</p>
+</dd>
+<dt>resc_dir_z<span class="classifier">ndarray</span></dt><dd><p>Rescaling directions of <span class="math notranslate nohighlight">\(z\)</span>.</p>
+</dd>
+<dt>eigval_diff<span class="classifier">float</span></dt><dd><p>Energy difference between final and initial states.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<dl class="simple">
+<dt>harmonic_frequency<span class="classifier">ndarray</span></dt><dd><p>Harmonic frequency of each classical coordinate.</p>
+</dd>
+</dl>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>shift<span class="classifier">ndarray</span></dt><dd><p>Shift in the classical coordinates.</p>
+</dd>
+<dt>hop<span class="classifier">bool</span></dt><dd><p>Whether the hop has occurred.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.hop_free">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">hop_free</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.hop_free" title="Link to this definition">#</a></dt>
+<dd><p>FSSH hop function taking the classical coordinates to represent free particles.</p>
+<p>Determines the shift in the classical coordinates required to conserve energy
+following a hop between quantum states.</p>
+<p>If enough energy is available, the function returns the shift in the classical
+coordinates such that the new classical coordinates are <code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">+</span> <span class="pre">shift</span></code> and a Boolean
+equaling <code class="docutils literal notranslate"><span class="pre">True</span></code> if the hop has occurred. If not enough energy is available,
+the shift becomes zero and the Boolean is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p>Solves the equation:</p>
+<div class="math notranslate nohighlight">
+\[H_{\mathrm{c}}(z) + \epsilon_{\mathrm{initial}} = H_{\mathrm{c}}(z + \mathrm{shift}) +
+\epsilon_{\mathrm{final}}\]</div>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>Current classical coordinates.</p>
+</dd>
+<dt>resc_dir_z<span class="classifier">ndarray</span></dt><dd><p>Rescaling directions of <span class="math notranslate nohighlight">\(z\)</span>.</p>
+</dd>
+<dt>eigval_diff<span class="classifier">float</span></dt><dd><p>Energy difference between final and initial states.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<p>None</p>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>shift<span class="classifier">ndarray</span></dt><dd><p>Shift in the classical coordinates.</p>
+</dd>
+<dt>hop<span class="classifier">bool</span></dt><dd><p>Whether the hop has occurred.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.init_classical_boltzmann_harmonic">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">init_classical_boltzmann_harmonic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.init_classical_boltzmann_harmonic" title="Link to this definition">#</a></dt>
+<dd><p>Initialize classical coordinates according to Boltzmann statistics taking the
+classical coordinates to represent harmonic oscillators.</p>
+<p><span class="math notranslate nohighlight">\(P(z) \propto \exp(-H_{\mathrm{c}}/k_{\mathrm{B}}T)\)</span></p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>seed<span class="classifier">ndarray, int</span></dt><dd><p>Random seeds for each trajectory.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<dl class="simple">
+<dt>kBT<span class="classifier">float</span></dt><dd><p>Thermal quantum.</p>
+</dd>
+<dt>harmonic_frequency<span class="classifier">ndarray</span></dt><dd><p>Harmonic frequency of each classical coordinate.</p>
+</dd>
+</dl>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>complex classical coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.init_classical_wigner_harmonic">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">init_classical_wigner_harmonic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.init_classical_wigner_harmonic" title="Link to this definition">#</a></dt>
+<dd><p>Initialize classical coordinates according to the Wigner distribution of the ground
+state of a harmonic oscillator.</p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>seed<span class="classifier">ndarray, int</span></dt><dd><p>Random seeds for each trajectory.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<dl class="simple">
+<dt>kBT<span class="classifier">float</span></dt><dd><p>Thermal quantum.</p>
+</dd>
+<dt>harmonic_frequency<span class="classifier">ndarray</span></dt><dd><p>Harmonic frequency of each classical coordinate.</p>
+</dd>
+</dl>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>complex classical coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.init_classical_definite_position_momentum">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">init_classical_definite_position_momentum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.init_classical_definite_position_momentum" title="Link to this definition">#</a></dt>
+<dd><p>Initialize classical coordinates with definite position and momentum.</p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>seed<span class="classifier">ndarray, int</span></dt><dd><p>Random seeds for each trajectory.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<dl class="simple">
+<dt>init_position<span class="classifier">ndarray</span></dt><dd><p>Initial position of the classical coordinates.</p>
+</dd>
+<dt>init_momentum<span class="classifier">ndarray</span></dt><dd><p>Initial momentum of the classical coordinates.</p>
+</dd>
+</dl>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>complex classical coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.init_classical_wigner_coherent_state">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">init_classical_wigner_coherent_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.init_classical_wigner_coherent_state" title="Link to this definition">#</a></dt>
+<dd><p>Initialize classical coordinates according to the Wigner distribution of a coherent
+state of a harmonic oscillator.</p>
+<p><span class="math notranslate nohighlight">\(\vert a\rangle = \exp(a\hat{b}^{\dagger} - a^{*}\hat{b})\vert 0\rangle\)</span></p>
+<p>where <span class="math notranslate nohighlight">\(a\)</span> is the complex displacement parameter of the coherent state. The Wigner
+distribution is given by</p>
+<p><span class="math notranslate nohighlight">\(P(z) \propto \exp(-2\vert(z - a)\vert^{2})\)</span>.</p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>seed<span class="classifier">ndarray, int</span></dt><dd><p>Random seeds for each trajectory.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<dl class="simple">
+<dt>coherent_state_displacement<span class="classifier">ndarray</span></dt><dd><p>Complex displacement parameter of the coherent state.</p>
+</dd>
+<dt>harmonic_frequency<span class="classifier">ndarray</span></dt><dd><p>Harmonic frequency of each classical coordinate.</p>
+</dd>
+</dl>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>complex classical coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.rescaling_direction_random">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">rescaling_direction_random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.rescaling_direction_random" title="Link to this definition">#</a></dt>
+<dd><p>Random rescaling direction function.</p>
+<p>This function returns a random array for the rescaling direction.
+It is only included for use in code tests.</p>
+<p>Note that this is not a vectorized ingredient, as it is only called on
+the per-trajectory level.</p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>z_traj<span class="classifier">ndarray</span></dt><dd><p>Current classical coordinates in the trajectory being rescaled.</p>
+</dd>
+<dt>init_state_ind<span class="classifier">int</span></dt><dd><p>Index of the initial quantum state.</p>
+</dd>
+<dt>final_state_ind<span class="classifier">int</span></dt><dd><p>Index of the final quantum state.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<p>None</p>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>resc_dir_z<span class="classifier">ndarray</span></dt><dd><p>Direction in which to rescale coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.gauge_field_force_zero">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">gauge_field_force_zero</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.gauge_field_force_zero" title="Link to this definition">#</a></dt>
+<dd><p>Gauge field force function.</p>
+<p>This function returns a zero array for the gauge field force.
+It is only included for use in code tests.</p>
+<p class="rubric">Keyword Args</p>
+<dl class="simple">
+<dt>z<span class="classifier">ndarray</span></dt><dd><p>Current classical coordinates.</p>
+</dd>
+<dt>state_ind<span class="classifier">int</span></dt><dd><p>Index of the state for which the gauge field force is calculated.</p>
+</dd>
+</dl>
+<p class="rubric">Model Constants</p>
+<p>None</p>
+<p class="rubric">Returns</p>
+<dl class="simple">
+<dt>gauge_force<span class="classifier">ndarray</span></dt><dd><p>Gauge field force.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.ingredients.ab_initio_property_calculator_qchem">
+<span class="sig-prename descclassname"><span class="pre">qclab.ingredients.</span></span><span class="sig-name descname"><span class="pre">ab_initio_property_calculator_qchem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.ingredients.ab_initio_property_calculator_qchem" title="Link to this definition">#</a></dt>
+<dd><p>Ab initio property calculator for Q-Chem.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">User Guide</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="task.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Tasks</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vectorization">Vectorization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sparse-quantum-classical-gradients">Sparse Quantum-Classical Gradients</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ingredients-in-qc-lab">Ingredients in QC Lab</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.h_c_harmonic"><code class="docutils literal notranslate"><span class="pre">h_c_harmonic()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.h_c_free"><code class="docutils literal notranslate"><span class="pre">h_c_free()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.dh_c_dzc_harmonic"><code class="docutils literal notranslate"><span class="pre">dh_c_dzc_harmonic()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.dh_c_dzc_free"><code class="docutils literal notranslate"><span class="pre">dh_c_dzc_free()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.h_q_two_level"><code class="docutils literal notranslate"><span class="pre">h_q_two_level()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.h_q_nearest_neighbor"><code class="docutils literal notranslate"><span class="pre">h_q_nearest_neighbor()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.h_qc_diagonal_linear"><code class="docutils literal notranslate"><span class="pre">h_qc_diagonal_linear()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.dh_qc_dzc_diagonal_linear"><code class="docutils literal notranslate"><span class="pre">dh_qc_dzc_diagonal_linear()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.hop_harmonic"><code class="docutils literal notranslate"><span class="pre">hop_harmonic()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.hop_free"><code class="docutils literal notranslate"><span class="pre">hop_free()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.init_classical_boltzmann_harmonic"><code class="docutils literal notranslate"><span class="pre">init_classical_boltzmann_harmonic()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.init_classical_wigner_harmonic"><code class="docutils literal notranslate"><span class="pre">init_classical_wigner_harmonic()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.init_classical_definite_position_momentum"><code class="docutils literal notranslate"><span class="pre">init_classical_definite_position_momentum()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.init_classical_wigner_coherent_state"><code class="docutils literal notranslate"><span class="pre">init_classical_wigner_coherent_state()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.rescaling_direction_random"><code class="docutils literal notranslate"><span class="pre">rescaling_direction_random()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.gauge_field_force_zero"><code class="docutils literal notranslate"><span class="pre">gauge_field_force_zero()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.ingredients.ab_initio_property_calculator_qchem"><code class="docutils literal notranslate"><span class="pre">ab_initio_property_calculator_qchem()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025-2026, Tempelaar Team.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
