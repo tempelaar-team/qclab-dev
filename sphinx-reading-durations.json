@@ -1,0 +1,22 @@
+{
+    "index": 0.014,
+    "interactive_docs/index": 0.005,
+    "interactive_docs/overview/overview": 0.003,
+    "interactive_docs/spin-boson-example/change-algorithm": 0.005,
+    "interactive_docs/spin-boson-example/change-coupling": 0.004,
+    "interactive_docs/spin-boson-example/full-example": 0.002,
+    "interactive_docs/spin-boson-example/model-constants": 0.003,
+    "interactive_docs/spin-boson-example/modify-fssh": 0.004,
+    "interactive_docs/spin-boson-example/spin-boson": 0.064,
+    "user_guide/algorithm": 0.085,
+    "user_guide/cite": 0.002,
+    "user_guide/coordinates": 0.004,
+    "user_guide/data": 0.027,
+    "user_guide/driver": 0.052,
+    "user_guide/index": 0.002,
+    "user_guide/ingredient": 0.018,
+    "user_guide/install": 0.006,
+    "user_guide/model": 0.036,
+    "user_guide/simulation": 0.009,
+    "user_guide/task": 0.581
+}

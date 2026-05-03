@@ -43,16 +43,15 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
     <script src="../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="../_static/togglebutton.js?v=b8b12719"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/coordinates';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="canonical" href="https://tempelaar-team.github.io/qclab-dev/user_guide/coordinates.html" />
@@ -220,10 +219,6 @@
     </div>
   
 
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
   
 </div>
 
@@ -403,72 +398,6 @@ For that reason, it is often a convenient choice when working with harmonic osci
 QC Lab are implemented in a manner that is invariant of the choice of weights. Likewise, ingredients in QC Lab are also invaraint to the choice of weights.
 However, Models may enforce some choice of weights as part of their initialization rather than enabling this to be changed by a user.</p>
 <p>Conversions to and from complex-valued classical coordinates are conveniently implemented in the following functions.</p>
-<p id="module-qclab.functions">This module contains functions used in QC Lab. This includes
-functions that are used by tasks, ingredients, and the
-dynamics drivers.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="qclab.functions.z_to_q">
-<span class="sig-prename descclassname"><span class="pre">qclab.functions.</span></span><span class="sig-name descname"><span class="pre">z_to_q</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.functions.z_to_q" title="Link to this definition">#</a></dt>
-<dd><p>Convert complex coordinates to position coordinate.</p>
-<p class="rubric">Args</p>
-<dl class="simple">
-<dt>z<span class="classifier">ndarray</span></dt><dd><p>Complex coordinates.</p>
-</dd>
-<dt>m<span class="classifier">ndarray</span></dt><dd><p>Classical coordinate mass.</p>
-</dd>
-<dt>h<span class="classifier">ndarray</span></dt><dd><p>Classical coordinate weight.</p>
-</dd>
-</dl>
-<p class="rubric">Returns</p>
-<dl class="simple">
-<dt>q<span class="classifier">ndarray</span></dt><dd><p>Position coordinates.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="qclab.functions.z_to_p">
-<span class="sig-prename descclassname"><span class="pre">qclab.functions.</span></span><span class="sig-name descname"><span class="pre">z_to_p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.functions.z_to_p" title="Link to this definition">#</a></dt>
-<dd><p>Convert complex coordinates to momentum coordinate.</p>
-<p class="rubric">Args</p>
-<dl class="simple">
-<dt>z<span class="classifier">ndarray</span></dt><dd><p>Complex coordinates.</p>
-</dd>
-<dt>m<span class="classifier">ndarray</span></dt><dd><p>Classical coordinate mass.</p>
-</dd>
-<dt>h<span class="classifier">ndarray</span></dt><dd><p>Classical coordinate weight.</p>
-</dd>
-</dl>
-<p class="rubric">Returns</p>
-<dl class="simple">
-<dt>p<span class="classifier">ndarray</span></dt><dd><p>Momentum coordinates.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="qclab.functions.qp_to_z">
-<span class="sig-prename descclassname"><span class="pre">qclab.functions.</span></span><span class="sig-name descname"><span class="pre">qp_to_z</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.functions.qp_to_z" title="Link to this definition">#</a></dt>
-<dd><p>Convert real coordinates to complex coordinates.
-If only one of <code class="docutils literal notranslate"><span class="pre">q</span></code> or <code class="docutils literal notranslate"><span class="pre">p</span></code> is provided, then the other is assumed to be zero.</p>
-<p class="rubric">Args</p>
-<dl class="simple">
-<dt>q<span class="classifier">ndarray | None</span></dt><dd><p>Position coordinates.</p>
-</dd>
-<dt>p<span class="classifier">ndarray | None</span></dt><dd><p>Momentum coordinates.</p>
-</dd>
-<dt>m<span class="classifier">ndarray</span></dt><dd><p>Classical coordinate mass.</p>
-</dd>
-<dt>h<span class="classifier">ndarray</span></dt><dd><p>Classical coordinate weight.</p>
-</dd>
-</dl>
-<p class="rubric">Returns</p>
-<dl class="simple">
-<dt>z<span class="classifier">ndarray</span></dt><dd><p>Complex coordinates.</p>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 
 
@@ -496,26 +425,6 @@ If only one of <code class="docutils literal notranslate"><span class="pre">q</s
             </div>
             
             
-              
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.functions.z_to_q"><code class="docutils literal notranslate"><span class="pre">z_to_q()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.functions.z_to_p"><code class="docutils literal notranslate"><span class="pre">z_to_p()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.functions.qp_to_z"><code class="docutils literal notranslate"><span class="pre">qp_to_z()</span></code></a></li>
-</ul>
-  </nav></div>
-
-</div></div>
               
             
           </div>
@@ -549,7 +458,7 @@ If only one of <code class="docutils literal notranslate"><span class="pre">q</s
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
     <br/>
   </p>
 </div>
