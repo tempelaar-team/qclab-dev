@@ -6,7 +6,7 @@ import numpy as np
 from qclab.model import Model
 from qclab import ingredients
 from qclab import numerical_constants
-
+import qclab.functions as functions
 
 class FPCavity(Model):
     """
@@ -44,17 +44,13 @@ class FPCavity(Model):
     def h_qc(model, parameters, **kwargs):
         z = kwargs['z'] # shape (B, A) where B is the batch size and A is the number of classical coordinates
         batch_size = z.shape[0]
+        m = model.constants.classical_coordinate_mass
         h = model.constants.classical_coordinate_weight
         w = model.constants.harmonic_frequency
         mu = model.constants.get("mu")
-        N = model.constants.get("N")
-        alpha = np.arange(1, N+1, 1)
-        r_atom = model.constants.get("r_atom")
-        L = model.constants.get("L")
-        epsilon0 = model.constants.get("epsilon0")
-        lambda_alpha = np.sqrt(2/(epsilon0 * L)) * np.sin(np.pi * alpha * r_atom) #shape (N,)
+        lambda_alpha = model.constants.lambda_alpha #shape (N,)
         h_qc = np.zeros((batch_size, 2, 2), dtype=complex)
-        h_qc[:, 0, 1] = np.sum(mu * w[np.newaxis, :] * lambda_alpha[np.newaxis, :] * np.sqrt(1/(2 * h[np.newaxis, :])) * (z + np.conj(z)), axis=1)
+        h_qc[:, 0, 1] = np.sum(mu * w[np.newaxis, :] * lambda_alpha[np.newaxis, :] * functions.z_to_q(z, m, h), axis=1)
         h_qc[:, 1, 0] = np.conj(h_qc[:, 0, 1])
         return h_qc 
 
@@ -72,6 +68,11 @@ class FPCavity(Model):
         self.constants.num_quantum_states = 2
         self.constants.classical_coordinate_weight = self.constants.harmonic_frequency
         self.constants.classical_coordinate_mass = np.ones(N)
+        alpha = np.arange(1, N+1, 1)
+        r_atom = self.constants.get("r_atom")
+        L = self.constants.get("L")
+        epsilon0 = self.constants.get("epsilon0")
+        self.constants.lambda_alpha = np.sqrt(2/(epsilon0 * L)) * np.sin(np.pi * alpha * r_atom) #shape (N,)
         return
 
     def dh_qc_dzc(model, parameters, **kwargs):
@@ -105,14 +106,8 @@ class FPCavity(Model):
         num_classical_coordinates = model.constants.num_classical_coordinates
 
         mu = model.constants.get("mu")
-        N = model.constants.get("N")
-        alpha = np.arange(1, N+1, 1)
-        r_atom = model.constants.get("r_atom")
-        L = model.constants.get("L")
-        epsilon0 = model.constants.get("epsilon0")
-        h = model.constants.classical_coordinate_weight
         w = model.constants.harmonic_frequency
-        lambda_alpha = np.sqrt(2/(epsilon0 * L)) * np.sin(np.pi * alpha * r_atom) #shape (N,)
+        lambda_alpha = model.constants.get("lambda_alpha") #shape (N,)
 
         dh_qc_dzc = np.zeros(
             (num_classical_coordinates, num_states, num_states), dtype=complex
