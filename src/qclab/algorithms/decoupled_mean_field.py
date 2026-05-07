@@ -361,7 +361,7 @@ def update_quantum_classical_force_dcmf(
     z = state[z_name]
     z_vac = state[z_vac_name]
 
-    tasks.update_quantum_classical_force(sim, state, parameters, update_dh_qc_dzc_flag=update_dh_qc_dzc_flag)
+    tasks.update_quantum_classical_force(sim, state, parameters, z_name=z_name, wf_changed=wf_changed, update_dh_qc_dzc_flag=update_dh_qc_dzc_flag)
 
     if update_dh_qc_dzc_flag or sim.model.update_h_q:
         # Update the gradient of h_qc.
@@ -399,7 +399,7 @@ def update_quantum_classical_force_dcmf(
         if sim.model.diagonal_h_q:
             wf = state[wf_db_name]
             mask = state[mask_name]
-            inds, mels, shape = state[dh_qc_dzc_name]
+            inds, mels, shape = state[dh_qc_dzc_vac_name]
             b, c, i, j = inds
             pop_adb_h_q_i = pop_adb_h_q[b, i]
             pop_adb_h_q_j = pop_adb_h_q[b, j]
@@ -422,49 +422,49 @@ def update_quantum_classical_force_dcmf(
             out=state[quantum_classical_force_vac_name].reshape(-1),
         ).reshape(np.shape(z_vac))
 
-        if getattr(sim.algorithm.settings, "use_energy_conserving_force", False):
-            m = sim.model.constants.classical_coordinate_mass
-            h = sim.model.constants.classical_coordinate_weight
-            w = sim.model.constants.harmonic_frequency
-            kBT = sim.model.constants.kBT
+        # if getattr(sim.algorithm.settings, "use_energy_conserving_force", False):
+        #     m = sim.model.constants.classical_coordinate_mass
+        #     h = sim.model.constants.classical_coordinate_weight
+        #     w = sim.model.constants.harmonic_frequency
+        #     kBT = sim.model.constants.kBT
 
-            rho_now = state[pop_adb_h_q_name]
-            rho_prev = state[pop_adb_h_q_prev_name]
-            shape_ref = np.shape(state[h_qc_vac_name])
-            rho_now_row = rho_now[:, :, None] * np.ones(shape_ref)
-            rho_now_col = rho_now[:, None, :] * np.ones(shape_ref)
-            rho_prev_row = rho_prev[:, :, None] * np.ones(shape_ref)
-            rho_prev_col = rho_prev[:, None, :] * np.ones(shape_ref)
-            p = functions.z_to_p(z, m, h)
-            p_vac = functions.z_to_p(z_vac, m, h)
+        #     rho_now = state[pop_adb_h_q_name]
+        #     rho_prev = state[pop_adb_h_q_prev_name]
+        #     shape_ref = np.shape(state[h_qc_vac_name])
+        #     rho_now_row = rho_now[:, :, None] * np.ones(shape_ref)
+        #     rho_now_col = rho_now[:, None, :] * np.ones(shape_ref)
+        #     rho_prev_row = rho_prev[:, :, None] * np.ones(shape_ref)
+        #     rho_prev_col = rho_prev[:, None, :] * np.ones(shape_ref)
+        #     p = functions.z_to_p(z, m, h)
+        #     p_vac = functions.z_to_p(z_vac, m, h)
 
-            if sim.model.diagonal_h_q:
-                h_qc_vac = state[h_qc_vac_name]
-                gamma_now = np.where(state[mask_name], rho_now_col, rho_now_row)/(rho_now_col + rho_now_row + numerical_constants.SMALL)
-                gamma_prev = np.where(state[mask_name], rho_prev_col, rho_prev_row)/(rho_prev_col + rho_prev_row + numerical_constants.SMALL)
-                dgamma_dt = (gamma_now - gamma_prev) / sim.settings.dt_update
-                drho_dq_hqc = dgamma_dt * h_qc_vac
-                drho_dq_hqc_expectation_value = np.real(np.einsum('bi,bij,bj->b', wf.conj(), drho_dq_hqc, wf, optimize="greedy"))
+        #     if sim.model.diagonal_h_q:
+        #         h_qc_vac = state[h_qc_vac_name]
+        #         gamma_now = np.where(state[mask_name], rho_now_col, rho_now_row)/(rho_now_col + rho_now_row + numerical_constants.SMALL)
+        #         gamma_prev = np.where(state[mask_name], rho_prev_col, rho_prev_row)/(rho_prev_col + rho_prev_row + numerical_constants.SMALL)
+        #         dgamma_dt = (gamma_now - gamma_prev) / sim.settings.dt_update
+        #         drho_dq_hqc = dgamma_dt * h_qc_vac
+        #         drho_dq_hqc_expectation_value = np.real(np.einsum('bi,bij,bj->b', wf.conj(), drho_dq_hqc, wf, optimize="greedy"))
 
-            else:
-                h_qc_vac_adb_h_q = state[h_qc_vac_adb_h_q_name]
-                gamma_now = (np.triu(rho_now_col) + np.tril(rho_now_row, k=-1))/(rho_now_col + rho_now_row + numerical_constants.SMALL)
-                gamma_prev = (np.triu(rho_prev_col) + np.tril(rho_prev_row, k=-1))/(rho_prev_col + rho_prev_row + numerical_constants.SMALL)
-                dgamma_dt = (gamma_now - gamma_prev) / sim.settings.dt_update
-                drho_dq_hqc_adb_h_q = dgamma_dt * h_qc_vac_adb_h_q
-                drho_dq_hqc_expectation_value = np.real(np.einsum('bi,bij,bj->b', wf.conj(), drho_dq_hqc_adb_h_q, wf, optimize="greedy"))
+        #     else:
+        #         h_qc_vac_adb_h_q = state[h_qc_vac_adb_h_q_name]
+        #         gamma_now = (np.triu(rho_now_col) + np.tril(rho_now_row, k=-1))/(rho_now_col + rho_now_row + numerical_constants.SMALL)
+        #         gamma_prev = (np.triu(rho_prev_col) + np.tril(rho_prev_row, k=-1))/(rho_prev_col + rho_prev_row + numerical_constants.SMALL)
+        #         dgamma_dt = (gamma_now - gamma_prev) / sim.settings.dt_update
+        #         drho_dq_hqc_adb_h_q = dgamma_dt * h_qc_vac_adb_h_q
+        #         drho_dq_hqc_expectation_value = np.real(np.einsum('bi,bij,bj->b', wf.conj(), drho_dq_hqc_adb_h_q, wf, optimize="greedy"))
 
-            if kBT > 0:
-                std_p = np.sqrt(0.5 * m * w / np.tanh(0.5 * w / kBT))
-            else:
-                std_p = np.sqrt(0.5 * m * w)
-            std_p_vac = np.sqrt(0.5 * m * w)
+        #     if kBT > 0:
+        #         std_p = np.sqrt(0.5 * m * w / np.tanh(0.5 * w / kBT))
+        #     else:
+        #         std_p = np.sqrt(0.5 * m * w)
+        #     std_p_vac = np.sqrt(0.5 * m * w)
 
-            fraction = getattr(sim.algorithm.settings, "energy_conserving_force_fraction", 0.1)
-            additional_force = drho_dq_hqc_expectation_value[:, np.newaxis] / (np.sign(p + numerical_constants.SMALL) * np.maximum(np.abs(p), fraction * std_p))
-            additional_force_vac = drho_dq_hqc_expectation_value[:, np.newaxis] / (np.sign(p_vac + numerical_constants.SMALL) * np.maximum(np.abs(p_vac), fraction * std_p_vac))
-            state[quantum_classical_force_name] += -additional_force
-            state[quantum_classical_force_vac_name] += -additional_force_vac
+        #     fraction = getattr(sim.algorithm.settings, "energy_conserving_force_fraction", 0.1)
+        #     additional_force = drho_dq_hqc_expectation_value[:, np.newaxis] / (np.sign(p + numerical_constants.SMALL) * np.maximum(np.abs(p), fraction * std_p))
+        #     additional_force_vac = drho_dq_hqc_expectation_value[:, np.newaxis] / (np.sign(p_vac + numerical_constants.SMALL) * np.maximum(np.abs(p_vac), fraction * std_p_vac))
+        #     state[quantum_classical_force_name] += -additional_force
+        #     state[quantum_classical_force_vac_name] += -additional_force_vac
     return state, parameters
 
 
