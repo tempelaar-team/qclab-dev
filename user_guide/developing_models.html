@@ -1,0 +1,815 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Developing Models and Ingredients &#8212; QC Lab  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c1c6b95" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=55c26ed414f5f8a31ebb"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
+
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=b8b12719"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/developing_models';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://tempelaar-team.github.io/qclab-dev/user_guide/developing_models.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Ab Initio Dynamics" href="ab_initio.html" />
+    <link rel="prev" title="Numerical Constants" href="numerical_constants.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo-light.png" class="logo__image only-light" alt="QC Lab  documentation - Home"/>
+    <img src="../_static/logo-dark.png" class="logo__image only-dark pst-js-only" alt="QC Lab  documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../interactive_docs/index.html">
+    Quick Menu
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qclab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../interactive_docs/index.html">
+    Quick Menu
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qclab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="algorithm.html">Algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Developing Models and Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Developing Models and Ingredients</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="developing-models-and-ingredients">
+<span id="developing-models"></span><h1>Developing Models and Ingredients<a class="headerlink" href="#developing-models-and-ingredients" title="Link to this heading">#</a></h1>
+<p>This page is a guided tour for users who want to add new physics to
+QC Lab — either by tweaking an existing model or by writing a new one
+from scratch. Read it after <a class="reference internal" href="ingredient.html#ingredient"><span class="std std-ref">Ingredients</span></a> and
+<a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>, both of which describe what the building blocks
+look like in isolation.</p>
+<section id="decision-tree-subclass-an-existing-model-or-write-a-new-one">
+<h2>Decision tree: subclass an existing model, or write a new one?<a class="headerlink" href="#decision-tree-subclass-an-existing-model-or-write-a-new-one" title="Link to this heading">#</a></h2>
+<p>Before writing a new ingredient, check whether the change you want can
+be expressed as a different set of <em>constants</em> on top of the existing
+parametric ingredients. The stock ingredients in <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.ingredients</span></code>
+are intentionally generic:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">h_qc_diagonal_linear</span></code> works for <em>any</em> <code class="docutils literal notranslate"><span class="pre">diagonal_linear_coupling</span></code>
+matrix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">h_c_harmonic</span></code> works for <em>any</em> <code class="docutils literal notranslate"><span class="pre">harmonic_frequency</span></code> array.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">h_q_two_level</span></code> works for <em>any</em> two-level Hamiltonian set by
+<code class="docutils literal notranslate"><span class="pre">two_level_00</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_11</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_01_re</span></code> /
+<code class="docutils literal notranslate"><span class="pre">two_level_01_im</span></code>.</p></li>
+</ul>
+<p>If the <em>functional form</em> of the physics stays the same and only the
+<em>distribution of parameters</em> changes, you do not need a new ingredient.
+Subclass the existing model and override the relevant <code class="docutils literal notranslate"><span class="pre">_init_*</span></code>
+methods.</p>
+<p>If the functional form genuinely changes — for instance, off-diagonal
+coupling where only diagonal coupling exists, or a position-dependent
+coupling where only linear coupling exists — write a new ingredient.</p>
+<p>A useful test: if your new physics can be described by the existing
+ingredient’s docstring, modify constants. If it cannot, write a new
+ingredient.</p>
+<section id="example-subclassing-for-a-different-spectral-density">
+<h3>Example: subclassing for a different spectral density<a class="headerlink" href="#example-subclassing-for-a-different-spectral-density" title="Link to this heading">#</a></h3>
+<p>A spin-boson model with a Debye spectral density still uses
+<code class="docutils literal notranslate"><span class="pre">h_qc_diagonal_linear</span></code> and <code class="docutils literal notranslate"><span class="pre">h_c_harmonic</span></code>. Only the way the
+<code class="docutils literal notranslate"><span class="pre">harmonic_frequency</span></code> and <code class="docutils literal notranslate"><span class="pre">diagonal_linear_coupling</span></code> arrays are
+populated changes. A subclass is sufficient:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qclab.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpinBoson</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SpinBosonDebye</span><span class="p">(</span><span class="n">SpinBoson</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Spin-boson with a Debye spectral density.</span>
+
+<span class="sd">    J(w) = 2 * l_reorg * w_D * w / (w**2 + w_D**2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constants</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">constants</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">constants</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">base_defaults</span> <span class="o">=</span> <span class="n">SpinBoson</span><span class="p">({})</span><span class="o">.</span><span class="n">default_constants</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_constants</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">base_defaults</span><span class="p">,</span> <span class="s2">&quot;w_D&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">({</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">default_constants</span><span class="p">,</span> <span class="o">**</span><span class="n">constants</span><span class="p">})</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_h_c</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">A</span>
+        <span class="n">w_D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">w_D</span>
+        <span class="n">w_max</span> <span class="o">=</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">w_D</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">harmonic_frequency</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span>
+            <span class="n">w_max</span> <span class="o">/</span> <span class="n">A</span><span class="p">,</span> <span class="n">w_max</span><span class="p">,</span> <span class="n">A</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_h_qc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">A</span>
+        <span class="n">w_D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">w_D</span>
+        <span class="n">l_reorg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">l_reorg</span>
+        <span class="n">boson_mass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">boson_mass</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">classical_coordinate_weight</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">harmonic_frequency</span>
+        <span class="n">dw</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">J_w</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">l_reorg</span> <span class="o">*</span> <span class="n">w_D</span> <span class="o">*</span> <span class="n">w</span> <span class="o">/</span> <span class="p">(</span><span class="n">w</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">w_D</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">J_w</span> <span class="o">*</span> <span class="n">dw</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">diagonal_linear_coupling</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">A</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">diagonal_linear_coupling</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">g</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">boson_mass</span> <span class="o">*</span> <span class="n">h</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">diagonal_linear_coupling</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span>
+            <span class="n">g</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">boson_mass</span> <span class="o">*</span> <span class="n">h</span><span class="p">)</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+<p>The ingredient list is inherited from <code class="docutils literal notranslate"><span class="pre">SpinBoson</span></code>; the subclass only
+swaps in the new initializer logic.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="the-new-model-checklist">
+<h2>The new-model checklist<a class="headerlink" href="#the-new-model-checklist" title="Link to this heading">#</a></h2>
+<p>When the functional form of the physics is genuinely new, write a new
+<code class="docutils literal notranslate"><span class="pre">Model</span></code> subclass. The minimum viable model satisfies the following
+checklist:</p>
+<ol class="arabic simple">
+<li><p><strong>Subclass</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">qclab.Model</span></code>. Place the file in
+<code class="docutils literal notranslate"><span class="pre">src/qclab/models/</span></code> if you intend to upstream it; a self-contained
+file outside the package is fine for prototyping.</p></li>
+<li><p><strong>Set ``default_constants``</strong> in <code class="docutils literal notranslate"><span class="pre">__init__</span></code> and forward them via
+<code class="docutils literal notranslate"><span class="pre">super().__init__(self.default_constants,</span> <span class="pre">constants)</span></code>.</p></li>
+<li><p><strong>Set the performance flags</strong> <code class="docutils literal notranslate"><span class="pre">self.update_h_q</span></code> and
+<code class="docutils literal notranslate"><span class="pre">self.update_dh_qc_dzc</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> if those quantities do not
+depend on <code class="docutils literal notranslate"><span class="pre">z</span></code> (a significant speedup) and to <code class="docutils literal notranslate"><span class="pre">True</span></code> otherwise.</p></li>
+<li><p><strong>Provide an ``_init_model`` initializer</strong> that derives the mandatory
+constants <code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code>, <code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code>,
+<code class="docutils literal notranslate"><span class="pre">classical_coordinate_mass</span></code>, and <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code>.
+Optional <code class="docutils literal notranslate"><span class="pre">_init_h_q</span></code> / <code class="docutils literal notranslate"><span class="pre">_init_h_qc</span></code> / <code class="docutils literal notranslate"><span class="pre">_init_h_c</span></code> initializers
+can be added to derive ingredient-specific constants.</p></li>
+<li><p><strong>Define an ``ingredients`` class attribute</strong> that lists the
+ingredients the model uses, including the <code class="docutils literal notranslate"><span class="pre">_init_*</span></code> initializers.
+Reuse stock ingredients from <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.ingredients</span></code> where possible.</p></li>
+<li><p><strong>Vectorize new ingredients</strong> over the batch axis. Either hand-code
+the <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">...)</span></code> shape or use the
+<code class="xref py py-func docutils literal notranslate"><span class="pre">vectorize_ingredient()</span></code> decorator from
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.functions</span></code>.</p></li>
+<li><p><strong>Make sparse gradients return ``(inds, mels, shape)``</strong> in that
+order; <code class="docutils literal notranslate"><span class="pre">inds</span></code> should come from <code class="docutils literal notranslate"><span class="pre">np.where</span></code> on a dense array. See
+<a class="reference internal" href="ingredient.html#ingredient"><span class="std std-ref">Sparse Quantum-Classical Gradients</span></a>.</p></li>
+<li><p><strong>Cite a reference</strong> in the class docstring, when relevant.</p></li>
+</ol>
+<p>Use <code class="xref py py-class docutils literal notranslate"><span class="pre">SpinBoson</span></code> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">HolsteinLattice</span></code> as canonical examples.</p>
+</section>
+<hr class="docutils" />
+<section id="worked-example-a-linear-vibronic-coupling-lvc-model">
+<h2>Worked example: a linear vibronic coupling (LVC) model<a class="headerlink" href="#worked-example-a-linear-vibronic-coupling-lvc-model" title="Link to this heading">#</a></h2>
+<p>The example below assembles a two-state, two-mode linear-vibronic-coupling
+model with a conical intersection. The point of the example is to walk
+through every step of the new-model checklist. It does not use
+<code class="docutils literal notranslate"><span class="pre">init_classical_wigner_coherent_state</span></code> or any other off-the-shelf
+sampler that requires extra constants — the focus is on the model and
+its ingredients, not on initial conditions.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qclab</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qclab.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qclab</span><span class="w"> </span><span class="kn">import</span> <span class="n">ingredients</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qclab</span><span class="w"> </span><span class="kn">import</span> <span class="n">functions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qclab.algorithms</span><span class="w"> </span><span class="kn">import</span> <span class="n">MeanField</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qclab.dynamics</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_driver</span>
+
+<span class="c1"># ------------------- novel ingredients ------------------------------</span>
+
+<span class="nd">@functions</span><span class="o">.</span><span class="n">vectorize_ingredient</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">h_qc_lvc</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Linear vibronic-coupling quantum-classical Hamiltonian.</span>
+
+<span class="sd">    H_qc = kappa_1 q_1 |1&gt;&lt;1| + kappa_2 q_1 |2&gt;&lt;2|</span>
+<span class="sd">              + lambda q_2 (|1&gt;&lt;2| + |2&gt;&lt;1|)</span>
+
+<span class="sd">    Keyword Args</span>
+<span class="sd">    ------------</span>
+<span class="sd">    z : ndarray, shape (C,), complex128</span>
+
+<span class="sd">    Model Constants</span>
+<span class="sd">    ---------------</span>
+<span class="sd">    kappa : (2,) array of tuning-mode slopes.</span>
+<span class="sd">    lam   : float, off-diagonal coupling strength.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    h_qc : ndarray, shape (N, N), complex128</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">]</span>
+    <span class="n">kappa</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">kappa</span>
+    <span class="n">lam</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">lam</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">classical_coordinate_mass</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">classical_coordinate_weight</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">functions</span><span class="o">.</span><span class="n">z_to_q</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">q_tune</span><span class="p">,</span> <span class="n">q_couple</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">h_qc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">h_qc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">kappa</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">q_tune</span>
+    <span class="n">h_qc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">kappa</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">q_tune</span>
+    <span class="n">h_qc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lam</span> <span class="o">*</span> <span class="n">q_couple</span>
+    <span class="n">h_qc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">h_qc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">h_qc</span>
+
+<span class="nd">@functions</span><span class="o">.</span><span class="n">make_ingredient_sparse</span>
+<span class="nd">@functions</span><span class="o">.</span><span class="n">vectorize_ingredient</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">dh_qc_dzc_lvc</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sparse z*-derivative of h_qc_lvc.&quot;&quot;&quot;</span>
+    <span class="n">kappa</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">kappa</span>
+    <span class="n">lam</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">lam</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">classical_coordinate_mass</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">classical_coordinate_weight</span>
+    <span class="c1"># dq/dz* = sqrt(1 / (2 m h))</span>
+    <span class="n">dq_dzc</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">m</span> <span class="o">*</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">kappa</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">dq_dzc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">kappa</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">dq_dzc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lam</span> <span class="o">*</span> <span class="n">dq_dzc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+<span class="c1"># ------------------- the Model class --------------------------------</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LinearVibronicCoupling</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Two-state, two-mode linear vibronic coupling model.</span>
+
+<span class="sd">    Mode 0 (&quot;tuning&quot;) couples diagonally to the two electronic states</span>
+<span class="sd">    with slopes ``kappa[0]`` and ``kappa[1]``. Mode 1 (&quot;coupling&quot;)</span>
+<span class="sd">    couples off-diagonally with strength ``lam``. Both modes are</span>
+<span class="sd">    harmonic oscillators with frequency ``w``.</span>
+
+<span class="sd">    Reference: Koppel, Domcke &amp; Cederbaum, *Adv. Chem. Phys.* **57**,</span>
+<span class="sd">    59 (1984).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constants</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">constants</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">constants</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_constants</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;kBT&quot;</span><span class="p">:</span>   <span class="mf">1.0</span><span class="p">,</span>
+            <span class="s2">&quot;w&quot;</span><span class="p">:</span>     <span class="mf">1.0</span><span class="p">,</span>
+            <span class="s2">&quot;kappa&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">]),</span>
+            <span class="s2">&quot;lam&quot;</span><span class="p">:</span>   <span class="mf">0.3</span><span class="p">,</span>
+            <span class="s2">&quot;mass&quot;</span><span class="p">:</span>  <span class="mf">1.0</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_constants</span><span class="p">,</span> <span class="n">constants</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_h_q</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_dh_qc_dzc</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">num_quantum_states</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">num_classical_coordinates</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">classical_coordinate_mass</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">mass</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">harmonic_frequency</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">w</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">classical_coordinate_weight</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">harmonic_frequency</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_h_q</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_00</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_11</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_01_re</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_01_im</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">ingredients</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;h_q&quot;</span><span class="p">,</span>            <span class="n">ingredients</span><span class="o">.</span><span class="n">h_q_two_level</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;h_qc&quot;</span><span class="p">,</span>           <span class="n">h_qc_lvc</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;h_c&quot;</span><span class="p">,</span>            <span class="n">ingredients</span><span class="o">.</span><span class="n">h_c_harmonic</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;dh_qc_dzc&quot;</span><span class="p">,</span>      <span class="n">dh_qc_dzc_lvc</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;dh_c_dzc&quot;</span><span class="p">,</span>       <span class="n">ingredients</span><span class="o">.</span><span class="n">dh_c_dzc_harmonic</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;init_classical&quot;</span><span class="p">,</span> <span class="n">ingredients</span><span class="o">.</span><span class="n">init_classical_wigner_harmonic</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;hop&quot;</span><span class="p">,</span>            <span class="n">ingredients</span><span class="o">.</span><span class="n">hop_harmonic</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;_init_h_q&quot;</span><span class="p">,</span>      <span class="n">_init_h_q</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;_init_model&quot;</span><span class="p">,</span>    <span class="n">_init_model</span><span class="p">),</span>
+    <span class="p">]</span>
+
+<span class="c1"># ------------------- run --------------------------------------------</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">({</span>
+    <span class="s2">&quot;tmax&quot;</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span> <span class="s2">&quot;dt_update&quot;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span> <span class="s2">&quot;dt_collect&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="s2">&quot;num_trajs&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span> <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;progress_bar&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">LinearVibronicCoupling</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="n">MeanField</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">initial_state</span><span class="p">[</span><span class="s2">&quot;wf_db&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span><span class="p">,</span> <span class="mf">0.0</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span><span class="p">])</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">serial_driver</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The sparse gradient is implemented analytically and decorated with
+<code class="docutils literal notranslate"><span class="pre">&#64;make_ingredient_sparse</span></code>, so QC Lab does not fall back to
+finite-difference gradients. Note that <code class="docutils literal notranslate"><span class="pre">update_h_q</span></code> and
+<code class="docutils literal notranslate"><span class="pre">update_dh_qc_dzc</span></code> are both <code class="docutils literal notranslate"><span class="pre">False</span></code> because neither depends on
+<code class="docutils literal notranslate"><span class="pre">z</span></code> after the constants are derived.</p>
+</section>
+<hr class="docutils" />
+<section id="things-to-double-check">
+<h2>Things to double-check<a class="headerlink" href="#things-to-double-check" title="Link to this heading">#</a></h2>
+<p>When debugging a new model, the following are the most common sources of
+incorrect results:</p>
+<ul class="simple">
+<li><p>Forgetting to set <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code> — the complex
+coordinate <code class="docutils literal notranslate"><span class="pre">z</span></code> is not well-defined without it.</p></li>
+<li><p>Returning a dense gradient from <code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code> instead of the sparse
+<code class="docutils literal notranslate"><span class="pre">(inds,</span> <span class="pre">mels,</span> <span class="pre">shape)</span></code> triple. Wrap with
+<code class="xref py py-func docutils literal notranslate"><span class="pre">make_ingredient_sparse()</span></code> to convert
+automatically, or build the indices manually with <code class="docutils literal notranslate"><span class="pre">np.where</span></code>.</p></li>
+<li><p>Setting <code class="docutils literal notranslate"><span class="pre">update_dh_qc_dzc</span> <span class="pre">=</span> <span class="pre">False</span></code> on a model whose gradient does
+depend on a constant that you intend to vary at runtime; the cached
+gradient becomes stale.</p></li>
+<li><p>Hard-coding the batch size from <code class="docutils literal notranslate"><span class="pre">len(z)</span></code> rather than reading
+<code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code>. <code class="docutils literal notranslate"><span class="pre">len(z)</span></code> is correct in ingredients
+(which see only <code class="docutils literal notranslate"><span class="pre">model</span></code>, <code class="docutils literal notranslate"><span class="pre">parameters</span></code>, <code class="docutils literal notranslate"><span class="pre">kwargs</span></code>), but tasks
+must use <code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code>.</p></li>
+</ul>
+<p>When in doubt, look at how <code class="xref py py-class docutils literal notranslate"><span class="pre">SpinBoson</span></code> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">TullyProblemOne</span></code> are written. They cover the two
+common cases: a many-mode harmonic bath and a single-coordinate scattering
+problem.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="numerical_constants.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Numerical Constants</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="ab_initio.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Ab Initio Dynamics</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-tree-subclass-an-existing-model-or-write-a-new-one">Decision tree: subclass an existing model, or write a new one?</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-subclassing-for-a-different-spectral-density">Example: subclassing for a different spectral density</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-new-model-checklist">The new-model checklist</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#worked-example-a-linear-vibronic-coupling-lvc-model">Worked example: a linear vibronic coupling (LVC) model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#things-to-double-check">Things to double-check</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025-2026, Tempelaar Team.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

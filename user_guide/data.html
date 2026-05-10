@@ -307,9 +307,13 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul class="current nav bd-sidenav">
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
 <li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
@@ -318,6 +322,21 @@
 <li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
 </ul>
 </div>
@@ -390,19 +409,62 @@
 <span id="id1"></span><h1>Data<a class="headerlink" href="#data" title="Link to this heading">#</a></h1>
 <section id="data-objects">
 <h2>Data Objects<a class="headerlink" href="#data-objects" title="Link to this heading">#</a></h2>
-<p>Data objects are instances of the <code class="docutils literal notranslate"><span class="pre">qclab.data.Data</span></code> class and are used to store and manage the results of a simulation. They provide methods for collecting, processing, and saving data, as well as logging errors or warnings during a simulation.</p>
+<p>Data objects are instances of the <code class="docutils literal notranslate"><span class="pre">qclab.data.Data</span></code> class and are used
+to store and manage the results of a simulation. They provide methods
+for collecting, processing, and saving data, as well as capturing
+in-memory log output produced during a simulation.</p>
 <p>In general, a Data object has the following attributes:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">data_dict</span></code>: a dictionary that stores the results of the simulation. Each key in the dictionary corresponds to a specific quantity that was collected during the simulation, and the value is an array containing the values of that quantity averaged over the trajectories.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code>: a string that stores the log of errors or warnings that occurred during the simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_dict</span></code>: a dictionary that stores the results of the simulation.
+Each key in the dictionary corresponds to a specific quantity that was
+collected during the simulation, and the value is an array containing
+the values of that quantity averaged over the trajectories. Two
+bookkeeping keys are always present: <code class="docutils literal notranslate"><span class="pre">&quot;seed&quot;</span></code> (the array of
+trajectory seeds that contributed to the average) and
+<code class="docutils literal notranslate"><span class="pre">&quot;norm_factor&quot;</span></code> (the running denominator used by <code class="docutils literal notranslate"><span class="pre">add_data</span></code> to
+perform a trajectory-count-weighted merge).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code>: a string that stores any log messages emitted during the
+simulation. The drivers populate this attribute by draining the
+in-memory log stream configured by
+<code class="xref py py-func docutils literal notranslate"><span class="pre">qclab.utils.configure_memory_logger()</span></code> once the simulation has
+finished.</p></li>
 </ul>
-<p>Data objects provide several methods for managing and processing the data they contain. Some of the most important methods include:</p>
+<p>Data objects provide several methods for managing and processing the
+data they contain.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">add_data</span></code>: adds data from an existing Data object to the current one.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">save</span></code>: saves the Data object to a file.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">load</span></code>: loads a Data object from a file (this adds to any existing data).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add_output_to_data_dict</span></code>: the public hook called by
+<a class="reference internal" href="driver.html#qclab.dynamics.run_dynamics" title="qclab.dynamics.run_dynamics"><code class="xref py py-func docutils literal notranslate"><span class="pre">qclab.dynamics.run_dynamics()</span></code></a> at every collect step. It merges
+<code class="docutils literal notranslate"><span class="pre">state[&quot;output_dict&quot;]</span></code> into <code class="docutils literal notranslate"><span class="pre">data_dict</span></code>, broadcasting new keys to
+the full <code class="docutils literal notranslate"><span class="pre">(n_collect,</span> <span class="pre">...)</span></code> time axis on the first occurrence and
+averaging the per-batch sum by the <code class="docutils literal notranslate"><span class="pre">norm_factor</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add_data</span></code>: merges another Data object into this one using a
+trajectory-count-weighted average of every collected quantity. This is
+what the drivers call to combine batches and what users call when
+stitching multiple runs of the same simulation together.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">save</span></code>: serialises <code class="docutils literal notranslate"><span class="pre">data_dict</span></code> and <code class="docutils literal notranslate"><span class="pre">log</span></code> to disk. Uses HDF5
+(via <code class="docutils literal notranslate"><span class="pre">h5py</span></code>) when available; falls back to <code class="docutils literal notranslate"><span class="pre">numpy.savez</span></code> when
+<code class="docutils literal notranslate"><span class="pre">h5py</span></code> is not installed (<code class="docutils literal notranslate"><span class="pre">qclab.utils.DISABLE_H5PY</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">load</span></code>: deserialises a Data file from disk <em>into the current Data
+object</em>. The loaded data is merged in via <code class="docutils literal notranslate"><span class="pre">add_data</span></code>, so loading
+on top of a non-empty Data object accumulates trajectories rather
+than overwriting them.</p></li>
 </ul>
 <p>These methods are documented here:</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="qclab.data.Data.add_output_to_data_dict">
+<span class="sig-prename descclassname"><span class="pre">qclab.data.Data.</span></span><span class="sig-name descname"><span class="pre">add_output_to_data_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_ind</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.data.Data.add_output_to_data_dict" title="Link to this definition">#</a></dt>
+<dd><p>Add data to the output dictionary <code class="docutils literal notranslate"><span class="pre">self.data_dict</span></code>.</p>
+<p class="rubric">Args</p>
+<dl class="simple">
+<dt>sim: Simulation</dt><dd><p>The Simulation object containing settings and parameters.</p>
+</dd>
+<dt>state: dict</dt><dd><p>The dictionary containing the current simulation state.</p>
+</dd>
+<dt>t_ind: int</dt><dd><p>The current time index in the simulation.</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="qclab.data.Data.add_data">
 <span class="sig-prename descclassname"><span class="pre">qclab.data.Data.</span></span><span class="sig-name descname"><span class="pre">add_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.data.Data.add_data" title="Link to this definition">#</a></dt>
@@ -447,10 +509,45 @@ each variable is saved using numpy.savez.</p>
 </dl>
 </dd></dl>
 
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">add_data</span></code> performs a <em>weighted</em> merge: for every collected key
+other than <code class="docutils literal notranslate"><span class="pre">&quot;seed&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;norm_factor&quot;</span></code>, the merged value is
+<code class="docutils literal notranslate"><span class="pre">(d1</span> <span class="pre">*</span> <span class="pre">n1</span> <span class="pre">+</span> <span class="pre">d2</span> <span class="pre">*</span> <span class="pre">n2)</span> <span class="pre">/</span> <span class="pre">(n1</span> <span class="pre">+</span> <span class="pre">n2)</span></code>, where <code class="docutils literal notranslate"><span class="pre">n1</span></code> and <code class="docutils literal notranslate"><span class="pre">n2</span></code> are
+the <code class="docutils literal notranslate"><span class="pre">norm_factor</span></code> values of the two Data objects (typically the
+number of trajectories that contributed). This means it is safe to
+stitch together runs with different batch sizes — but it also means
+that merging hand-edited Data objects with mismatched
+<code class="docutils literal notranslate"><span class="pre">norm_factor</span></code> values is a common source of confusion. If you
+find yourself manually editing <code class="docutils literal notranslate"><span class="pre">norm_factor</span></code>, you probably want
+to construct a fresh Data object instead.</p>
+</div>
+<section id="saving-and-loading">
+<h3>Saving and loading<a class="headerlink" href="#saving-and-loading" title="Link to this heading">#</a></h3>
+<p>A simulation’s output can be saved to disk and reloaded later:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">serial_driver</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;results.h5&quot;</span><span class="p">)</span>          <span class="c1"># HDF5 if h5py is installed,</span>
+                                 <span class="c1"># otherwise .npz with savez</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">qclab</span><span class="w"> </span><span class="kn">import</span> <span class="n">Data</span>
+<span class="n">reloaded</span> <span class="o">=</span> <span class="n">Data</span><span class="p">()</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;results.h5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you load an existing Data file on top of a non-empty Data object,
+the result is merged — useful when accumulating large simulations from
+periodic checkpoint files:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">big</span> <span class="o">=</span> <span class="n">Data</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">checkpoint_files</span><span class="p">:</span>
+    <span class="n">big</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+<span class="c1"># ``big`` now contains all chunks averaged together.</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Link to this heading">#</a></h2>
-<p>Here is a simple example of running a simulation and plotting from the Data object returned by the driver:</p>
+<p>Here is a simple example of running a simulation and plotting from the
+Data object returned by the driver:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qclab</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
@@ -461,13 +558,17 @@ each variable is saved using numpy.savez.</p>
 <span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">()</span>
 <span class="n">sim</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">SpinBoson</span><span class="p">()</span>
 <span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="n">MeanField</span><span class="p">()</span>
-<span class="n">sim</span><span class="o">.</span><span class="n">initial_state</span><span class="o">.</span><span class="n">wf_db</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">initial_state</span><span class="p">[</span><span class="s2">&quot;wf_db&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
 <span class="n">data</span> <span class="o">=</span> <span class="n">serial_driver</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
 
-<span class="n">t</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;tii-&gt;ti&#39;</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;dm_db&#39;</span><span class="p">])))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Diabatic populations&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">]</span>
+<span class="n">populations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;tii-&gt;ti&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s2">&quot;dm_db&quot;</span><span class="p">]))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">populations</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Diabatic populations&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Simulation log captured during the run is available on data.log.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">log</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -521,9 +622,11 @@ each variable is saved using numpy.savez.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-objects">Data Objects</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.data.Data.add_output_to_data_dict"><code class="docutils literal notranslate"><span class="pre">add_output_to_data_dict()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.data.Data.add_data"><code class="docutils literal notranslate"><span class="pre">add_data()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.data.Data.save"><code class="docutils literal notranslate"><span class="pre">save()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qclab.data.Data.load"><code class="docutils literal notranslate"><span class="pre">load()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#saving-and-loading">Saving and loading</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example">Example</a></li>

@@ -1,0 +1,1176 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Conventions Reference &#8212; QC Lab  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c1c6b95" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=55c26ed414f5f8a31ebb"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
+
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=b8b12719"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/conventions';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://tempelaar-team.github.io/qclab-dev/user_guide/conventions.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="The State and Parameters Dicts" href="state_and_parameters.html" />
+    <link rel="prev" title="Coordinates" href="coordinates.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo-light.png" class="logo__image only-light" alt="QC Lab  documentation - Home"/>
+    <img src="../_static/logo-dark.png" class="logo__image only-dark pst-js-only" alt="QC Lab  documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../interactive_docs/index.html">
+    Quick Menu
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qclab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../interactive_docs/index.html">
+    Quick Menu
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qclab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="algorithm.html">Algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Conventions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Conventions Reference</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="conventions-reference">
+<span id="conventions"></span><h1>Conventions Reference<a class="headerlink" href="#conventions-reference" title="Link to this heading">#</a></h1>
+<p>This page is the canonical lookup table for every standard name in QC Lab.
+Use it whenever you need to know:</p>
+<ul class="simple">
+<li><p>the exact slot name for an ingredient,</p></li>
+<li><p>the exact key under which a quantity lives in the <code class="docutils literal notranslate"><span class="pre">state</span></code> or
+<code class="docutils literal notranslate"><span class="pre">parameters</span></code> dict,</p></li>
+<li><p>the exact constant a stock ingredient reads from <code class="docutils literal notranslate"><span class="pre">model.constants</span></code>, or</p></li>
+<li><p>the exact setting an algorithm understands.</p></li>
+</ul>
+<p>Throughout this page we use the shorthand:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">sim.settings.batch_size</span></code> — the number of trajectories carried in
+a single batch.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">C</span> <span class="pre">=</span> <span class="pre">num_classical_coordinates</span></code> — the number of classical coordinates
+in the model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">num_quantum_states</span></code> — the number of quantum states in the model.</p></li>
+</ul>
+<p>The first axis of every state array is always the batch axis.</p>
+<hr class="docutils" />
+<section id="standard-ingredient-slots">
+<h2>Standard ingredient slots<a class="headerlink" href="#standard-ingredient-slots" title="Link to this heading">#</a></h2>
+<p>These are the names that algorithms use when calling
+<code class="docutils literal notranslate"><span class="pre">sim.model.get(...)</span></code>. The first element of each <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">callable)</span></code>
+tuple in a model’s <code class="docutils literal notranslate"><span class="pre">ingredients</span></code> list must match one of these (or be an
+<code class="docutils literal notranslate"><span class="pre">_init_*</span></code> initializer). The signature of every ingredient is
+<code class="docutils literal notranslate"><span class="pre">f(model,</span> <span class="pre">parameters,</span> <span class="pre">**kwargs)</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 25.0%" />
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Slot</p></th>
+<th class="head"><p>Required kwargs</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Used by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">h_q</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">batch_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex Hamiltonian</p></td>
+<td><p>every algorithm</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">h_qc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex Hamiltonian</p></td>
+<td><p>every algorithm</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">h_c</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> real classical energy</p></td>
+<td><p>mean-field, FSSH</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p>sparse <code class="docutils literal notranslate"><span class="pre">(inds,</span> <span class="pre">mels,</span> <span class="pre">shape)</span></code> for <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">N,</span> <span class="pre">N)</span></code></p></td>
+<td><p>every algorithm; falls back to finite differences if absent</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dh_c_dzc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex gradient</p></td>
+<td><p>every algorithm; falls back to finite differences if absent</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">init_classical</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">seed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex initial coordinates</p></td>
+<td><p>every algorithm; falls back to MCMC if absent</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hop</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">resc_dir_z</span></code>, <code class="docutils literal notranslate"><span class="pre">eigval_diff</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(shift,</span> <span class="pre">hop_bool)</span></code></p></td>
+<td><p>FSSH only</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">derivative_coupling_dzc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex</p></td>
+<td><p>ab initio only</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gauge_field_force</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">state_ind</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex</p></td>
+<td><p>optional, when <code class="docutils literal notranslate"><span class="pre">use_gauge_field_force</span> <span class="pre">==</span> <span class="pre">True</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ab_initio_property_calculator</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">property_dict</span></code>, <code class="docutils literal notranslate"><span class="pre">traj_ind</span></code></p></td>
+<td><p>dict of energies / gradients / couplings</p></td>
+<td><p>ab initio only</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="init-initializer-ingredients">
+<h3><code class="docutils literal notranslate"><span class="pre">_init_*</span></code> initializer ingredients<a class="headerlink" href="#init-initializer-ingredients" title="Link to this heading">#</a></h3>
+<p>Names that begin with an underscore are initializers. They are called by
+<code class="docutils literal notranslate"><span class="pre">Model.initialize_constants</span></code> whenever a constant changes, and their
+purpose is to derive internal constants from the user-facing ones.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">_init_model</span></code> — sets sizes (<code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code>,
+<code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code>) and per-coordinate metadata
+(<code class="docutils literal notranslate"><span class="pre">classical_coordinate_mass</span></code>, <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_init_h_q</span></code> — derives constants for the <code class="docutils literal notranslate"><span class="pre">h_q</span></code> ingredient.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_init_h_qc</span></code> — derives constants for the <code class="docutils literal notranslate"><span class="pre">h_qc</span></code> ingredient.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_init_h_c</span></code> — derives constants for the <code class="docutils literal notranslate"><span class="pre">h_c</span></code> ingredient.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="standard-state-dict-keys">
+<h2>Standard state-dict keys<a class="headerlink" href="#standard-state-dict-keys" title="Link to this heading">#</a></h2>
+<p>Keys follow <code class="docutils literal notranslate"><span class="pre">lower_snake_case</span></code>. Every key listed below is read or
+written by at least one of the built-in tasks, so reusing the standard
+names lets your custom tasks slot in without rebinding.</p>
+<section id="trajectory-bookkeeping">
+<h3>Trajectory bookkeeping<a class="headerlink" href="#trajectory-bookkeeping" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Shape / type</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">seed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> int</p></td>
+<td><p>Per-trajectory random seed</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">branch_ind</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> int</p></td>
+<td><p>FSSH branch index (deterministic mode)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">t</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> float64</p></td>
+<td><p>Current time</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">output_dict</span></code></p></td>
+<td><p>dict</p></td>
+<td><p>Values to collect this step</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">norm_factor</span></code></p></td>
+<td><p>scalar</p></td>
+<td><p>Trajectory-average normalization (= <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classical-coordinates-and-rk4-intermediates">
+<h3>Classical coordinates and RK4 intermediates<a class="headerlink" href="#classical-coordinates-and-rk4-intermediates" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Shape / type</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex128</p></td>
+<td><p>Current classical coordinate</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">z_1</span></code>, <code class="docutils literal notranslate"><span class="pre">z_2</span></code>, <code class="docutils literal notranslate"><span class="pre">z_3</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex128</p></td>
+<td><p>RK4 sub-step intermediates</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">z_previous</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex128</p></td>
+<td><p>Previous-timestep <code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">z_rk4_k1</span></code>, <code class="docutils literal notranslate"><span class="pre">z_rk4_k2</span></code>, <code class="docutils literal notranslate"><span class="pre">z_rk4_k3</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex128</p></td>
+<td><p>RK4 slopes</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="hamiltonian-matrices">
+<h3>Hamiltonian matrices<a class="headerlink" href="#hamiltonian-matrices" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Shape / type</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">h_q</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Quantum Hamiltonian</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">h_qc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Quantum-classical Hamiltonian</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">h_q_tot</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">h_q</span> <span class="pre">+</span> <span class="pre">h_qc</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">h_q_tot_previous</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Previous-step value</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="forces">
+<h3>Forces<a class="headerlink" href="#forces" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Shape / type</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">classical_force</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex128</p></td>
+<td><p>Force from <code class="docutils literal notranslate"><span class="pre">dh_c_dzc</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">quantum_classical_force</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex128</p></td>
+<td><p>Force from <span class="math notranslate nohighlight">\(\langle \psi | \partial_{z^*} h_{qc} | \psi \rangle\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">*_force_previous</span></code></p></td>
+<td><p>same as above</p></td>
+<td><p>Previous-step value</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="diagonalization-output">
+<h3>Diagonalization output<a class="headerlink" href="#diagonalization-output" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Shape / type</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eigvals</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N)</span></code> float64</p></td>
+<td><p>Eigenvalues of <code class="docutils literal notranslate"><span class="pre">h_q_tot</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eigvecs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Eigenvectors (columns are states)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eigvecs_previous</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Previous-step eigenvectors</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="wavefunctions">
+<h3>Wavefunctions<a class="headerlink" href="#wavefunctions" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Shape / type</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">wf_db</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Wavefunction in diabatic basis</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wf_adb</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Wavefunction in adiabatic basis</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">act_surf_wf</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Active-surface unit vector (FSSH)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="fssh-specific">
+<h3>FSSH-specific<a class="headerlink" href="#fssh-specific" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Shape / type</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">act_surf</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N)</span></code> int</p></td>
+<td><p>One-hot active surface</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">act_surf_ind</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> int</p></td>
+<td><p>Active-surface index</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">act_surf_ind_0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> int</p></td>
+<td><p>Initial active surface</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hop_prob</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N)</span></code> float64</p></td>
+<td><p>Hopping probabilities</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hop_ind</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(H,)</span></code> int</p></td>
+<td><p>Indices of trajectories attempting a hop</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hop_dest</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(H,)</span></code> int</p></td>
+<td><p>Destination surfaces</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hop_bool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> bool</p></td>
+<td><p>Whether each trajectory hops</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hop_pairs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">2)</span></code> int</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(initial,</span> <span class="pre">final)</span></code> state pairs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hop_successful</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> bool</p></td>
+<td><p>Whether the (already-attempted) hop succeeded</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dm_adb_0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Initial adiabatic density matrix</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="density-matrices-and-energies">
+<h3>Density matrices and energies<a class="headerlink" href="#density-matrices-and-energies" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Shape / type</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dm_db</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Diabatic density matrix</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dm_adb</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Adiabatic density matrix</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">classical_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> float64</p></td>
+<td><p>Per-trajectory classical energy</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">quantum_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> float64</p></td>
+<td><p>Per-trajectory quantum energy</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="ab-initio-extras">
+<h3>Ab initio extras<a class="headerlink" href="#ab-initio-extras" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Shape / type</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">aip_excited_amplitudes</span></code></p></td>
+<td><p>varies</p></td>
+<td><p>From the ab initio property calculator</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">derivative_coupling_dzc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Derivative coupling tensor</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adb_connection</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex128</p></td>
+<td><p>Adiabatic connection matrix</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="suffix-conventions">
+<h3>Suffix conventions<a class="headerlink" href="#suffix-conventions" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">_previous</span></code> — value from the prior timestep.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_0</span></code> — initial-time reference (e.g. <code class="docutils literal notranslate"><span class="pre">dm_adb_0</span></code>, <code class="docutils literal notranslate"><span class="pre">act_surf_ind_0</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_ind</span></code> — integer index (e.g. <code class="docutils literal notranslate"><span class="pre">act_surf_ind</span></code>, <code class="docutils literal notranslate"><span class="pre">traj_ind</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_name</span></code> — only used for task keyword arguments whose value is a string
+key name (e.g. <code class="docutils literal notranslate"><span class="pre">z_name=&quot;z&quot;</span></code>).</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="standard-model-constants">
+<h2>Standard model constants<a class="headerlink" href="#standard-model-constants" title="Link to this heading">#</a></h2>
+<section id="sizes-always-num-prefix">
+<h3>Sizes (always <code class="docutils literal notranslate"><span class="pre">num_</span></code> prefix)<a class="headerlink" href="#sizes-always-num-prefix" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_atoms</span></code></p></li>
+</ul>
+</section>
+<section id="per-coordinate-metadata">
+<h3>Per-coordinate metadata<a class="headerlink" href="#per-coordinate-metadata" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">classical_coordinate_mass</span></code> <code class="docutils literal notranslate"><span class="pre">(C,)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code> <code class="docutils literal notranslate"><span class="pre">(C,)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">harmonic_frequency</span></code> <code class="docutils literal notranslate"><span class="pre">(C,)</span></code></p></li>
+</ul>
+</section>
+<section id="initial-conditions-init-prefix">
+<h3>Initial conditions (<code class="docutils literal notranslate"><span class="pre">init_</span></code> prefix)<a class="headerlink" href="#initial-conditions-init-prefix" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">init_position</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">init_momentum</span></code></p></li>
+</ul>
+</section>
+<section id="coupling-constants-named-after-the-consuming-ingredient">
+<h3>Coupling constants (named after the consuming ingredient)<a class="headerlink" href="#coupling-constants-named-after-the-consuming-ingredient" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">diagonal_linear_coupling</span></code> — used by <code class="docutils literal notranslate"><span class="pre">h_qc_diagonal_linear</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nearest_neighbor_hopping_energy</span></code>, <code class="docutils literal notranslate"><span class="pre">nearest_neighbor_periodic</span></code> — used by
+<code class="docutils literal notranslate"><span class="pre">h_q_nearest_neighbor</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">two_level_00</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_11</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_01_re</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_01_im</span></code> — used by
+<code class="docutils literal notranslate"><span class="pre">h_q_two_level</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coherent_state_displacement</span></code> — used by <code class="docutils literal notranslate"><span class="pre">init_classical_wigner_coherent_state</span></code>.</p></li>
+</ul>
+</section>
+<section id="atomistic-ab-initio">
+<h3>Atomistic / ab initio<a class="headerlink" href="#atomistic-ab-initio" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">atom_names</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">atom_masses</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">atom_positions</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">normal_mode</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">energy_offset</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">calculator_args</span></code></p></li>
+</ul>
+</section>
+<section id="numerical-tuning-knobs-consumer-knob">
+<h3>Numerical tuning knobs (<code class="docutils literal notranslate"><span class="pre">&lt;consumer&gt;_&lt;knob&gt;</span></code>)<a class="headerlink" href="#numerical-tuning-knobs-consumer-knob" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">numerical_fssh_hop_gamma_range</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">numerical_fssh_hop_max_iter</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">numerical_fssh_hop_num_points</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">numerical_fssh_hop_threshold</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dh_c_dzc_finite_difference_delta</span></code></p></li>
+</ul>
+</section>
+<section id="user-facing-physical-constants-conventional-symbols">
+<h3>User-facing physical constants (conventional symbols)<a class="headerlink" href="#user-facing-physical-constants-conventional-symbols" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">kBT</span></code>, <code class="docutils literal notranslate"><span class="pre">V</span></code>, <code class="docutils literal notranslate"><span class="pre">E</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">W</span></code>, <code class="docutils literal notranslate"><span class="pre">J</span></code>, <code class="docutils literal notranslate"><span class="pre">N</span></code>, <code class="docutils literal notranslate"><span class="pre">g</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code>, <code class="docutils literal notranslate"><span class="pre">l_reorg</span></code>, <code class="docutils literal notranslate"><span class="pre">w_c</span></code></p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="standard-algorithm-settings">
+<h2>Standard algorithm settings<a class="headerlink" href="#standard-algorithm-settings" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Used by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tmax</span></code></p></td>
+<td><p>float</p></td>
+<td><p>10.0</p></td>
+<td><p>every simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dt_update</span></code></p></td>
+<td><p>float</p></td>
+<td><p>0.001</p></td>
+<td><p>every simulation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dt_collect</span></code></p></td>
+<td><p>float</p></td>
+<td><p>0.1</p></td>
+<td><p>every simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">num_trajs</span></code></p></td>
+<td><p>int</p></td>
+<td><p>100</p></td>
+<td><p>every simulation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">batch_size</span></code></p></td>
+<td><p>int</p></td>
+<td><p>25</p></td>
+<td><p>every simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">progress_bar</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><p>every simulation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">debug</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>gates expensive sanity checks</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fssh_deterministic</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>FSSH</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gauge_fixing</span></code></p></td>
+<td><p>str</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;sign_overlap&quot;</span></code></p></td>
+<td><p>FSSH</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_gauge_field_force</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>FSSH</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">update_wf_adb_eig_num_substeps</span></code></p></td>
+<td><p>int</p></td>
+<td><p>10</p></td>
+<td><p>ab initio</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_wf_overlaps_for_adb_connection</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>varies</p></td>
+<td><p>ab initio</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Boolean flags start with <code class="docutils literal notranslate"><span class="pre">use_</span></code> or <code class="docutils literal notranslate"><span class="pre">is_</span></code>; mode strings are descriptive
+<code class="docutils literal notranslate"><span class="pre">snake_case</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">&quot;phase_der_couple&quot;</span></code> value of <code class="docutils literal notranslate"><span class="pre">gauge_fixing</span></code> is only required
+when the Hamiltonian or derivative couplings are complex-valued
+(e.g. models with magnetic fields or complex hopping). For
+real-valued problems such as the Tully models or the standard
+spin-boson model, the default <code class="docutils literal notranslate"><span class="pre">&quot;sign_overlap&quot;</span></code> is sufficient and
+avoids unnecessary overhead.</p>
+</div>
+</section>
+<hr class="docutils" />
+<section id="local-variable-names-allowed-in-physics-code">
+<h2>Local variable names allowed in physics code<a class="headerlink" href="#local-variable-names-allowed-in-physics-code" title="Link to this heading">#</a></h2>
+<p>The following short names are accepted in ingredient and task bodies
+without further explanation:</p>
+<ul class="simple">
+<li><p>coordinates: <code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">q</span></code>, <code class="docutils literal notranslate"><span class="pre">p</span></code></p></li>
+<li><p>per-coordinate quantities: <code class="docutils literal notranslate"><span class="pre">m</span></code> (mass), <code class="docutils literal notranslate"><span class="pre">h</span></code> (weight), <code class="docutils literal notranslate"><span class="pre">w</span></code> (frequency)</p></li>
+<li><p>thermal energy: <code class="docutils literal notranslate"><span class="pre">kBT</span></code></p></li>
+<li><p>eigenpairs: <code class="docutils literal notranslate"><span class="pre">evec_i</span></code>, <code class="docutils literal notranslate"><span class="pre">evec_j</span></code>, <code class="docutils literal notranslate"><span class="pre">eval_i</span></code>, <code class="docutils literal notranslate"><span class="pre">eval_j</span></code>, <code class="docutils literal notranslate"><span class="pre">eigval_diff</span></code></p></li>
+<li><p>sparse triple (always in this order): <code class="docutils literal notranslate"><span class="pre">inds</span></code>, <code class="docutils literal notranslate"><span class="pre">mels</span></code>, <code class="docutils literal notranslate"><span class="pre">shape</span></code></p></li>
+<li><p>sizes: <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>, <code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code>,
+<code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code></p></li>
+<li><p>indices: <code class="docutils literal notranslate"><span class="pre">traj_ind</span></code>, <code class="docutils literal notranslate"><span class="pre">state_ind</span></code>, <code class="docutils literal notranslate"><span class="pre">act_surf_ind</span></code>, <code class="docutils literal notranslate"><span class="pre">t_ind</span></code></p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="coordinates.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Coordinates</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="state_and_parameters.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">The State and Parameters Dicts</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-ingredient-slots">Standard ingredient slots</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#init-initializer-ingredients"><code class="docutils literal notranslate"><span class="pre">_init_*</span></code> initializer ingredients</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-state-dict-keys">Standard state-dict keys</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#trajectory-bookkeeping">Trajectory bookkeeping</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classical-coordinates-and-rk4-intermediates">Classical coordinates and RK4 intermediates</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hamiltonian-matrices">Hamiltonian matrices</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#forces">Forces</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diagonalization-output">Diagonalization output</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wavefunctions">Wavefunctions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fssh-specific">FSSH-specific</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#density-matrices-and-energies">Density matrices and energies</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ab-initio-extras">Ab initio extras</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#suffix-conventions">Suffix conventions</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-model-constants">Standard model constants</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sizes-always-num-prefix">Sizes (always <code class="docutils literal notranslate"><span class="pre">num_</span></code> prefix)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#per-coordinate-metadata">Per-coordinate metadata</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initial-conditions-init-prefix">Initial conditions (<code class="docutils literal notranslate"><span class="pre">init_</span></code> prefix)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coupling-constants-named-after-the-consuming-ingredient">Coupling constants (named after the consuming ingredient)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#atomistic-ab-initio">Atomistic / ab initio</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-tuning-knobs-consumer-knob">Numerical tuning knobs (<code class="docutils literal notranslate"><span class="pre">&lt;consumer&gt;_&lt;knob&gt;</span></code>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#user-facing-physical-constants-conventional-symbols">User-facing physical constants (conventional symbols)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-algorithm-settings">Standard algorithm settings</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#local-variable-names-allowed-in-physics-code">Local variable names allowed in physics code</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025-2026, Tempelaar Team.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

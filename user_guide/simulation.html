@@ -307,9 +307,13 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul class="current nav bd-sidenav">
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
 <li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
@@ -318,6 +322,21 @@
 <li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
 </ul>
 </div>
@@ -399,18 +418,28 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">sim.initial_state</span></code>: A dictionary that defines the initial state of the system.</p></li>
 </ul>
 <p>A Simulation object containing a default mean-field simulation of the spin-boson model can be created as:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qclab</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qclab</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qclab.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpinBoson</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qclab.algorithms</span><span class="w"> </span><span class="kn">import</span> <span class="n">MeanField</span>
 
 <span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">()</span>
 <span class="n">sim</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">SpinBoson</span><span class="p">()</span>
 <span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="n">MeanField</span><span class="p">()</span>
-<span class="n">sim</span><span class="o">.</span><span class="n">initial_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">sim</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">num_quantum_states</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
-<span class="n">sim</span><span class="o">.</span><span class="n">initial_state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="mf">0.0</span><span class="n">j</span>
+<span class="c1"># ``sim.initial_state`` is a dictionary; populate it by key.</span>
+<span class="n">wf0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">num_quantum_states</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+<span class="n">wf0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="mf">0.0</span><span class="n">j</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">initial_state</span><span class="p">[</span><span class="s2">&quot;wf_db&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wf0</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal notranslate"><span class="pre">input_settings</span></code> is a dictionary of settings that overwrite the default settings of the simulation described below.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><code class="docutils literal notranslate"><span class="pre">sim.initial_state</span></code> is a dictionary, not an array. Set the diabatic
+wavefunction with <code class="docutils literal notranslate"><span class="pre">sim.initial_state[&quot;wf_db&quot;]</span> <span class="pre">=</span> <span class="pre">wf0</span></code> rather than
+<code class="docutils literal notranslate"><span class="pre">sim.initial_state</span> <span class="pre">=</span> <span class="pre">wf0</span></code>. The value must be an <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> with
+<code class="docutils literal notranslate"><span class="pre">dtype=complex</span></code>; a Python list will be silently skipped at
+initialization.</p>
+</div>
 <section id="simulation-settings">
 <h3>Simulation Settings<a class="headerlink" href="#simulation-settings" title="Link to this heading">#</a></h3>
 <p>A default simulation (i.e. one provided with no input dictionary of settings) has the following settings:</p>

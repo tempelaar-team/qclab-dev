@@ -458,7 +458,7 @@ found <a class="reference internal" href="../../user_guide/driver.html#driver"><
 <p>The output has changed once more:</p>
 <a class="reference internal image-reference" href="../../_images/fssh_lreorg.png"><img alt="Population dynamics." class="align-center" src="../../_images/fssh_lreorg.png" style="width: 50%;" />
 </a>
-<p>You can learn about algorithms in the <a class="reference external" href="../../user_guide/algorithms/algorithms.html">Algorithms</a> documentation.</p>
+<p>You can learn about algorithms in the <a class="reference internal" href="../../user_guide/algorithm.html#algorithm"><span class="std std-ref">Algorithms</span></a> documentation.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The populations above are not in agreement at the outset of the simulation because the FSSH algorithm
@@ -506,7 +506,7 @@ QC Lab makes this particularly easy to do by using Python’s built-in list meth
 elements of the quantum Hamiltonian.</p>
 <p>For simplicity we will make an ingredient that creates the quantum-classical term of the Hamiltonian for a single trajectory and then use
 QC Lab’s built-in vectorization decorator to automatically vectorize it.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qclab.ingredients</span><span class="w"> </span><span class="kn">import</span> <span class="n">vectorize_ingredient</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qclab.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">vectorize_ingredient</span>
 
 <span class="nd">@vectorize_ingredient</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">h_qc</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -539,7 +539,8 @@ using finite differences.</p>
 <p>Now we can run the simulation with the new coupling term and compare the results to the previous simulation.
 You’ll notice a small decrease in the performance of the simulation due to the numerical calculation of the gradients.
 If you’d like to speed up the simulation, you can implement an analytical gradient for the new coupling term by following the
-<a class="reference external" href="../../developer_guide/model_dev/model_dev.html">model development guide</a>.</p>
+<a class="reference internal" href="../../user_guide/developing_models.html#developing-models"><span class="std std-ref">model development guide</span></a>. The <a class="reference internal" href="../../user_guide/ingredient.html#ingredient"><span class="std std-ref">Sparse Quantum-Classical Gradients</span></a> section also covers
+the analytical-gradient pattern.</p>
 <a class="reference internal image-reference" href="../../_images/fssh_lreorg_inv_vel_offdiag.png"><img alt="Population dynamics." class="align-center" src="../../_images/fssh_lreorg_inv_vel_offdiag.png" style="width: 50%;" />
 </a>
 </div>

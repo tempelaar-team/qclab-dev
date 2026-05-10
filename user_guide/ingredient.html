@@ -58,7 +58,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tasks" href="task.html" />
-    <link rel="prev" title="User Guide" href="index.html" />
+    <link rel="prev" title="Architecture Overview" href="architecture.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -308,9 +308,13 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul class="current nav bd-sidenav">
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Ingredients</a></li>
 <li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
@@ -319,6 +323,21 @@
 <li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
 </ul>
 </div>
@@ -405,6 +424,77 @@ As discussed in the <a class="reference internal" href="model.html#model"><span 
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">model</span></code> is a Model object which contains all the constants of the model, <code class="docutils literal notranslate"><span class="pre">parameters</span></code> is a dictionary containing time-dependent parameters of the simulation, and <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> are any additional keyword arguments that are specific to that ingredient type.</p>
+<p>The full set of standard slot names, the keyword arguments each one consumes, and the shape of its return value are listed in <a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a>. The most commonly used slots are summarised here:</p>
+<div class="pst-scrollable-table-container"><table class="table" id="id1">
+<caption><span class="caption-text">Standard ingredient slots</span><a class="headerlink" href="#id1" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 28.0%" />
+<col style="width: 30.0%" />
+<col style="width: 20.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Slot</p></th>
+<th class="head"><p>Required kwargs</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Used by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">h_q</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">batch_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex Hamiltonian</p></td>
+<td><p>every algorithm</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">h_qc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex Hamiltonian</p></td>
+<td><p>every algorithm</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">h_c</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> real classical energy</p></td>
+<td><p>mean-field, FSSH</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p>sparse <code class="docutils literal notranslate"><span class="pre">(inds,</span> <span class="pre">mels,</span> <span class="pre">shape)</span></code> for <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">N,</span> <span class="pre">N)</span></code></p></td>
+<td><p>every algorithm; falls back to finite differences if absent</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dh_c_dzc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex gradient</p></td>
+<td><p>every algorithm; falls back to finite differences if absent</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">init_classical</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">seed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex initial coordinates</p></td>
+<td><p>every algorithm; falls back to MCMC if absent</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hop</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">resc_dir_z</span></code>, <code class="docutils literal notranslate"><span class="pre">eigval_diff</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(shift,</span> <span class="pre">hop_bool)</span></code></p></td>
+<td><p>FSSH only</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">derivative_coupling_dzc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex</p></td>
+<td><p>ab initio only</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gauge_field_force</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">state_ind</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex</p></td>
+<td><p>optional, when <code class="docutils literal notranslate"><span class="pre">use_gauge_field_force</span> <span class="pre">==</span> <span class="pre">True</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ab_initio_property_calculator</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">property_dict</span></code>, <code class="docutils literal notranslate"><span class="pre">traj_ind</span></code></p></td>
+<td><p>dict of energies / gradients / couplings</p></td>
+<td><p>ab initio only</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Here <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">sim.settings.batch_size</span></code>, <code class="docutils literal notranslate"><span class="pre">C</span> <span class="pre">=</span> <span class="pre">num_classical_coordinates</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">num_quantum_states</span></code>.</p>
 <p>Ingredients in QC lab can come in different variations, for example the quantum Hamiltonian ingredient could describe a two-level system, a nearest-neighbor lattice, or a more complicated Hamiltonian. The type and variety of an ingredient is specified in its name which follows the convention <code class="docutils literal notranslate"><span class="pre">&lt;ingredient_type&gt;_&lt;variety&gt;</span></code>. For example, the quantum Hamiltonian ingredient for a two-level system is named <code class="docutils literal notranslate"><span class="pre">h_q_two_level</span></code> where <code class="docutils literal notranslate"><span class="pre">h_q</span></code> indicates that it is a quantum Hamiltonian ingredient and <code class="docutils literal notranslate"><span class="pre">two_level</span></code> indicates that it describes a two-level system. Likewise the classical Hamiltonian ingredient for a harmonic oscillator is named <code class="docutils literal notranslate"><span class="pre">h_c_harmonic</span></code> where <code class="docutils literal notranslate"><span class="pre">h_c</span></code> indicates that it is a classical Hamiltonian ingredient and <code class="docutils literal notranslate"><span class="pre">harmonic</span></code> indicates that it describes a harmonic oscillator.</p>
 <p>Ingredients can be included in a model by appending them to the model’s <code class="docutils literal notranslate"><span class="pre">ingredients</span></code> attribute, which is a list of tuples where each tuple contains the name of the ingredient and the ingredient function itself. Because the ingredients list is read back to front, appending an ingredient is sufficient to overwrite any existing ingredient with the same name. For example, to include a custom quantum Hamiltonian ingredient in a model, one would do:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">h_q_custom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -547,12 +637,12 @@ These constants are discussed in <a class="reference internal" href="model.html#
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="index.html"
+       href="architecture.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">User Guide</p>
+        <p class="prev-next-title">Architecture Overview</p>
       </div>
     </a>
     <a class="right-next"

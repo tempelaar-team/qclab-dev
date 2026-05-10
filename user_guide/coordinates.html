@@ -57,6 +57,7 @@
     <link rel="canonical" href="https://tempelaar-team.github.io/qclab-dev/user_guide/coordinates.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Conventions Reference" href="conventions.html" />
     <link rel="prev" title="Data" href="data.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -220,6 +221,10 @@
   
 
   
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
     </header>
@@ -303,9 +308,13 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul class="current nav bd-sidenav">
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
 <li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
@@ -314,6 +323,21 @@
 <li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Coordinates</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
 </ul>
 </div>
@@ -384,20 +408,34 @@
                   
   <section id="coordinates">
 <span id="id1"></span><h1>Coordinates<a class="headerlink" href="#coordinates" title="Link to this heading">#</a></h1>
-<p>QC Lab uses a complex-valued classical coordinate formalism to implement both Models and Algorithms. This enables simulations in QC Lab to be entierly
+<p>QC Lab uses a complex-valued classical coordinate formalism to implement both Models and Algorithms. This enables simulations in QC Lab to be entirely
 invariant to the representation in which they are carried out. As such, the same algorithm can simulate a
 model in real or reciprocal space (or indeed, any space at all) without modification. The complex-valued classical coordinate formalism is introduced in detail in <a class="reference external" href="https://doi.org/10.1021/acs.jctc.4c00555">Miyazaki et al. 2024</a>.
 We include a brief description of the formalism here and document some useful functions for converting between real-valued and complex-valued coordinates.</p>
-<p>Complex-valued coordinate in QC Lab are denoted as <code class="docutils literal notranslate"><span class="pre">z</span></code> by convention whereas the real-valued position and momentum coordinates are <code class="docutils literal notranslate"><span class="pre">q</span></code> and <code class="docutils literal notranslate"><span class="pre">p</span></code>, respectively.
-The complex-valued coordinate can be constructed from the real-valued coordinates and the coordiante masses by introducing a set of “weights” <code class="docutils literal notranslate"><span class="pre">h</span></code> which is denoted <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code> in
+<p>Complex-valued coordinates in QC Lab are denoted as <code class="docutils literal notranslate"><span class="pre">z</span></code> by convention, whereas the real-valued position and momentum coordinates are <code class="docutils literal notranslate"><span class="pre">q</span></code> and <code class="docutils literal notranslate"><span class="pre">p</span></code>, respectively.
+The complex-valued coordinate can be constructed from the real-valued coordinates and the coordinate masses by introducing a set of “weights” <code class="docutils literal notranslate"><span class="pre">h</span></code> which is denoted <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code> in
 the Model object.</p>
 <div class="math notranslate nohighlight">
 \[z_{n} = \sqrt{\frac{m_{n} h_{n}}{2}}\left(q + i\frac{p}{m_{n} h_{n}}\right)\]</div>
-<p>Readers with a keen eye may notice that <span class="math notranslate nohighlight">\(h_{n}\)</span> has the same role of a frequency in relating the relative displacements of position and momentum.
+<p>Readers with a keen eye may notice that <span class="math notranslate nohighlight">\(h_{n}\)</span> plays the same role as a frequency in relating the relative displacements of position and momentum.
 For that reason, it is often a convenient choice when working with harmonic oscillators to set <span class="math notranslate nohighlight">\(h_{n}\)</span> to the harmonic frequency. Algorithms in
-QC Lab are implemented in a manner that is invariant of the choice of weights. Likewise, ingredients in QC Lab are also invaraint to the choice of weights.
+QC Lab are implemented in a manner that is invariant to the choice of weights. Likewise, ingredients in QC Lab are also invariant to the choice of weights.
 However, Models may enforce some choice of weights as part of their initialization rather than enabling this to be changed by a user.</p>
 <p>Conversions to and from complex-valued classical coordinates are conveniently implemented in the following functions.</p>
+<section id="gradients-in-complex-valued-coordinates">
+<h2>Gradients in complex-valued coordinates<a class="headerlink" href="#gradients-in-complex-valued-coordinates" title="Link to this heading">#</a></h2>
+<p>When implementing a new gradient ingredient (e.g. <code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code> or <code class="docutils literal notranslate"><span class="pre">dh_c_dzc</span></code>)
+it is often natural to differentiate the underlying physics with respect to
+<span class="math notranslate nohighlight">\(q\)</span> and <span class="math notranslate nohighlight">\(p\)</span>, then convert the result to the gradient with respect
+to <span class="math notranslate nohighlight">\(z^{*}\)</span> that QC Lab consumes internally. The reverse direction is
+also occasionally needed (for example when comparing to phase-space
+gradients reported by an electronic-structure code). Two helpers are
+provided for this:</p>
+<p>The Tully models (<code class="docutils literal notranslate"><span class="pre">TullyProblemOne</span></code>, <code class="docutils literal notranslate"><span class="pre">TullyProblemTwo</span></code>, <code class="docutils literal notranslate"><span class="pre">TullyProblemThree</span></code>)
+and the <code class="docutils literal notranslate"><span class="pre">AbInitio</span></code> model use <code class="docutils literal notranslate"><span class="pre">dqdp_to_dzc</span></code> to assemble their analytical
+gradient ingredients. See <a class="reference internal" href="functions.html#functions"><span class="std std-ref">Functions</span></a> for the full list of
+low-level helpers.</p>
+</section>
 </section>
 
 
@@ -419,12 +457,39 @@ However, Models may enforce some choice of weights as part of their initializati
         <p class="prev-next-title">Data</p>
       </div>
     </a>
+    <a class="right-next"
+       href="conventions.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Conventions Reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
 </div>
                 </footer>
               
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradients-in-complex-valued-coordinates">Gradients in complex-valued coordinates</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
