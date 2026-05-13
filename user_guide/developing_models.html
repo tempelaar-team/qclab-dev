@@ -326,7 +326,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
 </ul>
@@ -407,41 +407,40 @@
                   
   <section id="developing-models-and-ingredients">
 <span id="developing-models"></span><h1>Developing Models and Ingredients<a class="headerlink" href="#developing-models-and-ingredients" title="Link to this heading">#</a></h1>
-<p>This page is a guided tour for users who want to add new physics to
-QC Lab — either by tweaking an existing model or by writing a new one
-from scratch. Read it after <a class="reference internal" href="ingredient.html#ingredient"><span class="std std-ref">Ingredients</span></a> and
-<a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>, both of which describe what the building blocks
-look like in isolation.</p>
-<section id="decision-tree-subclass-an-existing-model-or-write-a-new-one">
-<h2>Decision tree: subclass an existing model, or write a new one?<a class="headerlink" href="#decision-tree-subclass-an-existing-model-or-write-a-new-one" title="Link to this heading">#</a></h2>
-<p>Before writing a new ingredient, check whether the change you want can
-be expressed as a different set of <em>constants</em> on top of the existing
-parametric ingredients. The stock ingredients in <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.ingredients</span></code>
-are intentionally generic:</p>
+<p>This section describes how to add new physics to QC Lab by either
+adapting an existing Model object or writing a new one. It is intended
+to be read after the <a class="reference internal" href="ingredient.html#ingredient"><span class="std std-ref">Ingredients</span></a> and <a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a> sections, which describe what the building blocks look like
+in isolation.</p>
+<section id="when-to-subclass-an-existing-model-object">
+<h2>When to subclass an existing Model object<a class="headerlink" href="#when-to-subclass-an-existing-model-object" title="Link to this heading">#</a></h2>
+<p>Before writing a new ingredient, it is worth checking whether the
+desired change can be expressed by changing a Model object’s constants
+on top of the existing ingredients. Several of the built-in ingredients
+in <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.ingredients</span></code> are parametric and can accommodate a range
+of physical settings without modification.</p>
+<p>For example:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">h_qc_diagonal_linear</span></code> works for <em>any</em> <code class="docutils literal notranslate"><span class="pre">diagonal_linear_coupling</span></code>
+<li><p><code class="docutils literal notranslate"><span class="pre">h_qc_diagonal_linear</span></code> works for any <code class="docutils literal notranslate"><span class="pre">diagonal_linear_coupling</span></code>
 matrix.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">h_c_harmonic</span></code> works for <em>any</em> <code class="docutils literal notranslate"><span class="pre">harmonic_frequency</span></code> array.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">h_q_two_level</span></code> works for <em>any</em> two-level Hamiltonian set by
-<code class="docutils literal notranslate"><span class="pre">two_level_00</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_11</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_01_re</span></code> /
+<li><p><code class="docutils literal notranslate"><span class="pre">h_c_harmonic</span></code> works for any <code class="docutils literal notranslate"><span class="pre">harmonic_frequency</span></code> array.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">h_q_two_level</span></code> works for any two-level Hamiltonian set by
+<code class="docutils literal notranslate"><span class="pre">two_level_00</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_11</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_01_re</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">two_level_01_im</span></code>.</p></li>
 </ul>
-<p>If the <em>functional form</em> of the physics stays the same and only the
-<em>distribution of parameters</em> changes, you do not need a new ingredient.
-Subclass the existing model and override the relevant <code class="docutils literal notranslate"><span class="pre">_init_*</span></code>
-methods.</p>
-<p>If the functional form genuinely changes — for instance, off-diagonal
-coupling where only diagonal coupling exists, or a position-dependent
-coupling where only linear coupling exists — write a new ingredient.</p>
-<p>A useful test: if your new physics can be described by the existing
-ingredient’s docstring, modify constants. If it cannot, write a new
-ingredient.</p>
+<p>When the functional form of the physics is the same as that of an
+existing ingredient and only the distribution of parameters changes,
+subclassing an existing Model object and overriding the relevant
+<code class="docutils literal notranslate"><span class="pre">_init_*</span></code> methods is often sufficient. When the functional form is
+different — for example, off-diagonal coupling where only diagonal
+coupling exists, or a position-dependent coupling where only a linear
+coupling exists — a new ingredient is required.</p>
 <section id="example-subclassing-for-a-different-spectral-density">
 <h3>Example: subclassing for a different spectral density<a class="headerlink" href="#example-subclassing-for-a-different-spectral-density" title="Link to this heading">#</a></h3>
 <p>A spin-boson model with a Debye spectral density still uses
-<code class="docutils literal notranslate"><span class="pre">h_qc_diagonal_linear</span></code> and <code class="docutils literal notranslate"><span class="pre">h_c_harmonic</span></code>. Only the way the
+<code class="docutils literal notranslate"><span class="pre">h_qc_diagonal_linear</span></code> and <code class="docutils literal notranslate"><span class="pre">h_c_harmonic</span></code>; only the way the
 <code class="docutils literal notranslate"><span class="pre">harmonic_frequency</span></code> and <code class="docutils literal notranslate"><span class="pre">diagonal_linear_coupling</span></code> arrays are
-populated changes. A subclass is sufficient:</p>
+populated changes. A subclass of <code class="xref py py-class docutils literal notranslate"><span class="pre">SpinBoson</span></code> that
+overrides the corresponding initializers is sufficient:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qclab.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpinBoson</span>
 
@@ -485,54 +484,60 @@ populated changes. A subclass is sufficient:</p>
         <span class="p">)</span>
 </pre></div>
 </div>
-<p>The ingredient list is inherited from <code class="docutils literal notranslate"><span class="pre">SpinBoson</span></code>; the subclass only
-swaps in the new initializer logic.</p>
+<p>The ingredient list is inherited from
+<code class="xref py py-class docutils literal notranslate"><span class="pre">SpinBoson</span></code>; only the initializer logic is changed.</p>
 </section>
 </section>
 <hr class="docutils" />
-<section id="the-new-model-checklist">
-<h2>The new-model checklist<a class="headerlink" href="#the-new-model-checklist" title="Link to this heading">#</a></h2>
-<p>When the functional form of the physics is genuinely new, write a new
-<code class="docutils literal notranslate"><span class="pre">Model</span></code> subclass. The minimum viable model satisfies the following
-checklist:</p>
+<section id="a-new-model-object-from-scratch">
+<h2>A new Model object from scratch<a class="headerlink" href="#a-new-model-object-from-scratch" title="Link to this heading">#</a></h2>
+<p>When the functional form of the physics differs from any of the
+ingredients shipped with QC Lab, a new Model object is needed. The
+items below summarize what such a Model object needs to provide.</p>
 <ol class="arabic simple">
-<li><p><strong>Subclass</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">qclab.Model</span></code>. Place the file in
-<code class="docutils literal notranslate"><span class="pre">src/qclab/models/</span></code> if you intend to upstream it; a self-contained
-file outside the package is fine for prototyping.</p></li>
-<li><p><strong>Set ``default_constants``</strong> in <code class="docutils literal notranslate"><span class="pre">__init__</span></code> and forward them via
+<li><p><strong>Subclass</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">qclab.Model</span></code>. The file can live in
+<code class="docutils literal notranslate"><span class="pre">src/qclab/models/</span></code> if it is intended to be upstreamed; a
+self-contained file outside the package is fine otherwise.</p></li>
+<li><p><strong>Set</strong> <code class="docutils literal notranslate"><span class="pre">default_constants</span></code> in <code class="docutils literal notranslate"><span class="pre">__init__</span></code> and forward them via
 <code class="docutils literal notranslate"><span class="pre">super().__init__(self.default_constants,</span> <span class="pre">constants)</span></code>.</p></li>
 <li><p><strong>Set the performance flags</strong> <code class="docutils literal notranslate"><span class="pre">self.update_h_q</span></code> and
 <code class="docutils literal notranslate"><span class="pre">self.update_dh_qc_dzc</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> if those quantities do not
-depend on <code class="docutils literal notranslate"><span class="pre">z</span></code> (a significant speedup) and to <code class="docutils literal notranslate"><span class="pre">True</span></code> otherwise.</p></li>
-<li><p><strong>Provide an ``_init_model`` initializer</strong> that derives the mandatory
-constants <code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code>, <code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code>,
-<code class="docutils literal notranslate"><span class="pre">classical_coordinate_mass</span></code>, and <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code>.
-Optional <code class="docutils literal notranslate"><span class="pre">_init_h_q</span></code> / <code class="docutils literal notranslate"><span class="pre">_init_h_qc</span></code> / <code class="docutils literal notranslate"><span class="pre">_init_h_c</span></code> initializers
-can be added to derive ingredient-specific constants.</p></li>
-<li><p><strong>Define an ``ingredients`` class attribute</strong> that lists the
+depend on the classical coordinate <code class="docutils literal notranslate"><span class="pre">z</span></code> and to <code class="docutils literal notranslate"><span class="pre">True</span></code> otherwise.
+Setting either flag to <code class="docutils literal notranslate"><span class="pre">False</span></code> when the underlying quantity does
+depend on <code class="docutils literal notranslate"><span class="pre">z</span></code> produces a stale cache and incorrect results.</p></li>
+<li><p><strong>Provide an</strong> <code class="docutils literal notranslate"><span class="pre">_init_model</span></code> <strong>initializer</strong> that derives the
+mandatory constants <code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code>,
+<code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code>, <code class="docutils literal notranslate"><span class="pre">classical_coordinate_mass</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code>. Optional <code class="docutils literal notranslate"><span class="pre">_init_h_q</span></code>,
+<code class="docutils literal notranslate"><span class="pre">_init_h_qc</span></code>, <code class="docutils literal notranslate"><span class="pre">_init_h_c</span></code> initializers can be added to derive
+ingredient-specific constants.</p></li>
+<li><p><strong>Define an</strong> <code class="docutils literal notranslate"><span class="pre">ingredients</span></code> <strong>class attribute</strong> that lists the
 ingredients the model uses, including the <code class="docutils literal notranslate"><span class="pre">_init_*</span></code> initializers.
-Reuse stock ingredients from <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.ingredients</span></code> where possible.</p></li>
-<li><p><strong>Vectorize new ingredients</strong> over the batch axis. Either hand-code
+Reuse ingredients from <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.ingredients</span></code> whenever an existing
+ingredient covers the desired physics.</p></li>
+<li><p><strong>Vectorize new ingredients over the batch axis.</strong> Either hand-code
 the <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">...)</span></code> shape or use the
 <code class="xref py py-func docutils literal notranslate"><span class="pre">vectorize_ingredient()</span></code> decorator from
 <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.functions</span></code>.</p></li>
-<li><p><strong>Make sparse gradients return ``(inds, mels, shape)``</strong> in that
-order; <code class="docutils literal notranslate"><span class="pre">inds</span></code> should come from <code class="docutils literal notranslate"><span class="pre">np.where</span></code> on a dense array. See
-<a class="reference internal" href="ingredient.html#ingredient"><span class="std std-ref">Sparse Quantum-Classical Gradients</span></a>.</p></li>
-<li><p><strong>Cite a reference</strong> in the class docstring, when relevant.</p></li>
+<li><p><strong>Return sparse gradients as</strong> <code class="docutils literal notranslate"><span class="pre">(inds,</span> <span class="pre">mels,</span> <span class="pre">shape)</span></code> in that
+order. <code class="docutils literal notranslate"><span class="pre">inds</span></code> should come from <code class="docutils literal notranslate"><span class="pre">np.where</span></code> on a dense array. See
+the <a class="reference internal" href="ingredient.html#ingredient"><span class="std std-ref">Ingredients</span></a> section for details.</p></li>
+<li><p><strong>Cite the reference</strong> for the physics in the class docstring when
+one exists.</p></li>
 </ol>
-<p>Use <code class="xref py py-class docutils literal notranslate"><span class="pre">SpinBoson</span></code> and
-<code class="xref py py-class docutils literal notranslate"><span class="pre">HolsteinLattice</span></code> as canonical examples.</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">SpinBoson</span></code> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">HolsteinLattice</span></code> cover the case of a many-mode
+harmonic bath; <code class="xref py py-class docutils literal notranslate"><span class="pre">TullyProblemOne</span></code> covers a
+single-coordinate scattering problem. Both can be used as a starting
+template.</p>
 </section>
 <hr class="docutils" />
-<section id="worked-example-a-linear-vibronic-coupling-lvc-model">
-<h2>Worked example: a linear vibronic coupling (LVC) model<a class="headerlink" href="#worked-example-a-linear-vibronic-coupling-lvc-model" title="Link to this heading">#</a></h2>
+<section id="example-a-linear-vibronic-coupling-model">
+<h2>Example: a linear vibronic coupling model<a class="headerlink" href="#example-a-linear-vibronic-coupling-model" title="Link to this heading">#</a></h2>
 <p>The example below assembles a two-state, two-mode linear-vibronic-coupling
-model with a conical intersection. The point of the example is to walk
-through every step of the new-model checklist. It does not use
-<code class="docutils literal notranslate"><span class="pre">init_classical_wigner_coherent_state</span></code> or any other off-the-shelf
-sampler that requires extra constants — the focus is on the model and
-its ingredients, not on initial conditions.</p>
+model with a conical intersection. It shows the workflow described
+above and is intended as a worked example, not a reference
+implementation.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qclab</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qclab.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
@@ -541,7 +546,7 @@ its ingredients, not on initial conditions.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qclab.algorithms</span><span class="w"> </span><span class="kn">import</span> <span class="n">MeanField</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qclab.dynamics</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_driver</span>
 
-<span class="c1"># ------------------- novel ingredients ------------------------------</span>
+<span class="c1"># ---- novel ingredients ----------------------------------------------</span>
 
 <span class="nd">@functions</span><span class="o">.</span><span class="n">vectorize_ingredient</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">h_qc_lvc</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -594,7 +599,7 @@ its ingredients, not on initial conditions.</p>
     <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">out</span>
 
-<span class="c1"># ------------------- the Model class --------------------------------</span>
+<span class="c1"># ---- the Model class ------------------------------------------------</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">LinearVibronicCoupling</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Two-state, two-mode linear vibronic coupling model.</span>
@@ -653,7 +658,7 @@ its ingredients, not on initial conditions.</p>
         <span class="p">(</span><span class="s2">&quot;_init_model&quot;</span><span class="p">,</span>    <span class="n">_init_model</span><span class="p">),</span>
     <span class="p">]</span>
 
-<span class="c1"># ------------------- run --------------------------------------------</span>
+<span class="c1"># ---- run ------------------------------------------------------------</span>
 
 <span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">({</span>
     <span class="s2">&quot;tmax&quot;</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span> <span class="s2">&quot;dt_update&quot;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span> <span class="s2">&quot;dt_collect&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
@@ -667,34 +672,29 @@ its ingredients, not on initial conditions.</p>
 </div>
 <p>The sparse gradient is implemented analytically and decorated with
 <code class="docutils literal notranslate"><span class="pre">&#64;make_ingredient_sparse</span></code>, so QC Lab does not fall back to
-finite-difference gradients. Note that <code class="docutils literal notranslate"><span class="pre">update_h_q</span></code> and
-<code class="docutils literal notranslate"><span class="pre">update_dh_qc_dzc</span></code> are both <code class="docutils literal notranslate"><span class="pre">False</span></code> because neither depends on
-<code class="docutils literal notranslate"><span class="pre">z</span></code> after the constants are derived.</p>
+finite-difference gradients. Both performance flags <code class="docutils literal notranslate"><span class="pre">update_h_q</span></code> and
+<code class="docutils literal notranslate"><span class="pre">update_dh_qc_dzc</span></code> are set to <code class="docutils literal notranslate"><span class="pre">False</span></code> because the corresponding
+quantities do not depend on <code class="docutils literal notranslate"><span class="pre">z</span></code> once the constants are derived.</p>
 </section>
 <hr class="docutils" />
-<section id="things-to-double-check">
-<h2>Things to double-check<a class="headerlink" href="#things-to-double-check" title="Link to this heading">#</a></h2>
-<p>When debugging a new model, the following are the most common sources of
-incorrect results:</p>
+<section id="common-sources-of-incorrect-results">
+<h2>Common sources of incorrect results<a class="headerlink" href="#common-sources-of-incorrect-results" title="Link to this heading">#</a></h2>
+<p>When debugging a new Model object, the following are recurring sources
+of incorrect results. The list is representative, not exhaustive.</p>
 <ul class="simple">
-<li><p>Forgetting to set <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code> — the complex
-coordinate <code class="docutils literal notranslate"><span class="pre">z</span></code> is not well-defined without it.</p></li>
+<li><p>Forgetting to set <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code>. The complex
+coordinate <code class="docutils literal notranslate"><span class="pre">z</span></code> is not well defined without it.</p></li>
 <li><p>Returning a dense gradient from <code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code> instead of the sparse
 <code class="docutils literal notranslate"><span class="pre">(inds,</span> <span class="pre">mels,</span> <span class="pre">shape)</span></code> triple. Wrap with
 <code class="xref py py-func docutils literal notranslate"><span class="pre">make_ingredient_sparse()</span></code> to convert
 automatically, or build the indices manually with <code class="docutils literal notranslate"><span class="pre">np.where</span></code>.</p></li>
-<li><p>Setting <code class="docutils literal notranslate"><span class="pre">update_dh_qc_dzc</span> <span class="pre">=</span> <span class="pre">False</span></code> on a model whose gradient does
-depend on a constant that you intend to vary at runtime; the cached
-gradient becomes stale.</p></li>
-<li><p>Hard-coding the batch size from <code class="docutils literal notranslate"><span class="pre">len(z)</span></code> rather than reading
-<code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code>. <code class="docutils literal notranslate"><span class="pre">len(z)</span></code> is correct in ingredients
-(which see only <code class="docutils literal notranslate"><span class="pre">model</span></code>, <code class="docutils literal notranslate"><span class="pre">parameters</span></code>, <code class="docutils literal notranslate"><span class="pre">kwargs</span></code>), but tasks
-must use <code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code>.</p></li>
+<li><p>Setting <code class="docutils literal notranslate"><span class="pre">update_dh_qc_dzc</span> <span class="pre">=</span> <span class="pre">False</span></code> on a model whose gradient depends
+on a constant that is varied at runtime. The cached gradient becomes
+stale.</p></li>
+<li><p>Reading the batch size from <code class="docutils literal notranslate"><span class="pre">len(z)</span></code> rather than from
+<code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code> inside a task. The latter is the
+canonical source of the batch size in a task body.</p></li>
 </ul>
-<p>When in doubt, look at how <code class="xref py py-class docutils literal notranslate"><span class="pre">SpinBoson</span></code> and
-<code class="xref py py-class docutils literal notranslate"><span class="pre">TullyProblemOne</span></code> are written. They cover the two
-common cases: a many-mode harmonic bath and a single-coordinate scattering
-problem.</p>
 </section>
 </section>
 
@@ -745,13 +745,13 @@ problem.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-tree-subclass-an-existing-model-or-write-a-new-one">Decision tree: subclass an existing model, or write a new one?</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#when-to-subclass-an-existing-model-object">When to subclass an existing Model object</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-subclassing-for-a-different-spectral-density">Example: subclassing for a different spectral density</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-new-model-checklist">The new-model checklist</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#worked-example-a-linear-vibronic-coupling-lvc-model">Worked example: a linear vibronic coupling (LVC) model</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#things-to-double-check">Things to double-check</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-new-model-object-from-scratch">A new Model object from scratch</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-a-linear-vibronic-coupling-model">Example: a linear vibronic coupling model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-sources-of-incorrect-results">Common sources of incorrect results</a></li>
 </ul>
   </nav></div>
 

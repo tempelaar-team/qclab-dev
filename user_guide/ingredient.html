@@ -327,7 +327,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
 </ul>
@@ -424,7 +424,7 @@ As discussed in the <a class="reference internal" href="model.html#model"><span 
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">model</span></code> is a Model object which contains all the constants of the model, <code class="docutils literal notranslate"><span class="pre">parameters</span></code> is a dictionary containing time-dependent parameters of the simulation, and <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> are any additional keyword arguments that are specific to that ingredient type.</p>
-<p>The full set of standard slot names, the keyword arguments each one consumes, and the shape of its return value are listed in <a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a>. The most commonly used slots are summarised here:</p>
+<p>The full set of standard slot names, the keyword arguments each one consumes, and the shape of its return value are listed in the <a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a> section. The slots used by the built-in algorithms are summarized here:</p>
 <div class="pst-scrollable-table-container"><table class="table" id="id1">
 <caption><span class="caption-text">Standard ingredient slots</span><a class="headerlink" href="#id1" title="Link to this table">#</a></caption>
 <colgroup>

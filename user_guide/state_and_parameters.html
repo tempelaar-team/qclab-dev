@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>The State and Parameters Dicts &#8212; QC Lab  documentation</title>
+    <title>State and Parameters Objects &#8212; QC Lab  documentation</title>
   
   
   
@@ -326,7 +326,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">The State and Parameters Dicts</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">State and Parameters Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
 </ul>
@@ -388,7 +388,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">The State and Parameters Dicts</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">State and Parameters Objects</span></li>
   </ul>
 </nav>
 </div>
@@ -405,78 +405,75 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="the-state-and-parameters-dicts">
-<span id="state-and-parameters"></span><h1>The State and Parameters Dicts<a class="headerlink" href="#the-state-and-parameters-dicts" title="Link to this heading">#</a></h1>
+  <section id="state-and-parameters-objects">
+<span id="state-and-parameters"></span><h1>State and Parameters Objects<a class="headerlink" href="#state-and-parameters-objects" title="Link to this heading">#</a></h1>
 <p>Every QC Lab task has the same signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">my_task</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="o">...</span>
     <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">state</span></code> and <code class="docutils literal notranslate"><span class="pre">parameters</span></code> arguments are plain Python dictionaries
-that are threaded through every task in a recipe by
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">execute_recipe()</span></code>. They are the bus that ties the
-pipeline of tasks together.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">state</span></code> and <code class="docutils literal notranslate"><span class="pre">parameters</span></code> arguments are dictionaries threaded
+through every task in a recipe by
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Algorithm.execute_recipe</span></code>.
+Together they carry the per-batch information that the tasks operate on.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>A complete inventory of standard keys (<code class="docutils literal notranslate"><span class="pre">wf_db</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">h_q_tot</span></code>, etc.)
-lives on <a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a>. This page explains how the
-dicts are used; the conventions page tells you what to call things.</p>
+<p>The <a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a> section lists every standard
+key (<code class="docutils literal notranslate"><span class="pre">wf_db</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">h_q_tot</span></code>, and so on) used by the built-in
+tasks. The present section describes how the State object and the
+Parameters object are used and how custom tasks should interact with
+them.</p>
 </div>
 <hr class="docutils" />
-<section id="two-dicts-two-lifetimes">
-<h2>Two dicts, two lifetimes<a class="headerlink" href="#two-dicts-two-lifetimes" title="Link to this heading">#</a></h2>
-<p>Both dictionaries are created at the start of every batch and discarded at
-the end. They are <em>not</em> shared across batches.</p>
-<dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">state</span></code></dt><dd><p>Holds quantities that are intrinsic to the current batch of trajectories
-and that change every step: the wavefunction, the classical coordinate,
-eigenvectors, density matrices, and so on. Tasks read named entries from
-<code class="docutils literal notranslate"><span class="pre">state</span></code>, perform their computation, and write named entries back. All
-state entries have a leading batch axis of length <code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code>.</p>
-</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">parameters</span></code></dt><dd><p>Holds quantities that are computed once and then used many times within
-a batch, or quantities that come from the <em>outside</em> of the trajectory
-pipeline (for example, the cached output of an electronic-structure
-calculation in the ab initio algorithms).</p>
-</dd>
-</dl>
-<p>The dynamics core in <a class="reference internal" href="driver.html#qclab.dynamics.run_dynamics" title="qclab.dynamics.run_dynamics"><code class="xref py py-func docutils literal notranslate"><span class="pre">qclab.dynamics.run_dynamics()</span></code></a> does not look at
-either dict directly; it just hands them to whichever recipe is being
+<section id="two-objects-two-lifetimes">
+<h2>Two objects, two lifetimes<a class="headerlink" href="#two-objects-two-lifetimes" title="Link to this heading">#</a></h2>
+<p>Both dictionaries are created at the start of every batch and discarded
+at the end. They are not shared across batches.</p>
+<p>The State object holds quantities that are intrinsic to the current
+batch of trajectories and that change during the simulation: the
+wavefunction, the classical coordinate, eigenvectors, density matrices,
+and similar. A task reads named entries from the State object, performs
+its computation, and writes named entries back. State-object entries
+have a leading batch axis of length <code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code>.</p>
+<p>The Parameters object holds quantities that are computed once and reused
+across multiple update time steps, or quantities that come from outside
+the trajectory pipeline. The cached output of an electronic-structure
+calculation in the ab initio algorithms is one example.</p>
+<p>The dynamics core in <a class="reference internal" href="driver.html#qclab.dynamics.run_dynamics" title="qclab.dynamics.run_dynamics"><code class="xref py py-func docutils literal notranslate"><span class="pre">qclab.dynamics.run_dynamics()</span></code></a> does not look
+at either object directly; it passes them to whichever recipe is being
 executed:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Roughly what run_dynamics does each step:</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Inside run_dynamics, each update time step.</span>
 <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">execute_recipe</span><span class="p">(</span>
     <span class="n">sim</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">update_recipe</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>Because the dicts are shared by every task in the recipe, name collisions
-matter. Tasks that read or write a quantity should use the standard key
-listed in <a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a> whenever the quantity already
-has a name there.</p>
+<p>Because both dictionaries are shared by every task in a recipe, key
+collisions matter. Tasks that read or write a quantity should use the
+standard key listed in the <a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a> section
+whenever the quantity already has a name there.</p>
 </section>
 <hr class="docutils" />
-<section id="the-output-dict-bridge-to-data">
-<h2>The <code class="docutils literal notranslate"><span class="pre">output_dict</span></code> bridge to Data<a class="headerlink" href="#the-output-dict-bridge-to-data" title="Link to this heading">#</a></h2>
-<p>Only one entry of <code class="docutils literal notranslate"><span class="pre">state</span></code> ever leaves the trajectory pipeline:
+<section id="the-output-dict-bridge-to-the-data-object">
+<h2>The <code class="docutils literal notranslate"><span class="pre">output_dict</span></code> bridge to the Data object<a class="headerlink" href="#the-output-dict-bridge-to-the-data-object" title="Link to this heading">#</a></h2>
+<p>One entry of the State object leaves the trajectory pipeline:
 <code class="docutils literal notranslate"><span class="pre">state[&quot;output_dict&quot;]</span></code>. Whatever lives there at the end of a collect
-step is averaged across the batch by
-<a class="reference internal" href="data.html#qclab.data.Data.add_output_to_data_dict" title="qclab.data.Data.add_output_to_data_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_output_to_data_dict()</span></code></a> and stored in the Data
-object returned by the driver.</p>
-<p>This means that, in QC Lab, recording a new quantity is a two-step
-process:</p>
+time step is averaged across the batch by
+<a class="reference internal" href="data.html#qclab.data.Data.add_output_to_data_dict" title="qclab.data.Data.add_output_to_data_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Data.add_output_to_data_dict</span></code></a>
+and stored in the Data object returned by the driver.</p>
+<p>Recording a new quantity in QC Lab is therefore a two-step process:</p>
 <ol class="arabic simple">
-<li><p><strong>Compute</strong> the quantity in an <em>update task</em> and store the result on
-<code class="docutils literal notranslate"><span class="pre">state</span></code>.</p></li>
-<li><p><strong>Copy</strong> the quantity into <code class="docutils literal notranslate"><span class="pre">state[&quot;output_dict&quot;]</span></code> from a separate
-<em>collect task</em>.</p></li>
+<li><p>An update task computes the quantity and stores the result on the
+State object.</p></li>
+<li><p>A separate collect task copies the quantity into
+<code class="docutils literal notranslate"><span class="pre">state[&quot;output_dict&quot;]</span></code>.</p></li>
 </ol>
-<p>Doing both steps in a single task is technically possible but discouraged.
-Update tasks run on every step; collect tasks run only on collect steps.
-Splitting the work is also what allows expensive observables (e.g.,
-projections onto adiabatic surfaces) to be computed at the natural
-frequency.</p>
-<p>A minimal example pair (mean classical position) looks like this:</p>
+<p>Putting the computation in an update task allows the value to be
+available on every update time step (so it can be reused by later
+tasks), while the collect task copies it into <code class="docutils literal notranslate"><span class="pre">output_dict</span></code> only on
+collect time steps.</p>
+<p>An example pair that records the mean classical position is:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qclab.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">z_to_q</span>
 
@@ -499,8 +496,8 @@ frequency.</p>
     <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span>
 </pre></div>
 </div>
-<p>To wire these into a simulation, append them <em>after</em> the algorithm has
-been instantiated:</p>
+<p>To wire these into a simulation, append them after the Algorithm object
+has been instantiated:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">initialization_recipe</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">initialization_recipe</span> <span class="o">+</span> <span class="p">[</span><span class="n">update_mean_position</span><span class="p">]</span>
 <span class="p">)</span>
@@ -513,29 +510,30 @@ been instantiated:</p>
 </pre></div>
 </div>
 <p>The update task is included in the initialization recipe so that the
-quantity exists at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code> before the first collect step runs. After
-the simulation, the new key shows up in
+quantity exists at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code> before the first collect time step runs.
+After the simulation, the new key is available in
 <code class="docutils literal notranslate"><span class="pre">data.data_dict[&quot;mean_position&quot;]</span></code>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Do not modify <code class="docutils literal notranslate"><span class="pre">algorithm.collect_recipe</span></code> (or the other recipes) by
-in-place <code class="docutils literal notranslate"><span class="pre">.append</span></code> <em>before</em> the algorithm is instantiated.
-<code class="docutils literal notranslate"><span class="pre">Algorithm.__init__</span></code> deep-copies the class attribute, so an
-in-place change on the class can be lost. Always use the
-<code class="docutils literal notranslate"><span class="pre">recipe</span> <span class="pre">=</span> <span class="pre">recipe</span> <span class="pre">+</span> <span class="pre">[task]</span></code> pattern <em>after</em> instantiation.</p>
+in-place <code class="docutils literal notranslate"><span class="pre">.append</span></code> before the Algorithm object is instantiated.
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Algorithm.__init__</span></code> deep-copies the
+class attribute, so an in-place change made on the class can be
+lost. Use the <code class="docutils literal notranslate"><span class="pre">recipe</span> <span class="pre">=</span> <span class="pre">recipe</span> <span class="pre">+</span> <span class="pre">[task]</span></code> pattern after
+instantiation instead.</p>
 </div>
 </section>
 <hr class="docutils" />
 <section id="the-name-keyword-convention">
 <h2>The <code class="docutils literal notranslate"><span class="pre">*_name</span></code> keyword convention<a class="headerlink" href="#the-name-keyword-convention" title="Link to this heading">#</a></h2>
-<p>Tasks must not hard-code state-dict keys. Every key a task reads or writes
-is exposed as a <code class="docutils literal notranslate"><span class="pre">*_name</span></code> keyword argument with a sensible default. This
-is what lets recipes rebind the same task to different keys via
-<code class="docutils literal notranslate"><span class="pre">functools.partial</span></code>:</p>
+<p>A task should not hard-code keys for the State object or the Parameters
+object. Each key that a task reads or writes is exposed as a <code class="docutils literal notranslate"><span class="pre">*_name</span></code>
+keyword argument with a sensible default. Recipes can then rebind the
+same task to different keys using <code class="docutils literal notranslate"><span class="pre">functools.partial</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qclab</span><span class="w"> </span><span class="kn">import</span> <span class="n">tasks</span>
 
-<span class="c1"># The same task, rebound to read &quot;z_1&quot; instead of &quot;z&quot;:</span>
+<span class="c1"># The same RK4 sub-step, rebound to use z_2 instead of z_1.</span>
 <span class="n">rk4_step_two</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
     <span class="n">tasks</span><span class="o">.</span><span class="n">update_z_rk4_k123</span><span class="p">,</span>
     <span class="n">z_name</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">,</span>
@@ -544,43 +542,40 @@ is what lets recipes rebind the same task to different keys via
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>This is exactly how the built-in mean-field and FSSH algorithms reuse a
-single set of RK4 building blocks across the four sub-steps; see
-<code class="docutils literal notranslate"><span class="pre">qclab/algorithms/mean_field.py</span></code> for the full pattern.</p>
-<p>When you write a new task, follow the same rule:</p>
-<ul class="simple">
-<li><p>Every state key the task reads is a <code class="docutils literal notranslate"><span class="pre">*_name</span></code> kwarg.</p></li>
-<li><p>Every state key the task writes is a <code class="docutils literal notranslate"><span class="pre">*_name</span></code> kwarg.</p></li>
-<li><p>Defaults match the standard names from <a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a>.</p></li>
-</ul>
+<p>The built-in mean-field and FSSH algorithms use this pattern to reuse a
+single set of RK4 sub-step tasks across the four sub-steps of the
+integrator. See <code class="docutils literal notranslate"><span class="pre">src/qclab/algorithms/mean_field.py</span></code> for an example.</p>
+<p>When writing a new task, follow the same rule: every State-object or
+Parameters-object key the task reads or writes is a <code class="docutils literal notranslate"><span class="pre">*_name</span></code> keyword
+argument with a default that matches the standard names in the
+<a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a> section.</p>
 </section>
 <hr class="docutils" />
 <section id="task-docstring-sections">
 <h2>Task docstring sections<a class="headerlink" href="#task-docstring-sections" title="Link to this heading">#</a></h2>
-<p>The Sphinx configuration adds a handful of custom Napoleon sections that
-QC Lab tasks use to document their inputs and outputs. When you write a
-new task, follow the same template — Sphinx renders these sections as
-parameter-style lists.</p>
+<p>The Sphinx configuration adds a set of Napoleon sections used by QC Lab
+tasks to document their inputs and outputs. The sections recognized by
+the built-in tasks are:</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">Optional</span> <span class="pre">Keyword</span> <span class="pre">Arguments</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">*_name</span></code> keyword arguments accepted by the task and their
 defaults.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">Reads</span></code></dt><dd><p>Entries of <code class="docutils literal notranslate"><span class="pre">state</span></code> (or <code class="docutils literal notranslate"><span class="pre">parameters</span></code>) that the task expects to
-already exist. Include the shape and dtype.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">Reads</span></code></dt><dd><p>Entries of the State object (or the Parameters object) that the
+task expects to already exist. Include the shape and dtype.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">Writes</span></code></dt><dd><p>Entries of <code class="docutils literal notranslate"><span class="pre">state</span></code> (or <code class="docutils literal notranslate"><span class="pre">parameters</span></code>) that the task creates or
-overwrites. Include the shape and dtype.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">Writes</span></code></dt><dd><p>Entries of the State object (or the Parameters object) that the
+task creates or overwrites. Include the shape and dtype.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">Constants</span> <span class="pre">and</span> <span class="pre">Settings</span></code></dt><dd><p>Entries of <code class="docutils literal notranslate"><span class="pre">sim.model.constants</span></code> or <code class="docutils literal notranslate"><span class="pre">sim.settings</span></code> that the task
 consults.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">Ingredients</span></code></dt><dd><p>Standard slot names that the task calls via <code class="docutils literal notranslate"><span class="pre">sim.model.get(...)</span></code>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">Shapes</span> <span class="pre">and</span> <span class="pre">dtypes</span></code></dt><dd><p>Free-form notes about shape conventions when they are not obvious from
-Reads/Writes.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">Shapes</span> <span class="pre">and</span> <span class="pre">dtypes</span></code></dt><dd><p>Free-form notes about shape conventions when they are not obvious
+from Reads / Writes.</p>
 </dd>
 </dl>
-<p>A typical collect-task docstring looks like:</p>
+<p>A representative collect-task docstring looks like:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">Optional Keyword Arguments</span>
 <span class="gh">--------------------------</span>
 t_name:
@@ -653,8 +648,8 @@ state[&quot;output_dict&quot;][t_output_name]: ndarray of shape (B,), dtype=floa
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-dicts-two-lifetimes">Two dicts, two lifetimes</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-output-dict-bridge-to-data">The <code class="docutils literal notranslate"><span class="pre">output_dict</span></code> bridge to Data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-objects-two-lifetimes">Two objects, two lifetimes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-output-dict-bridge-to-the-data-object">The <code class="docutils literal notranslate"><span class="pre">output_dict</span></code> bridge to the Data object</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-name-keyword-convention">The <code class="docutils literal notranslate"><span class="pre">*_name</span></code> keyword convention</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#task-docstring-sections">Task docstring sections</a></li>
 </ul>

@@ -327,7 +327,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
 </ul>
@@ -417,23 +417,25 @@ The complex-valued coordinate can be constructed from the real-valued coordinate
 the Model object.</p>
 <div class="math notranslate nohighlight">
 \[z_{n} = \sqrt{\frac{m_{n} h_{n}}{2}}\left(q + i\frac{p}{m_{n} h_{n}}\right)\]</div>
-<p>Readers with a keen eye may notice that <span class="math notranslate nohighlight">\(h_{n}\)</span> plays the same role as a frequency in relating the relative displacements of position and momentum.
+<p>Users may notice that <span class="math notranslate nohighlight">\(h_{n}\)</span> plays the same role as a frequency in relating the relative displacements of position and momentum.
 For that reason, it is often a convenient choice when working with harmonic oscillators to set <span class="math notranslate nohighlight">\(h_{n}\)</span> to the harmonic frequency. Algorithms in
 QC Lab are implemented in a manner that is invariant to the choice of weights. Likewise, ingredients in QC Lab are also invariant to the choice of weights.
 However, Models may enforce some choice of weights as part of their initialization rather than enabling this to be changed by a user.</p>
 <p>Conversions to and from complex-valued classical coordinates are conveniently implemented in the following functions.</p>
 <section id="gradients-in-complex-valued-coordinates">
 <h2>Gradients in complex-valued coordinates<a class="headerlink" href="#gradients-in-complex-valued-coordinates" title="Link to this heading">#</a></h2>
-<p>When implementing a new gradient ingredient (e.g. <code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code> or <code class="docutils literal notranslate"><span class="pre">dh_c_dzc</span></code>)
-it is often natural to differentiate the underlying physics with respect to
-<span class="math notranslate nohighlight">\(q\)</span> and <span class="math notranslate nohighlight">\(p\)</span>, then convert the result to the gradient with respect
-to <span class="math notranslate nohighlight">\(z^{*}\)</span> that QC Lab consumes internally. The reverse direction is
-also occasionally needed (for example when comparing to phase-space
-gradients reported by an electronic-structure code). Two helpers are
-provided for this:</p>
-<p>The Tully models (<code class="docutils literal notranslate"><span class="pre">TullyProblemOne</span></code>, <code class="docutils literal notranslate"><span class="pre">TullyProblemTwo</span></code>, <code class="docutils literal notranslate"><span class="pre">TullyProblemThree</span></code>)
-and the <code class="docutils literal notranslate"><span class="pre">AbInitio</span></code> model use <code class="docutils literal notranslate"><span class="pre">dqdp_to_dzc</span></code> to assemble their analytical
-gradient ingredients. See <a class="reference internal" href="functions.html#functions"><span class="std std-ref">Functions</span></a> for the full list of
+<p>When implementing a new gradient ingredient (such as <code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code> or
+<code class="docutils literal notranslate"><span class="pre">dh_c_dzc</span></code>), it is often natural to differentiate the underlying
+physics with respect to <span class="math notranslate nohighlight">\(q\)</span> and <span class="math notranslate nohighlight">\(p\)</span>, and then convert the
+result to the gradient with respect to <span class="math notranslate nohighlight">\(z^{*}\)</span> that QC Lab uses
+internally. The reverse direction is occasionally needed as well, for
+example when comparing to phase-space gradients reported by an
+electronic-structure code. Two helpers are provided for these
+conversions:</p>
+<p>The Tully Model objects (<code class="docutils literal notranslate"><span class="pre">TullyProblemOne</span></code>, <code class="docutils literal notranslate"><span class="pre">TullyProblemTwo</span></code>,
+<code class="docutils literal notranslate"><span class="pre">TullyProblemThree</span></code>) and the <code class="docutils literal notranslate"><span class="pre">AbInitio</span></code> Model object use
+<code class="docutils literal notranslate"><span class="pre">dqdp_to_dzc</span></code> to assemble their analytical gradient ingredients. See
+the <a class="reference internal" href="functions.html#functions"><span class="std std-ref">Functions</span></a> section for the full list of
 low-level helpers.</p>
 </section>
 </section>

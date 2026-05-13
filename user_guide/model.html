@@ -327,7 +327,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
 </ul>
@@ -1427,10 +1427,10 @@ the <code class="docutils literal notranslate"><span class="pre">qclab.models.Ab
 <section id="holstein-lattice-model">
 <span id="id1"></span><h2>Holstein Lattice Model<a class="headerlink" href="#holstein-lattice-model" title="Link to this heading">#</a></h2>
 <p>The Holstein lattice model describes an electron on a one-dimensional
-nearest-neighbor tight-binding lattice that is coupled locally to a
-single optical phonon mode at each site. <code class="docutils literal notranslate"><span class="pre">HolsteinLattice</span></code> implements
-the model in real space; <code class="docutils literal notranslate"><span class="pre">HolsteinLatticeReciprocalSpace</span></code> implements
-the same physics in reciprocal (momentum) space. Both share the same
+nearest-neighbor tight-binding lattice coupled locally to a single
+optical phonon mode at each site. <code class="docutils literal notranslate"><span class="pre">HolsteinLattice</span></code> implements the
+model in real space; <code class="docutils literal notranslate"><span class="pre">HolsteinLatticeReciprocalSpace</span></code> implements the
+same physics in reciprocal (momentum) space. The two share the same
 user-facing constants.</p>
 <div class="pst-scrollable-table-container"><table class="table" id="id7">
 <caption><span class="caption-text">Holstein Lattice Model Constants</span><a class="headerlink" href="#id7" title="Link to this table">#</a></caption>
@@ -1680,15 +1680,16 @@ user-facing constants.</p>
 </details></section>
 <section id="atomistic-ab-initio-model">
 <h2>Atomistic Ab Initio Model<a class="headerlink" href="#atomistic-ab-initio-model" title="Link to this heading">#</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">AbInitio</span></code> model is a general-purpose atomistic Model that
-forwards quantum-state energies, gradients and derivative couplings to
-an external electronic-structure code. As shipped, the only built-in
-calculator is the Q-Chem interface in
-<code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.interfaces.qchem</span></code>, but new calculators can be plugged in by
-overriding the <code class="docutils literal notranslate"><span class="pre">ab_initio_property_calculator</span></code> ingredient.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">AbInitio</span></code> model is intended to be used together with the
+<p>The <code class="docutils literal notranslate"><span class="pre">AbInitio</span></code> Model object is an atomistic Model object that
+forwards quantum-state energies, gradients, and derivative couplings to
+an external electronic-structure code. The only calculator shipped with
+QC Lab is the Q-Chem interface in <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.interfaces.qchem</span></code>; other
+calculators can be used by overriding the <code class="docutils literal notranslate"><span class="pre">ab_initio_property_calculator</span></code>
+ingredient.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">AbInitio</span></code> Model object is intended to be used together with the
 adiabatic-basis algorithms <code class="docutils literal notranslate"><span class="pre">MeanFieldAbInitio</span></code> and
-<code class="docutils literal notranslate"><span class="pre">FewestSwitchesSurfaceHoppingAbInitio</span></code>. See <a class="reference internal" href="ab_initio.html#ab-initio"><span class="std std-ref">Ab Initio Dynamics</span></a> for a complete description of the workflow.</p>
+<code class="docutils literal notranslate"><span class="pre">FewestSwitchesSurfaceHoppingAbInitio</span></code>. See the <a class="reference internal" href="ab_initio.html#ab-initio"><span class="std std-ref">Ab Initio
+Dynamics</span></a> section for a description of the workflow.</p>
 <div class="pst-scrollable-table-container"><table class="table" id="id8">
 <caption><span class="caption-text">AbInitio Model Constants</span><a class="headerlink" href="#id8" title="Link to this table">#</a></caption>
 <colgroup>

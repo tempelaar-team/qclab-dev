@@ -57,7 +57,7 @@
     <link rel="canonical" href="https://tempelaar-team.github.io/qclab-dev/user_guide/conventions.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="The State and Parameters Dicts" href="state_and_parameters.html" />
+    <link rel="next" title="State and Parameters Objects" href="state_and_parameters.html" />
     <link rel="prev" title="Coordinates" href="coordinates.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -327,7 +327,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
 </ul>
@@ -408,16 +408,17 @@
                   
   <section id="conventions-reference">
 <span id="conventions"></span><h1>Conventions Reference<a class="headerlink" href="#conventions-reference" title="Link to this heading">#</a></h1>
-<p>This page is the canonical lookup table for every standard name in QC Lab.
-Use it whenever you need to know:</p>
+<p>This section lists the standard names used in QC Lab. It is intended as
+a reference for users who need to know:</p>
 <ul class="simple">
-<li><p>the exact slot name for an ingredient,</p></li>
-<li><p>the exact key under which a quantity lives in the <code class="docutils literal notranslate"><span class="pre">state</span></code> or
-<code class="docutils literal notranslate"><span class="pre">parameters</span></code> dict,</p></li>
-<li><p>the exact constant a stock ingredient reads from <code class="docutils literal notranslate"><span class="pre">model.constants</span></code>, or</p></li>
-<li><p>the exact setting an algorithm understands.</p></li>
+<li><p>the slot name for an ingredient,</p></li>
+<li><p>the key under which a quantity lives in the State object or the
+Parameters object,</p></li>
+<li><p>the constant a built-in ingredient reads from a Model object’s
+Constants object, or</p></li>
+<li><p>the setting an Algorithm object understands.</p></li>
 </ul>
-<p>Throughout this page we use the shorthand:</p>
+<p>Throughout this section we use the shorthand:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">sim.settings.batch_size</span></code> — the number of trajectories carried in
 a single batch.</p></li>
@@ -425,15 +426,16 @@ a single batch.</p></li>
 in the model.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">num_quantum_states</span></code> — the number of quantum states in the model.</p></li>
 </ul>
-<p>The first axis of every state array is always the batch axis.</p>
+<p>The first axis of every State-object array is the batch axis.</p>
 <hr class="docutils" />
 <section id="standard-ingredient-slots">
 <h2>Standard ingredient slots<a class="headerlink" href="#standard-ingredient-slots" title="Link to this heading">#</a></h2>
 <p>These are the names that algorithms use when calling
 <code class="docutils literal notranslate"><span class="pre">sim.model.get(...)</span></code>. The first element of each <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">callable)</span></code>
-tuple in a model’s <code class="docutils literal notranslate"><span class="pre">ingredients</span></code> list must match one of these (or be an
-<code class="docutils literal notranslate"><span class="pre">_init_*</span></code> initializer). The signature of every ingredient is
-<code class="docutils literal notranslate"><span class="pre">f(model,</span> <span class="pre">parameters,</span> <span class="pre">**kwargs)</span></code>.</p>
+tuple in a Model object’s <code class="docutils literal notranslate"><span class="pre">ingredients</span></code> list must match one of these
+slot names (or be an <code class="docutils literal notranslate"><span class="pre">_init_*</span></code> initializer). The signature of every
+ingredient is <code class="docutils literal notranslate"><span class="pre">f(model,</span> <span class="pre">parameters,</span> <span class="pre">**kwargs)</span></code>. The list below is
+comprehensive.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
 <col style="width: 20.0%" />
@@ -505,8 +507,10 @@ tuple in a model’s <code class="docutils literal notranslate"><span class="pre
 <section id="init-initializer-ingredients">
 <h3><code class="docutils literal notranslate"><span class="pre">_init_*</span></code> initializer ingredients<a class="headerlink" href="#init-initializer-ingredients" title="Link to this heading">#</a></h3>
 <p>Names that begin with an underscore are initializers. They are called by
-<code class="docutils literal notranslate"><span class="pre">Model.initialize_constants</span></code> whenever a constant changes, and their
-purpose is to derive internal constants from the user-facing ones.</p>
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Model.initialize_constants</span></code>
+whenever a constant changes, and their purpose is to derive internal
+constants from the user-facing ones. The four initializer names used by
+the built-in models are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">_init_model</span></code> — sets sizes (<code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code>,
 <code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code>) and per-coordinate metadata
@@ -515,14 +519,18 @@ purpose is to derive internal constants from the user-facing ones.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">_init_h_qc</span></code> — derives constants for the <code class="docutils literal notranslate"><span class="pre">h_qc</span></code> ingredient.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_init_h_c</span></code> — derives constants for the <code class="docutils literal notranslate"><span class="pre">h_c</span></code> ingredient.</p></li>
 </ul>
+<p>A Model object can introduce additional <code class="docutils literal notranslate"><span class="pre">_init_*</span></code> initializers if
+needed.</p>
 </section>
 </section>
 <hr class="docutils" />
-<section id="standard-state-dict-keys">
-<h2>Standard state-dict keys<a class="headerlink" href="#standard-state-dict-keys" title="Link to this heading">#</a></h2>
-<p>Keys follow <code class="docutils literal notranslate"><span class="pre">lower_snake_case</span></code>. Every key listed below is read or
-written by at least one of the built-in tasks, so reusing the standard
-names lets your custom tasks slot in without rebinding.</p>
+<section id="standard-state-object-keys">
+<h2>Standard State-object keys<a class="headerlink" href="#standard-state-object-keys" title="Link to this heading">#</a></h2>
+<p>Keys follow <code class="docutils literal notranslate"><span class="pre">lower_snake_case</span></code>. Each key listed below is read or
+written by at least one of the built-in tasks; reusing these names in a
+custom task removes the need to rebind keys when inserting the task into
+an existing recipe. The categories below cover the keys used by the
+built-in tasks. Custom tasks may introduce additional keys.</p>
 <section id="trajectory-bookkeeping">
 <h3>Trajectory bookkeeping<a class="headerlink" href="#trajectory-bookkeeping" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -853,17 +861,21 @@ names lets your custom tasks slot in without rebinding.</p>
 <section id="suffix-conventions">
 <h3>Suffix conventions<a class="headerlink" href="#suffix-conventions" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">_previous</span></code> — value from the prior timestep.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_previous</span></code> — value from the prior time step.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_0</span></code> — initial-time reference (e.g. <code class="docutils literal notranslate"><span class="pre">dm_adb_0</span></code>, <code class="docutils literal notranslate"><span class="pre">act_surf_ind_0</span></code>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_ind</span></code> — integer index (e.g. <code class="docutils literal notranslate"><span class="pre">act_surf_ind</span></code>, <code class="docutils literal notranslate"><span class="pre">traj_ind</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_name</span></code> — only used for task keyword arguments whose value is a string
-key name (e.g. <code class="docutils literal notranslate"><span class="pre">z_name=&quot;z&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_name</span></code> — only used for task keyword arguments whose value is a
+string key name (e.g. <code class="docutils literal notranslate"><span class="pre">z_name=&quot;z&quot;</span></code>).</p></li>
 </ul>
 </section>
 </section>
 <hr class="docutils" />
-<section id="standard-model-constants">
-<h2>Standard model constants<a class="headerlink" href="#standard-model-constants" title="Link to this heading">#</a></h2>
+<section id="standard-model-object-constants">
+<h2>Standard Model-object constants<a class="headerlink" href="#standard-model-object-constants" title="Link to this heading">#</a></h2>
+<p>The names below are used by the built-in Model objects and ingredients
+in QC Lab. They are listed by category. A custom Model object may
+introduce additional constants of its own; the entries here are
+representative of the conventions used by the built-in code.</p>
 <section id="sizes-always-num-prefix">
 <h3>Sizes (always <code class="docutils literal notranslate"><span class="pre">num_</span></code> prefix)<a class="headerlink" href="#sizes-always-num-prefix" title="Link to this heading">#</a></h3>
 <ul class="simple">
@@ -891,15 +903,16 @@ key name (e.g. <code class="docutils literal notranslate"><span class="pre">z_na
 <h3>Coupling constants (named after the consuming ingredient)<a class="headerlink" href="#coupling-constants-named-after-the-consuming-ingredient" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">diagonal_linear_coupling</span></code> — used by <code class="docutils literal notranslate"><span class="pre">h_qc_diagonal_linear</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">nearest_neighbor_hopping_energy</span></code>, <code class="docutils literal notranslate"><span class="pre">nearest_neighbor_periodic</span></code> — used by
-<code class="docutils literal notranslate"><span class="pre">h_q_nearest_neighbor</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">two_level_00</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_11</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_01_re</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_01_im</span></code> — used by
-<code class="docutils literal notranslate"><span class="pre">h_q_two_level</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">coherent_state_displacement</span></code> — used by <code class="docutils literal notranslate"><span class="pre">init_classical_wigner_coherent_state</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nearest_neighbor_hopping_energy</span></code>, <code class="docutils literal notranslate"><span class="pre">nearest_neighbor_periodic</span></code> —
+used by <code class="docutils literal notranslate"><span class="pre">h_q_nearest_neighbor</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">two_level_00</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_11</span></code>, <code class="docutils literal notranslate"><span class="pre">two_level_01_re</span></code>,
+<code class="docutils literal notranslate"><span class="pre">two_level_01_im</span></code> — used by <code class="docutils literal notranslate"><span class="pre">h_q_two_level</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coherent_state_displacement</span></code> — used by
+<code class="docutils literal notranslate"><span class="pre">init_classical_wigner_coherent_state</span></code>.</p></li>
 </ul>
 </section>
-<section id="atomistic-ab-initio">
-<h3>Atomistic / ab initio<a class="headerlink" href="#atomistic-ab-initio" title="Link to this heading">#</a></h3>
+<section id="atomistic-and-ab-initio-constants">
+<h3>Atomistic and ab initio constants<a class="headerlink" href="#atomistic-and-ab-initio-constants" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">atom_names</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">atom_masses</span></code></p></li>
@@ -922,13 +935,17 @@ key name (e.g. <code class="docutils literal notranslate"><span class="pre">z_na
 <section id="user-facing-physical-constants-conventional-symbols">
 <h3>User-facing physical constants (conventional symbols)<a class="headerlink" href="#user-facing-physical-constants-conventional-symbols" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">kBT</span></code>, <code class="docutils literal notranslate"><span class="pre">V</span></code>, <code class="docutils literal notranslate"><span class="pre">E</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">W</span></code>, <code class="docutils literal notranslate"><span class="pre">J</span></code>, <code class="docutils literal notranslate"><span class="pre">N</span></code>, <code class="docutils literal notranslate"><span class="pre">g</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code>, <code class="docutils literal notranslate"><span class="pre">l_reorg</span></code>, <code class="docutils literal notranslate"><span class="pre">w_c</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kBT</span></code>, <code class="docutils literal notranslate"><span class="pre">V</span></code>, <code class="docutils literal notranslate"><span class="pre">E</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">W</span></code>, <code class="docutils literal notranslate"><span class="pre">J</span></code>, <code class="docutils literal notranslate"><span class="pre">N</span></code>, <code class="docutils literal notranslate"><span class="pre">g</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code>,
+<code class="docutils literal notranslate"><span class="pre">l_reorg</span></code>, <code class="docutils literal notranslate"><span class="pre">w_c</span></code></p></li>
 </ul>
 </section>
 </section>
 <hr class="docutils" />
-<section id="standard-algorithm-settings">
-<h2>Standard algorithm settings<a class="headerlink" href="#standard-algorithm-settings" title="Link to this heading">#</a></h2>
+<section id="standard-algorithm-object-settings">
+<h2>Standard Algorithm-object settings<a class="headerlink" href="#standard-algorithm-object-settings" title="Link to this heading">#</a></h2>
+<p>The settings below are the ones recognized by the built-in Algorithm
+objects. The list is comprehensive for the built-in algorithms; a
+custom Algorithm object may introduce additional settings of its own.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
 <col style="width: 30.0%" />
@@ -1020,15 +1037,19 @@ avoids unnecessary overhead.</p>
 </div>
 </section>
 <hr class="docutils" />
-<section id="local-variable-names-allowed-in-physics-code">
-<h2>Local variable names allowed in physics code<a class="headerlink" href="#local-variable-names-allowed-in-physics-code" title="Link to this heading">#</a></h2>
-<p>The following short names are accepted in ingredient and task bodies
-without further explanation:</p>
+<section id="local-variable-names-in-physics-code">
+<h2>Local variable names in physics code<a class="headerlink" href="#local-variable-names-in-physics-code" title="Link to this heading">#</a></h2>
+<p>The following short names appear in the bodies of the built-in
+ingredients and tasks. Reusing them in custom code keeps new functions
+visually consistent with the existing ones. The list is representative
+of the conventions used in the built-in code.</p>
 <ul class="simple">
 <li><p>coordinates: <code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">q</span></code>, <code class="docutils literal notranslate"><span class="pre">p</span></code></p></li>
-<li><p>per-coordinate quantities: <code class="docutils literal notranslate"><span class="pre">m</span></code> (mass), <code class="docutils literal notranslate"><span class="pre">h</span></code> (weight), <code class="docutils literal notranslate"><span class="pre">w</span></code> (frequency)</p></li>
+<li><p>per-coordinate quantities: <code class="docutils literal notranslate"><span class="pre">m</span></code> (mass), <code class="docutils literal notranslate"><span class="pre">h</span></code> (weight),
+<code class="docutils literal notranslate"><span class="pre">w</span></code> (frequency)</p></li>
 <li><p>thermal energy: <code class="docutils literal notranslate"><span class="pre">kBT</span></code></p></li>
-<li><p>eigenpairs: <code class="docutils literal notranslate"><span class="pre">evec_i</span></code>, <code class="docutils literal notranslate"><span class="pre">evec_j</span></code>, <code class="docutils literal notranslate"><span class="pre">eval_i</span></code>, <code class="docutils literal notranslate"><span class="pre">eval_j</span></code>, <code class="docutils literal notranslate"><span class="pre">eigval_diff</span></code></p></li>
+<li><p>eigenpairs: <code class="docutils literal notranslate"><span class="pre">evec_i</span></code>, <code class="docutils literal notranslate"><span class="pre">evec_j</span></code>, <code class="docutils literal notranslate"><span class="pre">eval_i</span></code>, <code class="docutils literal notranslate"><span class="pre">eval_j</span></code>,
+<code class="docutils literal notranslate"><span class="pre">eigval_diff</span></code></p></li>
 <li><p>sparse triple (always in this order): <code class="docutils literal notranslate"><span class="pre">inds</span></code>, <code class="docutils literal notranslate"><span class="pre">mels</span></code>, <code class="docutils literal notranslate"><span class="pre">shape</span></code></p></li>
 <li><p>sizes: <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>, <code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code>,
 <code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code></p></li>
@@ -1061,7 +1082,7 @@ without further explanation:</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">The State and Parameters Dicts</p>
+        <p class="prev-next-title">State and Parameters Objects</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1088,7 +1109,7 @@ without further explanation:</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#init-initializer-ingredients"><code class="docutils literal notranslate"><span class="pre">_init_*</span></code> initializer ingredients</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-state-dict-keys">Standard state-dict keys</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-state-object-keys">Standard State-object keys</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#trajectory-bookkeeping">Trajectory bookkeeping</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classical-coordinates-and-rk4-intermediates">Classical coordinates and RK4 intermediates</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hamiltonian-matrices">Hamiltonian matrices</a></li>
@@ -1101,18 +1122,18 @@ without further explanation:</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#suffix-conventions">Suffix conventions</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-model-constants">Standard model constants</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-model-object-constants">Standard Model-object constants</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sizes-always-num-prefix">Sizes (always <code class="docutils literal notranslate"><span class="pre">num_</span></code> prefix)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#per-coordinate-metadata">Per-coordinate metadata</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initial-conditions-init-prefix">Initial conditions (<code class="docutils literal notranslate"><span class="pre">init_</span></code> prefix)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coupling-constants-named-after-the-consuming-ingredient">Coupling constants (named after the consuming ingredient)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#atomistic-ab-initio">Atomistic / ab initio</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#atomistic-and-ab-initio-constants">Atomistic and ab initio constants</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-tuning-knobs-consumer-knob">Numerical tuning knobs (<code class="docutils literal notranslate"><span class="pre">&lt;consumer&gt;_&lt;knob&gt;</span></code>)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#user-facing-physical-constants-conventional-symbols">User-facing physical constants (conventional symbols)</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-algorithm-settings">Standard algorithm settings</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#local-variable-names-allowed-in-physics-code">Local variable names allowed in physics code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-algorithm-object-settings">Standard Algorithm-object settings</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#local-variable-names-in-physics-code">Local variable names in physics code</a></li>
 </ul>
   </nav></div>
 

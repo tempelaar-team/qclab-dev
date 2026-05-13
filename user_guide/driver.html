@@ -326,7 +326,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
 </ul>
@@ -407,11 +407,11 @@
                   
   <section id="drivers">
 <span id="driver"></span><h1>Drivers<a class="headerlink" href="#drivers" title="Link to this heading">#</a></h1>
-<p>QC Lab comes equipped with three dynamics drivers. These are functions that take a Simulation object (see <a class="reference internal" href="simulation.html#simulation"><span class="std std-ref">Simulations</span></a>) as input and carry out the dynamics by executing the recipes of the Algorithm object (see <a class="reference internal" href="algorithm.html#algorithm"><span class="std std-ref">Algorithms</span></a>) associated with the simulation. The three drivers all live in <code class="docutils literal notranslate"><span class="pre">qclab.dynamics</span></code> and are:</p>
+<p>QC Lab comes equipped with three dynamics drivers. These are functions that take a Simulation object (see <a class="reference internal" href="simulation.html#simulation"><span class="std std-ref">Simulations</span></a>) as input and carry out the dynamics by executing the recipes of the Algorithm object (see <a class="reference internal" href="algorithm.html#algorithm"><span class="std std-ref">Algorithms</span></a>) associated with the Simulation object. The three drivers all live in <code class="docutils literal notranslate"><span class="pre">qclab.dynamics</span></code> and are:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">qclab.dynamics.serial_driver</span></code>: a serial driver that runs the simulation on a single Python process,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qclab.dynamics.serial_driver</span></code>: a serial driver that runs the simulation in a single Python process,</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">qclab.dynamics.parallel_driver_multiprocessing</span></code>: a parallel driver that uses Python’s built-in <code class="docutils literal notranslate"><span class="pre">multiprocessing</span></code> module to run batches concurrently across CPU cores,</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">qclab.dynamics.parallel_driver_mpi</span></code>: a parallel driver that uses the <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> package to run batches across MPI ranks (potentially across multiple nodes).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qclab.dynamics.parallel_driver_mpi</span></code>: a parallel driver that uses the <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> package to run batches across MPI ranks, possibly across multiple nodes.</p></li>
 </ul>
 <p>Each driver is responsible for managing the execution of the simulation, including dividing the total number of trajectories into batches (if necessary), distributing the batches across available CPU cores, and collecting the results into a single output Data object.</p>
 <p>All drivers in QC Lab accept the following input arguments (parallel drivers accept an additional argument, see below):</p>

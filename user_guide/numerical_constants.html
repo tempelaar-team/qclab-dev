@@ -326,7 +326,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Numerical Constants</a></li>
 </ul>
@@ -408,9 +408,9 @@
   <section id="numerical-constants">
 <span id="id1"></span><h1>Numerical Constants<a class="headerlink" href="#numerical-constants" title="Link to this heading">#</a></h1>
 <p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.numerical_constants</span></code> module collects numerical
-thresholds and unit-conversion factors used throughout QC Lab. Models
-and ingredients are expected to read these values rather than hard-code
-magic numbers in their bodies.</p>
+thresholds and unit-conversion factors used by QC Lab. Built-in Model
+objects and ingredients read these values rather than embedding the
+numbers directly.</p>
 <p>Values for the underlying physical constants are taken from the 2022
 CODATA recommended values (Mohr et al., <em>Rev. Mod. Phys.</em> <strong>97</strong>,
 025002 (2025), <a class="reference external" href="https://doi.org/10.1103/RevModPhys.97.025002">https://doi.org/10.1103/RevModPhys.97.025002</a>).</p>
@@ -449,19 +449,21 @@ ingredient is provided.</p></td>
 </tbody>
 </table>
 </div>
-<p>These thresholds are deliberately exposed as module-level constants so
-that they can be tuned per-model; ingredients that need a different
-finite-difference step size, for example, can read
-<code class="docutils literal notranslate"><span class="pre">model.constants.dh_c_dzc_finite_difference_delta</span></code> instead and
-override the default.</p>
+<p>These thresholds are exposed as module-level constants so that they
+can be tuned per-model. For example, ingredients that need a different
+finite-difference step size can read
+<code class="docutils literal notranslate"><span class="pre">model.constants.dh_c_dzc_finite_difference_delta</span></code> from the Model
+object’s Constants object instead, overriding the default.</p>
 </section>
 <hr class="docutils" />
 <section id="unit-conversions">
 <h2>Unit conversions<a class="headerlink" href="#unit-conversions" title="Link to this heading">#</a></h2>
-<p>QC Lab does not enforce a single unit system; each model documents the
-units of its own constants. The conversions listed below are the ones
-used by the built-in models (<code class="docutils literal notranslate"><span class="pre">FMOComplex</span></code>, <code class="docutils literal notranslate"><span class="pre">AbInitio</span></code>) and by the
-Q-Chem interface, and are convenient when assembling new models.</p>
+<p>QC Lab does not enforce a single unit system; each Model object
+documents the units of its own constants. The conversions listed below
+are those used by the built-in Model objects (<code class="docutils literal notranslate"><span class="pre">FMOComplex</span></code>,
+<code class="docutils literal notranslate"><span class="pre">AbInitio</span></code>) and by the Q-Chem interface; they are available for use
+when assembling new Model objects. The list is comprehensive for the
+unit-conversion factors defined in the module.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
 <col style="width: 28.0%" />
@@ -510,12 +512,11 @@ Q-Chem interface, and are convenient when assembling new models.</p>
 <hr class="docutils" />
 <section id="reference-temperature-unit-system">
 <h2>Reference-temperature unit system<a class="headerlink" href="#reference-temperature-unit-system" title="Link to this heading">#</a></h2>
-<p>A handful of QC Lab models — most prominently
-<code class="xref py py-class docutils literal notranslate"><span class="pre">FMOComplex</span></code> — express all energies as multiples of
-the thermal energy at a reference temperature of 300 K, with the
-corresponding time unit <code class="docutils literal notranslate"><span class="pre">hbar</span> <span class="pre">/</span> <span class="pre">kBT(300</span> <span class="pre">K)</span> <span class="pre">≈</span> <span class="pre">25.46</span> <span class="pre">fs</span></code>. The conversion
-factor between wavenumbers and that reference unit is exposed under two
-names:</p>
+<p>Some Model objects, including <code class="xref py py-class docutils literal notranslate"><span class="pre">FMOComplex</span></code>,
+express all energies as multiples of the thermal energy at a reference
+temperature of 300 K, with the corresponding time unit
+<code class="docutils literal notranslate"><span class="pre">hbar</span> <span class="pre">/</span> <span class="pre">kBT(300</span> <span class="pre">K)</span> <span class="pre">≈</span> <span class="pre">25.46</span> <span class="pre">fs</span></code>. The conversion factor between
+wavenumbers and that reference unit is exposed under two names:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
 <col style="width: 30.0%" />

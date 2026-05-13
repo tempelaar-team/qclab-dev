@@ -58,7 +58,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Numerical Constants" href="numerical_constants.html" />
-    <link rel="prev" title="The State and Parameters Dicts" href="state_and_parameters.html" />
+    <link rel="prev" title="State and Parameters Objects" href="state_and_parameters.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -327,7 +327,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Low-level Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
 </ul>
@@ -409,80 +409,79 @@
   <section id="low-level-functions">
 <span id="functions"></span><h1>Low-level Functions<a class="headerlink" href="#low-level-functions" title="Link to this heading">#</a></h1>
 <p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.functions</span></code> module collects the low-level numerical
-helpers used by the built-in ingredients, tasks, and algorithms. Most
-users will not need to call these functions directly, but anyone writing
-new physics will: this is where the canonical complex-coordinate
-conversions, sparse-gradient inner product, and gauge-fixing routines
-live.</p>
+helpers used by the built-in ingredients, tasks, and algorithms. Users
+writing new physics, in particular new ingredients or tasks, will find
+the coordinate conversions, sparse-gradient inner product, and
+gauge-fixing routines documented in this section.</p>
 <p>For the conceptual basis behind the complex-classical-coordinate
-formalism see <a class="reference internal" href="coordinates.html#coordinates"><span class="std std-ref">Coordinates</span></a>.</p>
+formalism see the <a class="reference internal" href="coordinates.html#coordinates"><span class="std std-ref">Coordinates</span></a> section.</p>
 <hr class="docutils" />
 <section id="coordinate-conversions">
 <h2>Coordinate conversions<a class="headerlink" href="#coordinate-conversions" title="Link to this heading">#</a></h2>
-<p>QC Lab integrates classical degrees of freedom in the complex coordinate
-<code class="docutils literal notranslate"><span class="pre">z</span></code>. The functions below convert between <code class="docutils literal notranslate"><span class="pre">z</span></code> and the real-valued
-phase-space pair <code class="docutils literal notranslate"><span class="pre">(q,</span> <span class="pre">p)</span></code>, including for gradients.</p>
+<p>QC Lab integrates classical degrees of freedom in the complex
+coordinate <code class="docutils literal notranslate"><span class="pre">z</span></code>. The functions below convert between <code class="docutils literal notranslate"><span class="pre">z</span></code> and the
+real-valued phase-space pair <code class="docutils literal notranslate"><span class="pre">(q,</span> <span class="pre">p)</span></code>, including for gradients.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Always use these helpers rather than re-deriving the relationship
-between <code class="docutils literal notranslate"><span class="pre">z</span></code> and <code class="docutils literal notranslate"><span class="pre">(q,</span> <span class="pre">p)</span></code> inline. Hand-rolled conversions are a
-common source of subtle factors of <span class="math notranslate nohighlight">\(\sqrt{2 m h}\)</span> going the
-wrong way.</p>
+<p>Using these helpers rather than re-deriving the relationship
+between <code class="docutils literal notranslate"><span class="pre">z</span></code> and <code class="docutils literal notranslate"><span class="pre">(q,</span> <span class="pre">p)</span></code> inline is recommended; hand-rolled
+conversions are a common source of incorrect factors involving
+<span class="math notranslate nohighlight">\(\sqrt{2 m h}\)</span>.</p>
 </div>
 </section>
 <hr class="docutils" />
 <section id="linear-algebra-helpers">
 <h2>Linear-algebra helpers<a class="headerlink" href="#linear-algebra-helpers" title="Link to this heading">#</a></h2>
-<p>Convenience wrappers around batched matrix-vector and basis-change
-operations. <code class="docutils literal notranslate"><span class="pre">transform_vec</span></code> and <code class="docutils literal notranslate"><span class="pre">transform_mat</span></code> are used by every
-algorithm to switch between the diabatic and adiabatic bases.</p>
+<p>Wrappers around batched matrix-vector and basis-change operations.
+<code class="docutils literal notranslate"><span class="pre">transform_vec</span></code> and <code class="docutils literal notranslate"><span class="pre">transform_mat</span></code> are used by the built-in
+algorithms to switch between the diabatic and adiabatic bases.</p>
 </section>
 <hr class="docutils" />
 <section id="rk4-integration-kernels">
 <h2>RK4 integration kernels<a class="headerlink" href="#rk4-integration-kernels" title="Link to this heading">#</a></h2>
 <p>The fourth-order Runge–Kutta integration of the classical coordinate is
-factored into two summation kernels, each decorated with <code class="docutils literal notranslate"><span class="pre">&#64;njit</span></code>. These
-are called by the corresponding update tasks
-(<a class="reference internal" href="task.html#qclab.tasks.update_tasks.update_z_rk4_k123" title="qclab.tasks.update_tasks.update_z_rk4_k123"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_z_rk4_k123</span></code></a>,
-<a class="reference internal" href="task.html#qclab.tasks.update_tasks.update_z_rk4_k4" title="qclab.tasks.update_tasks.update_z_rk4_k4"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_z_rk4_k4</span></code></a>).</p>
+factored into two summation kernels, each decorated with <code class="docutils literal notranslate"><span class="pre">&#64;njit</span></code>.
+These are called by the corresponding update tasks
+<a class="reference internal" href="task.html#qclab.tasks.update_tasks.update_z_rk4_k123" title="qclab.tasks.update_tasks.update_z_rk4_k123"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_z_rk4_k123</span></code></a>
+and <a class="reference internal" href="task.html#qclab.tasks.update_tasks.update_z_rk4_k4" title="qclab.tasks.update_tasks.update_z_rk4_k4"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_z_rk4_k4</span></code></a>.</p>
 </section>
 <hr class="docutils" />
 <section id="decorators-for-ingredients">
 <h2>Decorators for ingredients<a class="headerlink" href="#decorators-for-ingredients" title="Link to this heading">#</a></h2>
-<p>Two decorators streamline the implementation of new ingredients.</p>
+<p>Two decorators are provided to support the implementation of new
+ingredients.</p>
 <p><code class="docutils literal notranslate"><span class="pre">&#64;vectorize_ingredient</span></code> turns a single-trajectory ingredient into a
 batch-aware ingredient by looping over the trajectory axis and
-broadcasting; it is convenient for prototyping but does not provide a
-performance gain over a hand-vectorized implementation. See
-<a class="reference internal" href="ingredient.html#ingredient"><span class="std std-ref">Vectorization</span></a> for examples.</p>
-<p><code class="docutils literal notranslate"><span class="pre">&#64;make_ingredient_sparse</span></code> turns a dense-tensor ingredient (e.g. a
-gradient that returns a full <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> array) into the sparse
-<code class="docutils literal notranslate"><span class="pre">(inds,</span> <span class="pre">mels,</span> <span class="pre">shape)</span></code> form expected by the algorithms. The
-indices come from <code class="docutils literal notranslate"><span class="pre">np.where</span></code> on the dense tensor.</p>
+broadcasting. It does not provide a performance gain over a
+hand-vectorized implementation. See the <a class="reference internal" href="ingredient.html#ingredient"><span class="std std-ref">Vectorization</span></a> discussion in the Ingredients section for examples.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;make_ingredient_sparse</span></code> turns a dense-tensor ingredient (for
+example, a gradient that returns a full <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> array) into
+the sparse <code class="docutils literal notranslate"><span class="pre">(inds,</span> <span class="pre">mels,</span> <span class="pre">shape)</span></code> form expected by the algorithms.
+The indices come from <code class="docutils literal notranslate"><span class="pre">np.where</span></code> on the dense tensor.</p>
 </section>
 <hr class="docutils" />
 <section id="sparse-gradient-inner-product">
 <h2>Sparse-gradient inner product<a class="headerlink" href="#sparse-gradient-inner-product" title="Link to this heading">#</a></h2>
 <p>When an ingredient returns its gradient in the sparse <code class="docutils literal notranslate"><span class="pre">(inds,</span> <span class="pre">mels,</span>
 <span class="pre">shape)</span></code> form, contracting it against a wavefunction (to compute, for
-example, a quantum-classical force) is delegated to
-<code class="docutils literal notranslate"><span class="pre">calc_sparse_inner_product</span></code>. This is the consumer of the triple
+example, a quantum-classical force) is performed by
+<code class="docutils literal notranslate"><span class="pre">calc_sparse_inner_product</span></code>. This function consumes the triple
 returned by <code class="docutils literal notranslate"><span class="pre">make_ingredient_sparse</span></code>.</p>
 </section>
 <hr class="docutils" />
 <section id="jit-kernels-for-the-harmonic-ingredients">
 <h2>JIT kernels for the harmonic ingredients<a class="headerlink" href="#jit-kernels-for-the-harmonic-ingredients" title="Link to this heading">#</a></h2>
-<p>A few ingredients have hand-tuned <code class="docutils literal notranslate"><span class="pre">&#64;njit</span></code> kernels for the inner
-loop. They are exposed for completeness; the corresponding
-ingredient (<code class="docutils literal notranslate"><span class="pre">dh_c_dzc_harmonic</span></code>, <code class="docutils literal notranslate"><span class="pre">h_qc_diagonal_linear</span></code>) is the
-public entry point.</p>
+<p>Two of the built-in harmonic ingredients have <code class="docutils literal notranslate"><span class="pre">&#64;njit</span></code> kernels for
+their inner loops. They are exposed below for completeness; the
+corresponding ingredients (<code class="docutils literal notranslate"><span class="pre">dh_c_dzc_harmonic</span></code>,
+<code class="docutils literal notranslate"><span class="pre">h_qc_diagonal_linear</span></code>) are the entry points used by Model objects.</p>
 </section>
 <hr class="docutils" />
 <section id="sampling">
 <h2>Sampling<a class="headerlink" href="#sampling" title="Link to this heading">#</a></h2>
-<p>Helpers for drawing initial classical coordinates and for resolving
-the classical part of an FSSH hop numerically when no analytical
-hop ingredient is available.</p>
+<p>Helpers for drawing initial classical coordinates and for resolving the
+classical part of an FSSH hop numerically when no analytical hop
+ingredient is provided.</p>
 </section>
 <hr class="docutils" />
 <section id="gauge-fixing-and-rescaling">
@@ -510,7 +509,7 @@ hop. Both pieces of machinery live here.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">The State and Parameters Dicts</p>
+        <p class="prev-next-title">State and Parameters Objects</p>
       </div>
     </a>
     <a class="right-next"

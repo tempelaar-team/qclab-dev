@@ -326,7 +326,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
 </ul>
@@ -409,45 +409,44 @@
 <span id="id1"></span><h1>Data<a class="headerlink" href="#data" title="Link to this heading">#</a></h1>
 <section id="data-objects">
 <h2>Data Objects<a class="headerlink" href="#data-objects" title="Link to this heading">#</a></h2>
-<p>Data objects are instances of the <code class="docutils literal notranslate"><span class="pre">qclab.data.Data</span></code> class and are used
-to store and manage the results of a simulation. They provide methods
-for collecting, processing, and saving data, as well as capturing
-in-memory log output produced during a simulation.</p>
-<p>In general, a Data object has the following attributes:</p>
+<p>Data objects are instances of the <code class="docutils literal notranslate"><span class="pre">qclab.data.Data</span></code> class and are
+used to store and manage the results of a simulation. They provide
+methods for collecting, processing, and saving data, and they capture
+log output produced during a simulation.</p>
+<p>A Data object has the following attributes:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">data_dict</span></code>: a dictionary that stores the results of the simulation.
-Each key in the dictionary corresponds to a specific quantity that was
-collected during the simulation, and the value is an array containing
-the values of that quantity averaged over the trajectories. Two
-bookkeeping keys are always present: <code class="docutils literal notranslate"><span class="pre">&quot;seed&quot;</span></code> (the array of
-trajectory seeds that contributed to the average) and
-<code class="docutils literal notranslate"><span class="pre">&quot;norm_factor&quot;</span></code> (the running denominator used by <code class="docutils literal notranslate"><span class="pre">add_data</span></code> to
-perform a trajectory-count-weighted merge).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code>: a string that stores any log messages emitted during the
-simulation. The drivers populate this attribute by draining the
+<li><p><code class="docutils literal notranslate"><span class="pre">data_dict</span></code>: a dictionary that stores the results of the
+simulation. Each key corresponds to a quantity collected during the
+simulation, and the value is an array containing the trajectory-
+averaged values of that quantity. Two bookkeeping keys are always
+present: <code class="docutils literal notranslate"><span class="pre">&quot;seed&quot;</span></code> (the array of trajectory seeds that contributed
+to the average) and <code class="docutils literal notranslate"><span class="pre">&quot;norm_factor&quot;</span></code> (the denominator used by
+<code class="docutils literal notranslate"><span class="pre">add_data</span></code> to perform a trajectory-count-weighted merge).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code>: a string that stores log messages emitted during the
+simulation. The drivers populate this attribute by reading from the
 in-memory log stream configured by
 <code class="xref py py-func docutils literal notranslate"><span class="pre">qclab.utils.configure_memory_logger()</span></code> once the simulation has
 finished.</p></li>
 </ul>
-<p>Data objects provide several methods for managing and processing the
-data they contain.</p>
+<p>Data objects provide methods for managing and processing the data they
+contain.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">add_output_to_data_dict</span></code>: the public hook called by
-<a class="reference internal" href="driver.html#qclab.dynamics.run_dynamics" title="qclab.dynamics.run_dynamics"><code class="xref py py-func docutils literal notranslate"><span class="pre">qclab.dynamics.run_dynamics()</span></code></a> at every collect step. It merges
-<code class="docutils literal notranslate"><span class="pre">state[&quot;output_dict&quot;]</span></code> into <code class="docutils literal notranslate"><span class="pre">data_dict</span></code>, broadcasting new keys to
-the full <code class="docutils literal notranslate"><span class="pre">(n_collect,</span> <span class="pre">...)</span></code> time axis on the first occurrence and
-averaging the per-batch sum by the <code class="docutils literal notranslate"><span class="pre">norm_factor</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add_output_to_data_dict</span></code>: the hook called by
+<a class="reference internal" href="driver.html#qclab.dynamics.run_dynamics" title="qclab.dynamics.run_dynamics"><code class="xref py py-func docutils literal notranslate"><span class="pre">qclab.dynamics.run_dynamics()</span></code></a> at every collect time step. It
+merges <code class="docutils literal notranslate"><span class="pre">state[&quot;output_dict&quot;]</span></code> into <code class="docutils literal notranslate"><span class="pre">data_dict</span></code>, broadcasting new
+keys to the full <code class="docutils literal notranslate"><span class="pre">(n_collect,</span> <span class="pre">...)</span></code> time axis on the first
+occurrence and dividing the per-batch sum by the <code class="docutils literal notranslate"><span class="pre">norm_factor</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">add_data</span></code>: merges another Data object into this one using a
-trajectory-count-weighted average of every collected quantity. This is
-what the drivers call to combine batches and what users call when
-stitching multiple runs of the same simulation together.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">save</span></code>: serialises <code class="docutils literal notranslate"><span class="pre">data_dict</span></code> and <code class="docutils literal notranslate"><span class="pre">log</span></code> to disk. Uses HDF5
-(via <code class="docutils literal notranslate"><span class="pre">h5py</span></code>) when available; falls back to <code class="docutils literal notranslate"><span class="pre">numpy.savez</span></code> when
+trajectory-count-weighted average of every collected quantity. The
+drivers call this method to combine batches, and users can call it to
+stitch multiple runs of the same simulation together.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">save</span></code>: writes <code class="docutils literal notranslate"><span class="pre">data_dict</span></code> and <code class="docutils literal notranslate"><span class="pre">log</span></code> to disk. Uses HDF5 (via
+<code class="docutils literal notranslate"><span class="pre">h5py</span></code>) when available; falls back to <code class="docutils literal notranslate"><span class="pre">numpy.savez</span></code> when
 <code class="docutils literal notranslate"><span class="pre">h5py</span></code> is not installed (<code class="docutils literal notranslate"><span class="pre">qclab.utils.DISABLE_H5PY</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">load</span></code>: deserialises a Data file from disk <em>into the current Data
-object</em>. The loaded data is merged in via <code class="docutils literal notranslate"><span class="pre">add_data</span></code>, so loading
-on top of a non-empty Data object accumulates trajectories rather
-than overwriting them.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">load</span></code>: reads a Data file from disk into the current Data object.
+The loaded data is merged in via <code class="docutils literal notranslate"><span class="pre">add_data</span></code>, so loading on top of a
+non-empty Data object accumulates trajectories rather than
+overwriting them.</p></li>
 </ul>
 <p>These methods are documented here:</p>
 <dl class="py function">
@@ -511,16 +510,15 @@ each variable is saved using numpy.savez.</p>
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><code class="docutils literal notranslate"><span class="pre">add_data</span></code> performs a <em>weighted</em> merge: for every collected key
+<p><code class="docutils literal notranslate"><span class="pre">add_data</span></code> performs a weighted merge: for every collected key
 other than <code class="docutils literal notranslate"><span class="pre">&quot;seed&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;norm_factor&quot;</span></code>, the merged value is
 <code class="docutils literal notranslate"><span class="pre">(d1</span> <span class="pre">*</span> <span class="pre">n1</span> <span class="pre">+</span> <span class="pre">d2</span> <span class="pre">*</span> <span class="pre">n2)</span> <span class="pre">/</span> <span class="pre">(n1</span> <span class="pre">+</span> <span class="pre">n2)</span></code>, where <code class="docutils literal notranslate"><span class="pre">n1</span></code> and <code class="docutils literal notranslate"><span class="pre">n2</span></code> are
 the <code class="docutils literal notranslate"><span class="pre">norm_factor</span></code> values of the two Data objects (typically the
-number of trajectories that contributed). This means it is safe to
-stitch together runs with different batch sizes — but it also means
-that merging hand-edited Data objects with mismatched
-<code class="docutils literal notranslate"><span class="pre">norm_factor</span></code> values is a common source of confusion. If you
-find yourself manually editing <code class="docutils literal notranslate"><span class="pre">norm_factor</span></code>, you probably want
-to construct a fresh Data object instead.</p>
+number of trajectories that contributed). This makes it possible
+to stitch together runs with different batch sizes. Manually
+editing <code class="docutils literal notranslate"><span class="pre">norm_factor</span></code> on a Data object will produce an incorrect
+weighted average; in such a case it is preferable to construct a
+fresh Data object.</p>
 </div>
 <section id="saving-and-loading">
 <h3>Saving and loading<a class="headerlink" href="#saving-and-loading" title="Link to this heading">#</a></h3>
@@ -533,9 +531,9 @@ to construct a fresh Data object instead.</p>
 <span class="n">reloaded</span> <span class="o">=</span> <span class="n">Data</span><span class="p">()</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;results.h5&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>If you load an existing Data file on top of a non-empty Data object,
-the result is merged — useful when accumulating large simulations from
-periodic checkpoint files:</p>
+<p>Loading an existing Data file on top of a non-empty Data object merges
+the two via <code class="docutils literal notranslate"><span class="pre">add_data</span></code>. This is useful when accumulating large
+simulations from periodic checkpoint files:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">big</span> <span class="o">=</span> <span class="n">Data</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">checkpoint_files</span><span class="p">:</span>
     <span class="n">big</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>

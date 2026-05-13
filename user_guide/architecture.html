@@ -326,7 +326,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
 </ul>
@@ -407,24 +407,23 @@
                   
   <section id="architecture-overview">
 <span id="architecture"></span><h1>Architecture Overview<a class="headerlink" href="#architecture-overview" title="Link to this heading">#</a></h1>
-<p>QC Lab is built around five objects and a single integration core. This
-page walks through that architecture from the top down, so that readers
-can locate any new feature inside the codebase without having to discover
-the layout by trial and error.</p>
-<p>For a one-line summary: a <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> holds a <code class="docutils literal notranslate"><span class="pre">Model</span></code> and an
-<code class="docutils literal notranslate"><span class="pre">Algorithm</span></code> and is handed to a driver. The driver iterates a small
-loop in <a class="reference internal" href="driver.html#qclab.dynamics.run_dynamics" title="qclab.dynamics.run_dynamics"><code class="xref py py-func docutils literal notranslate"><span class="pre">qclab.dynamics.run_dynamics()</span></code></a> that executes the
-<code class="docutils literal notranslate"><span class="pre">Algorithm</span></code>’s three task lists. Tasks read named entries from a
-<code class="docutils literal notranslate"><span class="pre">state</span></code> dict, call physics functions (“ingredients”) on the <code class="docutils literal notranslate"><span class="pre">Model</span></code>,
-and write named entries back. Trajectory-averaged outputs end up in a
-<code class="docutils literal notranslate"><span class="pre">Data</span></code> object.</p>
+<p>A simulation in QC Lab is built from five objects and a dynamics core that
+integrates them in time. This section describes those five objects, the
+way they are populated with physics and numerical operations, and how the
+dynamics core consumes them.</p>
+<p>At a high level, the Simulation object holds a Model object and an
+Algorithm object and is passed to a dynamics driver. The driver loops
+over time, executing the three recipes defined on the Algorithm object.
+The recipes are lists of tasks that read named entries from the State
+object, call ingredients on the Model object, and write named entries
+back. Trajectory-averaged outputs end up in a Data object.</p>
 <section id="the-five-objects">
 <h2>The five objects<a class="headerlink" href="#the-five-objects" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
 <col style="width: 18.0%" />
-<col style="width: 50.0%" />
-<col style="width: 32.0%" />
+<col style="width: 52.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
@@ -433,45 +432,48 @@ and write named entries back. Trajectory-averaged outputs end up in a
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Simulation</span></code></p></td>
-<td><p>Top-level container; holds settings, the Model, the Algorithm,
-the initial-state dict, and the per-run time index <code class="docutils literal notranslate"><span class="pre">t_ind</span></code>.</p></td>
+<tr class="row-even"><td><p>Simulation object</p></td>
+<td><p>Top-level container. Holds settings, the Model object, the
+Algorithm object, the initial-state dictionary, and the
+per-run time index <code class="docutils literal notranslate"><span class="pre">t_ind</span></code>.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">simulation.py</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Model</span></code></p></td>
-<td><p>Physical system. Holds <code class="docutils literal notranslate"><span class="pre">constants</span></code> and a list of ingredients
-(callables) that define its Hamiltonians and initialization.</p></td>
+<tr class="row-odd"><td><p>Model object</p></td>
+<td><p>Physical system. Holds a Constants object and a list of
+ingredients that define its Hamiltonians and initialization.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">model.py</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Algorithm</span></code></p></td>
+<tr class="row-even"><td><p>Algorithm object</p></td>
 <td><p>Numerical recipe. Holds three task lists —
 <code class="docutils literal notranslate"><span class="pre">initialization_recipe</span></code>, <code class="docutils literal notranslate"><span class="pre">update_recipe</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">collect_recipe</span></code> — plus algorithm-specific settings.</p></td>
+<code class="docutils literal notranslate"><span class="pre">collect_recipe</span></code> — together with algorithm-specific settings.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">algorithm.py</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Constants</span></code></p></td>
-<td><p>Attribute-bag with a <code class="docutils literal notranslate"><span class="pre">__setattr__</span></code> hook that re-runs a
-registered initializer whenever a constant changes after init.
-Used by both <code class="docutils literal notranslate"><span class="pre">Model</span></code> and <code class="docutils literal notranslate"><span class="pre">Algorithm</span></code>.</p></td>
+<tr class="row-odd"><td><p>Constants object</p></td>
+<td><p>Attribute-bag for constants and settings. Re-runs a registered
+initializer whenever a constant changes after initialization.
+Used by both the Model object and the Algorithm object.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">constants.py</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Data</span></code></p></td>
-<td><p>Trajectory-averaged output container. Supports HDF5 / <code class="docutils literal notranslate"><span class="pre">.npz</span></code>
-I/O, log capture, and incremental merging via
+<tr class="row-even"><td><p>Data object</p></td>
+<td><p>Trajectory-averaged output container. Supports HDF5 and
+<code class="docutils literal notranslate"><span class="pre">.npz</span></code> I/O, captures the in-memory simulation log, and merges
+results from multiple batches via
 <a class="reference internal" href="data.html#qclab.data.Data.add_data" title="qclab.data.Data.add_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_data()</span></code></a>.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">data.py</span></code></p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>A simulation is run by handing the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> to one of the drivers
-in <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.dynamics</span></code>: <a class="reference internal" href="driver.html#qclab.dynamics.serial_driver" title="qclab.dynamics.serial_driver"><code class="xref py py-func docutils literal notranslate"><span class="pre">serial_driver()</span></code></a>,
+<p>A simulation is run by handing the Simulation object to one of the
+dynamics drivers in <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.dynamics</span></code>:
+<a class="reference internal" href="driver.html#qclab.dynamics.serial_driver" title="qclab.dynamics.serial_driver"><code class="xref py py-func docutils literal notranslate"><span class="pre">serial_driver()</span></code></a>,
 <a class="reference internal" href="driver.html#qclab.dynamics.parallel_driver_multiprocessing" title="qclab.dynamics.parallel_driver_multiprocessing"><code class="xref py py-func docutils literal notranslate"><span class="pre">parallel_driver_multiprocessing()</span></code></a>, or
 <a class="reference internal" href="driver.html#qclab.dynamics.parallel_driver_mpi" title="qclab.dynamics.parallel_driver_mpi"><code class="xref py py-func docutils literal notranslate"><span class="pre">parallel_driver_mpi()</span></code></a>. Each driver builds per-batch
-<code class="docutils literal notranslate"><span class="pre">state</span></code>/<code class="docutils literal notranslate"><span class="pre">parameters</span></code> dicts, runs the dynamics core, and merges the
-resulting <code class="docutils literal notranslate"><span class="pre">Data</span></code> objects.</p>
-<p>The relationships between the objects are summarised graphically below
-(click any node to jump to the corresponding page):</p>
+State and Parameters dictionaries, runs the dynamics core, and merges
+the resulting Data objects.</p>
+<p>The relationships between the objects are summarised graphically below.
+Click any node to jump to the corresponding section.</p>
 <div class="graphviz-center docutils container">
 <div class="graphviz"><img src="../_images/graphviz-27e12fda1a92461d80e4456bffbda23a1f998c74.png" alt="digraph flow {
   rankdir=TB;
@@ -511,78 +513,84 @@ resulting <code class="docutils literal notranslate"><span class="pre">Data</spa
 </map></div>
 </section>
 <hr class="docutils" />
-<section id="the-ingredient-task-recipe-pattern">
-<h2>The ingredient / task / recipe pattern<a class="headerlink" href="#the-ingredient-task-recipe-pattern" title="Link to this heading">#</a></h2>
-<p>Behind the five-object skeleton, every simulation is assembled from three
-layers. Keeping these layers separate is what allows new physics to be
-swapped in without touching the integrator:</p>
-<p><strong>Ingredients</strong> are physics functions <code class="docutils literal notranslate"><span class="pre">f(model,</span> <span class="pre">parameters,</span> <span class="pre">**kwargs)</span></code>
-that compute a single quantity (a Hamiltonian, a gradient, an initial
-condition, a hop result). They live on the Model as <code class="docutils literal notranslate"><span class="pre">(slot_name,</span>
-<span class="pre">callable)</span></code> tuples. The list is consulted back-to-front, so appending
-<code class="docutils literal notranslate"><span class="pre">(&quot;h_qc&quot;,</span> <span class="pre">my_new_h_qc)</span></code> overrides the existing <code class="docutils literal notranslate"><span class="pre">h_qc</span></code> ingredient
-without removing it. The full list of standard slot names lives on
-<a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a>.</p>
-<p><strong>Tasks</strong> are algorithm steps <code class="docutils literal notranslate"><span class="pre">task(sim,</span> <span class="pre">state,</span> <span class="pre">parameters,</span> <span class="pre">**opts)</span> <span class="pre">-&gt;</span>
-<span class="pre">(state,</span> <span class="pre">parameters)</span></code>. They read named entries from <code class="docutils literal notranslate"><span class="pre">state</span></code> /
-<code class="docutils literal notranslate"><span class="pre">parameters</span></code>, call ingredients via <code class="xref py py-meth docutils literal notranslate"><span class="pre">Model.get</span></code>, and write named entries back. Every state key a
-task touches is exposed as a <code class="docutils literal notranslate"><span class="pre">*_name</span></code> keyword argument so the same
-task can be reused across recipes via <code class="docutils literal notranslate"><span class="pre">functools.partial</span></code>. See
-<a class="reference internal" href="state_and_parameters.html#state-and-parameters"><span class="std std-ref">State and Parameters</span></a> for the rebinding
-pattern.</p>
-<p><strong>Recipes</strong> are plain Python lists of tasks on the Algorithm class. The
+<section id="ingredients-tasks-and-recipes">
+<h2>Ingredients, tasks, and recipes<a class="headerlink" href="#ingredients-tasks-and-recipes" title="Link to this heading">#</a></h2>
+<p>The physics of a simulation and the algorithm that propagates it are
+defined through three related concepts.</p>
+<p>Ingredients are functions of the form <code class="docutils literal notranslate"><span class="pre">f(model,</span> <span class="pre">parameters,</span> <span class="pre">**kwargs)</span></code>
+that compute a single physical quantity — a Hamiltonian, a gradient, an
+initial condition, a hop result. They are attached to the Model object
+as a list of <code class="docutils literal notranslate"><span class="pre">(slot_name,</span> <span class="pre">callable)</span></code> tuples in
+<code class="docutils literal notranslate"><span class="pre">model.ingredients</span></code>. The list is consulted back-to-front, so
+appending <code class="docutils literal notranslate"><span class="pre">(&quot;h_qc&quot;,</span> <span class="pre">my_new_h_qc)</span></code> overrides the existing <code class="docutils literal notranslate"><span class="pre">h_qc</span></code>
+ingredient without removing it. The standard slot names are listed in
+the <a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a> section. Ingredients are described
+in detail in the <a class="reference internal" href="ingredient.html#ingredient"><span class="std std-ref">Ingredients</span></a> section.</p>
+<p>Tasks are functions of the form
+<code class="docutils literal notranslate"><span class="pre">task(sim,</span> <span class="pre">state,</span> <span class="pre">parameters,</span> <span class="pre">**opts)</span> <span class="pre">-&gt;</span> <span class="pre">(state,</span> <span class="pre">parameters)</span></code>. A task
+reads named entries from the State and Parameters objects, calls
+ingredients via <code class="xref py py-meth docutils literal notranslate"><span class="pre">Model.get</span></code>, and writes named
+entries back. Every State-object key that a task touches is exposed as a
+<code class="docutils literal notranslate"><span class="pre">*_name</span></code> keyword argument with a sensible default, so the same task
+can be rebound to different keys with <code class="docutils literal notranslate"><span class="pre">functools.partial</span></code>. The
+<a class="reference internal" href="state_and_parameters.html#state-and-parameters"><span class="std std-ref">State and Parameters</span></a> section describes
+the rebinding pattern. Tasks themselves are described in the
+<a class="reference internal" href="task.html#task"><span class="std std-ref">Tasks</span></a> section.</p>
+<p>Recipes are plain Python lists of tasks on the Algorithm class. The
 <code class="xref py py-meth docutils literal notranslate"><span class="pre">Algorithm.execute_recipe</span></code> method
-just iterates the list and threads <code class="docutils literal notranslate"><span class="pre">(state,</span> <span class="pre">parameters)</span></code> through each
-call. Algorithms inherit from <code class="xref py py-class docutils literal notranslate"><span class="pre">qclab.Algorithm</span></code>, which exposes
-three recipe attributes: <code class="docutils literal notranslate"><span class="pre">initialization_recipe</span></code> (run once),
-<code class="docutils literal notranslate"><span class="pre">update_recipe</span></code> (run every step), and <code class="docutils literal notranslate"><span class="pre">collect_recipe</span></code> (run only on
-collect steps).</p>
-<p>This gives a clean rule of thumb:</p>
-<ul class="simple">
-<li><p>A <em>new algorithm</em> is a new ordering of existing tasks.</p></li>
-<li><p>A <em>new model</em> is a new ingredient list.</p></li>
-<li><p>A <em>new physics ingredient</em> is the only thing that should require
-writing genuinely new code at the lowest level.</p></li>
-</ul>
+iterates the list and threads <code class="docutils literal notranslate"><span class="pre">(state,</span> <span class="pre">parameters)</span></code> through each call.
+The Algorithm object exposes three recipe attributes:
+<code class="docutils literal notranslate"><span class="pre">initialization_recipe</span></code> is executed once at the start of the
+simulation, <code class="docutils literal notranslate"><span class="pre">update_recipe</span></code> is executed every update time step, and
+<code class="docutils literal notranslate"><span class="pre">collect_recipe</span></code> is executed every collect time step. Algorithms are
+described in detail in the <a class="reference internal" href="algorithm.html#algorithm"><span class="std std-ref">Algorithms</span></a> section.</p>
+<p>QC Lab is designed so that new physics and new algorithms can often be
+introduced by adding new ingredients to an existing Model object or new
+tasks to an existing Algorithm object. Either case may, however,
+require writing new ingredients or new tasks as well — for example, a
+new algorithm may need a bespoke update task to evaluate a quantity
+that the existing tasks do not provide. The <a class="reference internal" href="developing_models.html#developing-models"><span class="std std-ref">Developing Models</span></a> section walks through the choices involved when
+adding new physics.</p>
 </section>
 <hr class="docutils" />
 <section id="the-dynamics-core">
 <h2>The dynamics core<a class="headerlink" href="#the-dynamics-core" title="Link to this heading">#</a></h2>
-<p>The integration loop is a single function,
-<a class="reference internal" href="driver.html#qclab.dynamics.run_dynamics" title="qclab.dynamics.run_dynamics"><code class="xref py py-func docutils literal notranslate"><span class="pre">qclab.dynamics.run_dynamics()</span></code></a>. It is intentionally small. Each
-step it does the following:</p>
+<p>The integration loop is implemented by
+<a class="reference internal" href="driver.html#qclab.dynamics.run_dynamics" title="qclab.dynamics.run_dynamics"><code class="xref py py-func docutils literal notranslate"><span class="pre">qclab.dynamics.run_dynamics()</span></code></a>. At each update time step it does
+the following.</p>
 <ol class="arabic simple">
-<li><p>On <code class="docutils literal notranslate"><span class="pre">t_ind</span> <span class="pre">==</span> <span class="pre">0</span></code>, run <code class="docutils literal notranslate"><span class="pre">initialization_recipe</span></code>.</p></li>
-<li><p>At every collect step (<code class="docutils literal notranslate"><span class="pre">t_ind</span> <span class="pre">%</span> <span class="pre">dt_collect_n</span> <span class="pre">==</span> <span class="pre">0</span></code>), run
-<code class="docutils literal notranslate"><span class="pre">collect_recipe</span></code> and call
+<li><p>When <code class="docutils literal notranslate"><span class="pre">t_ind</span> <span class="pre">==</span> <span class="pre">0</span></code> it runs the <code class="docutils literal notranslate"><span class="pre">initialization_recipe</span></code> once.</p></li>
+<li><p>On a collect time step (<code class="docutils literal notranslate"><span class="pre">t_ind</span> <span class="pre">%</span> <span class="pre">dt_collect_n</span> <span class="pre">==</span> <span class="pre">0</span></code>), it runs the
+<code class="docutils literal notranslate"><span class="pre">collect_recipe</span></code> and then calls
 <a class="reference internal" href="data.html#qclab.data.Data.add_output_to_data_dict" title="qclab.data.Data.add_output_to_data_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Data.add_output_to_data_dict</span></code></a>
 to merge <code class="docutils literal notranslate"><span class="pre">state[&quot;output_dict&quot;]</span></code> into the Data object.</p></li>
-<li><p>On every step, run <code class="docutils literal notranslate"><span class="pre">update_recipe</span></code>.</p></li>
+<li><p>On every update time step, it runs the <code class="docutils literal notranslate"><span class="pre">update_recipe</span></code>.</p></li>
 </ol>
-<p>Drivers wrap this core. They divide <code class="docutils literal notranslate"><span class="pre">num_trajs</span></code> across batches of size
-<code class="docutils literal notranslate"><span class="pre">batch_size</span></code>, build a fresh <code class="docutils literal notranslate"><span class="pre">state</span></code>/<code class="docutils literal notranslate"><span class="pre">parameters</span></code> dict per batch,
-call <code class="docutils literal notranslate"><span class="pre">run_dynamics</span></code>, and then merge per-batch Data objects via
-<a class="reference internal" href="data.html#qclab.data.Data.add_data" title="qclab.data.Data.add_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Data.add_data</span></code></a> (which uses a
-trajectory-count-weighted average). See <a class="reference internal" href="driver.html#driver"><span class="std std-ref">Drivers</span></a> for the
-serial / multiprocessing / MPI variants.</p>
+<p>The dynamics drivers wrap this core. A driver divides <code class="docutils literal notranslate"><span class="pre">num_trajs</span></code>
+across batches of size <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>, builds a fresh State and
+Parameters dictionary for each batch, calls <code class="docutils literal notranslate"><span class="pre">run_dynamics</span></code>, and then
+merges the per-batch Data objects via
+<a class="reference internal" href="data.html#qclab.data.Data.add_data" title="qclab.data.Data.add_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Data.add_data</span></code></a>. The merge uses a
+trajectory-count-weighted average. See <a class="reference internal" href="driver.html#driver"><span class="std std-ref">Drivers</span></a> for the
+serial, multiprocessing, and MPI variants.</p>
 </section>
 <hr class="docutils" />
 <section id="numerical-kernels">
 <h2>Numerical kernels<a class="headerlink" href="#numerical-kernels" title="Link to this heading">#</a></h2>
-<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.functions</span></code> collects the low-level math used by ingredients
-and tasks: complex-coordinate conversions (<code class="docutils literal notranslate"><span class="pre">z_to_q</span></code>, <code class="docutils literal notranslate"><span class="pre">qp_to_z</span></code>,
-<code class="docutils literal notranslate"><span class="pre">dqdp_to_dzc</span></code>, <code class="docutils literal notranslate"><span class="pre">dzdzc_to_dqdp</span></code>), batched matrix-vector helpers,
-RK4 sub-step kernels, the sparse-gradient inner product
-<code class="docutils literal notranslate"><span class="pre">calc_sparse_inner_product</span></code>, gauge fixing, and <code class="docutils literal notranslate"><span class="pre">numerical_fssh_hop</span></code>.
-Hot loops are decorated with <code class="docutils literal notranslate"><span class="pre">&#64;njit</span></code> (a Numba shim from
-<code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.utils</span></code> that becomes a no-op when Numba is unavailable). See
-<a class="reference internal" href="functions.html#functions"><span class="std std-ref">Functions</span></a> for the full reference and
-<a class="reference internal" href="numerical_constants.html#numerical-constants"><span class="std std-ref">Numerical Constants</span></a> for the unit conversions
-and tunable thresholds.</p>
-<p>Optional dependencies are handled via the <code class="docutils literal notranslate"><span class="pre">DISABLE_NUMBA</span></code>,
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.functions</span></code> module collects the low-level math used by
+ingredients and tasks. This includes the complex-coordinate conversions
+(<code class="docutils literal notranslate"><span class="pre">z_to_q</span></code>, <code class="docutils literal notranslate"><span class="pre">qp_to_z</span></code>, <code class="docutils literal notranslate"><span class="pre">dqdp_to_dzc</span></code>, <code class="docutils literal notranslate"><span class="pre">dzdzc_to_dqdp</span></code>), batched
+matrix-vector helpers, RK4 sub-step kernels, the sparse-gradient inner
+product <code class="docutils literal notranslate"><span class="pre">calc_sparse_inner_product</span></code>, gauge fixing, and
+<code class="docutils literal notranslate"><span class="pre">numerical_fssh_hop</span></code>. Hot loops are decorated with <code class="docutils literal notranslate"><span class="pre">&#64;njit</span></code> from
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.utils</span></code>, which falls back to a no-op when Numba is
+unavailable. See <a class="reference internal" href="functions.html#functions"><span class="std std-ref">Functions</span></a> for the full reference and
+<a class="reference internal" href="numerical_constants.html#numerical-constants"><span class="std std-ref">Numerical Constants</span></a> for the unit
+conversions and tunable thresholds.</p>
+<p>Optional dependencies are handled by the <code class="docutils literal notranslate"><span class="pre">DISABLE_NUMBA</span></code>,
 <code class="docutils literal notranslate"><span class="pre">DISABLE_H5PY</span></code>, and <code class="docutils literal notranslate"><span class="pre">DISABLE_ASE</span></code> flags in <code class="xref py py-mod docutils literal notranslate"><span class="pre">qclab.utils</span></code>, so
-QC Lab installs and runs without any of them — features that depend on
-each are gracefully degraded.</p>
+QC Lab installs and runs without any of them. Features that depend on
+each are degraded accordingly.</p>
 </section>
 <hr class="docutils" />
 <section id="module-map">
@@ -656,7 +664,7 @@ each are gracefully degraded.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-five-objects">The five objects</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-ingredient-task-recipe-pattern">The ingredient / task / recipe pattern</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ingredients-tasks-and-recipes">Ingredients, tasks, and recipes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-dynamics-core">The dynamics core</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-kernels">Numerical kernels</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-map">Module map</a></li>

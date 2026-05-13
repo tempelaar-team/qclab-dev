@@ -326,7 +326,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">The State and Parameters Dicts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
 </ul>
@@ -434,11 +434,11 @@
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p><code class="docutils literal notranslate"><span class="pre">sim.initial_state</span></code> is a dictionary, not an array. Set the diabatic
-wavefunction with <code class="docutils literal notranslate"><span class="pre">sim.initial_state[&quot;wf_db&quot;]</span> <span class="pre">=</span> <span class="pre">wf0</span></code> rather than
-<code class="docutils literal notranslate"><span class="pre">sim.initial_state</span> <span class="pre">=</span> <span class="pre">wf0</span></code>. The value must be an <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> with
-<code class="docutils literal notranslate"><span class="pre">dtype=complex</span></code>; a Python list will be silently skipped at
-initialization.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sim.initial_state</span></code> is a dictionary, not an array. The diabatic
+wavefunction is set by assigning to a dictionary key, as in
+<code class="docutils literal notranslate"><span class="pre">sim.initial_state[&quot;wf_db&quot;]</span> <span class="pre">=</span> <span class="pre">wf0</span></code>. The value must be a NumPy
+<code class="docutils literal notranslate"><span class="pre">ndarray</span></code> with <code class="docutils literal notranslate"><span class="pre">dtype=complex</span></code>; a Python list is silently
+skipped at initialization.</p>
 </div>
 <section id="simulation-settings">
 <h3>Simulation Settings<a class="headerlink" href="#simulation-settings" title="Link to this heading">#</a></h3>
