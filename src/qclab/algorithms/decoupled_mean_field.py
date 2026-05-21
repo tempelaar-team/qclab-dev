@@ -258,19 +258,21 @@ def update_h_q_tot_dcmf(
     h_qc, _ = sim.model.get("h_qc")
     h_qc_vac = h_qc(sim.model, parameters, z=state[z_vac_name])
     state[h_qc_vac_name] = h_qc_vac
-    pop_adb_h_q_i = pop_adb_h_q[:, :, None] * np.ones_like(h_qc_vac)
-    pop_adb_h_q_j = pop_adb_h_q[:, None, :] * np.ones_like(h_qc_vac)
-    denominator = (pop_adb_h_q_i + pop_adb_h_q_j + numerical_constants.SMALL)
+    denominator = 1 / (pop_adb_h_q[:, :, None] + pop_adb_h_q[:, None, :] + numerical_constants.SMALL)
 
     if sim.model.diagonal_h_q:
-        numerator = np.where(state[mask_name], pop_adb_h_q_j, pop_adb_h_q_i)
-        h_qc_weighted = numerator / denominator * h_qc_vac
+        numerator = np.where(state[mask_name], pop_adb_h_q[:, None, :], pop_adb_h_q[:, :, None])
+        h_qc_weighted = numerator * denominator * h_qc_vac
+        # idx = np.arange(numerator.shape[-1])
+        # h_qc_weighted[:, idx, idx] = h_qc_vac[:, idx, idx]
     else:
         eigvecs = state[eigvecs_h_q_name]
         h_qc_vac_eig = functions.transform_mat(h_qc_vac, eigvecs)
         state[h_qc_vac_adb_h_q_name] = h_qc_vac_eig
-        numerator = np.triu(pop_adb_h_q_j) + np.tril(pop_adb_h_q_i, k=-1)
-        h_qc_weighted_eig = numerator / denominator * h_qc_vac_eig
+        numerator = np.triu(pop_adb_h_q[:, None, :]) + np.tril(pop_adb_h_q[:, :, None], k=-1)
+        h_qc_weighted_eig = numerator * denominator * h_qc_vac_eig
+        # idx = np.arange(numerator.shape[-1])
+        # h_qc_weighted_eig[:, idx, idx] = h_qc_vac_eig[:, idx, idx]
         h_qc_weighted = functions.transform_mat(h_qc_weighted_eig, eigvecs, adb_to_db=True)
     
     state[h_qc_name] += h_qc_weighted
@@ -358,8 +360,8 @@ def update_quantum_classical_force_dcmf(
     * B = sim.settings.batch_size
     * C = sim.model.constants.num_classical_coordinates
     """
-    z = state[z_name]
-    z_vac = state[z_vac_name]
+    #z = state[z_name]
+    #z_vac = state[z_vac_name]
 
     tasks.update_quantum_classical_force(sim, state, parameters, z_name=z_name, wf_changed=wf_changed, update_dh_qc_dzc_flag=update_dh_qc_dzc_flag)
 
@@ -392,79 +394,28 @@ def update_quantum_classical_force_dcmf(
         or (not (wf_changed) and sim.model.update_dh_qc_dzc)
     ):
         if not (quantum_classical_force_vac_name in state):
-            state[quantum_classical_force_vac_name] = np.zeros_like(z_vac)
+            state[quantum_classical_force_vac_name] = np.zeros_like(state[z_vac_name])
+
+        inds, mels, shape = state[dh_qc_dzc_vac_name if sim.model.diagonal_h_q else dh_qc_dzc_adb_h_q_name]
+        b, c, i, j = inds
 
         pop_adb_h_q = state[pop_adb_h_q_name]
+        pop_adb_h_q_i = pop_adb_h_q[b, i]
+        pop_adb_h_q_j = pop_adb_h_q[b, j]
+        factor = 1 / (pop_adb_h_q_i + pop_adb_h_q_j + numerical_constants.SMALL)
 
-        if sim.model.diagonal_h_q:
-            wf = state[wf_db_name]
-            mask = state[mask_name]
-            inds, mels, shape = state[dh_qc_dzc_vac_name]
-            b, c, i, j = inds
-            pop_adb_h_q_i = pop_adb_h_q[b, i]
-            pop_adb_h_q_j = pop_adb_h_q[b, j]
-            factor = 1 / (pop_adb_h_q_i + pop_adb_h_q_j + numerical_constants.SMALL)
-            weighting = np.where(mask[b, i, j], pop_adb_h_q_j * factor, pop_adb_h_q_i * factor)
-        else:
-            wf = state[wf_adb_h_q_name]
-            inds, mels, shape = state[dh_qc_dzc_adb_h_q_name]
-            b, c, i, j = inds
-            pop_adb_h_q_i = pop_adb_h_q[b, i]
-            pop_adb_h_q_j = pop_adb_h_q[b, j]
-            factor = 1 / (pop_adb_h_q_i + pop_adb_h_q_j + numerical_constants.SMALL)
-            weighting = np.where(i <= j, pop_adb_h_q_j * factor, pop_adb_h_q_i * factor)
-        
+        condition = state[mask_name][b, i, j] if sim.model.diagonal_h_q else (i <= j)
+        weighting = np.where(condition, pop_adb_h_q_j, pop_adb_h_q_i) * factor
+
         dh_qc_dzc_weighted = (inds, mels * weighting, shape)
+
+        wf = state[wf_db_name] if sim.model.diagonal_h_q else state[wf_adb_h_q_name]
         state[quantum_classical_force_vac_name] = functions.calc_sparse_inner_product(
             *dh_qc_dzc_weighted,
             wf.conj(),
             wf,
             out=state[quantum_classical_force_vac_name].reshape(-1),
-        ).reshape(np.shape(z_vac))
-
-        # if getattr(sim.algorithm.settings, "use_energy_conserving_force", False):
-        #     m = sim.model.constants.classical_coordinate_mass
-        #     h = sim.model.constants.classical_coordinate_weight
-        #     w = sim.model.constants.harmonic_frequency
-        #     kBT = sim.model.constants.kBT
-
-        #     rho_now = state[pop_adb_h_q_name]
-        #     rho_prev = state[pop_adb_h_q_prev_name]
-        #     shape_ref = np.shape(state[h_qc_vac_name])
-        #     rho_now_row = rho_now[:, :, None] * np.ones(shape_ref)
-        #     rho_now_col = rho_now[:, None, :] * np.ones(shape_ref)
-        #     rho_prev_row = rho_prev[:, :, None] * np.ones(shape_ref)
-        #     rho_prev_col = rho_prev[:, None, :] * np.ones(shape_ref)
-        #     p = functions.z_to_p(z, m, h)
-        #     p_vac = functions.z_to_p(z_vac, m, h)
-
-        #     if sim.model.diagonal_h_q:
-        #         h_qc_vac = state[h_qc_vac_name]
-        #         gamma_now = np.where(state[mask_name], rho_now_col, rho_now_row)/(rho_now_col + rho_now_row + numerical_constants.SMALL)
-        #         gamma_prev = np.where(state[mask_name], rho_prev_col, rho_prev_row)/(rho_prev_col + rho_prev_row + numerical_constants.SMALL)
-        #         dgamma_dt = (gamma_now - gamma_prev) / sim.settings.dt_update
-        #         drho_dq_hqc = dgamma_dt * h_qc_vac
-        #         drho_dq_hqc_expectation_value = np.real(np.einsum('bi,bij,bj->b', wf.conj(), drho_dq_hqc, wf, optimize="greedy"))
-
-        #     else:
-        #         h_qc_vac_adb_h_q = state[h_qc_vac_adb_h_q_name]
-        #         gamma_now = (np.triu(rho_now_col) + np.tril(rho_now_row, k=-1))/(rho_now_col + rho_now_row + numerical_constants.SMALL)
-        #         gamma_prev = (np.triu(rho_prev_col) + np.tril(rho_prev_row, k=-1))/(rho_prev_col + rho_prev_row + numerical_constants.SMALL)
-        #         dgamma_dt = (gamma_now - gamma_prev) / sim.settings.dt_update
-        #         drho_dq_hqc_adb_h_q = dgamma_dt * h_qc_vac_adb_h_q
-        #         drho_dq_hqc_expectation_value = np.real(np.einsum('bi,bij,bj->b', wf.conj(), drho_dq_hqc_adb_h_q, wf, optimize="greedy"))
-
-        #     if kBT > 0:
-        #         std_p = np.sqrt(0.5 * m * w / np.tanh(0.5 * w / kBT))
-        #     else:
-        #         std_p = np.sqrt(0.5 * m * w)
-        #     std_p_vac = np.sqrt(0.5 * m * w)
-
-        #     fraction = getattr(sim.algorithm.settings, "energy_conserving_force_fraction", 0.1)
-        #     additional_force = drho_dq_hqc_expectation_value[:, np.newaxis] / (np.sign(p + numerical_constants.SMALL) * np.maximum(np.abs(p), fraction * std_p))
-        #     additional_force_vac = drho_dq_hqc_expectation_value[:, np.newaxis] / (np.sign(p_vac + numerical_constants.SMALL) * np.maximum(np.abs(p_vac), fraction * std_p_vac))
-        #     state[quantum_classical_force_name] += -additional_force
-        #     state[quantum_classical_force_vac_name] += -additional_force_vac
+        ).reshape(np.shape(state[z_vac_name]))
     return state, parameters
 
 
@@ -571,4 +522,3 @@ class DecoupledMeanField(Algorithm):
         partial(tasks.collect_classical_energy, classical_energy_name="classical_energy_vac", classical_energy_output_name="classical_energy_vac"),
         tasks.collect_quantum_energy,
     ]
-
