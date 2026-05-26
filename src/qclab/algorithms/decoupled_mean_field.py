@@ -258,19 +258,21 @@ def update_h_q_tot_dcmf(
     h_qc, _ = sim.model.get("h_qc")
     h_qc_vac = h_qc(sim.model, parameters, z=state[z_vac_name])
     state[h_qc_vac_name] = h_qc_vac
-    denominator = 1 / (pop_adb_h_q[:, :, None] + pop_adb_h_q[:, None, :] + numerical_constants.SMALL)
+    pop_adb_h_q_i = pop_adb_h_q[:, :, None] * np.ones_like(h_qc_vac)
+    pop_adb_h_q_j = pop_adb_h_q[:, None, :] * np.ones_like(h_qc_vac)
+    denominator = (pop_adb_h_q_i + pop_adb_h_q_j + numerical_constants.SMALL)
 
     if sim.model.diagonal_h_q:
-        numerator = np.where(state[mask_name], pop_adb_h_q[:, None, :], pop_adb_h_q[:, :, None])
-        h_qc_weighted = numerator * denominator * h_qc_vac
+        numerator = np.where(state[mask_name], pop_adb_h_q_j, pop_adb_h_q_i)
+        h_qc_weighted = numerator / denominator * h_qc_vac
         # idx = np.arange(numerator.shape[-1])
         # h_qc_weighted[:, idx, idx] = h_qc_vac[:, idx, idx]
     else:
         eigvecs = state[eigvecs_h_q_name]
         h_qc_vac_eig = functions.transform_mat(h_qc_vac, eigvecs)
         state[h_qc_vac_adb_h_q_name] = h_qc_vac_eig
-        numerator = np.triu(pop_adb_h_q[:, None, :]) + np.tril(pop_adb_h_q[:, :, None], k=-1)
-        h_qc_weighted_eig = numerator * denominator * h_qc_vac_eig
+        numerator = np.triu(pop_adb_h_q_j) + np.tril(pop_adb_h_q_i, k=-1)
+        h_qc_weighted_eig = numerator / denominator * h_qc_vac_eig
         # idx = np.arange(numerator.shape[-1])
         # h_qc_weighted_eig[:, idx, idx] = h_qc_vac_eig[:, idx, idx]
         h_qc_weighted = functions.transform_mat(h_qc_weighted_eig, eigvecs, adb_to_db=True)
