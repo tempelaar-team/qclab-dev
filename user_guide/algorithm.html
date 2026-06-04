@@ -319,13 +319,9 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
 <li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
@@ -334,21 +330,6 @@
 <li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
-<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
 </ul>
 </div>
@@ -420,17 +401,17 @@
   <section id="algorithms">
 <span id="algorithm"></span><h1>Algorithms<a class="headerlink" href="#algorithms" title="Link to this heading">#</a></h1>
 <p>Algorithms in QC Lab define the sequence of operations that evolve the system defined by the Model object (see <a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>) in time.
-They are composed of three recipes which define initialization steps, update steps, and collect steps that together define the desired algorithm.
-Each recipe is a list of “tasks” (see <a class="reference internal" href="task.html#task"><span class="std std-ref">Tasks</span></a>) which are executed in the order specified by the recipe list.
-Algorithms define the transient quantities of an algorithm in the State object, which is an instance of a dictionary.</p>
-<p>Algorithms in QC Lab can are tailored to Model objects defined in adiabatic or diabatic bases (see <a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>) in order to optimize their
-performance. Such tailoring breaks the compatibility between an algorithm implemented assuming a diabatic basis and those models implemented without
-such a basis (and vice versa). As an example, the <cite>AbInitioFewestSwitchesSurfaceHopping</cite> and <cite>AbInitioMeanField</cite> algorithms can only be used with models defined
-in an adiabatic basis. In most cases, model problems are defined in a diabatic basis and so we tailor the present adiabatic algorithms towards ab initio simulations
+They are composed of three Recipes which define the initialization Tasks, update Tasks, and collect Tasks that together define the desired algorithm.
+Each Recipe is a list of Tasks (see <a class="reference internal" href="task.html#task"><span class="std std-ref">Tasks</span></a>) which are executed in the order specified by the Recipe list.
+Algorithm objects define the transient quantities of an algorithm in the State object, which is a Python dictionary.</p>
+<p>Algorithms in QC Lab are tailored to Model objects defined in adiabatic or diabatic bases (see <a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>) in order to optimize their
+performance. Such tailoring breaks the compatibility between an algorithm implemented assuming a diabatic basis and those Model objects implemented without
+such a basis (and vice versa). As an example, the <code class="docutils literal notranslate"><span class="pre">FewestSwitchesSurfaceHoppingAbInitio</span></code> and <code class="docutils literal notranslate"><span class="pre">MeanFieldAbInitio</span></code> Algorithm objects can only be used with Model objects defined
+in an adiabatic basis. <em>Ab initio</em> Models can only be used with <em>ab initio</em> Algorithms, and vice versa. In most cases, model problems are defined in a diabatic basis and so we tailor the present adiabatic algorithms towards <em>ab initio</em> simulations
 which are the most common use case for an adiabatic basis.</p>
 <section id="algorithm-objects">
 <span id="id1"></span><h2>Algorithm Objects<a class="headerlink" href="#algorithm-objects" title="Link to this heading">#</a></h2>
-<p>Algorithm objects in QC Lab are instances of the <code class="docutils literal notranslate"><span class="pre">qclab.Algorithm</span></code> class. Each Algorithm object is composed of three recipes: an initialization recipe <code class="docutils literal notranslate"><span class="pre">algorithm.initialization_recipe</span></code>, an update recipe <code class="docutils literal notranslate"><span class="pre">algorithm.update_recipe</span></code>, and a collect recipe <code class="docutils literal notranslate"><span class="pre">algorithm.collect_recipe</span></code>. Like a Model object, an Algorithm object has an instance of the Constants class <code class="docutils literal notranslate"><span class="pre">algorithm.settings</span></code> which contains the settings specific to the algorithm. Unlike the Model object, Algorithm objects do not have internal constants and so there is no initialization method as there is for Model objects (see <a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>). Instead, the settings of the Algorithm object are set directly by the user during or after instantiation of the Algorithm object.</p>
+<p>Algorithm objects in QC Lab are instances of the <code class="docutils literal notranslate"><span class="pre">qclab.Algorithm</span></code> class. Each Algorithm object is composed of three Recipes: an initialization Recipe <code class="docutils literal notranslate"><span class="pre">algorithm.initialization_recipe</span></code>, an update Recipe <code class="docutils literal notranslate"><span class="pre">algorithm.update_recipe</span></code>, and a collect Recipe <code class="docutils literal notranslate"><span class="pre">algorithm.collect_recipe</span></code>. Like a Model object, an Algorithm object has a Constants object <code class="docutils literal notranslate"><span class="pre">algorithm.settings</span></code> which contains the settings specific to the Algorithm object. Unlike the Model object, Algorithm objects do not have internal constants and so there is no initialization method as there is for Model objects (see <a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>). Instead, the settings of the Algorithm object are set directly by the user during or after instantiation of the Algorithm object.</p>
 <p>The empty Algorithm class is:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Algorithm</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -469,7 +450,7 @@ which are the most common use case for an adiabatic basis.</p>
         <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span>
 </pre></div>
 </div>
-<p>After instantiating an Algorithm object, the user can populate its recipes by assigning tasks to each recipe. For example, the mean-field algorithm can be defined from an empty Algorithm object as:</p>
+<p>After instantiating an Algorithm object, users can populate its Recipes by assigning Tasks to each Recipe. For example, the mean-field algorithm can be defined from an empty Algorithm object as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qclab</span><span class="w"> </span><span class="kn">import</span> <span class="n">Algorithm</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">qclab.tasks</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tasks</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
@@ -504,11 +485,11 @@ which are the most common use case for an adiabatic basis.</p>
 <span class="p">]</span>
 </pre></div>
 </div>
-<p>Each recipe is executed by the method <code class="docutils literal notranslate"><span class="pre">algorithm.execute_recipe</span></code>. The initialization recipe is executed once at the beginning of the simulation, the update recipe is executed at each time step of the simulation, and the collect recipe is executed once at the end of the simulation to gather and process results.</p>
+<p>Each Recipe is executed by the method <code class="docutils literal notranslate"><span class="pre">algorithm.execute_recipe</span></code>. The initialization Recipe is executed once at the beginning of the simulation, the update Recipe is executed at each update time step of the simulation, and the collect Recipe is executed at each collect time step to gather and process results.</p>
 </section>
 <section id="mean-field-example">
 <h2>Mean Field Example<a class="headerlink" href="#mean-field-example" title="Link to this heading">#</a></h2>
-<p>As an example of a complete algorithm we include the source code for the mean-field algorithm below. This algorithm is defined in the <code class="docutils literal notranslate"><span class="pre">qclab.algorithms.MeanField</span></code> module and uses tasks from the <code class="docutils literal notranslate"><span class="pre">qclab.tasks</span></code> module to populate its recipes.</p>
+<p>As an example of a complete algorithm we include the source code for the mean-field algorithm below. This algorithm is defined in the <code class="docutils literal notranslate"><span class="pre">qclab.algorithms.MeanField</span></code> module and uses Tasks from the <code class="docutils literal notranslate"><span class="pre">qclab.tasks</span></code> module to populate its Recipes.</p>
 <div class="pst-scrollable-table-container"><table class="table" id="id2">
 <caption><span class="caption-text">Mean-field collected observables</span><a class="headerlink" href="#id2" title="Link to this table">#</a></caption>
 <colgroup>
@@ -610,7 +591,7 @@ which are the most common use case for an adiabatic basis.</p>
 </details></section>
 <section id="surface-hopping-example">
 <span id="fssh-source"></span><h2>Surface Hopping Example<a class="headerlink" href="#surface-hopping-example" title="Link to this heading">#</a></h2>
-<p>As an additional example of a complete algorithm we include the source code for the fewest-switches surface hopping algorithm below. This algorithm is defined in the <code class="docutils literal notranslate"><span class="pre">qclab.algorithms.FewestSwitchesSurfaceHopping</span></code> module and uses tasks from the <code class="docutils literal notranslate"><span class="pre">qclab.tasks</span></code> module to populate its recipes.</p>
+<p>As an additional example of a complete algorithm we include the source code for the fewest-switches surface hopping algorithm below. This algorithm is defined in the <code class="docutils literal notranslate"><span class="pre">qclab.algorithms.FewestSwitchesSurfaceHopping</span></code> module and uses Tasks from the <code class="docutils literal notranslate"><span class="pre">qclab.tasks</span></code> module to populate its Recipes.</p>
 <div class="pst-scrollable-table-container"><table class="table" id="id3">
 <caption><span class="caption-text">FSSH collected observables</span><a class="headerlink" href="#id3" title="Link to this table">#</a></caption>
 <colgroup>
@@ -768,8 +749,8 @@ which are the most common use case for an adiabatic basis.</p>
 </details></section>
 <section id="ab-initio-surface-hopping-example">
 <span id="ab-initio-fssh-source"></span><h2>Ab Initio Surface Hopping Example<a class="headerlink" href="#ab-initio-surface-hopping-example" title="Link to this heading">#</a></h2>
-<p>As an example of an algorithm customized to Model objects defined in an adiabatic basis for compatibility with ab initio calculations, here we include the source code for the ab initio
-fewest-switches surface hopping algorithm implemented in the module <code class="docutils literal notranslate"><span class="pre">qclab.algorithms.FewestSwitchesSurfaceHopping</span></code>.</p>
+<p>As an example of an Algorithm customized to Model objects defined in an adiabatic basis for compatibility with <em>ab initio</em> calculations, here we include the source code for the <em>ab initio</em>
+fewest-switches surface hopping algorithm implemented in the module <code class="docutils literal notranslate"><span class="pre">qclab.algorithms.fewest_switches_surface_hopping</span></code> (class <code class="docutils literal notranslate"><span class="pre">FewestSwitchesSurfaceHoppingAbInitio</span></code>).</p>
 <div class="pst-scrollable-table-container"><table class="table" id="id4">
 <caption><span class="caption-text">Ab initio FSSH collected observables</span><a class="headerlink" href="#id4" title="Link to this table">#</a></caption>
 <colgroup>
@@ -802,8 +783,8 @@ fewest-switches surface hopping algorithm implemented in the module <code class=
 <span class="sd-summary-icon"><svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-code" viewBox="0 0 16 16" aria-hidden="true"><path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"></path></svg></span><span class="sd-summary-text">View full source</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">  1</span><span class="k">class</span><span class="w"> </span><span class="nc">FewestSwitchesSurfaceHoppingAbInitio</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
 <span class="linenos">  2</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="linenos">  3</span><span class="sd">    Fewest switches surface hopping algorithm class implemented in the adiabatic basis</span>
-<span class="linenos">  4</span><span class="sd">    for compatibility with ab initio calculations.</span>
+<span class="linenos">  3</span><span class="sd">    Fewest-switches surface hopping algorithm class implemented in the adiabatic basis</span>
+<span class="linenos">  4</span><span class="sd">    for compatibility with *ab initio* calculations.</span>
 <span class="linenos">  5</span><span class="sd">    &quot;&quot;&quot;</span>
 <span class="linenos">  6</span>
 <span class="linenos">  7</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

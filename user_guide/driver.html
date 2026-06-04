@@ -319,13 +319,9 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
 <li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
@@ -334,21 +330,6 @@
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Drivers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
-<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
 </ul>
 </div>
@@ -419,16 +400,16 @@
                   
   <section id="drivers">
 <span id="driver"></span><h1>Drivers<a class="headerlink" href="#drivers" title="Link to this heading">#</a></h1>
-<p>QC Lab comes equipped with three dynamics drivers. These are functions that take a Simulation object (see <a class="reference internal" href="simulation.html#simulation"><span class="std std-ref">Simulations</span></a>) as input and carry out the dynamics by executing the recipes of the Algorithm object (see <a class="reference internal" href="algorithm.html#algorithm"><span class="std std-ref">Algorithms</span></a>) associated with the Simulation object. The three drivers all live in <code class="docutils literal notranslate"><span class="pre">qclab.dynamics</span></code> and are:</p>
+<p>QC Lab comes equipped with three Dynamics Drivers. These are functions that take a Simulation object (see <a class="reference internal" href="simulation.html#simulation"><span class="std std-ref">Simulations</span></a>) as input and carry out the dynamics by executing the Recipes of the Algorithm object (see <a class="reference internal" href="algorithm.html#algorithm"><span class="std std-ref">Algorithms</span></a>) associated with the Simulation object. The three Dynamics Drivers all live in <code class="docutils literal notranslate"><span class="pre">qclab.dynamics</span></code> and are:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">qclab.dynamics.serial_driver</span></code>: a serial driver that runs the simulation in a single Python process,</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">qclab.dynamics.parallel_driver_multiprocessing</span></code>: a parallel driver that uses Python’s built-in <code class="docutils literal notranslate"><span class="pre">multiprocessing</span></code> module to run batches concurrently across CPU cores,</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">qclab.dynamics.parallel_driver_mpi</span></code>: a parallel driver that uses the <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> package to run batches across MPI ranks, possibly across multiple nodes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qclab.dynamics.serial_driver</span></code>: a serial Dynamics Driver that runs the simulation in a single Python process,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qclab.dynamics.parallel_driver_multiprocessing</span></code>: a parallel Dynamics Driver that uses Python’s built-in <code class="docutils literal notranslate"><span class="pre">multiprocessing</span></code> module to run batches concurrently across CPU cores,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qclab.dynamics.parallel_driver_mpi</span></code>: a parallel Dynamics Driver that uses the <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> package to run batches across MPI ranks, possibly across multiple nodes.</p></li>
 </ul>
-<p>Each driver is responsible for managing the execution of the simulation, including dividing the total number of trajectories into batches (if necessary), distributing the batches across available CPU cores, and collecting the results into a single output Data object.</p>
-<p>All drivers in QC Lab accept the following input arguments (parallel drivers accept an additional argument, see below):</p>
+<p>Each Dynamics Driver is responsible for managing the execution of the simulation, including dividing the total number of trajectories into batches (if necessary), distributing the batches across available CPU cores, and collecting the results into a single output Data object.</p>
+<p>All Dynamics Drivers in QC Lab accept the following input arguments (parallel Dynamics Drivers accept an additional argument, see below):</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">sim</span></code>: an instance of the <code class="docutils literal notranslate"><span class="pre">qclab.Simulation</span></code> class containing the model, algorithm, and settings for the simulation,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sim</span></code>: an instance of the <code class="docutils literal notranslate"><span class="pre">qclab.Simulation</span></code> class containing the Model object, Algorithm object, and settings for the simulation,</p></li>
 <li><dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">seeds</span></code>: an optional array of integers specifying the random seeds for each trajectory in</dt><dd><p>the simulation. If not provided, the seeds will be generated automatically.</p>
 </dd>
@@ -442,7 +423,7 @@
 </div>
 <section id="serial-driver">
 <h2>Serial Driver<a class="headerlink" href="#serial-driver" title="Link to this heading">#</a></h2>
-<p>The serial driver runs batches of trajectories sequentially without without requesting a particular set of resources. This means it may use multiple CPU cores if available, but it does not attempt to manage or limit the number of CPU cores used. The serial driver is suitable for running small simulations where parallelization is not necessary, or for debugging purposes.</p>
+<p>The serial Dynamics Driver runs batches of trajectories sequentially without requesting a particular set of resources. This means it may use multiple CPU cores if available, but it does not attempt to manage or limit the number of CPU cores used. The serial Dynamics Driver is suitable for running small simulations where parallelization is not necessary, or for debugging purposes.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="qclab.dynamics.serial_driver">
 <span class="sig-prename descclassname"><span class="pre">qclab.dynamics.</span></span><span class="sig-name descname"><span class="pre">serial_driver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.dynamics.serial_driver" title="Link to this definition">#</a></dt>
@@ -468,8 +449,8 @@ will be created.</p>
 </section>
 <section id="parallel-drivers">
 <h2>Parallel Drivers<a class="headerlink" href="#parallel-drivers" title="Link to this heading">#</a></h2>
-<p>The parallel drivers use multiple CPU cores to run batches of trajectories concurrently. This can significantly speed up the simulation, especially for large numbers of trajectories. It is important to recognize that the <code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code> now refers to the number of trajectories that will run on a single CPU core at a time. If you have <code class="docutils literal notranslate"><span class="pre">N</span></code> CPU cores available and a batch size of <code class="docutils literal notranslate"><span class="pre">B</span></code>, then up to <code class="docutils literal notranslate"><span class="pre">N*B</span></code> trajectories will be simulated concurrently. Having a <code class="docutils literal notranslate"><span class="pre">sim.settings.num_trajs</span> <span class="pre">=</span> <span class="pre">(N+1)*B</span></code> will have an unnecessary overhead since the last <code class="docutils literal notranslate"><span class="pre">B</span></code> trajectories will not be able to run concurrently. For that reason it is recommended to set <code class="docutils literal notranslate"><span class="pre">sim.settings.num_trajs</span></code> to be a multiple of <code class="docutils literal notranslate"><span class="pre">N*B</span></code>.</p>
-<p>In addition to the arguments described above, the parallel drivers accept <code class="docutils literal notranslate"><span class="pre">num_tasks</span></code>, an integer specifying the number of parallel tasks to use. If <code class="docutils literal notranslate"><span class="pre">num_tasks</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> (the default), the parallel drivers will fall back to <code class="docutils literal notranslate"><span class="pre">multiprocessing.cpu_count()</span></code> for the multiprocessing driver, or to the size of <code class="docutils literal notranslate"><span class="pre">MPI.COMM_WORLD</span></code> for the MPI driver.</p>
+<p>The parallel Dynamics Drivers use multiple CPU cores to run batches of trajectories concurrently. This can significantly speed up the simulation, especially for large numbers of trajectories. The <code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code> now refers to the number of trajectories that will run on a single CPU core at a time. If you have <code class="docutils literal notranslate"><span class="pre">N</span></code> CPU cores available and a batch size of <code class="docutils literal notranslate"><span class="pre">B</span></code>, then up to <code class="docutils literal notranslate"><span class="pre">N*B</span></code> trajectories will be simulated concurrently. Having a <code class="docutils literal notranslate"><span class="pre">sim.settings.num_trajs</span> <span class="pre">=</span> <span class="pre">(N+1)*B</span></code> will have an unnecessary overhead since the last <code class="docutils literal notranslate"><span class="pre">B</span></code> trajectories will not be able to run concurrently. For that reason it is recommended to set <code class="docutils literal notranslate"><span class="pre">sim.settings.num_trajs</span></code> to be a multiple of <code class="docutils literal notranslate"><span class="pre">N*B</span></code>.</p>
+<p>In addition to the arguments described above, the parallel Dynamics Drivers accept <code class="docutils literal notranslate"><span class="pre">num_tasks</span></code>, an integer specifying the number of parallel tasks to use. If <code class="docutils literal notranslate"><span class="pre">num_tasks</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, the multiprocessing Dynamics Driver falls back to <code class="docutils literal notranslate"><span class="pre">multiprocessing.cpu_count()</span></code> and the MPI Dynamics Driver falls back to the size of <code class="docutils literal notranslate"><span class="pre">MPI.COMM_WORLD</span></code>.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="qclab.dynamics.parallel_driver_multiprocessing">
 <span class="sig-prename descclassname"><span class="pre">qclab.dynamics.</span></span><span class="sig-name descname"><span class="pre">parallel_driver_multiprocessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_tasks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.dynamics.parallel_driver_multiprocessing" title="Link to this definition">#</a></dt>
@@ -520,12 +501,12 @@ number of available tasks will be used.</p>
 </dl>
 </dd></dl>
 
-<p>The MPI driver requires the <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> package to be installed and an MPI execution environment to run. It is suitable for running large simulations on high-performance computing clusters, and can be invoked using the <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> or <code class="docutils literal notranslate"><span class="pre">mpiexec</span></code> command, as in:</p>
+<p>The MPI Dynamics Driver requires the <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> package to be installed and an MPI execution environment to run. It is suitable for running large simulations on high-performance computing clusters, and can be invoked using the <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> or <code class="docutils literal notranslate"><span class="pre">mpiexec</span></code> command, as in:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun<span class="w"> </span>-n<span class="w"> </span><span class="m">4</span><span class="w"> </span>python<span class="w"> </span>my_simulation_script.py
 </pre></div>
 </div>
-<p>where <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">4</span></code> specifies that the simulation should be run using 4 MPI processes. The mpi driver will automatically distribute the batches of trajectories across the available MPI processes (4 in this case).</p>
-<p>An example script that uses the mpi driver can be found in <code class="docutils literal notranslate"><span class="pre">examples/mpi_examples/mpi_example.py</span></code> along with a SLURM submission script in the same folder. The full source code of these examples is included here for convenience:</p>
+<p>where <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">4</span></code> specifies that the simulation should be run using 4 MPI processes. The MPI Dynamics Driver will automatically distribute the batches of trajectories across the available MPI processes (4 in this case).</p>
+<p>An example script that uses the MPI Dynamics Driver can be found in <code class="docutils literal notranslate"><span class="pre">examples/mpi_examples/mpi_example.py</span></code> along with a SLURM submission script in the same folder. The full source code of these examples is included here for convenience:</p>
 <details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-icon"><svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-code" viewBox="0 0 16 16" aria-hidden="true"><path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"></path></svg></span><span class="sd-summary-text">mpi_example.py</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">

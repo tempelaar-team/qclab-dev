@@ -375,7 +375,7 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <span class="target" id="modify-fssh"></span><p>Let’s try modifying the FSSH algorithm so that the directions of the velocities of frustrated trajectories are reversed.
+  <span class="target" id="modify-fssh"></span><p>Let’s try modifying the FSSH Algorithm object so that the velocities of frustrated trajectories are reversed.
 In the <a class="reference internal" href="../../user_guide/coordinates.html#coordinates"><span class="std std-ref">complex coordinate formalism</span></a>, this means conjugating the <cite>z</cite> coordinate of the frustrated trajectories.
 To this end, we write the following function:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">update_z_reverse_frustrated_fssh</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
@@ -391,10 +391,10 @@ To this end, we write the following function:</p>
     <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span>
 </pre></div>
 </div>
-<p>Now we can insert this function as a task into an instance of the FSSH Algorithm object. To know where we should insert it, we can look
+<p>Now we can insert this function as a Task into an instance of the FSSH Algorithm object. To know where we should insert it, we can look
 at the <code class="docutils literal notranslate"><span class="pre">update_recipe</span></code> of the FSSH Algorithm object (see <a class="reference internal" href="../../user_guide/algorithm.html#fssh-source"><span class="std std-ref">Surface Hopping Example</span></a>).</p>
 <p>A good place to invert the velocities of frustrated trajectories is just at the end of the active surface updates.
-QC Lab makes this particularly easy to do by using Python’s built-in list methods to append our new task to the end of the update recipe.</p>
+We append the new Task to the end of the update Recipe using a standard Python list method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Insert the function for reversing velocities as a task into the update recipe.</span>
 <span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">update_recipe</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">update_z_reverse_frustrated_fssh</span><span class="p">)</span>
 </pre></div>

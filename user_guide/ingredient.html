@@ -58,7 +58,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tasks" href="task.html" />
-    <link rel="prev" title="Architecture Overview" href="architecture.html" />
+    <link rel="prev" title="User Guide" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -320,13 +320,9 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Ingredients</a></li>
 <li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
@@ -335,21 +331,6 @@
 <li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
-<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
 </ul>
 </div>
@@ -420,12 +401,12 @@
                   
   <section id="ingredients">
 <span id="ingredient"></span><h1>Ingredients<a class="headerlink" href="#ingredients" title="Link to this heading">#</a></h1>
-<p>Ingredients are functions that encode the physics of a model. QC Lab is designed to be operational with a minimal set of ingredients that describe the Hamiltonian of the system which is assumed to have the form:</p>
+<p>Ingredients are functions that encode the physics of a Model object. QC Lab is designed to be operational with a minimal set of Ingredients that describe the Hamiltonian of the system which is assumed to have the form:</p>
 <div class="math notranslate nohighlight">
 \[H(q,p) = \hat{H}_{\mathrm{q}} + \hat{H}_{\mathrm{q-c}}(q) + H_{\mathrm{c}}(q,p)\]</div>
-<p>where <span class="math notranslate nohighlight">\(\hat{H}_\mathrm{q}\)</span> is the quantum Hamiltonian, <span class="math notranslate nohighlight">\(\hat{H}_{\mathrm{q-c}}(q)\)</span> is the quantum-classical coupling Hamiltonian, and <span class="math notranslate nohighlight">\(H_{\mathrm{c}}(q,p)\)</span> is the classical Hamiltonian.
-As discussed in the <a class="reference internal" href="model.html#model"><span class="std std-ref">Model</span></a> section, models defined in an adiabatic basis also provide the derivative coupling tensor <span class="math notranslate nohighlight">\(d^{n}_{ij}(q)=\langle i(q)\vert\partial_{n}\vert j(q)\rangle\)</span>.</p>
-<p>A generic ingredient has the form:</p>
+<p>where <span class="math notranslate nohighlight">\(\hat{H}_\mathrm{q}\)</span> is the quantum Hamiltonian, <span class="math notranslate nohighlight">\(\hat{H}_{\mathrm{q-c}}(q)\)</span> is the quantum-classical interaction Hamiltonian, and <span class="math notranslate nohighlight">\(H_{\mathrm{c}}(q,p)\)</span> is the classical Hamiltonian.
+As discussed in the <a class="reference internal" href="model.html#model"><span class="std std-ref">Model</span></a> section, Model objects defined in an adiabatic basis also provide the derivative coupling tensor <span class="math notranslate nohighlight">\(d^{\xi}_{\alpha\beta}(q)=\langle \alpha(q)\vert\frac{\partial}{\partial q_{\xi}}\vert \beta(q)\rangle\)</span>.</p>
+<p>A generic Ingredient has the form:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">ingredient_specifier</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c1"># Get any keyword arguments, with default values if not provided.</span>
     <span class="n">kwarg1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kwarg1&#39;</span><span class="p">,</span> <span class="n">default_value1</span><span class="p">)</span>
@@ -435,80 +416,9 @@ As discussed in the <a class="reference internal" href="model.html#model"><span 
     <span class="k">return</span> <span class="n">ingredient</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal notranslate"><span class="pre">model</span></code> is a Model object which contains all the constants of the model, <code class="docutils literal notranslate"><span class="pre">parameters</span></code> is a dictionary containing time-dependent parameters of the simulation, and <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> are any additional keyword arguments that are specific to that ingredient type.</p>
-<p>The full set of standard slot names, the keyword arguments each one consumes, and the shape of its return value are listed in the <a class="reference internal" href="conventions.html#conventions"><span class="std std-ref">Conventions</span></a> section. The slots used by the built-in algorithms are summarized here:</p>
-<div class="pst-scrollable-table-container"><table class="table" id="id1">
-<caption><span class="caption-text">Standard ingredient slots</span><a class="headerlink" href="#id1" title="Link to this table">#</a></caption>
-<colgroup>
-<col style="width: 22.0%" />
-<col style="width: 28.0%" />
-<col style="width: 30.0%" />
-<col style="width: 20.0%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Slot</p></th>
-<th class="head"><p>Required kwargs</p></th>
-<th class="head"><p>Returns</p></th>
-<th class="head"><p>Used by</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">h_q</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">batch_size</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex Hamiltonian</p></td>
-<td><p>every algorithm</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">h_qc</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex Hamiltonian</p></td>
-<td><p>every algorithm</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">h_c</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(B,)</span></code> real classical energy</p></td>
-<td><p>mean-field, FSSH</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
-<td><p>sparse <code class="docutils literal notranslate"><span class="pre">(inds,</span> <span class="pre">mels,</span> <span class="pre">shape)</span></code> for <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">N,</span> <span class="pre">N)</span></code></p></td>
-<td><p>every algorithm; falls back to finite differences if absent</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dh_c_dzc</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex gradient</p></td>
-<td><p>every algorithm; falls back to finite differences if absent</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">init_classical</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">seed</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex initial coordinates</p></td>
-<td><p>every algorithm; falls back to MCMC if absent</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hop</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">resc_dir_z</span></code>, <code class="docutils literal notranslate"><span class="pre">eigval_diff</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(shift,</span> <span class="pre">hop_bool)</span></code></p></td>
-<td><p>FSSH only</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">derivative_coupling_dzc</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">N,</span> <span class="pre">N)</span></code> complex</p></td>
-<td><p>ab initio only</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gauge_field_force</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">state_ind</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C)</span></code> complex</p></td>
-<td><p>optional, when <code class="docutils literal notranslate"><span class="pre">use_gauge_field_force</span> <span class="pre">==</span> <span class="pre">True</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ab_initio_property_calculator</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">property_dict</span></code>, <code class="docutils literal notranslate"><span class="pre">traj_ind</span></code></p></td>
-<td><p>dict of energies / gradients / couplings</p></td>
-<td><p>ab initio only</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>Here <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">sim.settings.batch_size</span></code>, <code class="docutils literal notranslate"><span class="pre">C</span> <span class="pre">=</span> <span class="pre">num_classical_coordinates</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">num_quantum_states</span></code>.</p>
-<p>Ingredients in QC lab can come in different variations, for example the quantum Hamiltonian ingredient could describe a two-level system, a nearest-neighbor lattice, or a more complicated Hamiltonian. The type and variety of an ingredient is specified in its name which follows the convention <code class="docutils literal notranslate"><span class="pre">&lt;ingredient_type&gt;_&lt;variety&gt;</span></code>. For example, the quantum Hamiltonian ingredient for a two-level system is named <code class="docutils literal notranslate"><span class="pre">h_q_two_level</span></code> where <code class="docutils literal notranslate"><span class="pre">h_q</span></code> indicates that it is a quantum Hamiltonian ingredient and <code class="docutils literal notranslate"><span class="pre">two_level</span></code> indicates that it describes a two-level system. Likewise the classical Hamiltonian ingredient for a harmonic oscillator is named <code class="docutils literal notranslate"><span class="pre">h_c_harmonic</span></code> where <code class="docutils literal notranslate"><span class="pre">h_c</span></code> indicates that it is a classical Hamiltonian ingredient and <code class="docutils literal notranslate"><span class="pre">harmonic</span></code> indicates that it describes a harmonic oscillator.</p>
-<p>Ingredients can be included in a model by appending them to the model’s <code class="docutils literal notranslate"><span class="pre">ingredients</span></code> attribute, which is a list of tuples where each tuple contains the name of the ingredient and the ingredient function itself. Because the ingredients list is read back to front, appending an ingredient is sufficient to overwrite any existing ingredient with the same name. For example, to include a custom quantum Hamiltonian ingredient in a model, one would do:</p>
+<p>where <code class="docutils literal notranslate"><span class="pre">model</span></code> is a Model object which contains all the constants of the Model object, <code class="docutils literal notranslate"><span class="pre">parameters</span></code> is the Parameters object containing time-dependent parameters of the simulation, and <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> are any additional keyword arguments that are specific to that Ingredient type.</p>
+<p>Ingredients in QC Lab can come in different variations, for example the quantum Hamiltonian Ingredient could describe a two-level system, a nearest-neighbor lattice, or a more complicated Hamiltonian. The type and variety of an Ingredient is specified in its name which follows the convention <code class="docutils literal notranslate"><span class="pre">&lt;ingredient_type&gt;_&lt;variety&gt;</span></code>. For example, the quantum Hamiltonian Ingredient for a two-level system is named <code class="docutils literal notranslate"><span class="pre">h_q_two_level</span></code> where <code class="docutils literal notranslate"><span class="pre">h_q</span></code> indicates that it is a quantum Hamiltonian Ingredient and <code class="docutils literal notranslate"><span class="pre">two_level</span></code> indicates that it describes a two-level system. Likewise the classical Hamiltonian Ingredient for a harmonic oscillator is named <code class="docutils literal notranslate"><span class="pre">h_c_harmonic</span></code> where <code class="docutils literal notranslate"><span class="pre">h_c</span></code> indicates that it is a classical Hamiltonian Ingredient and <code class="docutils literal notranslate"><span class="pre">harmonic</span></code> indicates that it describes a harmonic oscillator.</p>
+<p>Ingredients can be included in a Model object by appending them to the Model object’s <code class="docutils literal notranslate"><span class="pre">ingredients</span></code> attribute, which is a list of tuples where each tuple contains the name of the Ingredient and the Ingredient function itself. Because the ingredients list is read back to front, appending an Ingredient is sufficient to overwrite any existing Ingredient with the same name. For example, to include a custom quantum Hamiltonian Ingredient in a Model object, one would do:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">h_q_custom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c1"># Custom quantum Hamiltonian implementation.</span>
     <span class="n">h_q</span> <span class="o">=</span> <span class="o">...</span>
@@ -517,25 +427,25 @@ As discussed in the <a class="reference internal" href="model.html#model"><span 
 <span class="n">model</span><span class="o">.</span><span class="n">ingredients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;h_q&quot;</span><span class="p">,</span> <span class="n">h_q_custom</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>The minimal set of ingredients required to run a simulation are:</p>
+<p>The minimal set of Ingredients required to run a simulation comprises the following:</p>
 <ul class="simple">
-<li><p>A quantum Hamiltonian ingredient, named <code class="docutils literal notranslate"><span class="pre">h_q</span></code>.</p></li>
-<li><p>A classical Hamiltonian ingredient, named <code class="docutils literal notranslate"><span class="pre">h_c</span></code>.</p></li>
-<li><p>A quantum-classical coupling Hamiltonian ingredient, named <code class="docutils literal notranslate"><span class="pre">h_qc</span></code>.</p></li>
-<li><p>A derivative coupling tensor ingredient (only required for models defined in an adiabatic basis), named <code class="docutils literal notranslate"><span class="pre">derivative_coupling_dzc</span></code>.</p></li>
+<li><p>A quantum Hamiltonian Ingredient, named <code class="docutils literal notranslate"><span class="pre">h_q</span></code>.</p></li>
+<li><p>A classical Hamiltonian Ingredient, named <code class="docutils literal notranslate"><span class="pre">h_c</span></code>.</p></li>
+<li><p>A quantum-classical interaction Hamiltonian Ingredient, named <code class="docutils literal notranslate"><span class="pre">h_qc</span></code>.</p></li>
+<li><p>A derivative coupling tensor Ingredient (only required for Model objects defined in an adiabatic basis), named <code class="docutils literal notranslate"><span class="pre">derivative_coupling_dzc</span></code>.</p></li>
 </ul>
-<p>Additional optional ingredients that make the simulation more efficient or accurate are:</p>
+<p>Additional optional Ingredients that make the simulation more efficient or accurate are:</p>
 <ul class="simple">
-<li><p>An initialization function for the classical coordinates, named <code class="docutils literal notranslate"><span class="pre">init_classical</span></code>.</p></li>
-<li><p>A gradient of the classical Hamiltonian with respect to the conjugate of the <a class="reference internal" href="coordinates.html#coordinates"><span class="std std-ref">complex classical coordinates</span></a>, named <code class="docutils literal notranslate"><span class="pre">dh_c_dzc</span></code>.</p></li>
-<li><p>A gradient of the quantum-classical coupling Hamiltonian with respect to the conjugate of the <a class="reference internal" href="coordinates.html#coordinates"><span class="std std-ref">complex classical coordinates</span></a>, named <code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code>.</p></li>
-<li><p>A hopping function for surface hopping algorithms, named <code class="docutils literal notranslate"><span class="pre">hop</span></code>.</p></li>
-<li><p>An ab initio property calculator that calculates physical properties with an interface to an electronic structure theory code, named <code class="docutils literal notranslate"><span class="pre">ab_initio_property_calculator</span></code>.</p></li>
+<li><p>An initialization Ingredient for the classical coordinates, named <code class="docutils literal notranslate"><span class="pre">init_classical</span></code>.</p></li>
+<li><p>A gradient of the classical Hamiltonian Ingredient with respect to the conjugate of the <a class="reference internal" href="coordinates.html#coordinates"><span class="std std-ref">complex classical coordinates</span></a>, named <code class="docutils literal notranslate"><span class="pre">dh_c_dzc</span></code>.</p></li>
+<li><p>A gradient of the quantum-classical interaction Hamiltonian Ingredient with respect to the conjugate of the <a class="reference internal" href="coordinates.html#coordinates"><span class="std std-ref">complex classical coordinates</span></a>, named <code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code>.</p></li>
+<li><p>A hop Ingredient for surface hopping algorithms, named <code class="docutils literal notranslate"><span class="pre">hop</span></code>.</p></li>
+<li><p>An <em>ab initio</em> property calculator Ingredient that calculates physical properties with an interface to an electronic structure theory code, named <code class="docutils literal notranslate"><span class="pre">ab_initio_property_calculator</span></code>.</p></li>
 </ul>
 <section id="vectorization">
 <h2>Vectorization<a class="headerlink" href="#vectorization" title="Link to this heading">#</a></h2>
-<p>By default, QC Lab assumes that ingredients are implemented in a vectorized fashion. This means that, rather than constructing the respective term for an individual trajectory, each ingredient constructs the term for all trajectories in a batch at once. Additionally, any keyword argument associated with an ingredient that is a NumPy array will have an initial trajectory dimension. For example, the quantum-classical Hamiltonian ingredient <code class="docutils literal notranslate"><span class="pre">h_qc</span></code> has a keyword argument <code class="docutils literal notranslate"><span class="pre">z</span></code> which is the <a class="reference internal" href="coordinates.html#coordinates"><span class="std std-ref">complex classical coordinate</span></a>. If the batch size is 100, then <code class="docutils literal notranslate"><span class="pre">z</span></code> will have shape <code class="docutils literal notranslate"><span class="pre">(100,</span> <span class="pre">model.constants.num_classical_coordinates)</span></code> where <code class="docutils literal notranslate"><span class="pre">model.constants.num_classical_coordinates</span></code> is the number of classical coordinates in the model. The output of the <code class="docutils literal notranslate"><span class="pre">h_qc</span></code> ingredient will then have shape <code class="docutils literal notranslate"><span class="pre">(100,</span> <span class="pre">model.constants.num_quantum_states,</span> <span class="pre">model.constants.num_quantum_states)</span></code> where <code class="docutils literal notranslate"><span class="pre">model.constants.num_quantum_states</span></code> is the number of quantum states in the model.</p>
-<p>Rather than implementing this vectorization yourself, you can use the <code class="docutils literal notranslate"><span class="pre">&#64;vectorize_ingredient</span></code> decorator provided in the <code class="docutils literal notranslate"><span class="pre">qclab.functions</span></code> module. This decorator will automatically vectorize an ingredient that is implemented for a single trajectory (i.e., without any batch dimension). For example, the following implementation of the quantum Hamiltonian ingredient for a two-level system is not vectorized:</p>
+<p>By default, QC Lab assumes that Ingredients are implemented in a vectorized fashion. This means that, rather than constructing the respective term for an individual trajectory, each Ingredient constructs the term for all trajectories in a batch at once. Additionally, any keyword argument associated with an Ingredient that is a NumPy array will have an initial trajectory dimension. For example, the quantum-classical interaction Hamiltonian Ingredient <code class="docutils literal notranslate"><span class="pre">h_qc</span></code> has a keyword argument <code class="docutils literal notranslate"><span class="pre">z</span></code> which is the <a class="reference internal" href="coordinates.html#coordinates"><span class="std std-ref">complex classical coordinate</span></a>. If the batch size is 100, then <code class="docutils literal notranslate"><span class="pre">z</span></code> will have shape <code class="docutils literal notranslate"><span class="pre">(100,</span> <span class="pre">model.constants.num_classical_coordinates)</span></code> where <code class="docutils literal notranslate"><span class="pre">model.constants.num_classical_coordinates</span></code> is the number of classical coordinates in the model. The output of the <code class="docutils literal notranslate"><span class="pre">h_qc</span></code> Ingredient will then have shape <code class="docutils literal notranslate"><span class="pre">(100,</span> <span class="pre">model.constants.num_quantum_states,</span> <span class="pre">model.constants.num_quantum_states)</span></code> where <code class="docutils literal notranslate"><span class="pre">model.constants.num_quantum_states</span></code> is the number of quantum states in the model.</p>
+<p>Rather than implementing this vectorization yourself, you can use the <code class="docutils literal notranslate"><span class="pre">&#64;vectorize_ingredient</span></code> decorator provided in the <code class="docutils literal notranslate"><span class="pre">qclab.functions</span></code> module. This decorator will automatically vectorize an Ingredient that is implemented for a single trajectory (i.e., without any batch dimension). For example, the following implementation of the quantum Hamiltonian Ingredient for a two-level system is not vectorized:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qclab.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">vectorize_ingredient</span>
 
 <span class="nd">@vectorize_ingredient</span>
@@ -554,7 +464,7 @@ As discussed in the <a class="reference internal" href="model.html#model"><span 
     <span class="k">return</span> <span class="n">h_q</span>
 </pre></div>
 </div>
-<p>The ingredient can then be included in a model as:</p>
+<p>The Ingredient can then be included in a Model object as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">ingredients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;h_q&quot;</span><span class="p">,</span> <span class="n">h_q_two_level</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -563,7 +473,7 @@ As discussed in the <a class="reference internal" href="model.html#model"><span 
 <p>The vectorization decorator promotes compatibility and ease of use but does not offer any performance gain. To realize a performance gain, users
 should hard-code vectorization into Ingredients and leverage NumPy vectorization.</p>
 </div>
-<p>Alternatively, vectorization can be implemented manually. For example, the following implementation of the quantum Hamiltonian ingredient for a two-level system is manually vectorized as:</p>
+<p>Alternatively, vectorization can be implemented manually. For example, the following implementation of the quantum Hamiltonian Ingredient for a two-level system is manually vectorized as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">h_q_two_level</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Quantum Hamiltonian for a two-level system.</span>
@@ -586,8 +496,8 @@ should hard-code vectorization into Ingredients and leverage NumPy vectorization
 </section>
 <section id="sparse-quantum-classical-gradients">
 <h2>Sparse Quantum-Classical Gradients<a class="headerlink" href="#sparse-quantum-classical-gradients" title="Link to this heading">#</a></h2>
-<p>If left unspecified, the gradient of the quantum-classical Hamiltonian will be calculated numerically using finite differences. This can be computationally expensive and may introduce inaccuracies. This can be avoided by providing an analytical implementation of the gradient ingredient <code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code>. In QC Lab, we implement this gradient in a sparse manner, meaning that we only compute the non-zero elements of the gradient matrix. This reduces the potentially large gradient tensor with shape <code class="docutils literal notranslate"><span class="pre">(sim.settings.batch_size,</span> <span class="pre">model.constants.num_classical_coordinates,</span> <span class="pre">model.constants.num_quantum_states,</span> <span class="pre">model.constants.num_quantum_states)</span></code> to a list of non-zero elements, <code class="docutils literal notranslate"><span class="pre">mels</span></code>, their indices <code class="docutils literal notranslate"><span class="pre">inds</span></code>, and the shape of the full tensor <code class="docutils literal notranslate"><span class="pre">shape</span></code>.</p>
-<p>In practice, the ordering of the matrix elements can have a dramatic impact on performance due to memory access patterns. Therefore, we recommend using <code class="docutils literal notranslate"><span class="pre">numpy.where</span></code> to determine the indices of the non-zero elements. For example, the following implementation of the gradient of the quantum-classical Hamiltonian for a spin-boson model computes only the non-zero elements of the gradient:</p>
+<p>If left unspecified, the gradient of the quantum-classical interaction Hamiltonian will be calculated numerically using finite differences. This can be computationally expensive and may introduce inaccuracies. This can be avoided by providing an analytical implementation of the gradient Ingredient <code class="docutils literal notranslate"><span class="pre">dh_qc_dzc</span></code>. In QC Lab, we implement this gradient in a sparse manner, meaning that we only compute the non-zero elements of the gradient matrix. This reduces the potentially large gradient tensor with shape <code class="docutils literal notranslate"><span class="pre">(sim.settings.batch_size,</span> <span class="pre">model.constants.num_classical_coordinates,</span> <span class="pre">model.constants.num_quantum_states,</span> <span class="pre">model.constants.num_quantum_states)</span></code> to a list of non-zero elements, <code class="docutils literal notranslate"><span class="pre">mels</span></code>, their indices <code class="docutils literal notranslate"><span class="pre">inds</span></code>, and the shape of the full tensor <code class="docutils literal notranslate"><span class="pre">shape</span></code>.</p>
+<p>In practice, the ordering of the matrix elements can have a dramatic impact on performance due to memory access patterns. Therefore, we recommend using <code class="docutils literal notranslate"><span class="pre">numpy.where</span></code> to determine the indices of the non-zero elements. For example, the following implementation of the gradient of the quantum-classical interaction Hamiltonian for a spin-boson model computes only the non-zero elements of the gradient:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@vectorize_ingredient</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">dh_qc_dzc_spinboson</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">z</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">]</span>
@@ -603,10 +513,10 @@ should hard-code vectorization into Ingredients and leverage NumPy vectorization
     <span class="k">return</span> <span class="n">inds</span><span class="p">,</span> <span class="n">mels</span><span class="p">,</span> <span class="n">shape</span>
 </pre></div>
 </div>
-<p>An ingredient that returns dense tensor output can be automatically converted to returning a sparse tensor by invoking the <code class="docutils literal notranslate"><span class="pre">&#64;make_ingredient_sparse</span></code>
+<p>An Ingredient that returns dense tensor output can be automatically converted to returning a sparse tensor by invoking the <code class="docutils literal notranslate"><span class="pre">&#64;make_ingredient_sparse</span></code>
 decorator from the <code class="docutils literal notranslate"><span class="pre">qclab.functions</span></code> module.
 This decorator determines the non-zero elements of a dense tensor, their indices, and the shape of the full tensor.
-For example, the following implementation of the gradient of the quantum-classical Hamiltonian for a spin-boson model is dense,
+For example, the following implementation of the gradient of the quantum-classical interaction Hamiltonian for a spin-boson model is dense,
 but made sparse by the decorator:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qclab.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_ingredient_sparse</span>
 
@@ -623,17 +533,17 @@ but made sparse by the decorator:</p>
     <span class="k">return</span> <span class="n">out</span>
 </pre></div>
 </div>
-<p>Of course, the most efficient implementation is one that is both analytical and sparse without invoking the decorator. This is what is implemented in the ingredient <code class="docutils literal notranslate"><span class="pre">ingredients.dh_qc_dzc_diagonal_linear</span></code> which is included in the Spin-Boson model by default.</p>
+<p>The most efficient implementation is one that is both analytical and sparse without invoking the decorator. This is the form implemented in the <code class="docutils literal notranslate"><span class="pre">ingredients.dh_qc_dzc_diagonal_linear</span></code> Ingredient, which is included on the <code class="docutils literal notranslate"><span class="pre">SpinBoson</span></code> Model object by default.</p>
 </section>
 <section id="ingredients-in-qc-lab">
 <h2>Ingredients in QC Lab<a class="headerlink" href="#ingredients-in-qc-lab" title="Link to this heading">#</a></h2>
-<p>The built-in ingredients in QC Lab can be found in the <code class="docutils literal notranslate"><span class="pre">qclab.ingredients</span></code> module.</p>
+<p>The built-in Ingredients in QC Lab can be found in the <code class="docutils literal notranslate"><span class="pre">qclab.ingredients</span></code> module.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>All ingredients assume that the Model object has a minimal set of constants including <code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code>
+<p>All Ingredients assume that the Model object has a minimal set of constants including <code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code>
 (the number of quantum states) and <code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code> (the number of classical coordinates), <code class="docutils literal notranslate"><span class="pre">classical_coordinate_mass</span></code>
 (the mass of the classical coordinates), and <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code> (the weight of the classical coordinates).
-These constants are discussed in <a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>. For brevity we exclude explicit mention of these constants in the ingredient documentation.</p>
+These constants are discussed in <a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>. For brevity we exclude explicit mention of these constants in the Ingredient documentation.</p>
 </div>
 </section>
 </section>
@@ -649,12 +559,12 @@ These constants are discussed in <a class="reference internal" href="model.html#
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="architecture.html"
+       href="index.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Architecture Overview</p>
+        <p class="prev-next-title">User Guide</p>
       </div>
     </a>
     <a class="right-next"

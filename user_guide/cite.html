@@ -226,10 +226,6 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
 </div>
 
     </header>
@@ -319,13 +315,9 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
-<ul class="nav bd-sidenav">
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
-<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
 <li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
@@ -334,21 +326,6 @@
 <li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
-<ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Citing QC Lab</a></li>
 </ul>
 </div>
@@ -420,26 +397,7 @@
   <section id="citing-qc-lab">
 <span id="cite"></span><h1>Citing QC Lab<a class="headerlink" href="#citing-qc-lab" title="Link to this heading">#</a></h1>
 <p>Please cite the following article in any work making use of QC Lab:</p>
-<p>Krotz, A.; Garzón-Ramírez, A. J.; Byrd, E.; Miyazaki, K.; Tempelaar, R.
-<em>QC Lab: A Python Package for Quantum–Classical Dynamics.</em> J. Chem.
-Theory Comput. <strong>2026</strong>, <em>22</em>, 3144–3152.
-<a class="reference external" href="https://doi.org/10.1021/acs.jctc.5c01818">https://doi.org/10.1021/acs.jctc.5c01818</a>.</p>
-<section id="bibtex">
-<h2>BibTeX<a class="headerlink" href="#bibtex" title="Link to this heading">#</a></h2>
-<div class="highlight-bibtex notranslate"><div class="highlight"><pre><span></span><span class="nc">@article</span><span class="p">{</span><span class="nl">Krotz2026QCLab</span><span class="p">,</span>
-<span class="w">    </span><span class="na">author</span><span class="w">  </span><span class="p">=</span><span class="w"> </span><span class="s">{Krotz, Alex and Garz{\&#39;o}n-Ram{\&#39;i}rez, Andr{\&#39;e}s J.</span>
-<span class="s">               and Byrd, Elliot and Miyazaki, Ken and Tempelaar, Roel}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">title</span><span class="w">   </span><span class="p">=</span><span class="w"> </span><span class="s">{{QC Lab}: {A} {Python} {Package} for {Quantum--Classical}</span>
-<span class="s">               {Dynamics}}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">journal</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{J. Chem. Theory Comput.}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">year</span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">{2026}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">volume</span><span class="w">  </span><span class="p">=</span><span class="w"> </span><span class="s">{22}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">pages</span><span class="w">   </span><span class="p">=</span><span class="w"> </span><span class="s">{3144--3152}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">doi</span><span class="w">     </span><span class="p">=</span><span class="w"> </span><span class="s">{10.1021/acs.jctc.5c01818}</span><span class="p">,</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</section>
+<p>Krotz, A.; Garzón-Ramírez, A. J.; Byrd, E.; Miyazaki, K.; Tempelaar, R. <em>QC Lab: A Python Package for Quantum–Classical Dynamics.</em> J. Chem. Theory Comput. <strong>2026</strong>, <em>22</em>, 3144–3152. <a class="reference external" href="https://doi.org/10.1021/acs.jctc.5c01818">https://doi.org/10.1021/acs.jctc.5c01818</a>.</p>
 </section>
 
 
@@ -476,24 +434,6 @@ Theory Comput. <strong>2026</strong>, <em>22</em>, 3144–3152.
             </div>
             
             
-              
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#bibtex">BibTeX</a></li>
-</ul>
-  </nav></div>
-
-</div></div>
               
             
           </div>

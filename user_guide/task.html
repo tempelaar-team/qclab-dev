@@ -320,13 +320,9 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
@@ -335,21 +331,6 @@
 <li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
-<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
 </ul>
 </div>
@@ -420,10 +401,9 @@
                   
   <section id="tasks">
 <span id="task"></span><h1>Tasks<a class="headerlink" href="#tasks" title="Link to this heading">#</a></h1>
-<p>Tasks are functions that carry out the elementary operations of an algorithm by modifying a
-State object and optionally a Parameters object, which are both dictionaries.
-Built-in tasks can be found in the <code class="docutils literal notranslate"><span class="pre">qclab.tasks</span></code> module and are documented on this page.</p>
-<p>A generic tasks has the form:</p>
+<p>Tasks are functions that carry out the elementary operations of an Algorithm object by modifying the State object and optionally the Parameters object, which are both Python dictionaries.
+Built-in Tasks can be found in the <code class="docutils literal notranslate"><span class="pre">qclab.tasks</span></code> module and are documented in this section.</p>
+<p>A generic Task has the form:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">my_task</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c1"># Get any keyword arguments, with default values if not provided.</span>
     <span class="n">kwarg1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kwarg1&#39;</span><span class="p">,</span> <span class="n">default_value1</span><span class="p">)</span>
@@ -431,25 +411,25 @@ Built-in tasks can be found in the <code class="docutils literal notranslate"><s
     <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal notranslate"><span class="pre">sim</span></code> is an instance of the Simulation class (see <a class="reference internal" href="simulation.html#simulation"><span class="std std-ref">Simulations</span></a>), and <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> are any additional keyword arguments that customize the task to the context in which it is used. Generally, keyword arguments specify
-which elements of the <code class="docutils literal notranslate"><span class="pre">state</span></code> and <code class="docutils literal notranslate"><span class="pre">parameters</span></code> objects are to be used and/or modified by the task (e.g., the name of the wavefunction or Hamiltonian attributes).</p>
-<p>If a task is used with keyword arguments, they must be provided when the task is included in the algorithm’s recipe by using the <code class="docutils literal notranslate"><span class="pre">partial</span></code> function from the <code class="docutils literal notranslate"><span class="pre">functools</span></code> module, as in:</p>
+<p>where <code class="docutils literal notranslate"><span class="pre">sim</span></code> is an instance of the Simulation class (see <a class="reference internal" href="simulation.html#simulation"><span class="std std-ref">Simulations</span></a>), and <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> are any additional keyword arguments that customize the Task to the context in which it is used. Generally, keyword arguments specify
+which elements of the State and Parameters objects are to be used and/or modified by the Task (e.g., the name of the wavefunction or Hamiltonian attributes).</p>
+<p>If a Task is used with keyword arguments, they must be provided when the Task is included in the Algorithm object’s Recipe by using the <code class="docutils literal notranslate"><span class="pre">partial</span></code> function from the <code class="docutils literal notranslate"><span class="pre">functools</span></code> module, as in:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
-<span class="c1"># Specifying keyword arguments when including a task in a recipe.</span>
+<span class="c1"># Specifying keyword arguments when including a Task in a Recipe.</span>
 <span class="n">algorithm</span><span class="o">.</span><span class="n">initialization_recipe</span> <span class="o">=</span> <span class="p">[</span><span class="n">partial</span><span class="p">(</span><span class="n">my_task</span><span class="p">,</span> <span class="n">kwarg1</span><span class="o">=</span><span class="n">value1</span><span class="p">),</span> <span class="o">...</span><span class="p">]</span>
-<span class="c1"># Including a task without keyword arguments.</span>
+<span class="c1"># Including a Task without keyword arguments.</span>
 <span class="n">algorithm</span><span class="o">.</span><span class="n">initialization_recipe</span> <span class="o">=</span> <span class="p">[</span><span class="n">another_task</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <section id="vectorization">
 <h2>Vectorization<a class="headerlink" href="#vectorization" title="Link to this heading">#</a></h2>
-<p>In QC Lab, attributes of the <code class="docutils literal notranslate"><span class="pre">state</span></code> and <code class="docutils literal notranslate"><span class="pre">parameters</span></code> objects are vectorized by default, meaning that they have an additional leading dimension that indexes multiple trajectories.
-For example, the diabatic wavefunction attribute <code class="docutils literal notranslate"><span class="pre">wf_db</span></code> of the <code class="docutils literal notranslate"><span class="pre">state</span></code> object has shape <code class="docutils literal notranslate"><span class="pre">(sim.settings.batch_size,</span> <span class="pre">sim.model.constants.num_quantum_states)</span></code>, where <code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code> is the number of trajectories in the batch and <code class="docutils literal notranslate"><span class="pre">sim.model.constants.num_quantum_states</span></code> is the number of quantum states in the model.</p>
+<p>In QC Lab, attributes of the State and Parameters objects are vectorized by default, meaning that they have an additional leading dimension that indexes multiple trajectories.
+For example, the diabatic wavefunction attribute <code class="docutils literal notranslate"><span class="pre">wf_db</span></code> of the State object has shape <code class="docutils literal notranslate"><span class="pre">(sim.settings.batch_size,</span> <span class="pre">sim.model.constants.num_quantum_states)</span></code>, where <code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code> is the number of trajectories in the batch and <code class="docutils literal notranslate"><span class="pre">sim.model.constants.num_quantum_states</span></code> is the number of quantum states in the model.</p>
 </section>
 <section id="initialization-update-and-collect-tasks">
 <h2>Initialization, Update, and Collect Tasks<a class="headerlink" href="#initialization-update-and-collect-tasks" title="Link to this heading">#</a></h2>
-<p>Tasks are organized into three categories: initialization tasks, update tasks, and collect tasks.
-Initialization tasks create objects in the <code class="docutils literal notranslate"><span class="pre">state</span></code> and <code class="docutils literal notranslate"><span class="pre">parameters</span></code> objects that are needed for the simulation, update tasks propagate the attributes of the <code class="docutils literal notranslate"><span class="pre">state</span></code> and <code class="docutils literal notranslate"><span class="pre">parameters</span></code> objects forward in time, and collect tasks gather and process the results of the simulation into the output dictionary.</p>
+<p>Tasks are organized into three categories: initialization Tasks, update Tasks, and collect Tasks.
+Initialization Tasks create objects in the State and Parameters objects that are needed for the simulation, update Tasks propagate the attributes of the State and Parameters objects forward in time, and collect Tasks gather and process the results of the simulation into the output dictionary.</p>
 <p>Examples of these tasks are:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">my_initialization_task</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c1"># Create an attribute in the State object.</span>
@@ -465,18 +445,18 @@ Initialization tasks create objects in the <code class="docutils literal notrans
 
 <span class="k">def</span><span class="w"> </span><span class="nf">my_collect_task</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c1"># Collect results into the output dictionary.</span>
-    <span class="n">state</span><span class="p">[</span><span class="s2">&quot;output_dict&quot;</span><span class="p">][</span><span class="s2">&quot;new_attribute&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">new_attribute</span>
+    <span class="n">state</span><span class="p">[</span><span class="s2">&quot;output_dict&quot;</span><span class="p">][</span><span class="s2">&quot;new_attribute&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;new_attribute&quot;</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span>
 </pre></div>
 </div>
-<p>These tasks can then be included in the appropriate recipe of an Algorithm object. Notice that none of these tasks have keyword arguments and so can be included directly in recipes without using <code class="docutils literal notranslate"><span class="pre">partial</span></code>.</p>
+<p>These Tasks can then be included in the appropriate Recipe of an Algorithm object. Notice that none of these Tasks have keyword arguments and so can be included directly in Recipes without using <code class="docutils literal notranslate"><span class="pre">partial</span></code>.</p>
 </section>
 <section id="built-in-tasks">
 <h2>Built-in Tasks<a class="headerlink" href="#built-in-tasks" title="Link to this heading">#</a></h2>
-<p>Built-in tasks can be found in the <code class="docutils literal notranslate"><span class="pre">qclab.tasks</span></code> module and are documented below.</p>
+<p>Built-in Tasks can be found in the <code class="docutils literal notranslate"><span class="pre">qclab.tasks</span></code> module and are documented below.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>All tasks assume that the Model object has a minimal set of constants including <code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code> (the number of quantum states), <code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code> (the number of classical coordinates), <code class="docutils literal notranslate"><span class="pre">classical_coordinate_mass</span></code> (the mass of the classical coordinates), and <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code> (the weight of the classical coordinates). These constants are discussed in <a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>. For brevity we exclude explicit mention of these constants in the task documentation.</p>
+<p>All Tasks assume that the Model object has a minimal set of constants including <code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code> (the number of quantum states), <code class="docutils literal notranslate"><span class="pre">num_classical_coordinates</span></code> (the number of classical coordinates), <code class="docutils literal notranslate"><span class="pre">classical_coordinate_mass</span></code> (the mass of the classical coordinates), and <code class="docutils literal notranslate"><span class="pre">classical_coordinate_weight</span></code> (the weight of the classical coordinates). These constants are discussed in <a class="reference internal" href="model.html#model"><span class="std std-ref">Models</span></a>. For brevity we exclude explicit mention of these constants in the Task documentation.</p>
 </div>
 <section id="module-qclab.tasks.initialization_tasks">
 <span id="initialization-tasks"></span><h3>Initialization Tasks<a class="headerlink" href="#module-qclab.tasks.initialization_tasks" title="Link to this heading">#</a></h3>
@@ -946,7 +926,7 @@ classical coordinate.</p>
 <span class="sig-prename descclassname"><span class="pre">qclab.tasks.update_tasks.</span></span><span class="sig-name descname"><span class="pre">update_derivative_coupling_dzc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative_coupling_dzc_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'derivative_coupling_dzc'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.tasks.update_tasks.update_derivative_coupling_dzc" title="Link to this definition">#</a></dt>
 <dd><p>Updates the derivative coupling matrix.</p>
 <div class="math notranslate nohighlight">
-\[d^{i}_{\alpha,\beta} = \langle\alpha(z)\vert\partial_{z_{i}^{*}}\vert\beta(z)\rangle\]</div>
+\[d^{\xi}_{\alpha\beta}(z) = \langle\alpha(z)\vert\frac{\partial}{\partial z_{\xi}^{*}}\vert\beta(z)\rangle\]</div>
 <p>Raises</p>
 <dl class="field-list simple">
 <dt class="field-odd">Optional Keyword Arguments<span class="colon">:</span></dt>
@@ -954,7 +934,7 @@ classical coordinate.</p>
 </dd>
 <dt class="field-even">Constants and Settings<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>sim.model.update_dh_qc_dzc</strong> (<em>Bool, default: False</em>) – Model flag indicating if the quantum-classical Hamiltonian is to be updated at each timestep.</p></li>
+<li><p><strong>sim.model.update_dh_qc_dzc</strong> (<em>Bool, default: False</em>) – Model flag indicating if the quantum-classical interaction Hamiltonian is to be updated at each time step.</p></li>
 <li><p><strong>sim.algorithm.settings.use_gauge_field_force</strong> (<em>Bool, default: False</em>) – Boolean indicating if a gauge field force is to be added to the quantum-classical force.</p></li>
 </ul>
 </dd>
@@ -1000,7 +980,7 @@ Required if <code class="docutils literal notranslate"><span class="pre">algorit
 </dd>
 <dt class="field-even">Constants and Settings<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>sim.model.update_dh_qc_dzc</strong> (<em>Bool, default: False</em>) – Model flag indicating if the quantum-classical Hamiltonian is to be updated at each timestep.</p></li>
+<li><p><strong>sim.model.update_dh_qc_dzc</strong> (<em>Bool, default: False</em>) – Model flag indicating if the quantum-classical interaction Hamiltonian is to be updated at each time step.</p></li>
 <li><p><strong>sim.algorithm.settings.use_gauge_field_force</strong> (<em>Bool, default: False</em>) – Boolean indicating if a gauge field force is to be added to the quantum-classical force.</p></li>
 </ul>
 </dd>
@@ -1258,7 +1238,7 @@ adiabatic to diabatic.</p></li>
 <dt class="sig sig-object py" id="qclab.tasks.update_tasks.update_hop_prob_fssh">
 <span class="sig-prename descclassname"><span class="pre">qclab.tasks.update_tasks.</span></span><span class="sig-name descname"><span class="pre">update_hop_prob_fssh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_surf_ind_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'act_surf_ind'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wf_adb_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wf_adb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eigvecs_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eigvecs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eigvecs_previous_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eigvecs_previous'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hop_prob_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hop_prob'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adb_connection_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'adb_connection'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.tasks.update_tasks.update_hop_prob_fssh" title="Link to this definition">#</a></dt>
 <dd><p>Calculates the hopping probabilities according to the FSSH algorithm.</p>
-<p><span class="math notranslate nohighlight">\(P_{a \rightarrow b} = -2 \Re \left( (C_{b}/C_{a}) \langle a(t) | b(t-dt) \rangle \right)\)</span></p>
+<p><span class="math notranslate nohighlight">\(P_{a \rightarrow \beta} = -2 \Re \left( (C_{\beta}/C_{a}) \langle a(t) | \beta(t-dt) \rangle \right)\)</span></p>
 <dl class="field-list simple">
 <dt class="field-odd">Optional Keyword Arguments<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1524,7 +1504,7 @@ following a hop.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>z_name</strong> – Name of classical coordinates in State object.</p></li>
 <li><p><strong>h_q_name</strong> – Name of the quantum Hamiltonian in the State object.</p></li>
-<li><p><strong>h_qc_name</strong> – Name of the quantum-classical coupling Hamiltonian in the State object.</p></li>
+<li><p><strong>h_qc_name</strong> – Name of the quantum-classical interaction Hamiltonian in the State object.</p></li>
 <li><p><strong>h_q_tot_name</strong> – Name of the total Hamiltonian of the quantum subsystem in the State object.
 (<code class="docutils literal notranslate"><span class="pre">h_q</span> <span class="pre">+</span> <span class="pre">h_qc</span></code>)</p></li>
 </ul>
@@ -1922,15 +1902,15 @@ from wavefunction overlaps. If False, uses the derivative coupling.</p>
 <p>Hopping probability formula is taken from:</p>
 <p>Hammes‐Schiffer, S.; Tully, J. C. Proton Transfer in Solution: Molecular Dynamics with Quantum Transitions. J. Chem. Phys. 1994, 101 (6), 4657–4667. <a class="reference external" href="https://doi.org/10.1063/1.467455">https://doi.org/10.1063/1.467455</a>.</p>
 <div class="math notranslate nohighlight">
-\[g_{k-&gt;j} = ( \int_{t}^{t+\Delta} b_{jk}(t') dt' ) / (c^{*}_{k}(t)c_{k}(t))\]</div>
+\[g_{a    o eta} = ( \int_{t}^{t+\Delta} b_{eta a}(t') dt' ) / (c^{*}_{a}(t)c_{a}(t))\]</div>
 <div class="math notranslate nohighlight">
-\[b_{jk}(t) = -2\Re(c_{j}^{*}(t)c_{k}(t) A_{jk}(t))\]</div>
+\[b_{eta a}(t) = -2\Re(c_{eta}^{*}(t)c_{a}(t) A_{eta a}(t))\]</div>
 <div class="math notranslate nohighlight">
-\[A_{jk}(t) = \dot{q}(t) \cdot d_{jk}(t)\]</div>
-<p>Note that this is consistent with Eq. 19-21 for real and complex <span class="math notranslate nohighlight">\(d_{jk}\)</span>.</p>
-<p>Eq. 30 (follwoing) is equivalent to the above expression for <span class="math notranslate nohighlight">\(b_{jk}\)</span> when <span class="math notranslate nohighlight">\(d_{jk}\)</span> is real-valued:</p>
+\[A_{eta a}(t) = \dot{q}(t) \cdot d_{eta a}(t)\]</div>
+<p>Note that this is consistent with Eq. 19-21 for real and complex <span class="math notranslate nohighlight">\(d_{eta a}\)</span>.</p>
+<p>Eq. 30 (following) is equivalent to the above expression for <span class="math notranslate nohighlight">\(b_{eta a}\)</span> when <span class="math notranslate nohighlight">\(d_{eta a}\)</span> is real-valued:</p>
 <div class="math notranslate nohighlight">
-\[b_{jk}(t) = -2\Re(c_{j}(t)c_{k}^{*}(t) A_{jk}(t))\]</div>
+\[b_{eta a}(t) = -2\Re(c_{eta}(t)c_{a}^{*}(t) A_{eta a}(t))\]</div>
 <dl class="field-list simple">
 <dt class="field-odd">Optional Keyword Arguments<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2087,26 +2067,26 @@ Assumes real-valued wavefunction overlaps.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="qclab.tasks.update_tasks.update_ab_initio_property">
 <span class="sig-prename descclassname"><span class="pre">qclab.tasks.update_tasks.</span></span><span class="sig-name descname"><span class="pre">update_ab_initio_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ab_initio_property_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ab_initio_property'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'derivative_coupling':</span> <span class="pre">{'state_inds_derivative_coupling':</span> <span class="pre">None,</span> <span class="pre">'z':</span> <span class="pre">'z'},</span> <span class="pre">'energy':</span> <span class="pre">{'excited_amplitudes':</span> <span class="pre">True,</span> <span class="pre">'z':</span> <span class="pre">'z'},</span> <span class="pre">'gradient':</span> <span class="pre">{'state_inds_gradient':</span> <span class="pre">None,</span> <span class="pre">'z':</span> <span class="pre">'z'},</span> <span class="pre">'wf_overlaps':</span> <span class="pre">{'z':</span> <span class="pre">'z',</span> <span class="pre">'z_previous':</span> <span class="pre">'z_previous'}}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qclab.tasks.update_tasks.update_ab_initio_property" title="Link to this definition">#</a></dt>
-<dd><p>Calculates ab initio properties using the ab initio property calculator ingredient.</p>
+<dd><p>Calculates <em>ab initio</em> properties using the <em>ab initio</em> property calculator Ingredient.</p>
 <p>Stores the properties as a list of dictionaries in the Parameters object, a dictionary
 in the State object containing vectorized properties, and as new variables in the State object
-with the same name in property_dict appended with “<a href="#id1"><span class="problematic" id="id2">aip_</span></a>” where aip stands for “ab initio property”.</p>
+with the same name in property_dict appended with <code class="docutils literal notranslate"><span class="pre">aip_</span></code> where <code class="docutils literal notranslate"><span class="pre">aip</span></code> stands for <em>ab initio</em> property.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Optional Keyword Arguments<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ab_initio_property_name</strong> – The name under which to store the ab initio properties in the State and Parameters objects.</p></li>
+<li><p><strong>ab_initio_property_name</strong> – The name under which to store the <em>ab initio</em> properties in the State and Parameters objects.</p></li>
 <li><p><strong>property_dict</strong> – A dictionary of properties and associated argument dictionaries, i.e. {property_name:{arg1:arg1_name,…}}.
 The argument dictionaries contain names of objects in the State object, Booleans, or None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Ingredients<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ab_initio_property_calculator</strong> – Ab initio property calculator.</p>
+<dd class="field-even"><p><strong>ab_initio_property_calculator</strong> – <em>Ab initio</em> property calculator.</p>
 </dd>
 <dt class="field-odd">Writes<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>parameters[ab_initio_property_name]</strong> (<em>List</em>) – A List of dictionaries containing the ab initio properties calculated for each
+<li><p><strong>parameters[ab_initio_property_name]</strong> (<em>List</em>) – A List of dictionaries containing the <em>ab initio</em> properties calculated for each
 trajectory.</p></li>
-<li><p><strong>state[ab_initio_property_name]</strong> (<em>Dict</em>) – A dictionary containing the calculated ab initio properties restructured into a
+<li><p><strong>state[ab_initio_property_name]</strong> (<em>Dict</em>) – A dictionary containing the calculated <em>ab initio</em> properties restructured into a
 ndarray where the first index corresponds to the trajectory index.</p></li>
 <li><p><strong>state[“aip_” + property]</strong> (<em>ndarray of shape (B, shape(property)), dtype=type(property)</em>) – A new variable in the State object giving the result of the calculation of property.</p></li>
 </ul>

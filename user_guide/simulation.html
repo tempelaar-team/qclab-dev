@@ -319,13 +319,9 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Blocks</span></p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
 <li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
@@ -334,21 +330,6 @@
 <li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Topics</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Citing</span></p>
-<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
 </ul>
 </div>
@@ -419,7 +400,7 @@
                   
   <section id="simulations">
 <span id="simulation"></span><h1>Simulations<a class="headerlink" href="#simulations" title="Link to this heading">#</a></h1>
-<p>Simulations in QC Lab are carried out by instances of the <code class="docutils literal notranslate"><span class="pre">qclab.Simulation</span></code> class. These Simulation objects contain the model and Algorithm objects that define the system to be simulated and the method of simulation, respectively. The Simulation object also contains an instance of the <code class="docutils literal notranslate"><span class="pre">qclab.Constants</span></code> class (<code class="docutils literal notranslate"><span class="pre">sim.settings</span></code>) which defines the settings of the simulation, such as the time step, total simulation time, and number of trajectories to be simulated. The Simulation object also contains a dictionary (<code class="docutils literal notranslate"><span class="pre">sim.initial_state</span></code>) in which the initial state of the system is defined (these are typically algorithm specific).</p>
+<p>Simulations in QC Lab are carried out by instances of the <code class="docutils literal notranslate"><span class="pre">qclab.Simulation</span></code> class. These Simulation objects contain the Model and Algorithm objects that define the system to be simulated and the method of simulation, respectively. The Simulation object also contains an instance of the <code class="docutils literal notranslate"><span class="pre">qclab.Constants</span></code> class (<code class="docutils literal notranslate"><span class="pre">sim.settings</span></code>) which defines the settings of the simulation, such as the time step, total simulation time, and number of trajectories to be simulated. The Simulation object also contains a dictionary (<code class="docutils literal notranslate"><span class="pre">sim.initial_state</span></code>) in which the initial state of the system is defined (these are typically algorithm specific).</p>
 <section id="simulation-objects">
 <h2>Simulation Objects<a class="headerlink" href="#simulation-objects" title="Link to this heading">#</a></h2>
 <p>A Simulation object, generically denoted <code class="docutils literal notranslate"><span class="pre">sim</span></code>, is an instance of the <code class="docutils literal notranslate"><span class="pre">qclab.Simulation</span></code> class. It contains the following attributes:</p>
@@ -438,19 +419,18 @@
 <span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">()</span>
 <span class="n">sim</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">SpinBoson</span><span class="p">()</span>
 <span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="n">MeanField</span><span class="p">()</span>
-<span class="c1"># ``sim.initial_state`` is a dictionary; populate it by key.</span>
-<span class="n">wf0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">num_quantum_states</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
-<span class="n">wf0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="mf">0.0</span><span class="n">j</span>
-<span class="n">sim</span><span class="o">.</span><span class="n">initial_state</span><span class="p">[</span><span class="s2">&quot;wf_db&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wf0</span>
+<span class="n">wf_db</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">num_quantum_states</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+<span class="n">wf_db</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="mf">0.0</span><span class="n">j</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">initial_state</span><span class="p">[</span><span class="s2">&quot;wf_db&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wf_db</span>
 </pre></div>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p><code class="docutils literal notranslate"><span class="pre">sim.initial_state</span></code> is a dictionary, not an array. The diabatic
-wavefunction is set by assigning to a dictionary key, as in
-<code class="docutils literal notranslate"><span class="pre">sim.initial_state[&quot;wf_db&quot;]</span> <span class="pre">=</span> <span class="pre">wf0</span></code>. The value must be a NumPy
-<code class="docutils literal notranslate"><span class="pre">ndarray</span></code> with <code class="docutils literal notranslate"><span class="pre">dtype=complex</span></code>; a Python list is silently
-skipped at initialization.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sim.initial_state</span></code> is a dictionary, not an array. Set the diabatic
+wavefunction with <code class="docutils literal notranslate"><span class="pre">sim.initial_state[&quot;wf_db&quot;]</span> <span class="pre">=</span> <span class="pre">wf_db</span></code> rather than
+<code class="docutils literal notranslate"><span class="pre">sim.initial_state</span> <span class="pre">=</span> <span class="pre">wf_db</span></code>. The value must be an <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> with
+<code class="docutils literal notranslate"><span class="pre">dtype=complex</span></code>; a Python list is silently skipped at
+initialization.</p>
 </div>
 <section id="simulation-settings">
 <h3>Simulation Settings<a class="headerlink" href="#simulation-settings" title="Link to this heading">#</a></h3>
@@ -483,13 +463,13 @@ skipped at initialization.</p>
 </section>
 <section id="running-a-simulation">
 <h3>Running a Simulation<a class="headerlink" href="#running-a-simulation" title="Link to this heading">#</a></h3>
-<p>Once a Simulation object has been created and populated with a model, algorithm, and initial state, the simulation can be run by passing the simulation to a dynamics driver. See <a class="reference internal" href="driver.html#driver"><span class="std std-ref">Dynamics Drivers</span></a> for more information.</p>
+<p>Once a Simulation object has been created and populated with a Model object, an Algorithm object, and an initial state, the simulation can be run by passing the Simulation object to a Dynamics Driver. See <a class="reference internal" href="driver.html#driver"><span class="std std-ref">Dynamics Drivers</span></a> for more information.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qclab.dynamics</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_driver</span>
 
 <span class="n">data</span> <span class="o">=</span> <span class="n">serial_driver</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The resulting Data object is a dictionary containing the outputs of the simulation, which are defined by the collect tasks of the algorithm (see <a class="reference internal" href="algorithm.html#algorithm"><span class="std std-ref">Algorithms</span></a>). For more information on the Data objects see <a class="reference internal" href="data.html#data"><span class="std std-ref">Data Objects</span></a>.</p>
+<p>The resulting Data object holds a dictionary of outputs from the simulation, which are defined by the collect Tasks of the Algorithm object (see <a class="reference internal" href="algorithm.html#algorithm"><span class="std std-ref">Algorithms</span></a>). For more information on the Data object see <a class="reference internal" href="data.html#data"><span class="std std-ref">Data Objects</span></a>.</p>
 </section>
 </section>
 </section>

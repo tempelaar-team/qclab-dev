@@ -375,9 +375,9 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <span class="target" id="change-coupling"></span><p>Changing the coupling term is straightforward! We’ll make a new ingredient that couples the boson coordinates to the off-diagonal
+  <span class="target" id="change-coupling"></span><p>Changing the coupling term is straightforward! We’ll make a new Ingredient that couples the boson coordinates to the off-diagonal
 elements of the quantum Hamiltonian.</p>
-<p>For simplicity we will make an ingredient that creates the quantum-classical term of the Hamiltonian for a single trajectory and then use
+<p>For simplicity we will make an Ingredient that creates the quantum-classical interaction Hamiltonian for a single trajectory and then use
 QC Lab’s built-in vectorization decorator to automatically vectorize it.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qclab.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">vectorize_ingredient</span>
 
@@ -400,20 +400,19 @@ QC Lab’s built-in vectorization decorator to automatically vectorize it.</p>
     <span class="k">return</span> <span class="n">h_qc</span>
 </pre></div>
 </div>
-<p>Next we can add the ingredient to the model’s ingredients list, and overwrite the analytical gradient ingredient
-which is no longer correct for the new coupling. QC Lab will automatically differentiate the new coupling term
+<p>Next, we add the new Ingredient to the Model object’s ingredients list and override the analytical gradient Ingredient
+(which is no longer correct for the new coupling). QC Lab will then differentiate the new coupling term numerically
 using finite differences.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add the new coupling term to the model&#39;s ingredients.</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add the new coupling term to the Model object&#39;s Ingredients.</span>
 <span class="n">sim</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ingredients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;h_qc&quot;</span><span class="p">,</span> <span class="n">h_qc</span><span class="p">))</span>
-<span class="c1"># Overwrite the analytical gradient ingredient, which is no longer correct for the new coupling.</span>
+<span class="c1"># Overwrite the analytical gradient Ingredient, which is no longer correct for the new coupling.</span>
 <span class="n">sim</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ingredients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;dh_qc_dzc&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Now we can run the simulation with the new coupling term and compare the results to the previous simulation.
 You’ll notice a small decrease in the performance of the simulation due to the numerical calculation of the gradients.
 If you’d like to speed up the simulation, you can implement an analytical gradient for the new coupling term by following the
-<a class="reference internal" href="../../user_guide/developing_models.html#developing-models"><span class="std std-ref">Developing Models and Ingredients</span></a> section. The <a class="reference internal" href="../../user_guide/ingredient.html#ingredient"><span class="std std-ref">Ingredients</span></a> section also covers
-the sparse analytical-gradient pattern.</p>
+<a class="reference internal" href="../../user_guide/ingredient.html#ingredient"><span class="std std-ref">Sparse Quantum-Classical Gradients</span></a> section.</p>
 <a class="reference internal image-reference" href="../../_images/fssh_lreorg_inv_vel_offdiag.png"><img alt="Population dynamics." class="align-center" src="../../_images/fssh_lreorg_inv_vel_offdiag.png" style="width: 50%;" />
 </a>
 
