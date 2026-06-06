@@ -1,0 +1,819 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Recording and Post-processing Outputs &#8212; QC Lab  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c1c6b95" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=0790524f97105ba85085"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
+
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=b8b12719"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/outputs';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://tempelaar-team.github.io/qclab-dev/user_guide/outputs.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Choosing an Algorithm" href="choosing_algorithm.html" />
+    <link rel="prev" title="Data" href="data.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo-light.png" class="logo__image only-light" alt="QC Lab  documentation - Home"/>
+    <img src="../_static/logo-dark.png" class="logo__image only-dark pst-js-only" alt="QC Lab  documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../interactive_docs/index.html">
+    Quick Menu
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qclab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../interactive_docs/index.html">
+    Quick Menu
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qclab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Concepts</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="constants.html">The Constants Object</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building blocks</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recipe.html">Recipes</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Composing simulations</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="algorithm.html">Algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parallelization.html">Parallelization and Reproducibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Recording and Post-processing Outputs</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Choosing and extending</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="choosing_algorithm.html">Choosing an Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developing_algorithms.html">Developing Custom Algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Recording and Post-processing Outputs</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="recording-and-post-processing-outputs">
+<span id="outputs"></span><h1>Recording and Post-processing Outputs<a class="headerlink" href="#recording-and-post-processing-outputs" title="Link to this heading">#</a></h1>
+<p>QC Lab records simulation results by carrying them through the
+<code class="docutils literal notranslate"><span class="pre">state[&quot;output_dict&quot;]</span></code> slot to the Data object returned by the
+Dynamics Driver. This section traces that pipeline end-to-end, lists
+the standard keys that the built-in Algorithms produce, walks through
+adding a new recorded quantity, and shows the save / load and plotting
+patterns used to work with a Data object after the run.</p>
+<p>For the per-batch lifetime of <code class="docutils literal notranslate"><span class="pre">output_dict</span></code> and the
+update-Task-plus-collect-Task pair that puts a value there, see
+<a class="reference internal" href="state_and_parameters.html#state-and-parameters"><span class="std std-ref">State and Parameters Objects</span></a>. For the
+Data object’s class reference, see <a class="reference internal" href="data.html#data"><span class="std std-ref">Data</span></a>.</p>
+<hr class="docutils" />
+<section id="the-output-pipeline-at-a-glance">
+<h2>The output pipeline at a glance<a class="headerlink" href="#the-output-pipeline-at-a-glance" title="Link to this heading">#</a></h2>
+<p>A single value travels through four stages on its way to a saved
+Data object:</p>
+<ol class="arabic simple">
+<li><p><strong>Update Task</strong> — runs on every update time step (or only on
+collect time steps when efficiency matters). Computes the
+quantity from State entries and writes it back into the State
+object.</p></li>
+<li><p><strong>Collect Task</strong> — runs on every collect time step. Copies the
+quantity from the State object into <code class="docutils literal notranslate"><span class="pre">state[&quot;output_dict&quot;]</span></code>
+under its output key.</p></li>
+<li><p><strong>Driver</strong> — at the same collect time step, calls
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Data.add_output_to_data_dict</span></code>,
+which sums the entry across the batch axis and divides by the
+running <code class="docutils literal notranslate"><span class="pre">norm_factor</span></code> (the total number of trajectories that
+have contributed so far).</p></li>
+<li><p><strong>Data object</strong> — stores the trajectory-averaged result at the
+correct collect-time index in <code class="docutils literal notranslate"><span class="pre">data.data_dict[&lt;key&gt;]</span></code>.</p></li>
+</ol>
+<p>The averaging step is fixed: the leading axis (the batch axis) is
+summed and divided by the global normalization. Standard deviations
+or quantiles across trajectories are <strong>not</strong> kept by the Data object;
+recording a per-trajectory quantity is possible (see below) but the
+default machinery is set up for trajectory-averaged means.</p>
+</section>
+<hr class="docutils" />
+<section id="standard-output-keys">
+<h2>Standard output keys<a class="headerlink" href="#standard-output-keys" title="Link to this heading">#</a></h2>
+<p>The built-in Algorithms write the following keys into the Data
+object. The list is comprehensive for the default Recipes shipping
+with QC Lab.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 18.0%" />
+<col style="width: 28.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Shape</p></th>
+<th class="head"><p>Dtype</p></th>
+<th class="head"><p>Produced by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">t</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(T,)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float64</span></code></p></td>
+<td><p>every Algorithm (<code class="docutils literal notranslate"><span class="pre">collect_t</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dm_db</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(T,</span> <span class="pre">N,</span> <span class="pre">N)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">complex128</span></code></p></td>
+<td><p>mean-field, FSSH (diabatic basis)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dm_adb</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(T,</span> <span class="pre">N,</span> <span class="pre">N)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">complex128</span></code></p></td>
+<td><p>mean-field (<em>ab initio</em>), FSSH (<em>ab initio</em>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">classical_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(T,)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float64</span></code></p></td>
+<td><p>every Algorithm</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">quantum_energy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(T,)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float64</span></code></p></td>
+<td><p>every Algorithm</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">seed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(num_trajs,)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int64</span></code></p></td>
+<td><p>every Driver</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Here <code class="docutils literal notranslate"><span class="pre">T</span> <span class="pre">=</span> <span class="pre">len(sim.settings.t_collect)</span></code> is the number of collect
+time steps and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">sim.model.constants.num_quantum_states</span></code>.</p>
+<p>The keys <code class="docutils literal notranslate"><span class="pre">norm_factor</span></code> and <code class="docutils literal notranslate"><span class="pre">seed</span></code> are also present in the Data
+object but are bookkeeping rather than recorded physics:
+<code class="docutils literal notranslate"><span class="pre">norm_factor</span></code> is the running normalization used by
+<code class="docutils literal notranslate"><span class="pre">add_output_to_data_dict</span></code> and <code class="docutils literal notranslate"><span class="pre">seed</span></code> is the union of all
+trajectory seeds processed so far.</p>
+</section>
+<hr class="docutils" />
+<section id="adding-a-new-recorded-quantity">
+<h2>Adding a new recorded quantity<a class="headerlink" href="#adding-a-new-recorded-quantity" title="Link to this heading">#</a></h2>
+<p>The general recipe for adding a quantity is:</p>
+<ol class="arabic simple">
+<li><p>Write an update Task that computes the quantity and stores it on
+the State object under a chosen key.</p></li>
+<li><p>Write a collect Task that copies that State entry into
+<code class="docutils literal notranslate"><span class="pre">state[&quot;output_dict&quot;]</span></code>.</p></li>
+<li><p>Append the update Task to <code class="docutils literal notranslate"><span class="pre">algorithm.update_recipe</span></code> <em>and</em> to
+<code class="docutils literal notranslate"><span class="pre">algorithm.initialization_recipe</span></code> (the second is so the
+quantity exists at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code> before the first collect time step
+runs).</p></li>
+<li><p>Append the collect Task to <code class="docutils literal notranslate"><span class="pre">algorithm.collect_recipe</span></code>.</p></li>
+</ol>
+<p>A worked example: record the bath kinetic energy
+<span class="math notranslate nohighlight">\(\tfrac{1}{2 m} \sum_\xi p_\xi^2\)</span> alongside the existing
+<code class="docutils literal notranslate"><span class="pre">classical_energy</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qclab.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">z_to_p</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">update_bath_kinetic</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span>
+                        <span class="o">*</span><span class="p">,</span> <span class="n">z_name</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">,</span>
+                        <span class="n">kinetic_name</span><span class="o">=</span><span class="s2">&quot;bath_kinetic&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the bath kinetic energy from z.&quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">classical_coordinate_mass</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">classical_coordinate_weight</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">z_to_p</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="n">z_name</span><span class="p">],</span> <span class="n">m</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">state</span><span class="p">[</span><span class="n">kinetic_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">p</span> <span class="o">*</span> <span class="n">p</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">m</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
+    <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">collect_bath_kinetic</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span>
+                         <span class="o">*</span><span class="p">,</span> <span class="n">kinetic_name</span><span class="o">=</span><span class="s2">&quot;bath_kinetic&quot;</span><span class="p">,</span>
+                         <span class="n">kinetic_output_name</span><span class="o">=</span><span class="s2">&quot;bath_kinetic&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Copy the bath kinetic energy into output_dict.&quot;&quot;&quot;</span>
+    <span class="n">state</span><span class="p">[</span><span class="s2">&quot;output_dict&quot;</span><span class="p">][</span><span class="n">kinetic_output_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="n">kinetic_name</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="n">parameters</span>
+</pre></div>
+</div>
+<p>Wiring the Tasks into the Algorithm after instantiation uses the
+rebinding pattern from <a class="reference internal" href="recipe.html#recipe"><span class="std std-ref">Recipes</span></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">initialization_recipe</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">initialization_recipe</span> <span class="o">+</span> <span class="p">[</span><span class="n">update_bath_kinetic</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">update_recipe</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">update_recipe</span> <span class="o">+</span> <span class="p">[</span><span class="n">update_bath_kinetic</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">collect_recipe</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">collect_recipe</span> <span class="o">+</span> <span class="p">[</span><span class="n">collect_bath_kinetic</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">serial_driver</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After the run, <code class="docutils literal notranslate"><span class="pre">data.data_dict[&quot;bath_kinetic&quot;]</span></code> is an array of shape
+<code class="docutils literal notranslate"><span class="pre">(T,)</span></code> holding the trajectory-averaged bath kinetic energy at each
+collect time step.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">*_name</span></code> keyword arguments follow the convention described in
+<a class="reference internal" href="state_and_parameters.html#state-and-parameters"><span class="std std-ref">State and Parameters Objects</span></a>. The Tasks
+above are written so that the State key and the output key are
+configurable; this is what lets the same Task be reused under
+different names by a later wrapping in <a class="reference external" href="https://docs.python.org/3/library/functools.html#functools.partial" title="(in Python v3.14)"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code></a>.</p>
+</section>
+<hr class="docutils" />
+<section id="saving-and-loading-a-data-object">
+<h2>Saving and loading a Data object<a class="headerlink" href="#saving-and-loading-a-data-object" title="Link to this heading">#</a></h2>
+<p>The Data object provides <a class="reference internal" href="data.html#qclab.data.Data.save" title="qclab.data.Data.save"><code class="xref py py-meth docutils literal notranslate"><span class="pre">save</span></code></a> and
+<a class="reference internal" href="data.html#qclab.data.Data.load" title="qclab.data.Data.load"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load</span></code></a> for round-tripping to disk. The
+serialization format is HDF5 (via <code class="docutils literal notranslate"><span class="pre">h5py</span></code>) by default; if <code class="docutils literal notranslate"><span class="pre">h5py</span></code>
+is unavailable or disabled, the methods fall back to NumPy’s
+<code class="docutils literal notranslate"><span class="pre">.npz</span></code> archive.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">serial_driver</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;run_0001.h5&quot;</span><span class="p">)</span>
+
+<span class="c1"># Later, in a separate session:</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qclab</span><span class="w"> </span><span class="kn">import</span> <span class="n">Data</span>
+<span class="n">data2</span> <span class="o">=</span> <span class="n">Data</span><span class="p">()</span>
+<span class="n">data2</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;run_0001.h5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Two properties of <code class="xref py py-meth docutils literal notranslate"><span class="pre">load()</span></code> are worth noting:</p>
+<ul class="simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">load()</span></code> is <strong>additive</strong>. It calls
+<a class="reference internal" href="data.html#qclab.data.Data.add_data" title="qclab.data.Data.add_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_data</span></code></a> internally, so loading
+a file into a Data object that already contains data merges the
+two. To load a file in isolation, construct a fresh Data object
+first (<code class="docutils literal notranslate"><span class="pre">Data()</span></code>).</p></li>
+<li><p>Every value stored in <code class="docutils literal notranslate"><span class="pre">data_dict</span></code> must be convertible to a NumPy
+array of supported dtype. Nested dictionaries are written as HDF5
+groups; lists of mixed-type values are not supported.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">data.log</span></code> string is round-tripped alongside <code class="docutils literal notranslate"><span class="pre">data_dict</span></code> —
+HDF5 stores it as a file-level attribute, <code class="docutils literal notranslate"><span class="pre">.npz</span></code> stores it under
+the key <code class="docutils literal notranslate"><span class="pre">log</span></code>.</p>
+</section>
+<hr class="docutils" />
+<section id="plotting-recipes">
+<h2>Plotting recipes<a class="headerlink" href="#plotting-recipes" title="Link to this heading">#</a></h2>
+<p>The following recipes assume a Data object <code class="docutils literal notranslate"><span class="pre">data</span></code> produced by a
+diabatic Algorithm such as <code class="docutils literal notranslate"><span class="pre">MeanField</span></code> or
+<code class="docutils literal notranslate"><span class="pre">FewestSwitchesSurfaceHopping</span></code>. For <em>ab initio</em> runs, replace
+<code class="docutils literal notranslate"><span class="pre">dm_db</span></code> with <code class="docutils literal notranslate"><span class="pre">dm_adb</span></code>.</p>
+<section id="diabatic-populations">
+<h3>Diabatic populations<a class="headerlink" href="#diabatic-populations" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">]</span>
+<span class="n">dm</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s2">&quot;dm_db&quot;</span><span class="p">]</span>
+<span class="n">populations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;tii-&gt;ti&quot;</span><span class="p">,</span> <span class="n">dm</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">populations</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;diabatic populations&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="diabatic-coherences">
+<h3>Diabatic coherences<a class="headerlink" href="#diabatic-coherences" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">coherence</span> <span class="o">=</span> <span class="n">dm</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">coherence</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Re&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">coherence</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Im&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\rho_</span><span class="si">{01}</span><span class="s2">$&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="energy-conservation-check">
+<h3>Energy conservation check<a class="headerlink" href="#energy-conservation-check" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">e_q</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s2">&quot;quantum_energy&quot;</span><span class="p">]</span>
+<span class="n">e_c</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s2">&quot;classical_energy&quot;</span><span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">e_q</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;quantum&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">e_c</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;classical&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">e_q</span> <span class="o">+</span> <span class="n">e_c</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;total&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;energy&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For mean-field dynamics the total energy is conserved to integrator
+accuracy; for FSSH the energy is conserved trajectory-wise at hops
+but the trajectory-averaged total may drift slightly when forbidden
+hops occur.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="recording-per-trajectory-quantities">
+<h2>Recording per-trajectory quantities<a class="headerlink" href="#recording-per-trajectory-quantities" title="Link to this heading">#</a></h2>
+<p>The default averaging step in
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">add_output_to_data_dict</span></code>
+sums along the batch axis, so the per-trajectory information is
+discarded by the time the Data object is written. To keep the
+per-trajectory record, save the State entry under a different shape
+that includes the trajectory index, for example by writing one entry
+per trajectory under a per-seed key. A simpler alternative is to use
+<code class="docutils literal notranslate"><span class="pre">serial_driver</span></code> with <code class="docutils literal notranslate"><span class="pre">batch_size</span> <span class="pre">=</span> <span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">num_trajs</span> <span class="pre">=</span> <span class="pre">1</span></code>
+inside a loop; each call returns a Data object that holds a single
+trajectory’s averaged-but-not-summed values.</p>
+<p>The recommended pattern when per-trajectory output is needed across
+many trajectories is to record into a separate file (e.g., NumPy
+<code class="docutils literal notranslate"><span class="pre">.npy</span></code> per trajectory inside the update Task) and aggregate
+externally after the run.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="data.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Data</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="choosing_algorithm.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Choosing an Algorithm</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-output-pipeline-at-a-glance">The output pipeline at a glance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-output-keys">Standard output keys</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-a-new-recorded-quantity">Adding a new recorded quantity</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#saving-and-loading-a-data-object">Saving and loading a Data object</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting-recipes">Plotting recipes</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diabatic-populations">Diabatic populations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diabatic-coherences">Diabatic coherences</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#energy-conservation-check">Energy conservation check</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#recording-per-trajectory-quantities">Recording per-trajectory quantities</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025-2026, Tempelaar Team.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.18.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

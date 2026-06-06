@@ -1,0 +1,791 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Parallelization and Reproducibility &#8212; QC Lab  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c1c6b95" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=0790524f97105ba85085"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
+
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=b8b12719"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/parallelization';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://tempelaar-team.github.io/qclab-dev/user_guide/parallelization.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Data" href="data.html" />
+    <link rel="prev" title="Drivers" href="driver.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo-light.png" class="logo__image only-light" alt="QC Lab  documentation - Home"/>
+    <img src="../_static/logo-dark.png" class="logo__image only-dark pst-js-only" alt="QC Lab  documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../interactive_docs/index.html">
+    Quick Menu
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qclab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../interactive_docs/index.html">
+    Quick Menu
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tempelaar-team/qclab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Citing QC Lab</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Concepts</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="constants.html">The Constants Object</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building blocks</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ingredient.html">Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recipe.html">Recipes</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Composing simulations</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="algorithm.html">Algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Drivers</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Parallelization and Reproducibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputs.html">Recording and Post-processing Outputs</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Choosing and extending</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="choosing_algorithm.html">Choosing an Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developing_models.html">Developing Models and Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developing_algorithms.html">Developing Custom Algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ab_initio.html">Ab Initio Dynamics</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Low-level Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numerical_constants.html">Numerical Constants</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Parallelization and Reproducibility</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="parallelization-and-reproducibility">
+<span id="parallelization"></span><h1>Parallelization and Reproducibility<a class="headerlink" href="#parallelization-and-reproducibility" title="Link to this heading">#</a></h1>
+<p>QC Lab ships with three Dynamics Drivers — a serial Driver and two
+parallel Drivers — that differ in how they distribute batches of
+trajectories across cores or nodes. This section is the companion to
+<a class="reference internal" href="driver.html#driver"><span class="std std-ref">Drivers</span></a> and covers the cross-cutting topics that span
+all three Drivers: choosing the right Driver for a workload, how
+<code class="docutils literal notranslate"><span class="pre">batch_size</span></code>, <code class="docutils literal notranslate"><span class="pre">num_trajs</span></code>, and <code class="docutils literal notranslate"><span class="pre">num_tasks</span></code> interact, how seeds
+flow through batches, and how to reproduce a single trajectory.</p>
+<hr class="docutils" />
+<section id="choosing-a-dynamics-driver">
+<h2>Choosing a Dynamics Driver<a class="headerlink" href="#choosing-a-dynamics-driver" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 36.0%" />
+<col style="width: 36.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Driver</p></th>
+<th class="head"><p>When to use</p></th>
+<th class="head"><p>Limitations</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serial_driver</span></code></p></td>
+<td><p>Small simulations, debugging, profiling, or when an external
+library (e.g., Q-Chem) manages its own parallelism.</p></td>
+<td><p>Single Python process; does not actively limit CPU usage but
+does not distribute batches across cores.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">parallel_driver_multiprocessing</span></code></p></td>
+<td><p>Single-machine production runs. Uses Python’s
+<a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing" title="(in Python v3.14)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multiprocessing</span></code></a> module to run batches concurrently
+across CPU cores.</p></td>
+<td><p>Pickle requirements on the Simulation object; not portable
+across machines.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">parallel_driver_mpi</span></code></p></td>
+<td><p>Multi-node runs on HPC clusters. Uses <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> and integrates
+with <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> / <code class="docutils literal notranslate"><span class="pre">mpiexec</span></code> and SLURM.</p></td>
+<td><p>Requires <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> to be installed and an MPI execution
+environment to launch the script.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A reasonable progression during development is:</p>
+<ol class="arabic simple">
+<li><p>Build the Simulation with <code class="docutils literal notranslate"><span class="pre">serial_driver</span></code> and a small
+<code class="docutils literal notranslate"><span class="pre">num_trajs</span></code>.</p></li>
+<li><p>Once correctness is established, switch to
+<code class="docutils literal notranslate"><span class="pre">parallel_driver_multiprocessing</span></code> for full-scale runs on a
+single machine.</p></li>
+<li><p>Move to <code class="docutils literal notranslate"><span class="pre">parallel_driver_mpi</span></code> only when a single machine is no
+longer enough.</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="how-batches-trajectories-and-tasks-fit-together">
+<h2>How batches, trajectories, and tasks fit together<a class="headerlink" href="#how-batches-trajectories-and-tasks-fit-together" title="Link to this heading">#</a></h2>
+<p>Three settings determine how a simulation is partitioned for
+execution:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">sim.settings.num_trajs</span></code></dt><dd><p>Total number of independent trajectories to run, summed across
+all batches and all tasks.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">sim.settings.batch_size</span></code></dt><dd><p>Number of trajectories carried inside a single batch. A batch is
+the unit that the dynamics core processes vectorized along the
+leading axis of every State entry. Each call to <code class="docutils literal notranslate"><span class="pre">run_dynamics</span></code>
+consumes one batch.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">num_tasks</span></code> (parallel Drivers only)</dt><dd><p>Number of parallel workers — multiprocessing processes for
+<code class="docutils literal notranslate"><span class="pre">parallel_driver_multiprocessing</span></code>, MPI ranks for
+<code class="docutils literal notranslate"><span class="pre">parallel_driver_mpi</span></code>. Defaults to
+<a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.cpu_count" title="(in Python v3.14)"><code class="xref py py-func docutils literal notranslate"><span class="pre">multiprocessing.cpu_count()</span></code></a> and <code class="docutils literal notranslate"><span class="pre">MPI.COMM_WORLD.Get_size</span></code>
+respectively.</p>
+</dd>
+</dl>
+<p>These three settings combine in the following way. The serial Driver
+splits <code class="docutils literal notranslate"><span class="pre">num_trajs</span></code> into <code class="docutils literal notranslate"><span class="pre">ceil(num_trajs</span> <span class="pre">/</span> <span class="pre">batch_size)</span></code> batches
+and runs them in sequence. Each parallel Driver does the same split
+and then distributes the batches across <code class="docutils literal notranslate"><span class="pre">num_tasks</span></code> workers; a
+single worker can hold up to <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> trajectories in memory at
+once.</p>
+<p>The practical rules of thumb are:</p>
+<ul class="simple">
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> to fit comfortably in one worker’s memory. The
+State object grows linearly in <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">num_quantum_states</span></code>;
+for FSSH on a 7-site FMO model with <code class="docutils literal notranslate"><span class="pre">batch_size</span> <span class="pre">=</span> <span class="pre">100</span></code> the State
+fits in ~ tens of MB. Vectorization within a batch is where the
+per-core performance comes from, so larger batches are generally
+preferable to many small batches.</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">num_trajs</span></code> to be a multiple of <code class="docutils literal notranslate"><span class="pre">num_tasks</span> <span class="pre">*</span> <span class="pre">batch_size</span></code>.
+When the last partial batch is smaller than <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> the
+parallel Driver still distributes one batch per worker, so a
+partially filled batch ties up a whole worker for fewer
+trajectories than the rest. Choosing a multiple avoids this
+inefficiency.</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">num_tasks</span></code> to the number of physical cores you intend to
+use. Oversubscribing — <code class="docutils literal notranslate"><span class="pre">num_tasks</span></code> greater than the actual core
+count — usually slows the simulation because NumPy and any
+underlying BLAS library are already using threads inside each
+batch (see <a class="reference internal" href="#parallelization-threads"><span class="std std-ref">Thread interference</span></a>).</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="seeds-and-reproducibility">
+<h2>Seeds and reproducibility<a class="headerlink" href="#seeds-and-reproducibility" title="Link to this heading">#</a></h2>
+<p>Every trajectory has an integer seed. The seeds are stored in
+<code class="docutils literal notranslate"><span class="pre">state[&quot;seed&quot;]</span></code> and used by every Task that draws random numbers,
+so the same seed array always produces the same trajectory data,
+batch by batch, regardless of the Driver chosen.</p>
+<section id="default-seed-policy">
+<h3>Default seed policy<a class="headerlink" href="#default-seed-policy" title="Link to this heading">#</a></h3>
+<p>When <code class="docutils literal notranslate"><span class="pre">seeds</span></code> is not passed to the Driver, the Driver constructs the
+seed array deterministically from the current Data object’s seed
+record:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">seeds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s2">&quot;seed&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s2">&quot;seed&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">seeds</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">num_trajs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If a fresh Data object is passed (or no <code class="docutils literal notranslate"><span class="pre">data</span></code> argument is given),
+the seeds are <code class="docutils literal notranslate"><span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">…,</span> <span class="pre">num_trajs</span> <span class="pre">-</span> <span class="pre">1</span></code>. If the Data object already
+contains trajectories with seeds <code class="docutils literal notranslate"><span class="pre">0,</span> <span class="pre">…,</span> <span class="pre">N</span> <span class="pre">-</span> <span class="pre">1</span></code>, the new run uses
+<code class="docutils literal notranslate"><span class="pre">N,</span> <span class="pre">N</span> <span class="pre">+</span> <span class="pre">1,</span> <span class="pre">…,</span> <span class="pre">N</span> <span class="pre">+</span> <span class="pre">num_trajs</span> <span class="pre">-</span> <span class="pre">1</span></code>. This makes <code class="docutils literal notranslate"><span class="pre">add_data</span></code> calls
+non-overlapping in seed space and lets a user grow a Data object
+incrementally without seed collisions.</p>
+</section>
+<section id="reproducing-a-single-trajectory">
+<h3>Reproducing a single trajectory<a class="headerlink" href="#reproducing-a-single-trajectory" title="Link to this heading">#</a></h3>
+<p>Passing <code class="docutils literal notranslate"><span class="pre">seeds</span></code> explicitly to the Driver overrides the default
+policy and lets a single trajectory be re-run by itself:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reproduce trajectory 17 from an earlier run.</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">num_trajs</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">data_single</span> <span class="o">=</span> <span class="n">serial_driver</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">seeds</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">17</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">seeds</span></code> is provided, the Driver sets <code class="docutils literal notranslate"><span class="pre">sim.settings.num_trajs</span></code>
+to <code class="docutils literal notranslate"><span class="pre">len(seeds)</span></code>; the script does not need to set <code class="docutils literal notranslate"><span class="pre">num_trajs</span></code>
+separately.</p>
+<p>For deterministic reproducibility, two further conditions must hold:</p>
+<ul class="simple">
+<li><p>Every random draw inside a Task or Ingredient must derive from
+<code class="docutils literal notranslate"><span class="pre">state[&quot;seed&quot;]</span></code> (the built-in Tasks do this).</p></li>
+<li><p>The Algorithm’s deterministic-flag settings must match between the
+original run and the reproduction. For FSSH, this is
+<code class="docutils literal notranslate"><span class="pre">fssh_deterministic</span></code>.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">seed</span></code> array is also written into <code class="docutils literal notranslate"><span class="pre">data.data_dict[&quot;seed&quot;]</span></code>
+after a run, so the seeds used in any saved Data object are
+recoverable.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="the-mpi-driver">
+<h2>The MPI Driver<a class="headerlink" href="#the-mpi-driver" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">parallel_driver_mpi</span></code> requires <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> and an MPI execution
+environment. A script using the MPI Driver is launched as</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun<span class="w"> </span>-n<span class="w"> </span><span class="m">4</span><span class="w"> </span>python<span class="w"> </span>my_simulation_script.py
+</pre></div>
+</div>
+<p>with <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">4</span></code> requesting four MPI ranks. The Driver distributes the
+batches across ranks via <code class="docutils literal notranslate"><span class="pre">np.linspace(0,</span> <span class="pre">num_batches,</span> <span class="pre">size</span> <span class="pre">+</span> <span class="pre">1)</span></code>
+chunking, runs the dynamics on each rank, and then gathers the
+results onto rank 0 via point-to-point sends. Log output from every
+rank is concatenated onto <code class="docutils literal notranslate"><span class="pre">data.log</span></code> on rank 0.</p>
+<p>A complete SLURM submission script and a worked example live in
+<code class="docutils literal notranslate"><span class="pre">examples/mpi_examples/</span></code>; see <a class="reference internal" href="driver.html#driver"><span class="std std-ref">Drivers</span></a> for the
+embedded listing.</p>
+<p>Two MPI-specific caveats:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data.add_data</span></code> is called only on rank 0. The other ranks send
+their local Data objects via <code class="docutils literal notranslate"><span class="pre">comm.send</span></code> and exit; the Data
+object returned by the Driver on non-zero ranks contains only the
+rank-local batches.</p></li>
+<li><p>The MPI Driver imports <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> lazily inside the function body.
+A script that defines an MPI-targeted simulation but is invoked
+without MPI will not fail until the Driver is called.</p></li>
+</ul>
+<hr class="docutils" />
+</section>
+<section id="common-pitfalls">
+<span id="parallelization-threads"></span><h2>Common pitfalls<a class="headerlink" href="#common-pitfalls" title="Link to this heading">#</a></h2>
+<section id="oversubscribed-cores">
+<h3>Oversubscribed cores<a class="headerlink" href="#oversubscribed-cores" title="Link to this heading">#</a></h3>
+<p>NumPy and any underlying BLAS library (OpenBLAS, MKL) often use
+threads inside a single Python process. When <code class="docutils literal notranslate"><span class="pre">num_tasks</span></code> equals the
+core count and each worker is also running BLAS at full thread
+count, the cores are oversubscribed. The usual remedy is to set the
+thread count to one before launching the Driver:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">1</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">OPENBLAS_NUM_THREADS</span><span class="o">=</span><span class="m">1</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">MKL_NUM_THREADS</span><span class="o">=</span><span class="m">1</span>
+python<span class="w"> </span>my_simulation_script.py
+</pre></div>
+</div>
+</section>
+<section id="non-deterministic-random-in-custom-ingredients">
+<h3>Non-deterministic random in custom Ingredients<a class="headerlink" href="#non-deterministic-random-in-custom-ingredients" title="Link to this heading">#</a></h3>
+<p>A custom Ingredient that uses <a class="reference external" href="https://numpy.org/doc/stable/reference/random/generator.html#numpy.random.default_rng" title="(in NumPy v2.4)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.random.default_rng()</span></code></a> with
+no seed argument will draw from a global generator and break
+trajectory-level reproducibility. The pattern that preserves
+determinism is to seed the generator from the trajectory seed:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">init_classical_custom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">seed</span><span class="p">),</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">num_classical_coordinates</span><span class="p">))</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">seed</span></code> keyword argument is passed by the calling Task and
+contains the per-trajectory seed array; threading it through
+<code class="docutils literal notranslate"><span class="pre">default_rng</span></code> keeps every trajectory independent and reproducible.</p>
+</section>
+<section id="pickle-failures-in-multiprocessing">
+<h3>Pickle failures in multiprocessing<a class="headerlink" href="#pickle-failures-in-multiprocessing" title="Link to this heading">#</a></h3>
+<p>The multiprocessing Driver deep-copies the Simulation object and
+sends each copy to a worker process via pickle. Any callable attached
+to the Model object’s Ingredients list or the Algorithm object’s
+Recipes must be picklable; a lambda or a closure defined inside a
+function is the most common offender. Define such callables at module
+scope, or use <a class="reference external" href="https://docs.python.org/3/library/functools.html#functools.partial" title="(in Python v3.14)"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code></a> of a module-level function.</p>
+</section>
+<section id="mixed-driver-and-dataset">
+<h3>Mixed Driver and dataset<a class="headerlink" href="#mixed-driver-and-dataset" title="Link to this heading">#</a></h3>
+<p>Switching Drivers between calls is supported, but the Data object’s
+<code class="docutils literal notranslate"><span class="pre">norm_factor</span></code> is cumulative: each successive <code class="docutils literal notranslate"><span class="pre">add_data</span></code> call
+re-weights the running mean by the running and incoming
+<code class="docutils literal notranslate"><span class="pre">norm_factor</span></code>. Mixing batches from very different <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>
+values produces a correct average but a less stable estimate than a
+homogeneous set of batches; matching <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> between calls is
+the simpler choice when a saved Data object will be extended.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="driver.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Drivers</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="data.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Data</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choosing-a-dynamics-driver">Choosing a Dynamics Driver</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-batches-trajectories-and-tasks-fit-together">How batches, trajectories, and tasks fit together</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#seeds-and-reproducibility">Seeds and reproducibility</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#default-seed-policy">Default seed policy</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducing-a-single-trajectory">Reproducing a single trajectory</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-mpi-driver">The MPI Driver</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-pitfalls">Common pitfalls</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#oversubscribed-cores">Oversubscribed cores</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#non-deterministic-random-in-custom-ingredients">Non-deterministic random in custom Ingredients</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pickle-failures-in-multiprocessing">Pickle failures in multiprocessing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mixed-driver-and-dataset">Mixed Driver and dataset</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025-2026, Tempelaar Team.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.18.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
