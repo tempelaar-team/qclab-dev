@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 
@@ -27,8 +26,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
@@ -37,10 +36,10 @@
     <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c1c6b95" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
     <script src="../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
@@ -59,8 +58,9 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tasks" href="task.html" />
-    <link rel="prev" title="Architecture Overview" href="architecture.html" />
+    <link rel="prev" title="State and Parameters" href="state_and_parameters.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
   
@@ -110,7 +110,7 @@
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -174,7 +174,7 @@
         <div class="navbar-item navbar-persistent--container">
           
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -185,15 +185,15 @@
         <div class="navbar-item">
 
 <div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
     <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
     <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
     <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
   </ul>
 </div></div>
       
@@ -219,7 +219,7 @@
   
     <div class="navbar-persistent--mobile">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -228,7 +228,7 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -284,15 +284,15 @@
           <div class="navbar-item">
 
 <div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
     <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
     <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
     <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
   </ul>
 </div></div>
         
@@ -325,7 +325,8 @@
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing QC Lab</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Ingredients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_and_parameters.html">State and Parameters</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Ingredients</a></li>
 <li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="algorithm.html">Algorithms</a></li>
@@ -411,7 +412,7 @@ As discussed in the <a class="reference internal" href="model.html#model"><span 
 <p>A generic Ingredient has the form:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">ingredient_specifier</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c1"># Get any keyword arguments, with default values if not provided.</span>
-    <span class="n">kwarg1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kwarg1&#39;</span><span class="p">,</span> <span class="n">default_value1</span><span class="p">)</span>
+    <span class="n">kwarg1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'kwarg1'</span><span class="p">,</span> <span class="n">default_value1</span><span class="p">)</span>
     <span class="c1"># Compute the ingredient using attributes of the model and parameters objects.</span>
     <span class="n">constants</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span>
     <span class="c1"># Return the computed ingredient.</span>
@@ -426,7 +427,7 @@ As discussed in the <a class="reference internal" href="model.html#model"><span 
     <span class="n">h_q</span> <span class="o">=</span> <span class="o">...</span>
     <span class="k">return</span> <span class="n">h_q</span>
 
-<span class="n">model</span><span class="o">.</span><span class="n">ingredients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;h_q&quot;</span><span class="p">,</span> <span class="n">h_q_custom</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">ingredients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"h_q"</span><span class="p">,</span> <span class="n">h_q_custom</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>The minimal set of Ingredients required to run a simulation comprises the following:</p>
@@ -452,9 +453,9 @@ As discussed in the <a class="reference internal" href="model.html#model"><span 
 
 <span class="nd">@vectorize_ingredient</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">h_q_two_level</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Quantum Hamiltonian for a two-level system.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">e_0</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_00</span>
     <span class="n">e_1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_11</span>
     <span class="n">v</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_01_re</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_01_im</span>
@@ -467,7 +468,7 @@ As discussed in the <a class="reference internal" href="model.html#model"><span 
 </pre></div>
 </div>
 <p>The Ingredient can then be included in a Model object as:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">ingredients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;h_q&quot;</span><span class="p">,</span> <span class="n">h_q_two_level</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">ingredients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"h_q"</span><span class="p">,</span> <span class="n">h_q_two_level</span><span class="p">))</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -477,10 +478,10 @@ should hard-code vectorization into Ingredients and leverage NumPy vectorization
 </div>
 <p>Alternatively, vectorization can be implemented manually. For example, the following implementation of the quantum Hamiltonian Ingredient for a two-level system is manually vectorized as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">h_q_two_level</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Quantum Hamiltonian for a two-level system.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]</span>
+<span class="sd">    """</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"batch_size"</span><span class="p">]</span>
     <span class="n">e_0</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_00</span>
     <span class="n">e_1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_11</span>
     <span class="n">v</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_01_re</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">two_level_01_im</span>
@@ -502,8 +503,8 @@ should hard-code vectorization into Ingredients and leverage NumPy vectorization
 <p>In practice, the ordering of the matrix elements can have a dramatic impact on performance due to memory access patterns. Therefore, we recommend using <code class="docutils literal notranslate"><span class="pre">numpy.where</span></code> to determine the indices of the non-zero elements. For example, the following implementation of the gradient of the quantum-classical interaction Hamiltonian for a spin-boson model computes only the non-zero elements of the gradient:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@vectorize_ingredient</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">dh_qc_dzc_spinboson</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="n">z</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">]</span>
-    <span class="n">A</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"z"</span><span class="p">]</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"A"</span><span class="p">)</span>
     <span class="n">diag_coupling</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">diagonal_linear_coupling</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">A</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">A</span><span class="p">):</span>
@@ -525,8 +526,8 @@ but made sparse by the decorator:</p>
 <span class="nd">@make_ingredient_sparse</span>
 <span class="nd">@vectorize_ingredient</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">dh_qc_dzc_spinboson</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="n">z</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">]</span>
-    <span class="n">A</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"z"</span><span class="p">]</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"A"</span><span class="p">)</span>
     <span class="n">diag_coupling</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">diagonal_linear_coupling</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">A</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">A</span><span class="p">):</span>
@@ -561,12 +562,12 @@ These constants are discussed in <a class="reference internal" href="model.html#
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="architecture.html"
+       href="state_and_parameters.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Architecture Overview</p>
+        <p class="prev-next-title">State and Parameters</p>
       </div>
     </a>
     <a class="right-next"
@@ -616,8 +617,8 @@ These constants are discussed in <a class="reference internal" href="model.html#
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -638,7 +639,6 @@ These constants are discussed in <a class="reference internal" href="model.html#
 
   <p class="sphinx-version">
     Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
-    <br/>
   </p>
 </div>
       
@@ -651,7 +651,7 @@ These constants are discussed in <a class="reference internal" href="model.html#
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
 </p></div>
       
     </div>
